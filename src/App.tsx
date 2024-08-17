@@ -2,7 +2,8 @@ import "./App.css";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Navbar from "./components/Navbar/Navbar";
 import { ThemeProvider } from "./components/theme/ThemeProvider";
-import Dashboard from "./pages/Dashboard/Dashboard";
+// import Dashboard from "./pages/Dashboard/Dashboard";
+import PatientTable from "./pages/Supervisor/PatientTable";
 
 const App: React.FC = () => {
   return (
@@ -10,12 +11,12 @@ const App: React.FC = () => {
       <Router>
         <div className="min-h-screen bg-background font-sans antialiased">
           <Navbar />
-          <main className="container mx-auto px-4 py-8">
-            <Routes>
-              <Route path="/" element={<Dashboard />} />
-            </Routes>
-          </main>
-        </div>
+            <main className="container mx-auto px-4 py-8">
+              <Routes>
+                <Route path="/" element={<PatientTable />} />
+              </Routes>
+            </main>
+          </div>
       </Router>
     </ThemeProvider>
   );

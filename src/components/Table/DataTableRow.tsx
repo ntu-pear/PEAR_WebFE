@@ -22,7 +22,8 @@ function DataTableRow<T extends TableRowData>({ item, columns }: DataTableRowPro
           {column.render ? column.render(item[column.key], item) : item[column.key]}
         </TableCell>
       ))}
-      <TableCell>
+      <TableCell className="flex justify-around">
+      <Button aria-label="View more" variant="default" size="default" >View More</Button>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button aria-label="Open menu" variant="ghost" size="sm">

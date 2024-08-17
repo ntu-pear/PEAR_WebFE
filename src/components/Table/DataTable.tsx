@@ -24,9 +24,7 @@ function DataTable<T extends TableRowData>({ data, columns }: DataTableProps<T>)
           {columns.map((column) => (
             <TableHead key={column.key.toString()}>{column.header}</TableHead>
           ))}
-          <TableHead>
-            <span className="sr-only">Actions</span>
-          </TableHead>
+          <TableHead className="pl-9">Actions</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
