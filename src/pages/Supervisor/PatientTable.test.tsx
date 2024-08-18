@@ -39,6 +39,6 @@ describe('Dashboard Component', () => {
 
   test('displays correct number of users in footer', () => {
     const footerText = screen.getByText(/showing/i);
-    expect(footerText).toHaveTextContent('Showing 1-5 of 5 patients');
+    expect(footerText).toHaveTextContent('Showing 1-20 of 20 patients');
   });
 });

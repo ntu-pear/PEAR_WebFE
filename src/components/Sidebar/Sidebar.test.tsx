@@ -12,7 +12,7 @@ describe('Sidebar Component', () => {
     });
   
     test('renders the sidebar', () => {
-      expect(screen.getByRole('complementary')).toBeInTheDocument();
+      expect(screen.getByRole('complementary')).toBeInTheDocument(); 
     });
   
     test('renders the main logo link', () => {
