@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { ListFilter, File, PlusCircle } from "lucide-react";
 import {
   Card,
@@ -28,22 +28,37 @@ import {
   PatientTableData,
   mockPatientTDList,
 } from "@/mocks/mockPatientTableData";
+import useDebounce from "@/hooks/useDebounce";
 
 const PatientTable: React.FC = () => {
   const [patientTDList, setPatientTDList] = useState<PatientTableData[]>([]);
   const [activeStatus, setActiveStatus] = useState("All");
+  const [searchItem, setSearchItem] = useState("");
+  const debouncedActiveStatus = useDebounce(activeStatus, 300);
+  const debouncedSearch = useDebounce(searchItem, 300);
 
-  const handleActiveStatus = () => {
-    const filteredPatientTDList: PatientTableData[] = mockPatientTDList.filter(
-      (ptd: PatientTableData) =>
+  const handleInputChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const searchTerm = e.target.value;
+      setSearchItem(searchTerm);
+    },
+    []
+  );
+
+  const handleFilter = () => {
+    const filteredPatientTDList: PatientTableData[] = mockPatientTDList
+      .filter((ptd: PatientTableData) =>
+        ptd.name.toLowerCase().includes(searchItem.toLowerCase())
+      )
+      .filter((ptd: PatientTableData) =>
         activeStatus === "All" ? true : ptd.status === activeStatus
-    );
+      );
     setPatientTDList(filteredPatientTDList);
   };
 
   useEffect(() => {
-    handleActiveStatus();
-  }, [activeStatus]);
+    handleFilter();
+  }, [debouncedActiveStatus, debouncedSearch]);
 
   const columns = [
     {
@@ -98,7 +113,7 @@ const PatientTable: React.FC = () => {
   return (
     <div className="flex min-h-screen w-full flex-col mt-8">
       <div className="flex flex-col sm:gap-4 sm:py-4">
-        <Header />
+        <Header onSearchChange={handleInputChange} />
         <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
           <Tabs defaultValue="all">
             <div className="flex items-center">
@@ -107,7 +122,7 @@ const PatientTable: React.FC = () => {
                 <TabsTrigger value="my_patients">My Patients</TabsTrigger>
               </TabsList>
               <div className="ml-auto flex items-center gap-2">
-                <DropdownMenu>
+                <DropdownMenu modal={false}>
                   <DropdownMenuTrigger asChild>
                     <Button variant="outline" size="sm" className="h-8 gap-1">
                       <ListFilter className="h-4 w-4" />
