@@ -1,9 +1,15 @@
-import React from 'react';
-import { MoreHorizontal } from 'lucide-react';
+import React from "react";
+import { MoreHorizontal } from "lucide-react";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { TableRowData } from './DataTable';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { TableRowData } from "./DataTable";
 
 interface DataTableRowProps<T extends TableRowData> {
   item: T;
@@ -14,16 +20,24 @@ interface DataTableRowProps<T extends TableRowData> {
   }>;
 }
 
-function DataTableRow<T extends TableRowData>({ item, columns }: DataTableRowProps<T>) {
+function DataTableRow<T extends TableRowData>({
+  item,
+  columns,
+}: DataTableRowProps<T>) {
   return (
     <TableRow>
       {columns.map((column) => (
         <TableCell key={column.key.toString()}>
-          {column.render ? column.render(item[column.key], item) : item[column.key]}
+          {column.render
+            ? column.render(item[column.key], item)
+            : item[column.key]}
         </TableCell>
       ))}
-      <TableCell>
-        <DropdownMenu>
+      <TableCell className="flex justify-around">
+        <Button aria-label="View more" variant="default" size="sm">
+          View More
+        </Button>
+        <DropdownMenu modal={false}>
           <DropdownMenuTrigger asChild>
             <Button aria-label="Open menu" variant="ghost" size="sm">
               <MoreHorizontal className="h-4 w-4" />
@@ -31,8 +45,12 @@ function DataTableRow<T extends TableRowData>({ item, columns }: DataTableRowPro
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuItem onClick={() => console.log('Edit', item)}>Edit</DropdownMenuItem>
-            <DropdownMenuItem onClick={() => console.log('Delete', item)}>Delete</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => console.log("Edit", item)}>
+              Edit
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => console.log("Delete", item)}>
+              Delete
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </TableCell>
