@@ -12,7 +12,7 @@ export interface PatientTableData extends TableRowData {
   image?: string;
 }
 
-export const mockSupervisorID: number = 1;
+export const mockCaregiverID: number = 1;
 
 export const mockPatientTDList: PatientTableData[] = [
   {

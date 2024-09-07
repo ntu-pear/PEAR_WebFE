@@ -25,12 +25,13 @@ import DataTable from "@/components/Table/DataTable";
 
 import {
   PatientTableData,
-  mockSupervisorID,
+  mockCaregiverID,
   mockPatientTDList,
 } from "@/mocks/mockPatientTableData";
 
 import useDebounce from "@/hooks/useDebounce";
 import AvatarModal from "@/components/Table/AvatarModal"; // Import the Modal component
+import { fetchAllPatientTD } from "@/api/patients";
 
 const PatientTable: React.FC = () => {
   const [patientTDList, setPatientTDList] = useState<PatientTableData[]>([]);
@@ -61,23 +62,34 @@ const PatientTable: React.FC = () => {
     });
   };
 
-  const handleFilter = () => {
-    const filteredPatientTDList: PatientTableData[] = mockPatientTDList
-      .filter((ptd: PatientTableData) =>
-        ptd.name.toLowerCase().includes(searchItem.toLowerCase())
-      )
-      .filter((ptd: PatientTableData) =>
-        activeStatus === "All" ? true : ptd.status === activeStatus
-      )
-      .filter((ptd: PatientTableData) =>
-        tabValue === "my_patients" && mockSupervisorID !== null
-          ? ptd.supervisorId === mockSupervisorID
-          : true
+  const handleFilter = async () => {
+    try {
+      const fetchedPatientTDList: PatientTableData[] =
+        await fetchAllPatientTD();
+
+      let filteredPatientTDList = fetchedPatientTDList.filter(
+        (ptd: PatientTableData) =>
+          ptd.name.toLowerCase().includes(searchItem.toLowerCase())
       );
 
-    const sortedPatientTDList = sortByName(filteredPatientTDList, "asc");
+      filteredPatientTDList = filteredPatientTDList.filter(
+        (ptd: PatientTableData) =>
+          activeStatus === "All" ? true : ptd.status === activeStatus
+      );
 
-    setPatientTDList(sortedPatientTDList);
+      filteredPatientTDList = filteredPatientTDList.filter(
+        (ptd: PatientTableData) =>
+          tabValue === "my_patients" && mockCaregiverID !== null
+            ? ptd.supervisorId === mockCaregiverID
+            : true
+      );
+
+      const sortedPatientTDList = sortByName(filteredPatientTDList, "asc");
+
+      setPatientTDList(sortedPatientTDList);
+    } catch (error) {
+      console.error("Error fetching patients:", error);
+    }
   };
 
   useEffect(() => {
