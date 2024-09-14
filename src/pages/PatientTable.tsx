@@ -60,7 +60,9 @@ const PatientTable: React.FC = () => {
   const handleFilter = async () => {
     try {
       const fetchedPatientTDList: PatientTableData[] =
-        await fetchAllPatientTD();
+        import.meta.env.MODE === "development"
+          ? await fetchAllPatientTD()
+          : mockPatientTDList;
 
       let filteredPatientTDList = fetchedPatientTDList.filter(
         (ptd: PatientTableData) =>
