@@ -102,7 +102,7 @@
   font-size: 32px; /* Adjust the font size as needed */
   cursor: pointer;
   z-index: 1001; /* Ensure close button is above other elements */
-  transform: translate(0.5rem, -1.5rem);
+  transform: translate(0.5rem, -0.75rem);
 }
 
 .modal-image {

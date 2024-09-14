@@ -19,7 +19,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Header from "@/components/Header/Header";
 import DataTable from "@/components/Table/DataTable";
 
@@ -30,7 +29,7 @@ import {
 } from "@/mocks/mockPatientTableData";
 
 import useDebounce from "@/hooks/useDebounce";
-import AvatarModal from "@/components/Table/AvatarModal"; // Import the Modal component
+import AvatarModalWrapper from "@/components/Avatar/AvatarModalWrapper";
 import { fetchAllPatientTD } from "@/api/patients";
 
 const PatientTable: React.FC = () => {
@@ -38,10 +37,6 @@ const PatientTable: React.FC = () => {
   const [activeStatus, setActiveStatus] = useState("All");
   const [searchItem, setSearchItem] = useState("");
   const [tabValue, setTabValue] = useState("all");
-  const [modalOpen, setModalOpen] = useState(false);
-  const [selectedImage, setSelectedImage] = useState<string>("");
-  const [selectedName, setSelectedName] = useState<string>("");
-  const [selectedPName, setSelectedPName] = useState<string>("");
   const debouncedActiveStatus = useDebounce(activeStatus, 300);
   const debouncedSearch = useDebounce(searchItem, 300);
   const debounceTabValue = useDebounce(tabValue, 300);
@@ -102,25 +97,7 @@ const PatientTable: React.FC = () => {
       header: "Name",
       render: (value: string, patient: PatientTableData) => (
         <div className="flex items-center gap-3">
-          <Avatar>
-            <AvatarImage
-              src={patient.image}
-              alt={patient.name}
-              style={{ cursor: "pointer" }} // Change cursor to pointer
-              onClick={() => {
-                setSelectedImage(patient.image || "");
-                setSelectedName(patient.name);
-                setSelectedPName(patient.preferredName);
-                setModalOpen(true);
-              }}
-            />
-            <AvatarFallback>
-              {patient.name
-                .split(" ")
-                .map((n) => n[0])
-                .join("")}
-            </AvatarFallback>
-          </Avatar>
+          <AvatarModalWrapper patient={patient} />
           <div>
             <div className="font-medium">{value}</div>
             <div className="text-sm text-muted-foreground">
@@ -236,13 +213,6 @@ const PatientTable: React.FC = () => {
           </Tabs>
         </main>
       </div>
-      <AvatarModal
-        open={modalOpen}
-        onClose={() => setModalOpen(false)}
-        imageUrl={selectedImage || ""}
-        name={selectedName}
-        preferredName={selectedPName}
-      />
     </div>
   );
 };
