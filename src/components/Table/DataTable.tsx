@@ -22,12 +22,14 @@ interface DataTableProps<T extends TableRowData> {
     render?: (value: any, item: T) => React.ReactNode;
   }>;
   itemsPerPage?: number; // Optional prop to specify number of items per page
+  viewMore: boolean;
 }
 
 function DataTable<T extends TableRowData>({
   data,
   columns,
   itemsPerPage = 10, // Default to 10 items per page
+  viewMore,
 }: DataTableProps<T>) {
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -79,7 +81,12 @@ function DataTable<T extends TableRowData>({
           </TableHeader>
           <TableBody>
             {paginatedData.map((item) => (
-              <DataTableRow key={item.id} item={item} columns={columns} />
+              <DataTableRow
+                key={item.id}
+                item={item}
+                columns={columns}
+                viewMore={viewMore}
+              />
             ))}
           </TableBody>
         </Table>
@@ -94,7 +101,7 @@ function DataTable<T extends TableRowData>({
               {(currentPage - 1) * itemsPerPage + 1}-
               {Math.min(currentPage * itemsPerPage, data.length)}
             </strong>{" "}
-            of <strong>{data.length}</strong> patients
+            of <strong>{data.length}</strong> records
           </div>
           <div className="flex items-center space-x-2">
             <Button

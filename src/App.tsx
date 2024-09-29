@@ -6,6 +6,8 @@ import { ThemeProvider } from "./components/theme/ThemeProvider";
 // import Dashboard from "./pages/Dashboard/Dashboard";
 import PatientTable from "./pages/PatientTable";
 import AddPatient from "./pages/AddPatient";
+import ManageAdhoc from "./pages/ManageAdhoc";
+import AddAdhoc from "./pages/AddAdhoc";
 
 const App: React.FC = () => {
   return (
@@ -17,7 +19,10 @@ const App: React.FC = () => {
             <Routes>
               {/* <Route path="/" element={<Dashboard />} /> */}
               <Route path="/" element={<PatientTable />} />
+              <Route path="/ManagePatients" element={<PatientTable />} />
               <Route path="/AddPatients" element={<AddPatient />} />
+              <Route path="/ManageAdhoc" element={<ManageAdhoc />} />
+              <Route path="/AddAdhoc" element={<AddAdhoc />} />
             </Routes>
           </main>
         </div>

@@ -195,7 +195,11 @@ const PatientTable: React.FC = () => {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <DataTable data={patientTDList} columns={columns} />
+                  <DataTable
+                    data={patientTDList}
+                    columns={columns}
+                    viewMore={true}
+                  />
                 </CardContent>
               </Card>
             </TabsContent>
@@ -208,7 +212,11 @@ const PatientTable: React.FC = () => {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <DataTable data={patientTDList} columns={columns} />
+                  <DataTable
+                    data={patientTDList}
+                    columns={columns}
+                    viewMore={true}
+                  />
                 </CardContent>
               </Card>
             </TabsContent>

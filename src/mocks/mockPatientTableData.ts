@@ -143,3 +143,9 @@ export const mockPatientTDList: PatientTableData[] = [
     supervisorId: 1,
   },
 ];
+
+const getPatientNameList = (): string[] => {
+  return mockPatientTDList.map((patient) => patient.name);
+};
+
+export const mockPatientNameList = getPatientNameList();

@@ -18,11 +18,13 @@ interface DataTableRowProps<T extends TableRowData> {
     header: string;
     render?: (value: any, item: T) => React.ReactNode;
   }>;
+  viewMore: boolean;
 }
 
 function DataTableRow<T extends TableRowData>({
   item,
   columns,
+  viewMore,
 }: DataTableRowProps<T>) {
   return (
     <TableRow>
@@ -34,9 +36,12 @@ function DataTableRow<T extends TableRowData>({
         </TableCell>
       ))}
       <TableCell className="flex justify-around">
-        <Button aria-label="View more" variant="default" size="sm">
-          View More
-        </Button>
+        {viewMore ? (
+          <Button aria-label="View more" variant="default" size="sm">
+            View More
+          </Button>
+        ) : null}
+
         <DropdownMenu modal={false}>
           <DropdownMenuTrigger asChild>
             <Button aria-label="Open menu" variant="ghost" size="sm">
