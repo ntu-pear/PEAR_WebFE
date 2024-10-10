@@ -181,7 +181,7 @@ const Dashboard: React.FC = () => {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <DataTable data={users} columns={columns} />
+                  <DataTable data={users} columns={columns} viewMore={false} />
                 </CardContent>
                 <CardFooter>
                   <div className="text-xs text-muted-foreground">

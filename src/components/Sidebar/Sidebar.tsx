@@ -82,11 +82,10 @@ const SidebarMenu: React.FC = () => {
                           PATIENTS
                         </span>
                         <i
-                          className={`pi ${
-                            isExpanded["patients"]
+                          className={`pi ${isExpanded["patients"]
                               ? "pi-chevron-up"
                               : "pi-chevron-down"
-                          } ml-auto mr-1 text-primary`}
+                            } ml-auto mr-1 text-primary`}
                         ></i>
                         <Ripple />
                       </div>
@@ -102,7 +101,7 @@ const SidebarMenu: React.FC = () => {
                       >
                         <li>
                           <Link
-                            to="/ManagePatients"
+                            to="/Supervisor/ManagePatients"
                             onClick={() => setVisible(false)}
                             className="p-ripple flex items-center cursor-pointer p-3 border-round text-700 hover:surface-100 transition-duration-150 transition-colors w-full"
                           >
@@ -115,7 +114,7 @@ const SidebarMenu: React.FC = () => {
                         </li>
                         <li>
                           <Link
-                            to="/AddPatients"
+                            to="/Supervisor/AddPatients"
                             onClick={() => setVisible(false)}
                             className="p-ripple flex items-center cursor-pointer p-3 border-round text-700 hover:surface-100 transition-duration-150 transition-colors w-full"
                           >
@@ -127,22 +126,28 @@ const SidebarMenu: React.FC = () => {
                           </Link>
                         </li>
                         <li>
-                          <a className="p-ripple flex items-center cursor-pointer p-3 border-round text-700 hover:surface-100 transition-duration-150 transition-colors w-full">
+                        <Link
+                            to="/Supervisor/ViewMedicationSchedule"
+                            onClick={() => setVisible(false)}
+                            className="p-ripple flex items-center cursor-pointer p-3 border-round text-700 hover:surface-100 transition-duration-150 transition-colors w-full">
                             <i className="pi pi-calendar mr-2 text-primary"></i>
                             <span className="font-small text-primary">
                               View Medication Schedule
                             </span>
                             <Ripple />
-                          </a>
+                          </Link>
                         </li>
                         <li>
-                          <a className="p-ripple flex items-center cursor-pointer p-3 border-round text-700 hover:surface-100 transition-duration-150 transition-colors w-full">
+                          <Link
+                            to="/Supervisor/ManageMedication"
+                            onClick={() => setVisible(false)}
+                            className="p-ripple flex items-center cursor-pointer p-3 border-round text-700 hover:surface-100 transition-duration-150 transition-colors w-full">
                             <i className="pi pi-calendar-plus mr-2 text-primary"></i>
                             <span className="font-small text-primary">
                               Manage Medication
                             </span>
                             <Ripple />
-                          </a>
+                          </Link>
                         </li>
                       </ul>
                     </li>
@@ -160,11 +165,10 @@ const SidebarMenu: React.FC = () => {
                           ACTIVITIES
                         </span>
                         <i
-                          className={`pi ${
-                            isExpanded["activities"]
+                          className={`pi ${isExpanded["activities"]
                               ? "pi-chevron-up"
                               : "pi-chevron-down"
-                          } ml-auto mr-1 text-primary`}
+                            } ml-auto mr-1 text-primary`}
                         ></i>
                         <Ripple />
                       </div>
@@ -179,13 +183,16 @@ const SidebarMenu: React.FC = () => {
                         }}
                       >
                         <li>
-                          <a className="p-ripple flex items-center cursor-pointer p-3 border-round text-700 hover:surface-100 transition-duration-150 transition-colors w-full">
+                        <Link
+                            to="/Supervisor/ManageActivities"
+                            onClick={() => setVisible(false)}
+                            className="p-ripple flex items-center cursor-pointer p-3 border-round text-700 hover:surface-100 transition-duration-150 transition-colors w-full">
                             <i className="pi pi-list mr-2 text-primary"></i>
                             <span className="font-small text-primary">
                               Manage Activites
                             </span>
                             <Ripple />
-                          </a>
+                          </Link>
                         </li>
                       </ul>
                     </li>
@@ -203,11 +210,10 @@ const SidebarMenu: React.FC = () => {
                           ATTENDANCE
                         </span>
                         <i
-                          className={`pi ${
-                            isExpanded["attendance"]
+                          className={`pi ${isExpanded["attendance"]
                               ? "pi-chevron-up"
                               : "pi-chevron-down"
-                          } ml-auto mr-1 text-primary`}
+                            } ml-auto mr-1 text-primary`}
                         ></i>
                         <Ripple />
                       </div>
@@ -244,11 +250,10 @@ const SidebarMenu: React.FC = () => {
                           ADHOC
                         </span>
                         <i
-                          className={`pi ${
-                            isExpanded["adhoc"]
+                          className={`pi ${isExpanded["adhoc"]
                               ? "pi-chevron-up"
                               : "pi-chevron-down"
-                          } ml-auto mr-1 text-primary`}
+                            } ml-auto mr-1 text-primary`}
                         ></i>
                         <Ripple />
                       </div>
@@ -264,7 +269,7 @@ const SidebarMenu: React.FC = () => {
                       >
                         <li>
                           <Link
-                            to="/ManageAdhoc"
+                            to="/Supervisor/ManageAdhoc"
                             onClick={() => setVisible(false)}
                             className="p-ripple flex items-center cursor-pointer p-3 border-round text-700 hover:surface-100 transition-duration-150 transition-colors w-full"
                           >
@@ -277,7 +282,7 @@ const SidebarMenu: React.FC = () => {
                         </li>
                         <li>
                           <Link
-                            to="/AddAdhoc"
+                            to="/Supervisor/AddAdhoc"
                             onClick={() => setVisible(false)}
                             className="p-ripple flex items-center cursor-pointer p-3 border-round text-700 hover:surface-100 transition-duration-150 transition-colors w-full"
                           >
@@ -302,11 +307,10 @@ const SidebarMenu: React.FC = () => {
                           SCHEDULE
                         </span>
                         <i
-                          className={`pi ${
-                            isExpanded["schedule"]
+                          className={`pi ${isExpanded["schedule"]
                               ? "pi-chevron-up"
                               : "pi-chevron-down"
-                          } ml-auto mr-1 text-primary`}
+                            } ml-auto mr-1 text-primary`}
                         ></i>
                         <Ripple />
                       </div>
@@ -343,11 +347,10 @@ const SidebarMenu: React.FC = () => {
                           OTHERS
                         </span>
                         <i
-                          className={`pi ${
-                            isExpanded["others"]
+                          className={`pi ${isExpanded["others"]
                               ? "pi-chevron-up"
                               : "pi-chevron-down"
-                          } ml-auto mr-1 text-primary`}
+                            } ml-auto mr-1 text-primary`}
                         ></i>
                         <Ripple />
                       </div>

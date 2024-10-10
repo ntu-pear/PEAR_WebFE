@@ -5,24 +5,38 @@ import { ThemeProvider } from "./components/theme/ThemeProvider";
 
 // import Dashboard from "./pages/Dashboard/Dashboard";
 import PatientTable from "./pages/PatientTable";
-import AddPatient from "./pages/AddPatient";
-import ManageAdhoc from "./pages/ManageAdhoc";
-import AddAdhoc from "./pages/AddAdhoc";
+import AddPatient from "./pages/Supervisor/AddPatient";
+import ManageAdhoc from "./pages/Supervisor/ManageAdhoc";
+import AddAdhoc from "./pages/Supervisor/AddAdhoc";
+import Login from "./pages/auth/Login";
+import ForgotPassword from "./pages/auth/ForgotPassword";
+import ViewMedicationSchedule from "./pages/Supervisor/ViewMedicationSchedule";
+import ManageMedication from "./pages/Supervisor/ManageMedication";
+import ManageActivities from "./pages/Supervisor/ManageActivities";
 
 const App: React.FC = () => {
+  const isAuthPage = location.pathname === '/Login' || location.pathname === '/ForgotPassword';
   return (
     <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
       <Router>
         <div className="min-h-screen bg-background font-sans antialiased">
-          <Navbar />
-          <main className="container mx-auto px-4 py-8">
+          {!isAuthPage && <Navbar />}
+          <main>
             <Routes>
               {/* <Route path="/" element={<Dashboard />} /> */}
+              <Route path="/Login" element={<Login />} />
+              <Route path="/ForgotPassword" element={<ForgotPassword />} />
               <Route path="/" element={<PatientTable />} />
-              <Route path="/ManagePatients" element={<PatientTable />} />
-              <Route path="/AddPatients" element={<AddPatient />} />
-              <Route path="/ManageAdhoc" element={<ManageAdhoc />} />
-              <Route path="/AddAdhoc" element={<AddAdhoc />} />
+             
+              {/* Routes for Supervisor*/}
+              <Route path="/Supervisor/ManagePatients" element={<PatientTable />} />
+              <Route path="/Supervisor/AddPatients" element={<AddPatient />} />
+              <Route path="/Supervisor/ViewMedicationSchedule" element={<ViewMedicationSchedule />} />
+              <Route path="/Supervisor/ManageMedication" element={<ManageMedication />} />
+              <Route path="/Supervisor/ManageActivities" element={<ManageActivities />} />
+              <Route path="/Supervisor/ManageAdhoc" element={<ManageAdhoc />} />
+              <Route path="/Supervisor/AddAdhoc" element={<AddAdhoc />} />
+              
             </Routes>
           </main>
         </div>

@@ -57,7 +57,7 @@ const AddAdhoc: React.FC = () => {
   };
 
   return (
-    <div className="flex min-h-screen w-full flex-col lg:flex-row">
+    <div className="flex min-h-screen w-full flex-col lg:flex-row container mx-auto px-4">
       {/* Left Sidebar Navigation */}
       <nav className="w-full lg:w-1/4 px-6 text-xl text-gray-800 leading-normal">
         <p className="text-2xl font-bold py-4 text-primary">Add Adhoc</p>

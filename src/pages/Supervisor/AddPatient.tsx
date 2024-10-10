@@ -131,10 +131,12 @@ const AddPatient: React.FC = () => {
     };
 
     return (
-        <div className="flex min-h-screen w-full flex-col lg:flex-row">
+        <div className="flex min-h-screen w-full flex-col lg:flex-row container mx-auto px-4">
             {/* Left Sidebar Navigation */}
             <nav className="w-full lg:w-1/4 px-6 text-xl text-gray-800 leading-normal">
-                <p className="text-2xl font-bold py-4 text-primary">Add Patient</p>
+                <div className="sticky top-0 z-10">
+                    <p className="text-2xl font-bold py-4 text-primary">Add Patient</p>
+                </div>
                 <ul className="list-reset py-2 md:py-0 lg:sticky lg:top-16">
                     <li
                         className={`py-1 md:my-2 hover:bg-yellow-100 lg:hover:bg-transparent border-l-4 ${activeSection === 'personal-info' ? 'border-lime-500 font-bold' : 'border-transparent'
@@ -174,6 +176,7 @@ const AddPatient: React.FC = () => {
                     </li>
                 </ul>
             </nav>
+
 
             {/* Right Form Content */}
             <div className="w-full lg:w-3/4 p-6">
@@ -313,7 +316,7 @@ const AddPatient: React.FC = () => {
                                         />
                                     </div>
                                 </div>
-                                
+
                                 <div className="sm:col-span-3">
                                     <label htmlFor="patient-dob" className="block text-sm font-medium leading-6 text-primary">
                                         Date Of Birth <span className="text-red-500 ml-1">*</span>
@@ -423,7 +426,7 @@ const AddPatient: React.FC = () => {
                                                 <img
                                                     src={profilePictureFile}
                                                     alt="Uploaded Preview"
-                                                    className="w-24 h-24 rounded-full object-cover mr-4" 
+                                                    className="w-24 h-24 rounded-full object-cover mr-4"
                                                 />
                                             )}
                                             <label
@@ -438,7 +441,7 @@ const AddPatient: React.FC = () => {
                                                 type="file"
                                                 onChange={handleChange}
                                                 accept="image/*"
-                                                className="hidden" 
+                                                className="hidden"
                                             />
                                         </div>
                                         {profilePictureError && <p className="text-red-500 text-sm mt-2">{profilePictureError}</p>}
@@ -1000,7 +1003,7 @@ const AddPatient: React.FC = () => {
                                     <div key={index} className="mt-2 grid grid-cols-2 gap-4">
                                         <div className="sm:col-span-1">
                                             <label htmlFor={`allergy-${index}`} className="block text-sm font-medium leading-6 text-primary">
-                                                Allergy
+                                                Allergy <span className="text-red-500 ml-1">*</span>
                                             </label>
                                             <div className="mt-2">
                                                 <select
@@ -1027,7 +1030,7 @@ const AddPatient: React.FC = () => {
                                         </div>
                                         <div className="sm:col-span-1">
                                             <label htmlFor={`allergy-reaction-${index}`} className="block text-sm font-medium leading-6 text-primary">
-                                                Allergy Reaction
+                                                Allergy Reaction <span className="text-red-500 ml-1">*</span>
                                             </label>
                                             <div className="mt-2">
                                                 <select
@@ -1055,7 +1058,7 @@ const AddPatient: React.FC = () => {
                                         </div>
                                         <div className="col-span-full">
                                             <label htmlFor={`allergy-remarks-${index}`} className="block text-sm font-medium leading-6 text-primary">
-                                                Allergy Remarks
+                                                Allergy Remarks <span className="text-red-500 ml-1">*</span>
                                             </label>
                                             <div className="mt-2">
                                                 <textarea
