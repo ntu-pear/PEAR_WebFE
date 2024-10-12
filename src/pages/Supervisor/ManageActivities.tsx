@@ -9,7 +9,7 @@ import {
 import { PlusCircle } from "lucide-react";
 import Header from "@/components/Header/Header";
 import DataTable from "@/components/Table/DataTable";
-import { mockActivitiesList, ActivitiesData } from "@/mocks/mockActivities";
+import { mockActivitiesList, /*ActivitiesData*/ } from "@/mocks/mockActivities";
 import { Button } from "@/components/ui/button";
 
 const ManageActivities: React.FC = () => {
@@ -57,8 +57,8 @@ const ManageActivities: React.FC = () => {
     {
       key: "isCompulsory",
       header: "Compulsory",
-      render: (value: any, item: ActivitiesData) =>
-        item.isCompulsory ? (
+      render: (value: any) =>
+        value ? (
           <span style={{ color: "green" }}>True</span>
         ) : (
           <span style={{ color: "red" }}>False</span>
@@ -67,8 +67,8 @@ const ManageActivities: React.FC = () => {
     {
       key: "isFixed",
       header: "Fixed",
-      render: (value: any, item: ActivitiesData) =>
-        item.isFixed ? (
+      render: (value: any) =>
+        value ? (
           <span style={{ color: "green" }}>True</span>
         ) : (
           <span style={{ color: "red" }}>False</span>
@@ -77,8 +77,8 @@ const ManageActivities: React.FC = () => {
     {
       key: "isGroup",
       header: "Group",
-      render: (value: any, item: ActivitiesData) =>
-        item.isGroup ? (
+      render: (value: any) =>
+        value ? (
           <span style={{ color: "green" }}>True</span>
         ) : (
           <span style={{ color: "red" }}>False</span>
@@ -87,9 +87,9 @@ const ManageActivities: React.FC = () => {
     {
       key: "fixedTimeSlots",
       header: "Fixed Time Slots",
-      render: (value: any, item: ActivitiesData) =>
-        item.fixedTimeSlots ? (
-          item.fixedTimeSlots
+      render: (value: any) =>
+        value ? (
+          value
         ) : (
           <span>NIL</span>
         ),

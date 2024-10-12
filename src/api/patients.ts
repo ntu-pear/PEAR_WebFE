@@ -31,11 +31,12 @@ export interface PatientBase {
   modifiedDate: Date;
   createdById: number;
   modifiedById: number;
+  id: number;
 }
 
 const convertToPatientTD = (patients: PatientBase[]): PatientTableData[] => {
-  return patients.map((p, index) => ({
-    id: index,
+  return patients.map((p) => ({
+    id: p.id,
     name: p.firstName + " " + p.lastName,
     preferredName: p.preferredName ? p.preferredName : "",
     nric: p.nric[0] + "xxxx" + p.nric.slice(-3),
@@ -48,12 +49,28 @@ const convertToPatientTD = (patients: PatientBase[]): PatientTableData[] => {
   }));
 };
 
-//Get All Patients
-export const fetchAllPatientTD = async (): Promise<PatientTableData[]> => {
+//Get All Patients with skip and limit
+export const fetchAllPatientTD = async (
+  skip: number = 0,
+  limit: number = 10
+): Promise<PatientTableData[]> => {
   try {
-    const response = await patientsAPI.get<PatientBase[]>("");
-    //console.log(response.data);
+    const response = await patientsAPI.get<PatientBase[]>(
+      `/?skip=${skip}&limit=${limit}`
+    );
+    // console.log(response.data);
     return convertToPatientTD(response.data);
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+};
+
+export const fetchPatientById = async (id: number): Promise<PatientBase> => {
+  try {
+    const response = await patientsAPI.get<PatientBase>(`/${id}`);
+    console.log(response.data);
+    return response.data;
   } catch (error) {
     console.error(error);
     throw error;

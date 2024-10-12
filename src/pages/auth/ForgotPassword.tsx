@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, MenuItem, FormControl } from '@mui/material'
-import { CalendarIcon, MailIcon, UserIcon, BriefcaseIcon } from 'lucide-react'
+import { /*CalendarIcon,*/ MailIcon, UserIcon, /*BriefcaseIcon*/ } from 'lucide-react'
 import { DatePicker } from 'antd';
 
 const ForgotPassword: React.FC = () => {

@@ -50,41 +50,41 @@ const ViewMedicationSchedule: React.FC = () => {
             )
         },
         {
-            key: "prescription",
+            key: "prescription.prescriptionName",
             header: "Prescription Name",
             render: (value: any, item: PatientMedicationData) =>
-                item.prescription && item.prescription.prescriptionName ? (
-                    item.prescription.prescriptionName
+                item.prescription && value ? (
+                    value
                 ) : (
                     <span>No Prescription</span>
                 ),
         },
         {
-            key: "allocatedTime",
+            key: "prescription.allocatedTime",
             header: "Allocated Time",
             render: (value: any, item: PatientMedicationData) =>
-                item.prescription && item.prescription.allocatedTime ? (
-                    item.prescription.allocatedTime
+                item.prescription && value? (
+                    value
                 ) : (
                     <span>No Allocated Time</span>
                 ),
         },
         {
-            key: "status",
+            key: "prescription.status",
             header: "Status",
             render: (value: any, item: PatientMedicationData) =>
-                item.prescription && item.prescription.status ? (
+                item.prescription && value ? (
                     <span style={{ color: "green" }}>Taken</span>
                 ) : (
                     <span style={{ color: "red" }}>Not Taken</span>
                 ),
         },
         {
-            key: "administredBy",
+            key: "prescription.administredBy",
             header: "Administred By",
             render: (value: any, item: PatientMedicationData) =>
-                item.prescription && item.prescription.administredBy ? (
-                    item.prescription.administredBy
+                item.prescription && value ? (
+                    value
                 ) : (
                     <span>No Allocated Time</span>
                 ),

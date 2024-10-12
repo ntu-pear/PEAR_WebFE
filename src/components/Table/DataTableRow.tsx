@@ -6,13 +6,19 @@ import { TableRowData } from "./DataTable";
 interface DataTableRowProps<T extends TableRowData> {
   item: T;
   columns: Array<{
-    key: keyof T;
+    key: keyof T | string;
     header: string;
     render?: (value: any, item: T) => React.ReactNode;
   }>;
   viewMore: boolean;
   renderActions?: (item: T) => React.ReactNode; 
 }
+
+// Utility function to access nested properties
+const getNestedValue = (obj: any, path: string): any => {
+  return path.split('.').reduce((acc, key) => acc && acc[key], obj);
+};
+
 
 function DataTableRow<T extends TableRowData>({
   item,
@@ -25,8 +31,8 @@ function DataTableRow<T extends TableRowData>({
       {columns.map((column) => (
         <TableCell key={column.key.toString()}>
           {column.render
-            ? column.render(item[column.key], item)
-            : item[column.key]}
+            ? column.render(getNestedValue(item, column.key.toString()), item)  // Use nested value if present
+            : getNestedValue(item, column.key.toString())} {/* Fallback to the direct value */}
         </TableCell>
       ))}
       <TableCell className="flex justify-around">
