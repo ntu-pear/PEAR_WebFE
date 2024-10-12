@@ -69,7 +69,7 @@ export const fetchAllPatientTD = async (
 export const fetchPatientById = async (id: number): Promise<PatientBase> => {
   try {
     const response = await patientsAPI.get<PatientBase>(`/${id}`);
-    console.log(response.data);
+    // console.log(response.data);
     return response.data;
   } catch (error) {
     console.error(error);

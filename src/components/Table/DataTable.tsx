@@ -23,6 +23,7 @@ interface DataTableProps<T extends TableRowData> {
   }>;
   itemsPerPage?: number; // Optional prop to specify number of items per page
   viewMore: boolean;
+  viewMoreBaseLink?: string;
   renderActions?: (item: T) => React.ReactNode; // New prop to customize actions column
 }
 
@@ -31,6 +32,7 @@ function DataTable<T extends TableRowData>({
   columns,
   itemsPerPage = 10, // Default to 10 items per page
   viewMore,
+  viewMoreBaseLink,
   renderActions, // Accept renderActions function as a prop
 }: DataTableProps<T>) {
   const [currentPage, setCurrentPage] = useState(1);
@@ -88,6 +90,7 @@ function DataTable<T extends TableRowData>({
                 item={item}
                 columns={columns}
                 viewMore={viewMore}
+                viewMoreLink = {`${viewMoreBaseLink}/${item.id}`}
                 renderActions={renderActions} // Pass the custom renderActions function
               />
             ))}

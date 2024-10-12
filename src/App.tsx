@@ -13,6 +13,7 @@ import ForgotPassword from "./pages/auth/ForgotPassword";
 import ViewMedicationSchedule from "./pages/Supervisor/ViewMedicationSchedule";
 import ManageMedication from "./pages/Supervisor/ManageMedication";
 import ManageActivities from "./pages/Supervisor/ManageActivities";
+import ViewPatient from "./pages/ViewPatient";
 
 const App: React.FC = () => {
   const isAuthPage = location.pathname === '/Login' || location.pathname === '/ForgotPassword';
@@ -26,6 +27,7 @@ const App: React.FC = () => {
               {/* <Route path="/" element={<Dashboard />} /> */}
               <Route path="/Login" element={<Login />} />
               <Route path="/ForgotPassword" element={<ForgotPassword />} />
+              <Route path="/ViewPatient/:id" element={<ViewPatient/>}/>
               <Route path="/" element={<PatientTable />} />
              
               {/* Routes for Supervisor*/}

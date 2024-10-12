@@ -2,6 +2,7 @@ import React from "react";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { TableRowData } from "./DataTable";
+import { Link } from "react-router-dom";
 
 interface DataTableRowProps<T extends TableRowData> {
   item: T;
@@ -11,6 +12,7 @@ interface DataTableRowProps<T extends TableRowData> {
     render?: (value: any, item: T) => React.ReactNode;
   }>;
   viewMore: boolean;
+  viewMoreLink?: string;
   renderActions?: (item: T) => React.ReactNode; 
 }
 
@@ -24,6 +26,7 @@ function DataTableRow<T extends TableRowData>({
   item,
   columns,
   viewMore,
+  viewMoreLink,
   renderActions,
 }: DataTableRowProps<T>) {
   return (
@@ -36,11 +39,14 @@ function DataTableRow<T extends TableRowData>({
         </TableCell>
       ))}
       <TableCell className="flex justify-around">
-        {viewMore ? (
+        {viewMore && viewMoreLink? (
+          <Link to={viewMoreLink}>
           <Button aria-label="View more" variant="default" size="sm">
             View More
           </Button>
+          </Link>
         ) : null}
+
 
         {renderActions ? renderActions(item) : null} {/* Render custom actions */}  
       </TableCell>
