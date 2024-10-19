@@ -11,4 +11,8 @@ export default defineConfig({
       '@components': path.resolve(__dirname, './src/components')
     },
   },
+  build: {
+    outDir: 'dist',  // Output directory for Vite builds
+    emptyOutDir: true,  // Clean the output directory before each build
+  },
 });

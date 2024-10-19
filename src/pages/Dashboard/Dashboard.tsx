@@ -21,8 +21,7 @@ import {
 import DataTable, { TableRowData } from "@/components/Table/DataTable";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import Sidebar from "@/components/Sidebar/Sidebar";
-import Header from "@/components/Header/Header";
+import Header from "@/components/Header";
 
 interface UserData extends TableRowData {
   name: string;
@@ -124,7 +123,6 @@ const Dashboard: React.FC = () => {
 
   return (
     <div className="flex min-h-screen w-full flex-col ">
-      <Sidebar />
       <div className="flex flex-col sm:gap-4 sm:py-4 sm:pl-14">
         <Header />
         <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
@@ -183,7 +181,7 @@ const Dashboard: React.FC = () => {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <DataTable data={users} columns={columns} />
+                  <DataTable data={users} columns={columns} viewMore={false} />
                 </CardContent>
                 <CardFooter>
                   <div className="text-xs text-muted-foreground">

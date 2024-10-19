@@ -1,6 +1,6 @@
 import { render, act, screen } from "@testing-library/react";
-import { ThemeProvider, useTheme } from "./ThemeProvider";
-import mockMatchMedia from "../../mocks/mockMatchMedia";
+import { ThemeProvider, useTheme } from "../../src/components/ThemeProvider";
+import mockMatchMedia from "../../src/mocks/mockMatchMedia";
 
 describe("ThemeProvider", () => {
   const TestComponent = () => {

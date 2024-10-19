@@ -67,3 +67,65 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* styles/Modal.css */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  position: relative;
+  max-width: 40%;
+  max-height: 80%;
+  overflow: auto;
+}
+
+.modal-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  color: #222222; /* Grey color for the 'X' */
+  border: none;
+  font-size: 32px; /* Adjust the font size as needed */
+  cursor: pointer;
+  z-index: 1001; /* Ensure close button is above other elements */
+  transform: translate(0.5rem, -0.75rem);
+}
+
+.modal-image {
+  width: 300px; /* Fixed width */
+  height: 300px; /* Fixed height */
+  object-fit: cover; /* Crop the image to fit the dimensions */
+  border-radius: 8px; /* Optional: round the corners */
+  margin-bottom: 10px; /* Space between the image and text */
+}
+
+.modal-name {
+  text-align: center;
+  margin-top: 10px;
+}
+
+.modal-full-name {
+  font-size: 18px;
+  color: #333;
+  font-weight: bold;
+}
+
+.modal-preferred-name {
+  font-size: 16px;
+  color: #666;
+}
+

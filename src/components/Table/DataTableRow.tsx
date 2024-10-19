@@ -1,40 +1,54 @@
-import React from 'react';
-import { MoreHorizontal } from 'lucide-react';
+import React from "react";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { TableRowData } from './DataTable';
+import { TableRowData } from "./DataTable";
+import { Link } from "react-router-dom";
 
 interface DataTableRowProps<T extends TableRowData> {
   item: T;
   columns: Array<{
-    key: keyof T;
+    key: keyof T | string;
     header: string;
     render?: (value: any, item: T) => React.ReactNode;
   }>;
+  viewMore: boolean;
+  viewMoreLink?: string;
+  renderActions?: (item: T) => React.ReactNode; 
 }
 
-function DataTableRow<T extends TableRowData>({ item, columns }: DataTableRowProps<T>) {
+// Utility function to access nested properties
+const getNestedValue = (obj: any, path: string): any => {
+  return path.split('.').reduce((acc, key) => acc && acc[key], obj);
+};
+
+
+function DataTableRow<T extends TableRowData>({
+  item,
+  columns,
+  viewMore,
+  viewMoreLink,
+  renderActions,
+}: DataTableRowProps<T>) {
   return (
     <TableRow>
       {columns.map((column) => (
         <TableCell key={column.key.toString()}>
-          {column.render ? column.render(item[column.key], item) : item[column.key]}
+          {column.render
+            ? column.render(getNestedValue(item, column.key.toString()), item)  // Use nested value if present
+            : getNestedValue(item, column.key.toString())} {/* Fallback to the direct value */}
         </TableCell>
       ))}
-      <TableCell>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button aria-label="Open menu" variant="ghost" size="sm">
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuItem onClick={() => console.log('Edit', item)}>Edit</DropdownMenuItem>
-            <DropdownMenuItem onClick={() => console.log('Delete', item)}>Delete</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+      <TableCell className="flex justify-around">
+        {viewMore && viewMoreLink? (
+          <Link to={viewMoreLink}>
+          <Button aria-label="View more" variant="default" size="sm">
+            View More
+          </Button>
+          </Link>
+        ) : null}
+
+
+        {renderActions ? renderActions(item) : null} {/* Render custom actions */}  
       </TableCell>
     </TableRow>
   );
