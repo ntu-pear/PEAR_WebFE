@@ -9,22 +9,12 @@ COPY package-lock.json .
 
 RUN npm install
 
+RUN npm i -g serve
+
 COPY . .
 
 RUN npm run build
 
-# Stage 2: Copy production build onto nginx (stable recommended for production, alpine to reduce image size)
-FROM nginx:stable-alpine-perl
+EXPOSE 3000
 
-COPY --from=build /app/dist /usr/share/nginx/html
-
-COPY default.conf /etc/nginx/conf.d/
-
-RUN chown -R nginx:nginx /usr/share/nginx/html/
-
-RUN chmod -R 755 /usr/share/nginx/html/
-
-EXPOSE 80
-
-# Start NGINX
-CMD ["nginx", "-g", "daemon off;"]
+CMD [ "serve", "-s", "dist" ]
