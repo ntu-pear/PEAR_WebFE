@@ -19,7 +19,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import DataTable from "@/components/Table/DataTable";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import Header from "@/components/Header/Header";
+import Header from "@/components/Header";
 import { mockPatientMedicationList, PatientMedicationData } from "@/mocks/mockPatientMedication";
 
 const ManageMedication: React.FC = () => {

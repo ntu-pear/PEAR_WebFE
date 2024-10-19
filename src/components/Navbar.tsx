@@ -3,8 +3,8 @@ import { Link } from 'react-router-dom';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { Sun, Moon, Bell } from 'lucide-react';
-import { useTheme } from "@/components/theme/ThemeProvider";
-import Sidebar from "@/components/Sidebar/Sidebar";
+import { useTheme } from "@/components/ThemeProvider";
+import Sidebar from "@/components/Sidebar";
 
 const Navbar: React.FC = () => {
   const initialNotifications = [

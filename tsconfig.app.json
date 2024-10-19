@@ -26,5 +26,5 @@
       ]
     },
   },
-  "include": ["src"]
+  "include": ["src", "tests/components/Header.test.tsx", "src/components/AvatarModalWrapper.tsx", "tests/components/table/DataTable.test.tsx", "tests/components/table/DataTableRow.test.tsx", "tests/components/ThemeProvider.test.tsx", "tests/components/Navbar.test.tsx"]
 }

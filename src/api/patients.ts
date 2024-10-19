@@ -35,11 +35,16 @@ export interface PatientBase {
 }
 
 const convertToPatientTD = (patients: PatientBase[]): PatientTableData[] => {
+  if (!Array.isArray(patients)) {
+    console.error("patients is not an array", patients);
+    return []; // Return an empty array if patients is not an array
+  }
+
   return patients.map((p) => ({
     id: p.id,
     name: p.firstName + " " + p.lastName,
     preferredName: p.preferredName ? p.preferredName : "",
-    nric: p.nric[0] + "xxxx" + p.nric.slice(-3),
+    nric: p.nric[0] + "XXXX" + p.nric.slice(-3),
     status: parseInt(p.isActive) > 0 ? "Active" : "Inactive",
     startDate: p.startDate ? formatDateString(new Date(p.startDate)) : "",
     endDate: p.endDate ? formatDateString(p.endDate) : "",

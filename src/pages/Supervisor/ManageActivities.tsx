@@ -7,7 +7,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { PlusCircle } from "lucide-react";
-import Header from "@/components/Header/Header";
+import Header from "@/components/Header";
 import DataTable from "@/components/Table/DataTable";
 import { mockActivitiesList, /*ActivitiesData*/ } from "@/mocks/mockActivities";
 import { Button } from "@/components/ui/button";

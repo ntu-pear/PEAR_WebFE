@@ -6,7 +6,7 @@ import {
     CardHeader,
     CardTitle,
 } from "@/components/ui/card";
-import Header from "@/components/Header/Header";
+import Header from "@/components/Header";
 import DataTable from "@/components/Table/DataTable";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { mockPatientMedicationList, PatientMedicationData } from "@/mocks/mockPatientMedication";

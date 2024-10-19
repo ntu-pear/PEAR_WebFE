@@ -19,7 +19,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
-import Header from "@/components/Header/Header";
+import Header from "@/components/Header";
 import DataTable from "@/components/Table/DataTable";
 
 import {
@@ -29,7 +29,7 @@ import {
 } from "@/mocks/mockPatientTableData";
 
 import useDebounce from "@/hooks/useDebounce";
-import AvatarModalWrapper from "@/components/Avatar/AvatarModalWrapper";
+import AvatarModalWrapper from "@/components/AvatarModalWrapper";
 import { fetchAllPatientTD } from "@/api/patients";
 
 const PatientTable: React.FC = () => {

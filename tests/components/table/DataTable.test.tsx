@@ -1,6 +1,6 @@
 import React from "react";
 import { render, screen } from "@testing-library/react";
-import DataTable, { TableRowData } from "./DataTable";
+import DataTable, { TableRowData } from "@/components/Table/DataTable";
 
 interface MockData extends TableRowData {
   name: string;

@@ -1,9 +1,12 @@
 import React, { useState, useEffect, useRef } from "react";
-import { DatePicker } from 'antd';
+import { Input } from "@/components/ui/input";
+import dayjs, { Dayjs } from "dayjs";
+import { DatePickerField } from "@/components/ui/date-picker"
 
 const AddPatient: React.FC = () => {
     {/* Sidebar Navigation */ }
     const [activeSection, setActiveSection] = useState<string>('personal-info');
+    const [error, setError] = useState<string | null>(null);
     const sections = useRef<{ [key: string]: HTMLElement | null }>({
         'personal-info': null,
         'guardian-info': null,
@@ -61,14 +64,17 @@ const AddPatient: React.FC = () => {
     {/* Patient Info Section */ }
     const [selectedPatientGender, setSelectedPatientGender] = useState<string>("patient-gender-male");
 
-    const handleGenderPatientChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setSelectedPatientGender(event.target.id);
+    const [patientPreferredLanguage, setPatientPreferredLanguage] = useState("");
+    const handlePatientLanguageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const selectedLanguage = e.target.value;
+        setPatientPreferredLanguage(selectedLanguage);
+        if (selectedLanguage) {
+            setError(null);
+        }
     };
 
-    const [selectedRespiteCare, setSelectedRespiteCare] = useState<string>("patient-respite-care-yes");
-
-    const handleRespiteCareChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setSelectedRespiteCare(event.target.id);
+    const handleGenderPatientChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setSelectedPatientGender(event.target.id);
     };
 
     const [profilePictureFile, setProfilePictureFile] = useState<string | null>(null);
@@ -91,6 +97,34 @@ const AddPatient: React.FC = () => {
         }
     };
 
+    const [selectedRespiteCare, setSelectedRespiteCare] = useState<string>("patient-respite-care-yes");
+
+    const handleRespiteCareChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setSelectedRespiteCare(event.target.id);
+    };
+
+    const [patientJoiningDate, setPatientJoiningDate] = useState<dayjs.Dayjs | null>(null);
+    const [patientLeavingDate, setPatientLeavingDate] = useState<dayjs.Dayjs | null>(null);
+    const [dateError, setDateError] = useState<string | null>(null);
+
+    const handlePatientJoiningDateChange = (date: Dayjs | null) => {
+        setPatientJoiningDate(date);
+        validateDates(date, patientLeavingDate);
+    };
+
+    const handlePatientLeavingDateChange = (date: Dayjs | null) => {
+        setPatientLeavingDate(date);
+        validateDates(patientJoiningDate, date);
+    };
+
+    const validateDates = (start: Dayjs | null, end: Dayjs | null) => {
+        if (start && end && end.isBefore(start)) {
+            setDateError("Leaving date must be the same or later than the joining date.");
+        } else {
+            setDateError(null);
+        }
+    };
+
     {/* Guardian Info Section */ }
     const [selectedGuardianGender, setSelectedGuardiandGender] = useState<string>("guardian-gender-male");
 
@@ -108,6 +142,24 @@ const AddPatient: React.FC = () => {
 
     const handleToggleSecondaryGuardian = () => {
         setShowSecondaryGuardian(!showSecondaryGuardian);
+    };
+
+    const [guardianRelationship, setGuardianRelationship] = useState("");
+    const handleGuardianRelationship = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const guardianRelationship = e.target.value;
+        setGuardianRelationship(guardianRelationship);
+        if (guardianRelationship) {
+            setError(null);
+        }
+    };
+
+    const [secondaryGuardianRelationship, setSecondaryGuardianRelationship] = useState("");
+    const handleSecondaryGuardianRelationship = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const secondaryGuardianRelationship = e.target.value;
+        setSecondaryGuardianRelationship(secondaryGuardianRelationship);
+        if (secondaryGuardianRelationship) {
+            setError(null);
+        }
     };
 
     {/* Allergy Section */ }
@@ -128,6 +180,48 @@ const AddPatient: React.FC = () => {
     const handleRemoveAllergy = (index: number) => {
         const updatedAllergies = allergies.filter((_, i) => i !== index);
         setAllergies(updatedAllergies);
+    };
+
+    const [allergyErrors, setAllergyErrors] = React.useState<
+        { name: string; reaction: string; remarks: string }[]
+    >([]);
+
+    const validateAllergy = (index: number) => {
+        const errors = { name: "", reaction: "", remarks: "" };
+
+        const allergy = allergies[index];
+
+        if (!allergy.name) {
+            errors.name = "Please select an allergy.";
+        }
+        if (!allergy.reaction) {
+            errors.reaction = "Please select a reaction.";
+        }
+        if (!allergy.remarks.trim()) {
+            errors.remarks = "Remarks are required.";
+        }
+
+        const updatedErrors = [...allergyErrors];
+        updatedErrors[index] = errors;
+        setAllergyErrors(updatedErrors);
+
+        return !errors.name && !errors.reaction && !errors.remarks; // Returns true if all fields are valid
+    };
+
+    const handleBlur = (index: number) => {
+        validateAllergy(index); // Validate each field on blur
+    };
+
+
+    {/* Validation*/ }
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!patientPreferredLanguage) {
+            setError("Please select a language.");
+        } else {
+            console.log("Language selected:", patientPreferredLanguage);
+            // Proceed with form submission logic
+        }
     };
 
     return (
@@ -180,7 +274,7 @@ const AddPatient: React.FC = () => {
 
             {/* Right Form Content */}
             <div className="w-full lg:w-3/4 p-6">
-                <form>
+                <form onSubmit={handleSubmit}>
                     <div className="space-y-12">
                         {/* Patient Information */}
                         <div id="personal-info" className="border-b-2 border-border pb-12">
@@ -193,11 +287,14 @@ const AddPatient: React.FC = () => {
                                         First name <span className="text-red-500 ml-1">*</span>
                                     </label>
                                     <div className="mt-2">
-                                        <input
+                                        <Input
                                             id="patient-first-name"
                                             name="patient-first-name"
                                             type="text"
-                                            className="block w-full rounded-md border-0 py-2 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                                            required
+                                            validationRegex={/^[A-Za-z]*$/} // Only allow letters
+                                            requiredMessage="Please enter the First Name."
+                                            validationMessage="Only letters are allowed in the First Name."
                                         />
                                     </div>
                                 </div>
@@ -207,27 +304,31 @@ const AddPatient: React.FC = () => {
                                         Last name <span className="text-red-500 ml-1">*</span>
                                     </label>
                                     <div className="mt-2">
-                                        <input
+                                        <Input
                                             id="patient-last-name"
                                             name="patient-last-name"
                                             type="text"
-                                            autoComplete="patient-last-name"
-                                            className="block w-full rounded-md border-0 py-2 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                                            required
+                                            validationRegex={/^[A-Za-z]*$/} // Only allow letters
+                                            requiredMessage="Please enter the Last Name."
+                                            validationMessage="Only letters are allowed in the Last Name."
                                         />
                                     </div>
                                 </div>
 
                                 <div className="sm:col-span-2">
-                                    <label htmlFor="patient-preffered-name" className="block text-sm font-medium leading-6 text-primary">
+                                    <label htmlFor="patient-preferred-name" className="block text-sm font-medium leading-6 text-primary">
                                         Preferred Name <span className="text-red-500 ml-1">*</span>
                                     </label>
                                     <div className="mt-2">
-                                        <input
-                                            id="patient-preffered-name"
-                                            name="patient-preffered-name"
-                                            type="patient-preffered-name"
-                                            autoComplete="patient-preffered-name"
-                                            className="block w-full rounded-md border-0 py-2 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                                        <Input
+                                            id="patient-preferred-name"
+                                            name="patient-preferred-name"
+                                            type="text"
+                                            required
+                                            validationRegex={/^[A-Za-z]*$/} // Only allow letters
+                                            requiredMessage="Please enter the Preferred Name."
+                                            validationMessage="Only letters are allowed in the Preferred Name."
                                         />
                                     </div>
                                 </div>
@@ -240,21 +341,29 @@ const AddPatient: React.FC = () => {
                                         <select
                                             id="patient-language"
                                             name="patient-language"
-                                            className="block w-full rounded-md border-0 py-2 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:max-w-xs sm:text-sm sm:leading-6"
+                                            value={patientPreferredLanguage}
+                                            onChange={handlePatientLanguageChange}
+                                            className={`block w-full rounded-md border px-3 py-2 text-gray-900 shadow-sm ring-1 ring-inset focus:ring-2 focus:ring-inset sm:max-w-xs sm:text-sm sm:leading-6 ${error
+                                                ? "border-red-500 focus:ring-red-500"
+                                                : "border-gray-300 focus:ring-indigo-600"
+                                                }`}
+                                            required
                                         >
-                                            <option>Cantonses</option>
-                                            <option>English</option>
-                                            <option>Hakka</option>
-                                            <option>Hindi</option>
-                                            <option>Hokkien</option>
-                                            <option>Japanese</option>
-                                            <option>Korean</option>
-                                            <option>Malay</option>
-                                            <option>Mandarin</option>
-                                            <option>Spanish</option>
-                                            <option>Tamil</option>
-                                            <option>Teochew</option>
+                                            <option value="">Please select a language</option>
+                                            <option value="Cantonese">Cantonese</option>
+                                            <option value="English">English</option>
+                                            <option value="Hakka">Hakka</option>
+                                            <option value="Hindi">Hindi</option>
+                                            <option value="Hokkien">Hokkien</option>
+                                            <option value="Japanese">Japanese</option>
+                                            <option value="Korean">Korean</option>
+                                            <option value="Malay">Malay</option>
+                                            <option value="Mandarin">Mandarin</option>
+                                            <option value="Spanish">Spanish</option>
+                                            <option value="Tamil">Tamil</option>
+                                            <option value="Teochew">Teochew</option>
                                         </select>
+                                        {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
                                     </div>
                                 </div>
 
@@ -307,22 +416,25 @@ const AddPatient: React.FC = () => {
                                         NRIC <span className="text-red-500 ml-1">*</span>
                                     </label>
                                     <div className="mt-2">
-                                        <input
-                                            id="guardipatientan-nric"
+                                        <Input
+                                            id="patient-nric"
                                             name="patient-nric"
-                                            type="patient-nric"
-                                            autoComplete="guarpatientdian-nric"
-                                            className="block w-full rounded-md border-0 py-2 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                                            type="text"
+                                            required
+                                            validationRegex={/^[STFG]\d{7}[A-Z]$/i} // NRIC Regex
+                                            requiredMessage="Please enter the NRIC."
+                                            validationMessage="Please enter a valid NRIC."
                                         />
                                     </div>
                                 </div>
 
-                                <div className="sm:col-span-3">
-                                    <label htmlFor="patient-dob" className="block text-sm font-medium leading-6 text-primary">
-                                        Date Of Birth <span className="text-red-500 ml-1">*</span>
-                                    </label>
+                                <div className="sm:col-span-3 block">
                                     <div className="flex space-x-4 mt-2">
-                                        <DatePicker />
+                                        <DatePickerField
+                                            label="Date of Birth"
+                                            required={true}
+                                            errorMessage="Please select a valid Date of Birth."
+                                        />
                                     </div>
                                 </div>
 
@@ -331,12 +443,13 @@ const AddPatient: React.FC = () => {
                                         Address <span className="text-red-500 ml-1">*</span>
                                     </label>
                                     <div className="mt-2">
-                                        <input
+                                        <Input
                                             id="patient-address"
                                             name="patient-address"
                                             type="text"
                                             autoComplete="patient-address"
-                                            className="block w-full rounded-md border-0 py-2 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                                            required
+                                            requiredMessage="Please enter an Address."
                                         />
                                     </div>
                                 </div>
@@ -346,12 +459,15 @@ const AddPatient: React.FC = () => {
                                         Postal Code <span className="text-red-500 ml-1">*</span>
                                     </label>
                                     <div className="mt-2">
-                                        <input
+                                        <Input
                                             id="patient-postal-code"
                                             name="patient-postal-code"
                                             type="text"
                                             autoComplete="patient-postal-code"
-                                            className="block w-full rounded-md border-0 py-2 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                                            required
+                                            validationRegex={/^\d{6}$/} // Allow only 6 digits
+                                            requiredMessage="Please enter the Postal Code."
+                                            validationMessage="Please enter a valid Postal Code."
                                         />
                                     </div>
                                 </div>
@@ -361,12 +477,11 @@ const AddPatient: React.FC = () => {
                                         Temporary Address
                                     </label>
                                     <div className="mt-2">
-                                        <input
+                                        <Input
                                             id="patient-temporary-address"
                                             name="patient-temporary-address"
                                             type="text"
                                             autoComplete="patient-temporary-address"
-                                            className="block w-full rounded-md border-0 py-2 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
                                         />
                                     </div>
                                 </div>
@@ -376,12 +491,11 @@ const AddPatient: React.FC = () => {
                                         Temporary Postal Code
                                     </label>
                                     <div className="mt-2">
-                                        <input
+                                        <Input
                                             id="patient-temporary-postal-code"
                                             name="patient-temporary-postal-code"
                                             type="text"
                                             autoComplete="patient-temporary-postal-code"
-                                            className="block w-full rounded-md border-0 py-2 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
                                         />
                                     </div>
                                 </div>
@@ -391,12 +505,12 @@ const AddPatient: React.FC = () => {
                                         Home Number
                                     </label>
                                     <div className="mt-2">
-                                        <input
+                                        <Input
                                             id="patient-home-number"
                                             name="patient-home-number"
                                             type="text"
-                                            autoComplete="patient-home-number"
-                                            className="block w-full rounded-md border-0 py-2 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                                            validationRegex={/^6\d{7}$/} // Allow home number to start with 6 followed by 7 more digits
+                                            validationMessage="Home number must be 8 digits and start with '6'."
                                         />
                                     </div>
                                 </div>
@@ -406,12 +520,13 @@ const AddPatient: React.FC = () => {
                                         Mobile Number
                                     </label>
                                     <div className="mt-2">
-                                        <input
+                                        <Input
                                             id="patient-mobile-number"
                                             name="patient-mobile-number"
-                                            type="patient-mobile-number"
                                             autoComplete="patient-mobile-number"
-                                            className="block w-full rounded-md border-0 py-2 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                                            type="text"
+                                            validationRegex={/^[89]\d{7}$/} // Allow home number to start with 6 followed by 7 more digits
+                                            validationMessage="Mobile number must be 8 digits and start with 8 or 9."
                                         />
                                     </div>
                                 </div>
@@ -492,18 +607,23 @@ const AddPatient: React.FC = () => {
                                 </div>
 
                                 <div className="sm:col-span-2">
-                                    <label htmlFor="patient-join-date" className="block text-sm font-medium leading-6 text-primary">
-                                        Joining Date <span className="text-red-500 ml-1">*</span>
-                                    </label>
-                                    <div className="flex space-x-4 mt-2">
-                                        <DatePicker />
-                                    </div>
+                                    <DatePickerField
+                                        label="Joining Date"
+                                        required={true}
+                                        value={patientJoiningDate}
+                                        onChange={handlePatientJoiningDateChange}
+                                        errorMessage="Please select a valid joining date."
+                                    />
                                 </div>
                                 <div className="sm:col-span-2">
-                                    <label htmlFor="patient-leaving-date" className="block text-sm font-medium leading-6 text-primary">
-                                        Leaving Date (if any)
-                                    </label>
-                                    <DatePicker />
+                                    {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
+                                    <DatePickerField
+                                        label="Leaving Date (if any)"
+                                        value={patientLeavingDate}
+                                        onChange={handlePatientLeavingDateChange}
+                                        isError={!!dateError}
+                                    />
+                                    {dateError && <p className="text-red-500 text-sm mt-1">{dateError}</p>}
                                 </div>
                             </div>
                         </div>
@@ -520,12 +640,14 @@ const AddPatient: React.FC = () => {
                                         Guardian First name <span className="text-red-500 ml-1">*</span>
                                     </label>
                                     <div className="mt-2">
-                                        <input
+                                        <Input
                                             id="guardian-first-name"
                                             name="guardian-first-name"
                                             type="text"
-                                            autoComplete="guardian-first-name"
-                                            className="block w-full rounded-md border-0 py-2 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                                            required
+                                            validationRegex={/^[A-Za-z]*$/} // Only allow letters
+                                            requiredMessage="Please enter the First Name."
+                                            validationMessage="Only letters are allowed in the First Name."
                                         />
                                     </div>
                                 </div>
@@ -535,27 +657,31 @@ const AddPatient: React.FC = () => {
                                         Guardian Last name <span className="text-red-500 ml-1">*</span>
                                     </label>
                                     <div className="mt-2">
-                                        <input
+                                        <Input
                                             id="guardian-last-name"
                                             name="guardian-last-name"
                                             type="text"
-                                            autoComplete="guardian-last-name"
-                                            className="block w-full rounded-md border-0 py-2 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                                            required
+                                            validationRegex={/^[A-Za-z]*$/} // Only allow letters
+                                            requiredMessage="Please enter the Last Name."
+                                            validationMessage="Only letters are allowed in the Last Name."
                                         />
                                     </div>
                                 </div>
 
                                 <div className="sm:col-span-2">
-                                    <label htmlFor="guardian-preffered-name" className="block text-sm font-medium leading-6 text-primary">
+                                    <label htmlFor="guardian-preferred-name" className="block text-sm font-medium leading-6 text-primary">
                                         Guardian Preferred Name <span className="text-red-500 ml-1">*</span>
                                     </label>
                                     <div className="mt-2">
-                                        <input
-                                            id="guardian-preffered-name"
-                                            name="guardian-preffered-name"
-                                            type="guardian-preffered-name"
-                                            autoComplete="guardian-preffered-name"
-                                            className="block w-full rounded-md border-0 py-2 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                                        <Input
+                                            id="guardian-preferred-name"
+                                            name="guardian-preferred-name"
+                                            type="text"
+                                            required
+                                            validationRegex={/^[A-Za-z]*$/} // Only allow letters
+                                            requiredMessage="Please enter the Preferred Name."
+                                            validationMessage="Only letters are allowed in the Preferred Name."
                                         />
                                     </div>
                                 </div>
@@ -565,12 +691,14 @@ const AddPatient: React.FC = () => {
                                         Guardian NRIC <span className="text-red-500 ml-1">*</span>
                                     </label>
                                     <div className="mt-2">
-                                        <input
+                                        <Input
                                             id="guardian-nric"
                                             name="guardian-nric"
-                                            type="guardian-nric"
-                                            autoComplete="guardian-nric"
-                                            className="block w-full rounded-md border-0 py-2 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                                            type="text"
+                                            required
+                                            validationRegex={/^[STFG]\d{7}[A-Z]$/i} // NRIC Regex
+                                            requiredMessage="Please enter the NRIC."
+                                            validationMessage="Please enter a valid NRIC."
                                         />
                                     </div>
                                 </div>
@@ -620,12 +748,11 @@ const AddPatient: React.FC = () => {
                                 </div>
 
                                 <div className="sm:col-span-2">
-                                    <label htmlFor="guardian-dob" className="block text-sm font-medium leading-6 text-primary">
-                                        Date of birth <span className="text-red-500 ml-1">*</span>
-                                    </label>
-                                    <div className="flex space-x-4 mt-2">
-                                        <DatePicker />
-                                    </div>
+                                    <DatePickerField
+                                        label="Date of Birth"
+                                        required={true}
+                                        errorMessage="Please select a valid Date of Birth."
+                                    />
                                 </div>
 
                                 <div className="col-span-full">
@@ -633,12 +760,12 @@ const AddPatient: React.FC = () => {
                                         Address <span className="text-red-500 ml-1">*</span>
                                     </label>
                                     <div className="mt-2">
-                                        <input
+                                        <Input
                                             id="guardian-address"
                                             name="guardian-address"
                                             type="text"
-                                            autoComplete="guardian-address"
-                                            className="block w-full rounded-md border-0 py-2 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                                            required
+                                            requiredMessage="Please enter an Address."
                                         />
                                     </div>
                                 </div>
@@ -648,12 +775,14 @@ const AddPatient: React.FC = () => {
                                         Postal Code <span className="text-red-500 ml-1">*</span>
                                     </label>
                                     <div className="mt-2">
-                                        <input
+                                        <Input
                                             id="guardian-postal-code"
                                             name="guardian-postal-code"
                                             type="text"
-                                            autoComplete="guardian-postal-code"
-                                            className="block w-full rounded-md border-0 py-2 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                                            required
+                                            validationRegex={/^\d{6}$/} // Allow only 6 digits
+                                            requiredMessage="Please enter the Postal Code."
+                                            validationMessage="Please enter a valid Postal Code."
                                         />
                                     </div>
                                 </div>
@@ -663,12 +792,10 @@ const AddPatient: React.FC = () => {
                                         Temporary Address
                                     </label>
                                     <div className="mt-2">
-                                        <input
+                                        <Input
                                             id="guardian-temporary-address"
                                             name="guardian-temporary-address"
                                             type="text"
-                                            autoComplete="guardian-temporary-address"
-                                            className="block w-full rounded-md border-0 py-2 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
                                         />
                                     </div>
                                 </div>
@@ -678,12 +805,14 @@ const AddPatient: React.FC = () => {
                                         Temporary Postal Code
                                     </label>
                                     <div className="mt-2">
-                                        <input
+                                        <Input
                                             id="guardian-temporary-postal-code"
                                             name="guardian-temporary-postal-code"
                                             type="text"
-                                            autoComplete="guardian-temporary-postal-code"
-                                            className="block w-full rounded-md border-0 py-2 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                                            required
+                                            validationRegex={/^\d{6}$/} // Allow only 6 digits
+                                            requiredMessage="Please enter the Postal Code."
+                                            validationMessage="Please enter a valid Postal Code."
                                         />
                                     </div>
                                 </div>
@@ -696,21 +825,29 @@ const AddPatient: React.FC = () => {
                                         <select
                                             id="relation-with-patient"
                                             name="relation-with-patient"
-                                            className="block w-full rounded-md border-0 py-2 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:max-w-xs sm:text-sm sm:leading-6"
+                                            value={guardianRelationship}
+                                            onChange={handleGuardianRelationship}
+                                            className={`block w-full rounded-md border px-3 py-2 text-gray-900 shadow-sm ring-1 ring-inset focus:ring-2 focus:ring-inset sm:max-w-xs sm:text-sm sm:leading-6 ${error
+                                                ? "border-red-500 focus:ring-red-500"
+                                                : "border-gray-300 focus:ring-indigo-600"
+                                                }`}
+                                            required
                                         >
-                                            <option>Aunt</option>
-                                            <option>Child</option>
-                                            <option>Friend</option>
-                                            <option>Grandchild</option>
-                                            <option>Grandparent</option>
-                                            <option>Husband</option>
-                                            <option>Nephew</option>
-                                            <option>Niece</option>
-                                            <option>Parent</option>
-                                            <option>Sibling</option>
-                                            <option>Uncle</option>
-                                            <option>Wife</option>
+                                            <option value="">Please select a relationship</option>
+                                            <option value="Aunt">Aunt</option>
+                                            <option value="Child">Child</option>
+                                            <option value="Friend">Friend</option>
+                                            <option value="Grandchild">Grandchild</option>
+                                            <option value="Grandparent">Grandparent</option>
+                                            <option value="Husband">Husband</option>
+                                            <option value="Nephew">Nephew</option>
+                                            <option value="Niece">Niece</option>
+                                            <option value="Parent">Parent</option>
+                                            <option value="Sibling">Sibling</option>
+                                            <option value="Uncle">Uncle</option>
+                                            <option value="Wife">Wife</option>
                                         </select>
+                                        {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
                                     </div>
                                 </div>
 
@@ -719,12 +856,12 @@ const AddPatient: React.FC = () => {
                                         Guardian Contact <span className="text-red-500 ml-1">*</span>
                                     </label>
                                     <div className="mt-2">
-                                        <input
+                                        <Input
                                             id="guardian-contact"
                                             name="guardian-contact"
                                             type="text"
-                                            autoComplete="guardian-contact"
-                                            className="block w-full rounded-md border-0 py-2 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                                            validationRegex={/^[89]\d{7}$/} // Allow home number to start with 6 followed by 7 more digits
+                                            validationMessage="Mobile number must be 8 digits and start with 8 or 9."
                                         />
                                     </div>
                                 </div>
@@ -734,12 +871,12 @@ const AddPatient: React.FC = () => {
                                         Guardian Email
                                     </label>
                                     <div className="mt-2">
-                                        <input
+                                        <Input
                                             id="guardian-email"
                                             name="guardian-email"
-                                            type="guardian-email"
-                                            autoComplete="guardian-email"
-                                            className="block w-full rounded-md border-0 py-2 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                                            type="text"
+                                            validationRegex={/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/} // Email Address Regex
+                                            validationMessage="Please enter a valid email address."
                                         />
                                     </div>
                                 </div>
@@ -766,12 +903,14 @@ const AddPatient: React.FC = () => {
                                             Secondary Guardian First name <span className="text-red-500 ml-1">*</span>
                                         </label>
                                         <div className="mt-2">
-                                            <input
+                                            <Input
                                                 id="secondary-guardian-first-name"
                                                 name="secondary-guardian-first-name"
                                                 type="text"
-                                                autoComplete="secondary-guardian-first-name"
-                                                className="block w-full rounded-md border-0 py-2 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                                                required
+                                                validationRegex={/^[A-Za-z]*$/} // Only allow letters
+                                                requiredMessage="Please enter the First Name."
+                                                validationMessage="Only letters are allowed in the First Name."
                                             />
                                         </div>
                                     </div>
@@ -781,27 +920,32 @@ const AddPatient: React.FC = () => {
                                             Secondary Guardian Last name <span className="text-red-500 ml-1">*</span>
                                         </label>
                                         <div className="mt-2">
-                                            <input
+                                            <Input
                                                 id="secondary-guardian-last-name"
                                                 name="secondary-guardian-last-name"
                                                 type="text"
-                                                autoComplete="secondary-guardian-last-name"
-                                                className="block w-full rounded-md border-0 py-2 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                                                required
+                                                validationRegex={/^[A-Za-z]*$/} // Only allow letters
+                                                requiredMessage="Please enter the Last Name."
+                                                validationMessage="Only letters are allowed in the Last Name."
+
                                             />
                                         </div>
                                     </div>
 
                                     <div className="sm:col-span-2">
-                                        <label htmlFor="secondary-guardian-preffered-name" className="block text-sm font-medium leading-6 text-primary">
+                                        <label htmlFor="secondary-guardian-preferred-name" className="block text-sm font-medium leading-6 text-primary">
                                             Secondary Guardian Preferred Name <span className="text-red-500 ml-1">*</span>
                                         </label>
                                         <div className="mt-2">
-                                            <input
-                                                id="secondary-guardian-preffered-name"
-                                                name="secondary-guardian-preffered-name"
-                                                type="secondary-guardian-preffered-name"
-                                                autoComplete="secondary-guardian-preffered-name"
-                                                className="block w-full rounded-md border-0 py-2 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                                            <Input
+                                                id="secondary-guardian-preferred-name"
+                                                name="secondary-guardian-preferred-name"
+                                                type="text"
+                                                required
+                                                validationRegex={/^[A-Za-z]*$/} // Only allow letters
+                                                requiredMessage="Please enter the Preferred Name."
+                                                validationMessage="Only letters are allowed in the Preferred Name."
                                             />
                                         </div>
                                     </div>
@@ -811,12 +955,14 @@ const AddPatient: React.FC = () => {
                                             Secondary Guardian NRIC <span className="text-red-500 ml-1">*</span>
                                         </label>
                                         <div className="mt-2">
-                                            <input
+                                            <Input
                                                 id="secondary-uardian-nric"
                                                 name="secondary-guardian-nric"
-                                                type="secondary-guardian-nric"
-                                                autoComplete="secondary-guardian-nric"
-                                                className="block w-full rounded-md border-0 py-2 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                                                type="text"
+                                                required
+                                                validationRegex={/^[STFG]\d{7}[A-Z]$/i} // NRIC Regex
+                                                requiredMessage="Please enter the NRIC."
+                                                validationMessage="Please enter a valid NRIC."
                                             />
                                         </div>
                                     </div>
@@ -866,12 +1012,11 @@ const AddPatient: React.FC = () => {
                                     </div>
 
                                     <div className="sm:col-span-2">
-                                        <label htmlFor="secondary-guardian-dob" className="block text-sm font-medium leading-6 text-primary">
-                                            Date of birth <span className="text-red-500 ml-1">*</span>
-                                        </label>
-                                        <div className="flex space-x-4 mt-2">
-                                            <DatePicker />
-                                        </div>
+                                        <DatePickerField
+                                            label="Date of Birth"
+                                            required={true}
+                                            errorMessage="Please select a valid Date of Birth."
+                                        />
                                     </div>
 
                                     <div className="col-span-full">
@@ -879,12 +1024,12 @@ const AddPatient: React.FC = () => {
                                             Address <span className="text-red-500 ml-1">*</span>
                                         </label>
                                         <div className="mt-2">
-                                            <input
+                                            <Input
                                                 id="secondary-guardian-address"
                                                 name="secondary-guardian-address"
                                                 type="text"
-                                                autoComplete="secondary-guardian-address"
-                                                className="block w-full rounded-md border-0 py-2 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                                                required
+                                                requiredMessage="Please enter an Address."
                                             />
                                         </div>
                                     </div>
@@ -894,12 +1039,15 @@ const AddPatient: React.FC = () => {
                                             Postal Code <span className="text-red-500 ml-1">*</span>
                                         </label>
                                         <div className="mt-2">
-                                            <input
+                                            <Input
                                                 id="secondary-guardian-postal-code"
                                                 name="secondary-guardian-postal-code"
                                                 type="text"
-                                                autoComplete="secondary-guardian-postal-code"
-                                                className="block w-full rounded-md border-0 py-2 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                                                required
+                                                validationRegex={/^\d{6}$/} // Allow only 6 digits
+                                                requiredMessage="Please enter the Postal Code."
+                                                validationMessage="Please enter a valid Postal Code."
+
                                             />
                                         </div>
                                     </div>
@@ -909,12 +1057,10 @@ const AddPatient: React.FC = () => {
                                             Temporary Address
                                         </label>
                                         <div className="mt-2">
-                                            <input
+                                            <Input
                                                 id="secondary-guardian-temporary-address"
                                                 name="secondary-guardian-temporary-address"
                                                 type="text"
-                                                autoComplete="secondary-guardian-temporary-address"
-                                                className="block w-full rounded-md border-0 py-2 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
                                             />
                                         </div>
                                     </div>
@@ -924,12 +1070,14 @@ const AddPatient: React.FC = () => {
                                             Temporary Postal Code
                                         </label>
                                         <div className="mt-2">
-                                            <input
+                                            <Input
                                                 id="secondary-guardian-temporary-postal-code"
                                                 name="secondary-guardian-temporary-postal-code"
                                                 type="text"
-                                                autoComplete="secondary-guardian-temporary-postal-code"
-                                                className="block w-full rounded-md border-0 py-2 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                                                required
+                                                validationRegex={/^\d{6}$/} // Allow only 6 digits
+                                                requiredMessage="Please enter the Postal Code."
+                                                validationMessage="Please enter a valid Postal Code."
                                             />
                                         </div>
                                     </div>
@@ -942,21 +1090,29 @@ const AddPatient: React.FC = () => {
                                             <select
                                                 id="secondary-relation-with-patient"
                                                 name="secondary-relation-with-patient"
-                                                className="block w-full rounded-md border-0 py-2 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:max-w-xs sm:text-sm sm:leading-6"
+                                                value={secondaryGuardianRelationship}
+                                                onChange={handleSecondaryGuardianRelationship}
+                                                className={`block w-full rounded-md border px-3 py-2 text-gray-900 shadow-sm ring-1 ring-inset focus:ring-2 focus:ring-inset sm:max-w-xs sm:text-sm sm:leading-6 ${error
+                                                    ? "border-red-500 focus:ring-red-500"
+                                                    : "border-gray-300 focus:ring-indigo-600"
+                                                    }`}
+                                                required
                                             >
-                                                <option>Aunt</option>
-                                                <option>Child</option>
-                                                <option>Friend</option>
-                                                <option>Grandchild</option>
-                                                <option>Grandparent</option>
-                                                <option>Husband</option>
-                                                <option>Nephew</option>
-                                                <option>Niece</option>
-                                                <option>Parent</option>
-                                                <option>Sibling</option>
-                                                <option>Uncle</option>
-                                                <option>Wife</option>
+                                                <option value="">Please select a relationship</option>
+                                                <option value="Aunt">Aunt</option>
+                                                <option value="Child">Child</option>
+                                                <option value="Friend">Friend</option>
+                                                <option value="Grandchild">Grandchild</option>
+                                                <option value="Grandparent">Grandparent</option>
+                                                <option value="Husband">Husband</option>
+                                                <option value="Nephew">Nephew</option>
+                                                <option value="Niece">Niece</option>
+                                                <option value="Parent">Parent</option>
+                                                <option value="Sibling">Sibling</option>
+                                                <option value="Uncle">Uncle</option>
+                                                <option value="Wife">Wife</option>
                                             </select>
+                                            {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
                                         </div>
                                     </div>
 
@@ -965,12 +1121,12 @@ const AddPatient: React.FC = () => {
                                             Secondary Guardian Contact <span className="text-red-500 ml-1">*</span>
                                         </label>
                                         <div className="mt-2">
-                                            <input
+                                            <Input
                                                 id="secondary-guardian-contact"
                                                 name="secondary-guardian-contact"
                                                 type="text"
-                                                autoComplete="secondary-guardian-contact"
-                                                className="block w-full rounded-md border-0 py-2 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                                                validationRegex={/^[89]\d{7}$/} // Allow home number to start with 6 followed by 7 more digits
+                                                validationMessage="Mobile number must be 8 digits and start with 8 or 9."
                                             />
                                         </div>
                                     </div>
@@ -980,12 +1136,12 @@ const AddPatient: React.FC = () => {
                                             Secondary Guardian Email
                                         </label>
                                         <div className="mt-2">
-                                            <input
+                                            <Input
                                                 id="secondary-guardian-email"
                                                 name="secondary-guardian-email"
-                                                type="secondary-guardian-email"
-                                                autoComplete="secondary-guardian-email"
-                                                className="block w-full rounded-md border-0 py-2 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                                                type="text"
+                                                validationRegex={/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/} // Email Address Regex
+                                                validationMessage="Please enter a valid email address."
                                             />
                                         </div>
                                     </div>
@@ -1010,24 +1166,25 @@ const AddPatient: React.FC = () => {
                                                     id={`allergy-${index}`}
                                                     name={`allergy-${index}`}
                                                     value={allergy.name}
-                                                    onChange={(e) => handleAllergyChange(index, 'name', e.target.value)}
-                                                    className="block w-full rounded-md border-0 py-2 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:max-w-xs sm:text-sm sm:leading-6"
+                                                    onChange={(e) => handleAllergyChange(index, "name", e.target.value)}
+                                                    onBlur={() => handleBlur(index)}
+                                                    className={`block w-full rounded-md border-0 py-2 px-3 text-gray-900 shadow-sm ring-1 ring-inset 
+          ${allergyErrors[index]?.name ? "ring-red-500" : "ring-gray-300"} 
+          focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:max-w-xs sm:text-sm sm:leading-6`}
                                                 >
                                                     <option value="">Select an Allergy</option>
                                                     <option value="Corn">Corn</option>
                                                     <option value="Eggs">Eggs</option>
                                                     <option value="Fish">Fish</option>
-                                                    <option value="Meat">Meat</option>
-                                                    <option value="Milk">Milk</option>
-                                                    <option value="Peanuts">Peanuts</option>
-                                                    <option value="Seafood">Seafood</option>
-                                                    <option value="Shellfish">Shellfish</option>
-                                                    <option value="Soy">Soy</option>
-                                                    <option value="Tree Nuts">Tree Nuts</option>
-                                                    <option value="Others">Others</option>
+                                                    {/* Add more options */}
                                                 </select>
+                                                {allergyErrors[index]?.name && (
+                                                    <p className="text-red-500 text-sm mt-1">{allergyErrors[index].name}</p>
+                                                )}
                                             </div>
                                         </div>
+
+                                        {/* Reaction Dropdown */}
                                         <div className="sm:col-span-1">
                                             <label htmlFor={`allergy-reaction-${index}`} className="block text-sm font-medium leading-6 text-primary">
                                                 Allergy Reaction <span className="text-red-500 ml-1">*</span>
@@ -1037,25 +1194,24 @@ const AddPatient: React.FC = () => {
                                                     id={`allergy-reaction-${index}`}
                                                     name={`allergy-reaction-${index}`}
                                                     value={allergy.reaction}
-                                                    onChange={(e) => handleAllergyChange(index, 'reaction', e.target.value)}
-                                                    className="block w-full rounded-md border-0 py-2 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:max-w-xs sm:text-sm sm:leading-6"
+                                                    onChange={(e) => handleAllergyChange(index, "reaction", e.target.value)}
+                                                    onBlur={() => handleBlur(index)}
+                                                    className={`block w-full rounded-md border-0 py-2 px-3 text-gray-900 shadow-sm ring-1 ring-inset 
+          ${allergyErrors[index]?.reaction ? "ring-red-500" : "ring-gray-300"} 
+          focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:max-w-xs sm:text-sm sm:leading-6`}
                                                 >
                                                     <option value="">Select a Reaction</option>
                                                     <option value="Abdominal cramp or pain">Abdominal cramp or pain</option>
-                                                    <option value="Diarrhea">Diarrhea</option>
                                                     <option value="Difficulty breathing">Difficulty breathing</option>
-                                                    <option value="Hives">Hives</option>
-                                                    <option value="Itching">Itching</option>
-                                                    <option value="Nasal Congestion">Nasal Congestion</option>
-                                                    <option value="Nausea">Nausea</option>
-                                                    <option value="Rashes">Rashes</option>
-                                                    <option value="Sneezing">Sneezing</option>
-                                                    <option value="Swelling">Swelling</option>
-                                                    <option value="Vomiting">Vomiting</option>
-                                                    <option value="Others">Others</option>
+                                                    {/* Add more options */}
                                                 </select>
+                                                {allergyErrors[index]?.reaction && (
+                                                    <p className="text-red-500 text-sm mt-1">{allergyErrors[index].reaction}</p>
+                                                )}
                                             </div>
                                         </div>
+
+                                        {/* Remarks Textarea */}
                                         <div className="col-span-full">
                                             <label htmlFor={`allergy-remarks-${index}`} className="block text-sm font-medium leading-6 text-primary">
                                                 Allergy Remarks <span className="text-red-500 ml-1">*</span>
@@ -1066,10 +1222,14 @@ const AddPatient: React.FC = () => {
                                                     name={`allergy-remarks-${index}`}
                                                     rows={3}
                                                     value={allergy.remarks}
-                                                    onChange={(e) => handleAllergyChange(index, 'remarks', e.target.value)}
-                                                    className="block w-full rounded-md border-0 py-2 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                                                    onChange={(e) => handleAllergyChange(index, "remarks", e.target.value)}
+                                                    onBlur={() => handleBlur(index)}
+                                                    className={`block w-full rounded-md border-0 py-2 px-3 text-gray-900 shadow-sm ring-1 ring-inset ${allergyErrors[index]?.remarks ? "ring-red-500" : "ring-gray-300"} placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6`}
                                                     placeholder="Give more information about the allergy."
                                                 />
+                                                {allergyErrors[index]?.remarks && (
+                                                    <p className="text-red-500 text-sm mt-1">{allergyErrors[index].remarks}</p>
+                                                )}
                                             </div>
                                         </div>
                                         <div className="col-span-full flex justify-between items-center mt-2">

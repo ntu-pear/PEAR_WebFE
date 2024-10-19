@@ -1,10 +1,10 @@
 import "./App.css";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import Navbar from "./components/Navbar/Navbar";
-import { ThemeProvider } from "./components/theme/ThemeProvider";
+import Navbar from "./components/Navbar";
+import { ThemeProvider } from "./components/ThemeProvider";
 
 // import Dashboard from "./pages/Dashboard/Dashboard";
-import PatientTable from "./pages/PatientTable";
+import PatientTable from "./pages/Supervisor/PatientTable";
 import AddPatient from "./pages/Supervisor/AddPatient";
 import ManageAdhoc from "./pages/Supervisor/ManageAdhoc";
 import AddAdhoc from "./pages/Supervisor/AddAdhoc";
@@ -38,6 +38,8 @@ const App: React.FC = () => {
               <Route path="/Supervisor/ManageActivities" element={<ManageActivities />} />
               <Route path="/Supervisor/ManageAdhoc" element={<ManageAdhoc />} />
               <Route path="/Supervisor/AddAdhoc" element={<AddAdhoc />} />
+
+              {/* Routes for Other roles */}
               
             </Routes>
           </main>

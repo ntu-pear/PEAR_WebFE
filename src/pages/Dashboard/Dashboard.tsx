@@ -21,7 +21,7 @@ import {
 import DataTable, { TableRowData } from "@/components/Table/DataTable";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import Header from "@/components/Header/Header";
+import Header from "@/components/Header";
 
 interface UserData extends TableRowData {
   name: string;
