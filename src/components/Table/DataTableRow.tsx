@@ -9,6 +9,7 @@ interface DataTableRowProps<T extends TableRowData> {
   columns: Array<{
     key: keyof T | string;
     header: string;
+    width?: string;
     render?: (value: any, item: T) => React.ReactNode;
   }>;
   viewMore: boolean;
@@ -32,7 +33,7 @@ function DataTableRow<T extends TableRowData>({
   return (
     <TableRow>
       {columns.map((column) => (
-        <TableCell key={column.key.toString()}>
+        <TableCell key={column.key.toString()} style={{ width: column.width ? column.width : "auto" }}>
           {column.render
             ? column.render(getNestedValue(item, column.key.toString()), item)  // Use nested value if present
             : getNestedValue(item, column.key.toString())} {/* Fallback to the direct value */}
