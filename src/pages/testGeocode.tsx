@@ -69,6 +69,7 @@ const TestGeocode: React.FC = () => {
                 </label>
                 <input
                   type="text"
+                  value={postalCode}
                   className="mt-1 block w-full p-2 border rounded-md text-gray-900"
                   onChange={(e) => setPostalCode(e.target.value || '')}
                   required
@@ -80,6 +81,7 @@ const TestGeocode: React.FC = () => {
                 </label>
                 <input
                   type="text"
+                  value={unitNumber}
                   className="mt-1 block w-full p-2 border rounded-md text-gray-900"
                   onChange={(e) => setUnitNumber(e.target.value || '')}
                 />
