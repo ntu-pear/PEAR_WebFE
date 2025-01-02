@@ -1,7 +1,8 @@
+import { useModal } from '@/hooks/useModal';
 import { Button } from '../ui/button';
-import ModalProps from './types';
 
-const AddRoutineModal: React.FC<ModalProps> = ({ modalRef, closeModal }) => {
+const AddRoutineModal: React.FC = () => {
+  const { modalRef, closeModal } = useModal();
   const handleAddRoutine = (event: React.FormEvent) => {
     event.preventDefault();
     console.log('Patient Routine Added!');

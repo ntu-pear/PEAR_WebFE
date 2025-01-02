@@ -1,7 +1,8 @@
+import { useModal } from '@/hooks/useModal';
 import { Button } from '../ui/button';
-import ModalProps from './types';
 
-const AddDislikeModal: React.FC<ModalProps> = ({ modalRef, closeModal }) => {
+const AddDislikeModal: React.FC = () => {
+  const { modalRef, closeModal } = useModal();
   const handleAddDislike = (event: React.FormEvent) => {
     event.preventDefault();
     console.log('Patient Dislike Added!');

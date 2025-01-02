@@ -5,8 +5,11 @@ import { TabsContent } from '../ui/tabs';
 import DataTable from '../Table/DataTable';
 import { mockRoutine } from '@/mocks/mockPatientDetails';
 import TabProps from './types';
+import { useModal } from '@/hooks/useModal';
+import AddRoutineModal from '../Modal/AddRoutineModal';
 
-const RoutineTab: React.FC<TabProps> = ({ openModal }) => {
+const RoutineTab: React.FC<TabProps> = () => {
+  const { activeModal, openModal } = useModal();
   const routineColumns = [
     { key: 'activityName', header: 'Activity Name' },
     { key: 'routineIssue', header: 'Routine Issue' },
@@ -42,6 +45,7 @@ const RoutineTab: React.FC<TabProps> = ({ openModal }) => {
           </CardContent>
         </Card>
       </TabsContent>
+      {activeModal.name == 'addRoutine' && <AddRoutineModal />}
     </>
   );
 };

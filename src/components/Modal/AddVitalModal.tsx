@@ -1,11 +1,50 @@
+import { addVital, VitalFormData } from '@/api/patients/vitals';
 import { Button } from '../ui/button';
-import ModalProps from './types';
+import { toast } from 'sonner';
+import { useModal } from '@/hooks/useModal';
 
-const AddVitalModal: React.FC<ModalProps> = ({ modalRef, closeModal }) => {
-  const handleAddVital = (event: React.FormEvent) => {
+const AddVitalModal: React.FC = () => {
+  const { modalRef, activeModal, closeModal } = useModal();
+  const { patientId, submitterId } = activeModal.props as {
+    patientId: string;
+    submitterId: string;
+  };
+
+  const handleAddVital = async (event: React.FormEvent) => {
     event.preventDefault();
-    console.log('Patient Vital Added!');
-    closeModal();
+    // Create a new FormData object from the event's target
+    const formData = new FormData(event.target as HTMLFormElement);
+
+    // Convert FormData entries to an object
+    const formDataObj = Object.fromEntries(formData.entries());
+
+    const vitalFormData: VitalFormData = {
+      patientId: parseInt(patientId as string, 10),
+      temperature: parseFloat(formDataObj.temperature as string),
+      weight: parseFloat(formDataObj.weight as string),
+      height: parseFloat(formDataObj.height as string),
+      systolicBP: parseInt(formDataObj.systolicBP as string, 10),
+      diastolicBP: parseInt(formDataObj.diastolicBP as string, 10),
+      heartRate: parseInt(formDataObj.heartRate as string, 10),
+      spO2: parseFloat(formDataObj.spO2 as string),
+      bloodSugarLevel: parseFloat(formDataObj.bloodSugarLevel as string),
+      vitalRemarks: formDataObj.vitalRemarks as string,
+      afterMeal: formDataObj.afterMeal as string,
+      createdById: parseInt(patientId as string, 10),
+      modifiedById: parseInt(submitterId as string, 10),
+    };
+
+    try {
+      console.log('vitalFormData: ', vitalFormData);
+      const response = await addVital(vitalFormData);
+      console.log(response);
+      closeModal();
+      toast.success('Vitals added successfully.');
+    } catch (error) {
+      console.log(error);
+      closeModal();
+      toast.error('Failed to add vitals.');
+    }
   };
 
   return (
@@ -18,9 +57,11 @@ const AddVitalModal: React.FC<ModalProps> = ({ modalRef, closeModal }) => {
               Temperature (°C)<span className="text-red-600">*</span>
             </label>
             <input
+              name="temperature"
               type="number"
               min={35}
               max={43}
+              step={0.1}
               className="mt-1 block w-full p-2 border rounded-md text-gray-900"
               required
             />
@@ -31,7 +72,11 @@ const AddVitalModal: React.FC<ModalProps> = ({ modalRef, closeModal }) => {
               Weight (kg)<span className="text-red-600">*</span>
             </label>
             <input
+              name="weight"
               type="number"
+              min={1}
+              max={300}
+              step={0.1}
               className="mt-1 block w-full p-2 border rounded-md text-gray-900"
               required
             />
@@ -42,9 +87,11 @@ const AddVitalModal: React.FC<ModalProps> = ({ modalRef, closeModal }) => {
               Height (m)<span className="text-red-600">*</span>
             </label>
             <input
+              name="height"
               type="number"
-              min={0}
+              min={0.5}
               max={2.5}
+              step={0.01}
               className="mt-1 block w-full p-2 border rounded-md text-gray-900"
               required
             />
@@ -55,9 +102,10 @@ const AddVitalModal: React.FC<ModalProps> = ({ modalRef, closeModal }) => {
               Systolic BP (mmHg)<span className="text-red-600">*</span>
             </label>
             <input
+              name="systolicBP"
               type="number"
-              min={70}
-              max={160}
+              min={90}
+              max={200}
               className="mt-1 block w-full p-2 border rounded-md text-gray-900"
               required
             />
@@ -68,8 +116,9 @@ const AddVitalModal: React.FC<ModalProps> = ({ modalRef, closeModal }) => {
               Diastolic BP (mmHg)<span className="text-red-600">*</span>
             </label>
             <input
+              name="diastolicBP"
               type="number"
-              min={40}
+              min={50}
               max={120}
               className="mt-1 block w-full p-2 border rounded-md text-gray-900"
               required
@@ -81,9 +130,10 @@ const AddVitalModal: React.FC<ModalProps> = ({ modalRef, closeModal }) => {
               Heart Rate (bpm)<span className="text-red-600">*</span>
             </label>
             <input
+              name="heartRate"
               type="number"
-              min={0}
-              max={300}
+              min={40}
+              max={170}
               className="mt-1 block w-full p-2 border rounded-md text-gray-900"
               required
             />
@@ -94,9 +144,11 @@ const AddVitalModal: React.FC<ModalProps> = ({ modalRef, closeModal }) => {
               SpO2 (%)<span className="text-red-600">*</span>
             </label>
             <input
+              name="spO2"
               type="number"
-              min={60}
-              max={120}
+              min={80}
+              max={100}
+              step={0.1}
               className="mt-1 block w-full p-2 border rounded-md text-gray-900"
               required
             />
@@ -108,9 +160,10 @@ const AddVitalModal: React.FC<ModalProps> = ({ modalRef, closeModal }) => {
               <span className="text-red-600">*</span>
             </label>
             <input
+              name="bloodSugarLevel"
               type="number"
-              min={50}
-              max={250}
+              min={4}
+              max={10}
               className="mt-1 block w-full p-2 border rounded-md text-gray-900"
               required
             />
@@ -121,6 +174,7 @@ const AddVitalModal: React.FC<ModalProps> = ({ modalRef, closeModal }) => {
               Vital Remark<span className="text-red-600">*</span>
             </label>
             <textarea
+              name="vitalRemarks"
               className="mt-1 block w-full p-2 border rounded-md text-gray-900"
               required
             />
@@ -131,12 +185,13 @@ const AddVitalModal: React.FC<ModalProps> = ({ modalRef, closeModal }) => {
               After Meal<span className="text-red-600">*</span>
             </label>
             <select
+              name="afterMeal"
               className="mt-1 block w-full p-2 border rounded-md text-gray-900"
               required
             >
               <option value="">Please select a option</option>
-              <option value="yes">Yes</option>
-              <option value="no">No</option>
+              <option value="1">Yes</option>
+              <option value="0">No</option>
             </select>
           </div>
 

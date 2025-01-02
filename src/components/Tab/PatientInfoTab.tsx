@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { EyeIcon, EyeOffIcon, FilePenLine, PlusCircle } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
@@ -18,16 +18,68 @@ import {
   SocialHistory,
 } from '@/mocks/mockPatientDetails';
 import TabProps from './types';
+import { fetchPatientInfo } from '@/api/patients/patients';
+import { useModal } from '@/hooks/useModal';
+import EditPatientInfoModal from '../Modal/EditPatientInfoModal';
+import AddMedicalHistoryModal from '../Modal/AddMedicalHistoryModal';
+import AddMobilityAidModal from '../Modal/AddMobilityAidModal';
+import EditStaffAllocationModal from '../Modal/EditStaffAllocationModal';
+import EditSocialHistoryModal from '../Modal/EditSocialHistoryModal';
 
-const PatientInfoTab: React.FC<TabProps> = ({ openModal }) => {
+const PatientInfoTab: React.FC<TabProps> = ({ id }) => {
   const [isNRICMasked, setisNRICMasked] = useState(true);
+  const [patientInfo, setPatientInfo] = useState<PatientInformation | null>(
+    null
+  );
   const [nric, setNric] = useState('');
+  const [socialHistory, setSocialHistory] = useState<SocialHistory | null>(
+    null
+  );
+  const { activeModal, openModal } = useModal();
 
   const handleNRICToggle = () => {
     const updatedNric = isNRICMasked ? mockUnmaskedNRIC : mockMaskedNRIC;
     setNric(updatedNric);
     setisNRICMasked(!isNRICMasked);
   };
+
+  const handleFetchPatientInfo = async () => {
+    if (!id || isNaN(Number(id))) return;
+    try {
+      const fetchedPatientInfo: PatientInformation =
+        import.meta.env.MODE === 'development' ||
+        import.meta.env.MODE === 'production'
+          ? await fetchPatientInfo(Number(id))
+          : mockPatientInformation;
+
+      // console.log('Fetched Patient Info:', fetchedPatientInfo); // Debug Log
+      setPatientInfo(fetchedPatientInfo);
+    } catch (error) {
+      console.error('Error fetching patient information:', error);
+    }
+  };
+
+  const handleFetchSocialHistory = async () => {
+    if (!id || isNaN(Number(id))) return;
+    try {
+      const fetchedSocialHistory: SocialHistory =
+        import.meta.env.MODE === 'development' ||
+        import.meta.env.MODE === 'production'
+          ? mockSocialHistory
+          : mockSocialHistory;
+
+      // console.log('Fetched Patient Social History', fetchedSocialHistory); // Debug Log
+      setSocialHistory(fetchedSocialHistory);
+    } catch (error) {
+      console.error('Error fetching patient information:', error);
+    }
+  };
+
+  useEffect(() => {
+    console.log(id);
+    handleFetchPatientInfo();
+    handleFetchSocialHistory();
+  }, []);
 
   const patientInformationColumns = [
     { key: 'name', header: 'Name' },
@@ -39,7 +91,7 @@ const PatientInfoTab: React.FC<TabProps> = ({ openModal }) => {
     { key: 'temporaryAddress', header: 'Temporary Address' },
     { key: 'homeNo', header: 'Home No' },
     { key: 'handphoneNo', header: 'Handphone No' },
-    { key: 'perferredName', header: 'Preferred Name' },
+    { key: 'preferredName', header: 'Preferred Name' },
     { key: 'perferredLanguage', header: 'Preferred Language' },
     { key: 'underRespiteCare', header: 'Under Respite Care' },
     { key: 'startDate', header: 'Start Date' },
@@ -124,11 +176,11 @@ const PatientInfoTab: React.FC<TabProps> = ({ openModal }) => {
                           ? !isNRICMasked
                             ? nric || '-'
                             : nric ||
-                              mockPatientInformation[
+                              patientInfo?.[
                                 column.key as keyof PatientInformation
                               ] ||
                               '-'
-                          : mockPatientInformation[
+                          : patientInfo?.[
                               column.key as keyof PatientInformation
                             ] || '-'}
                         {column.key === 'nric' && (
@@ -161,11 +213,11 @@ const PatientInfoTab: React.FC<TabProps> = ({ openModal }) => {
                           ? !isNRICMasked
                             ? nric || '-'
                             : nric ||
-                              mockPatientInformation[
+                              patientInfo?.[
                                 column.key as keyof PatientInformation
                               ] ||
                               '-'
-                          : mockPatientInformation[
+                          : patientInfo?.[
                               column.key as keyof PatientInformation
                             ] || '-'}
                         {column.key === 'nric' && (
@@ -324,7 +376,7 @@ const PatientInfoTab: React.FC<TabProps> = ({ openModal }) => {
                     <div key={column.key} className="space-y-1">
                       <p className="text-sm font-medium">{column.header}</p>
                       <p className="text-sm text-muted-foreground">
-                        {mockSocialHistory[column.key as keyof SocialHistory] ||
+                        {socialHistory?.[column.key as keyof SocialHistory] ||
                           '-'}
                       </p>
                     </div>
@@ -338,7 +390,7 @@ const PatientInfoTab: React.FC<TabProps> = ({ openModal }) => {
                     <div key={column.key} className="space-y-1">
                       <p className="text-sm font-medium">{column.header}</p>
                       <p className="text-sm text-muted-foreground">
-                        {mockSocialHistory[column.key as keyof SocialHistory] ||
+                        {socialHistory?.[column.key as keyof SocialHistory] ||
                           '-'}
                       </p>
                     </div>
@@ -348,6 +400,17 @@ const PatientInfoTab: React.FC<TabProps> = ({ openModal }) => {
           </Card>
         </div>
       </TabsContent>
+      {activeModal.name === 'editPatientInfo' && <EditPatientInfoModal />}
+
+      {activeModal.name === 'addMedicalHistory' && <AddMedicalHistoryModal />}
+
+      {activeModal.name === 'addMobilityAids' && <AddMobilityAidModal />}
+
+      {activeModal.name === 'editStaffAllocation' && (
+        <EditStaffAllocationModal />
+      )}
+
+      {activeModal.name === 'editSocialHistory' && <EditSocialHistoryModal />}
     </>
   );
 };

@@ -1,10 +1,8 @@
+import { useModal } from '@/hooks/useModal';
 import { Button } from '../ui/button';
-import ModalProps from './types';
 
-const AddMobilityAidModal: React.FC<ModalProps> = ({
-  modalRef,
-  closeModal,
-}) => {
+const AddMobilityAidModal: React.FC = () => {
+  const { modalRef, closeModal } = useModal();
   const handleAddMobilityAids = (event: React.FormEvent) => {
     event.preventDefault();
     console.log('Patient Mobility Aids added!');

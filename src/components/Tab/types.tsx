@@ -1,5 +1,5 @@
 interface TabProps {
-  openModal: (modalName: string) => void;
+  id?: string;
 }
 
 export default TabProps;

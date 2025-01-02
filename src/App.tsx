@@ -15,6 +15,8 @@ import ManageMedication from './pages/Supervisor/ManageMedication';
 import ManageActivities from './pages/Supervisor/ManageActivities';
 import ViewPatient from './pages/ViewPatient';
 import TestGeocode from './pages/testGeocode';
+import { Toaster } from './components/ui/sonner';
+import { ModalProvider } from './hooks/useModal';
 
 const App: React.FC = () => {
   const isAuthPage =
@@ -24,39 +26,48 @@ const App: React.FC = () => {
       <Router>
         <div className="min-h-screen bg-background font-sans antialiased">
           {!isAuthPage && <Navbar />}
-          <main>
-            <Routes>
-              {/* <Route path="/" element={<Dashboard />} /> */}
-              <Route path="/Login" element={<Login />} />
-              <Route path="/ForgotPassword" element={<ForgotPassword />} />
-              <Route path="/ViewPatient/:id" element={<ViewPatient />} />
-              <Route path="/" element={<PatientTable />} />
+          <ModalProvider>
+            <main>
+              <Routes>
+                {/* <Route path="/" element={<Dashboard />} /> */}
+                <Route path="/Login" element={<Login />} />
+                <Route path="/ForgotPassword" element={<ForgotPassword />} />
+                <Route path="/ViewPatient/:id" element={<ViewPatient />} />
+                <Route path="/" element={<PatientTable />} />
 
-              {/* Routes for Supervisor*/}
-              <Route
-                path="/Supervisor/ManagePatients"
-                element={<PatientTable />}
-              />
-              <Route path="/Supervisor/AddPatients" element={<AddPatient />} />
-              <Route
-                path="/Supervisor/ViewMedicationSchedule"
-                element={<ViewMedicationSchedule />}
-              />
-              <Route
-                path="/Supervisor/ManageMedication"
-                element={<ManageMedication />}
-              />
-              <Route
-                path="/Supervisor/ManageActivities"
-                element={<ManageActivities />}
-              />
-              <Route path="/Supervisor/ManageAdhoc" element={<ManageAdhoc />} />
-              <Route path="/Supervisor/AddAdhoc" element={<AddAdhoc />} />
+                {/* Routes for Supervisor*/}
+                <Route
+                  path="/Supervisor/ManagePatients"
+                  element={<PatientTable />}
+                />
+                <Route
+                  path="/Supervisor/AddPatients"
+                  element={<AddPatient />}
+                />
+                <Route
+                  path="/Supervisor/ViewMedicationSchedule"
+                  element={<ViewMedicationSchedule />}
+                />
+                <Route
+                  path="/Supervisor/ManageMedication"
+                  element={<ManageMedication />}
+                />
+                <Route
+                  path="/Supervisor/ManageActivities"
+                  element={<ManageActivities />}
+                />
+                <Route
+                  path="/Supervisor/ManageAdhoc"
+                  element={<ManageAdhoc />}
+                />
+                <Route path="/Supervisor/AddAdhoc" element={<AddAdhoc />} />
 
-              {/* Routes for Other roles */}
-              <Route path="/TestGeocode" element={<TestGeocode />} />
-            </Routes>
-          </main>
+                {/* Routes for Other roles */}
+                <Route path="/TestGeocode" element={<TestGeocode />} />
+              </Routes>
+            </main>
+          </ModalProvider>
+          <Toaster richColors />
         </div>
       </Router>
     </ThemeProvider>

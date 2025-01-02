@@ -1,10 +1,8 @@
+import { useModal } from '@/hooks/useModal';
 import { Button } from '../ui/button';
-import ModalProps from './types';
 
-const AddPrescriptionModal: React.FC<ModalProps> = ({
-  modalRef,
-  closeModal,
-}) => {
+const AddPrescriptionModal: React.FC = () => {
+  const { modalRef, closeModal } = useModal();
   const handleAddPrescription = (event: React.FormEvent) => {
     event.preventDefault();
     console.log('Patient Medical Prescription Added!');

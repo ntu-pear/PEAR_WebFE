@@ -5,8 +5,11 @@ import { TabsContent } from '../ui/tabs';
 import DataTable from '../Table/DataTable';
 import { mockProblemLog } from '@/mocks/mockPatientDetails';
 import TabProps from './types';
+import { useModal } from '@/hooks/useModal';
+import AddProblemModal from '../Modal/AddProblemModal';
 
-const ProblemLogTab: React.FC<TabProps> = ({ openModal }) => {
+const ProblemLogTab: React.FC<TabProps> = () => {
+  const { activeModal, openModal } = useModal();
   const problemLogColumns = [
     { key: 'author', header: 'Author' },
     { key: 'description', header: 'Description' },
@@ -41,6 +44,7 @@ const ProblemLogTab: React.FC<TabProps> = ({ openModal }) => {
           </CardContent>
         </Card>
       </TabsContent>
+      {activeModal.name === 'addProblem' && <AddProblemModal />}
     </>
   );
 };

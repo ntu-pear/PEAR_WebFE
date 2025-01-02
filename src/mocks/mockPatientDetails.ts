@@ -1,5 +1,11 @@
 import { TableRowData } from '@/components/Table/DataTable';
 
+export interface ProfilePhotoAndName {
+  profilePicture: string;
+  name: string;
+  preferredName: string;
+}
+
 export interface PatientInformation extends TableRowData {
   name: string;
   nric: string;
@@ -7,7 +13,7 @@ export interface PatientInformation extends TableRowData {
   gender: string;
   address: string;
   inactiveDate: string;
-  temporaryAddress: string;
+  tempAddress: string;
   homeNo: string;
   handphoneNo: string;
   preferredName: string;
@@ -63,13 +69,13 @@ export interface SocialHistory extends TableRowData {
   tobaccoUse: string;
 }
 
-export interface Allergy extends TableRowData {
+export interface AllergyTD extends TableRowData {
   allergicTo: string;
   reaction: string;
   notes: string;
 }
 
-export interface VitalCheck extends TableRowData {
+export interface VitalCheckTD extends TableRowData {
   date: string;
   time: string;
   temperature: number;
@@ -121,7 +127,7 @@ export interface Prescription extends TableRowData {
   chronic: string;
 }
 
-export interface Guardian extends TableRowData {
+export interface GuardianTD extends TableRowData {
   guardianType: string;
   guardianName: string;
   preferredName: string;
@@ -140,8 +146,12 @@ export interface ActivityExclusion extends TableRowData {
   remark: string;
 }
 
-export const mockPatientProfilePic =
-  'https://images.unsplash.com/photo-1488820098099-8d4a4723a490?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D';
+export const mockProfilePhotoAndName: ProfilePhotoAndName = {
+  profilePicture:
+    'https://images.unsplash.com/photo-1488820098099-8d4a4723a490?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+  name: 'BOB SMITH',
+  preferredName: 'BOB',
+};
 
 export const mockPatientInformation: PatientInformation = {
   id: 1,
@@ -151,7 +161,7 @@ export const mockPatientInformation: PatientInformation = {
   gender: 'Male',
   address: 'Blk 123 Summer Street 102, #05-123, Singapore 35123',
   inactiveDate: '12 Oct 2024',
-  temporaryAddress: '-',
+  tempAddress: '-',
   homeNo: '12345678',
   handphoneNo: '23456789',
   preferredName: 'Bob',
@@ -242,7 +252,7 @@ export const mockSocialHistory: SocialHistory = {
   tobaccoUse: '',
 };
 
-export const mockAllergy: Allergy[] = [
+export const mockAllergy: AllergyTD[] = [
   {
     id: 1,
     allergicTo: 'Fish',
@@ -263,7 +273,7 @@ export const mockAllergy: Allergy[] = [
   },
 ];
 
-export const mockVitalCheck: VitalCheck[] = [
+export const mockVitalCheck: VitalCheckTD[] = [
   {
     id: '1', // Assuming `TableRowData` includes an `id` field
     date: '15 Aug 2024',
@@ -364,7 +374,7 @@ export const mockPrescription: Prescription[] = [
   },
 ];
 
-export const mockGuardian: Guardian[] = [
+export const mockGuardian: GuardianTD[] = [
   {
     id: 1,
     guardianType: 'Primary Guardian',

@@ -5,8 +5,11 @@ import { TabsContent } from '../ui/tabs';
 import DataTable from '../Table/DataTable';
 import { mockPrescription } from '@/mocks/mockPatientDetails';
 import TabProps from './types';
+import { useModal } from '@/hooks/useModal';
+import AddPrescriptionModal from '../Modal/AddPrescriptionModal';
 
-const PrescriptionTab: React.FC<TabProps> = ({ openModal }) => {
+const PrescriptionTab: React.FC<TabProps> = () => {
+  const { activeModal, openModal } = useModal();
   const prescriptionColumns = [
     { key: 'drugName', header: 'Drug Name' },
     { key: 'dosage', header: 'Dosage' },
@@ -47,6 +50,7 @@ const PrescriptionTab: React.FC<TabProps> = ({ openModal }) => {
           </CardContent>
         </Card>
       </TabsContent>
+      {activeModal.name === 'addPrescription' && <AddPrescriptionModal />}
     </>
   );
 };

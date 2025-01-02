@@ -1,10 +1,9 @@
+import { useModal } from '@/hooks/useModal';
 import { Button } from '../ui/button';
-import ModalProps from './types';
 
-const AddActivityExclusionModal: React.FC<ModalProps> = ({
-  modalRef,
-  closeModal,
-}) => {
+const AddActivityExclusionModal: React.FC = () => {
+  const { modalRef, closeModal } = useModal();
+
   const handleAddActivityExclusion = (event: React.FormEvent) => {
     event.preventDefault();
     console.log('Patient Activity Exclusion Added!');

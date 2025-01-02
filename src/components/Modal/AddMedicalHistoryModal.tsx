@@ -1,10 +1,8 @@
+import { useModal } from '@/hooks/useModal';
 import { Button } from '../ui/button';
-import ModalProps from './types';
 
-const AddMedicalHistoryModal: React.FC<ModalProps> = ({
-  modalRef,
-  closeModal,
-}) => {
+const AddMedicalHistoryModal: React.FC = () => {
+  const { modalRef, closeModal } = useModal();
   const handleAddMedicalHistory = (event: React.FormEvent) => {
     event.preventDefault();
     console.log('Patient Medical History added!');

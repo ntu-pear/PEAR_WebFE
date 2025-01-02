@@ -1,7 +1,8 @@
+import { useModal } from '@/hooks/useModal';
 import { Button } from '../ui/button';
-import ModalProps from './types';
 
-const AddAllergyModal: React.FC<ModalProps> = ({ modalRef, closeModal }) => {
+const AddAllergyModal: React.FC = () => {
+  const { modalRef, closeModal } = useModal();
   const handleAddAllergy = (event: React.FormEvent) => {
     event.preventDefault();
     console.log('Patient Allergy Added!');

@@ -5,8 +5,11 @@ import { TabsContent } from '../ui/tabs';
 import DataTable from '../Table/DataTable';
 import { mockActivityPreferences } from '@/mocks/mockPatientDetails';
 import TabProps from './types';
+import { useModal } from '@/hooks/useModal';
+import AddActivityPreferenceModal from '../Modal/AddActivityPreferenceModal';
 
-const ActivityPreferenceTab: React.FC<TabProps> = ({ openModal }) => {
+const ActivityPreferenceTab: React.FC<TabProps> = () => {
+  const { activeModal, openModal } = useModal();
   const activityPreferencesColumns = [
     { key: 'activityName', header: 'Activity Name' },
     { key: 'activityDescription', header: 'Activity Description' },
@@ -41,6 +44,9 @@ const ActivityPreferenceTab: React.FC<TabProps> = ({ openModal }) => {
           </CardContent>
         </Card>
       </TabsContent>
+      {activeModal.name == 'addActivityPreference' && (
+        <AddActivityPreferenceModal />
+      )}
     </>
   );
 };

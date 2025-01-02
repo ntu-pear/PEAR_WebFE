@@ -5,8 +5,11 @@ import { TabsContent } from '../ui/tabs';
 import DataTable from '../Table/DataTable';
 import { mockActivityExclusion } from '@/mocks/mockPatientDetails';
 import TabProps from './types';
+import { useModal } from '@/hooks/useModal';
+import AddActivityExclusionModal from '../Modal/AddActivityExclusionModal';
 
-const ActivityExclusionTab: React.FC<TabProps> = ({ openModal }) => {
+const ActivityExclusionTab: React.FC<TabProps> = () => {
+  const { activeModal, openModal } = useModal();
   const activityExclusionColumns = [
     { key: 'title', header: 'Title' },
     { key: 'description', header: 'Description' },
@@ -43,6 +46,9 @@ const ActivityExclusionTab: React.FC<TabProps> = ({ openModal }) => {
           </CardContent>
         </Card>
       </TabsContent>
+      {activeModal.name == 'addActivityExclusion' && (
+        <AddActivityExclusionModal />
+      )}
     </>
   );
 };

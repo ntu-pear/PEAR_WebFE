@@ -1,7 +1,8 @@
+import { useModal } from '@/hooks/useModal';
 import { Button } from '../ui/button';
-import ModalProps from './types';
 
-const AddLikeModal: React.FC<ModalProps> = ({ modalRef, closeModal }) => {
+const AddLikeModal: React.FC = () => {
+  const { modalRef, closeModal } = useModal();
   const handleAddLike = (event: React.FormEvent) => {
     event.preventDefault();
     console.log('Patient Like Added!');

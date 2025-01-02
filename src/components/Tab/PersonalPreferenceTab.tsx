@@ -10,8 +10,15 @@ import {
   mockLike,
 } from '@/mocks/mockPatientDetails';
 import TabProps from './types';
+import { useModal } from '@/hooks/useModal';
+import AddLikeModal from '../Modal/AddLikeModal';
+import AddDislikeModal from '../Modal/AddDislikeModal';
+import AddHobbyModal from '../Modal/AddHobbyModal';
+import AddHabitModal from '../Modal/AddHabitModal';
 
-const PersonalPreferenceTab: React.FC<TabProps> = ({ openModal }) => {
+const PersonalPreferenceTab: React.FC<TabProps> = () => {
+  const { activeModal, openModal } = useModal();
+
   const personalPreferenceColumns = [
     { key: 'dateCreated', header: 'Date Created', width: '15%' },
     { key: 'authorName', header: 'Author Name', width: '15%' },
@@ -118,6 +125,13 @@ const PersonalPreferenceTab: React.FC<TabProps> = ({ openModal }) => {
           </CardContent>
         </Card>
       </TabsContent>
+      {activeModal.name === 'addLike' && <AddLikeModal />}
+
+      {activeModal.name === 'addDislike' && <AddDislikeModal />}
+
+      {activeModal.name === 'addHobby' && <AddHobbyModal />}
+
+      {activeModal.name === 'addHabit' && <AddHabitModal />}
     </>
   );
 };

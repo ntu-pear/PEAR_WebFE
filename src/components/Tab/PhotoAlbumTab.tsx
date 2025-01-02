@@ -3,8 +3,10 @@ import { Button } from '../ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { TabsContent } from '../ui/tabs';
 import TabProps from './types';
+import { useModal } from '@/hooks/useModal';
 
-const PhotoAlbumTab: React.FC<TabProps> = ({ openModal }) => {
+const PhotoAlbumTab: React.FC<TabProps> = () => {
+  const { openModal } = useModal();
   return (
     <>
       <TabsContent value="photo-album">

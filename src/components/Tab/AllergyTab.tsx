@@ -3,10 +3,37 @@ import { Button } from '../ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { TabsContent } from '../ui/tabs';
 import DataTable from '../Table/DataTable';
-import { mockAllergy } from '@/mocks/mockPatientDetails';
+import { AllergyTD, mockAllergy } from '@/mocks/mockPatientDetails';
 import TabProps from './types';
+import { useEffect, useState } from 'react';
+import { useModal } from '@/hooks/useModal';
+import AddAllergyModal from '../Modal/AddAllergyModal';
 
-const AllergyTab: React.FC<TabProps> = ({ openModal }) => {
+const AllergyTab: React.FC<TabProps> = ({ id }) => {
+  const [allergy, setAllergy] = useState<AllergyTD[]>([]);
+  const { activeModal, openModal } = useModal();
+
+  const handleFetchAllergy = async () => {
+    if (!id || isNaN(Number(id))) return;
+    try {
+      const fetchedAllergy: AllergyTD[] =
+        import.meta.env.MODE === 'development' ||
+        import.meta.env.MODE === 'production'
+          ? mockAllergy
+          : mockAllergy;
+
+      console.log('Fetched Patient Allergy', fetchedAllergy); // Debug Log
+      setAllergy(fetchedAllergy);
+    } catch (error) {
+      console.error('Error fetching patient allergy:', error);
+    }
+  };
+
+  useEffect(() => {
+    console.log(id);
+    handleFetchAllergy();
+  }, []);
+
   const allergyColumns = [
     { key: 'allergicTo', header: 'Allergic To' },
     { key: 'reaction', header: 'Reaction' },
@@ -34,13 +61,14 @@ const AllergyTab: React.FC<TabProps> = ({ openModal }) => {
           </CardHeader>
           <CardContent>
             <DataTable
-              data={mockAllergy}
+              data={allergy}
               columns={allergyColumns}
               viewMore={false}
             />
           </CardContent>
         </Card>
       </TabsContent>
+      {activeModal.name === 'addAllergy' && <AddAllergyModal />}
     </>
   );
 };

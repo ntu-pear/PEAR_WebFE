@@ -1,7 +1,8 @@
+import { useModal } from '@/hooks/useModal';
 import { Button } from '../ui/button';
-import ModalProps from './types';
 
-const AddProblemModal: React.FC<ModalProps> = ({ modalRef, closeModal }) => {
+const AddProblemModal: React.FC = () => {
+  const { modalRef, closeModal } = useModal();
   const handleAddProblem = (event: React.FormEvent) => {
     event.preventDefault();
     console.log('Patient Problem Added!');

@@ -1,10 +1,9 @@
+import { useModal } from '@/hooks/useModal';
 import { Button } from '../ui/button';
-import ModalProps from './types';
 
-const EditPatientInfoModal: React.FC<ModalProps> = ({
-  modalRef,
-  closeModal,
-}) => {
+const EditPatientInfoModal: React.FC = () => {
+  const { modalRef, closeModal } = useModal();
+
   const handleEditInformation = (event: React.FormEvent) => {
     event.preventDefault();
     console.log('Patient Information updated!');
