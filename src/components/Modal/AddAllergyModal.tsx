@@ -1,13 +1,93 @@
 import { useModal } from '@/hooks/useModal';
 import { Button } from '../ui/button';
+import { useEffect, useState } from 'react';
+import {
+  addPatientAllergy,
+  AllergyAddFormData,
+  AllergyReactionType,
+  AllergyType,
+  fetchAllAllergyReactionTypes,
+  fetchAllAllergyTypes,
+} from '@/api/patients/allergy';
+import { toast } from 'sonner';
 
 const AddAllergyModal: React.FC = () => {
-  const { modalRef, closeModal } = useModal();
-  const handleAddAllergy = (event: React.FormEvent) => {
-    event.preventDefault();
-    console.log('Patient Allergy Added!');
-    closeModal();
+  const { modalRef, activeModal, closeModal } = useModal();
+  const { patientId, submitterId, refreshAllergyData } = activeModal.props as {
+    patientId: string;
+    submitterId: string;
+    refreshAllergyData: () => void;
   };
+
+  const [allergyTypes, setAllergyTypes] = useState<AllergyType[]>([]);
+  const [allergyReactionTypes, setAllergyReactionTypes] = useState<
+    AllergyReactionType[]
+  >([]);
+
+  const handleFetchAllergyType = async () => {
+    try {
+      const fetchedAllergyTypes: AllergyType[] = await fetchAllAllergyTypes();
+      setAllergyTypes(fetchedAllergyTypes);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (error) {
+      toast.error('Failed to fetch Allergy Types List');
+    }
+  };
+
+  const handleFetchAllergyReactionType = async () => {
+    try {
+      const fetchedAllergyReactionTypes: AllergyReactionType[] =
+        await fetchAllAllergyReactionTypes();
+      setAllergyReactionTypes(fetchedAllergyReactionTypes);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (error) {
+      toast.error('Failed to fetch Allergy Reaction Types List');
+    }
+  };
+
+  const handleAddAllergy = async (event: React.FormEvent) => {
+    event.preventDefault();
+
+    // Create a new FormData object from the event's target
+    const formData = new FormData(event.target as HTMLFormElement);
+
+    // Convert FormData entries to an object
+    const formDataObj = Object.fromEntries(formData.entries());
+
+    const allergyFormData: AllergyAddFormData = {
+      AllergyRemarks: formDataObj.AllergyRemarks as string,
+      Active: '1',
+      PatientID: parseInt(patientId as string, 10),
+      AllergyTypeID: parseInt(formDataObj.AllergyTypeID as string, 10),
+      AllergyReactionTypeID: parseInt(
+        formDataObj.AllergyReactionTypeID as string,
+        10
+      ),
+      createdById: parseInt(submitterId as string, 10),
+      modifiedById: parseInt(submitterId as string, 10),
+    };
+
+    try {
+      await addPatientAllergy(allergyFormData);
+      closeModal();
+      toast.success('Patient allergy added successfully.');
+      refreshAllergyData();
+    } catch (error) {
+      if (error instanceof Error) {
+        toast.error(`Failed to add patient allergy. ${error.message}`);
+      } else {
+        // Fallback error handling for unknown error types
+        toast.error(
+          'Failed to add patient allergy. An unknown error occurred.'
+        );
+      }
+    }
+  };
+
+  useEffect(() => {
+    handleFetchAllergyType();
+    handleFetchAllergyReactionType();
+  }, []);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
@@ -19,21 +99,16 @@ const AddAllergyModal: React.FC = () => {
               Allergy<span className="text-red-600">*</span>
             </label>
             <select
+              name="AllergyTypeID"
               className="mt-1 block w-full p-2 border rounded-md text-gray-900"
               required
             >
               <option value="">Please select an option</option>
-              <option value="Corn">Corn</option>
-              <option value="Fish">Fish</option>
-              <option value="Eggs">Eggs</option>
-              <option value="Meat">Meat</option>
-              <option value="Milk">Milk</option>
-              <option value="Peanuts">Peanuts</option>
-              <option value="Seafood">Seafood</option>
-              <option value="Shellfish">Shellfish</option>
-              <option value="Soy">Soy</option>
-              <option value="Tree_nuts">Tree nuts</option>
-              <option value="Wheat">Wheat</option>
+              {allergyTypes.map((at) => (
+                <option key={at.AllergyTypeID} value={at.AllergyTypeID}>
+                  {at.Value}
+                </option>
+              ))}
             </select>
           </div>
 
@@ -42,23 +117,19 @@ const AddAllergyModal: React.FC = () => {
               Allergy Reaction<span className="text-red-600">*</span>
             </label>
             <select
+              name="AllergyReactionTypeID"
               className="mt-1 block w-full p-2 border rounded-md text-gray-900"
               required
             >
               <option value="">Please select an option</option>
-              <option value="Abdominal_cramp_or_pain">
-                Abdominal cramp or pain
-              </option>
-              <option value="Diarrhea">Diarrhea</option>
-              <option value="Difficulty_Breathing">Difficulty Breathing</option>
-              <option value="Hives">Hives</option>
-              <option value="Itching">Itching</option>
-              <option value="Nasal_Congestion">Nasal Congestion</option>
-              <option value="Nausea">Nausea</option>
-              <option value="Rashes">Rashes</option>
-              <option value="Sneezing">Sneezing</option>
-              <option value="Swelling">Swelling</option>
-              <option value="Vomiting">Vomiting</option>
+              {allergyReactionTypes.map((art) => (
+                <option
+                  key={art.AllergyReactionTypeID}
+                  value={art.AllergyReactionTypeID}
+                >
+                  {art.Value}
+                </option>
+              ))}
             </select>
           </div>
 
@@ -66,7 +137,10 @@ const AddAllergyModal: React.FC = () => {
             <label className="block text-sm font-medium">
               Notes<span className="text-red-600">*</span>
             </label>
-            <textarea className="mt-1 block w-full p-2 border rounded-md text-gray-900" />
+            <textarea
+              name="AllergyRemarks"
+              className="mt-1 block w-full p-2 border rounded-md text-gray-900"
+            />
           </div>
 
           <div className="col-span-2 mt-6 flex justify-end space-x-2">

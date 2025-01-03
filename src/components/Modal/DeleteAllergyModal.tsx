@@ -1,27 +1,27 @@
-import { deleteVital } from '@/api/patients/vitals';
 import { Button } from '../ui/button';
 import { toast } from 'sonner';
 import { useModal } from '@/hooks/useModal';
+import { deletePatientAllergy } from '@/api/patients/allergy';
 
-const DeleteVitalModal: React.FC = () => {
+const DeleteAllergyModal: React.FC = () => {
   const { modalRef, activeModal, closeModal } = useModal();
-  const { vitalId, refreshVitalData } = activeModal.props as {
-    vitalId: string;
-    refreshVitalData: () => void;
+  const { allergyId, refreshAllergyData } = activeModal.props as {
+    allergyId: string;
+    refreshAllergyData: () => void;
   };
 
-  const handleDeleteVital = async (event: React.FormEvent) => {
+  const handleDeleteAllergy = async (event: React.FormEvent) => {
     event.preventDefault();
-    if (!vitalId || isNaN(Number(vitalId))) return;
+    if (!allergyId || isNaN(Number(allergyId))) return;
     try {
-      await deleteVital(Number(vitalId));
+      await deletePatientAllergy(Number(allergyId));
       closeModal();
-      toast.success('Vital deleted successfully.');
-      refreshVitalData();
+      toast.success('Patient Allergy deleted successfully.');
+      refreshAllergyData();
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       closeModal();
-      toast.error('Failed to delete patient vital.');
+      toast.error('Failed to delete patient Allergy.');
     }
   };
 
@@ -34,7 +34,7 @@ const DeleteVitalModal: React.FC = () => {
           </h3>
         </div>
 
-        <form onSubmit={handleDeleteVital} className="p-4">
+        <form onSubmit={handleDeleteAllergy} className="p-4">
           <p className="mb-6 text-gray-600 dark:text-gray-200 text-center">
             Deleting this item is irreversible. Please confirm your action.
           </p>
@@ -52,4 +52,4 @@ const DeleteVitalModal: React.FC = () => {
   );
 };
 
-export default DeleteVitalModal;
+export default DeleteAllergyModal;

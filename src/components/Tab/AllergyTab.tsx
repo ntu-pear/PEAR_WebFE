@@ -8,6 +8,9 @@ import TabProps from './types';
 import { useEffect, useState } from 'react';
 import { useModal } from '@/hooks/useModal';
 import AddAllergyModal from '../Modal/AddAllergyModal';
+import { fetchPatientAllergy } from '@/api/patients/allergy';
+import { toast } from 'sonner';
+import DeleteAllergyModal from '../Modal/DeleteAllergyModal';
 
 const AllergyTab: React.FC<TabProps> = ({ id }) => {
   const [allergy, setAllergy] = useState<AllergyTD[]>([]);
@@ -19,20 +22,24 @@ const AllergyTab: React.FC<TabProps> = ({ id }) => {
       const fetchedAllergy: AllergyTD[] =
         import.meta.env.MODE === 'development' ||
         import.meta.env.MODE === 'production'
-          ? mockAllergy
+          ? await fetchPatientAllergy(Number(id))
           : mockAllergy;
 
-      console.log('Fetched Patient Allergy', fetchedAllergy); // Debug Log
       setAllergy(fetchedAllergy);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
-      console.error('Error fetching patient allergy:', error);
+      toast.error('Failed to fetch allergy for patient');
     }
   };
 
   useEffect(() => {
-    console.log(id);
+    console.log('patientId', id);
     handleFetchAllergy();
   }, []);
+
+  const refreshAllergyData = () => {
+    handleFetchAllergy();
+  };
 
   const allergyColumns = [
     { key: 'allergicTo', header: 'Allergic To' },
@@ -50,7 +57,13 @@ const AllergyTab: React.FC<TabProps> = ({ id }) => {
               <Button
                 size="sm"
                 className="h-8 w-24 gap-1"
-                onClick={() => openModal('addAllergy')}
+                onClick={() =>
+                  openModal('addAllergy', {
+                    patientId: id,
+                    submitterId: '1',
+                    refreshAllergyData,
+                  })
+                }
               >
                 <PlusCircle className="h-4 w-4" />
                 <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
@@ -64,11 +77,29 @@ const AllergyTab: React.FC<TabProps> = ({ id }) => {
               data={allergy}
               columns={allergyColumns}
               viewMore={false}
+              renderActions={(item) => (
+                <div className="flex space-x-2">
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    className="mt-3"
+                    onClick={() =>
+                      openModal('deleteAllergy', {
+                        allergyId: item.id,
+                        refreshAllergyData,
+                      })
+                    }
+                  >
+                    Delete
+                  </Button>
+                </div>
+              )}
             />
           </CardContent>
         </Card>
       </TabsContent>
       {activeModal.name === 'addAllergy' && <AddAllergyModal />}
+      {activeModal.name === 'deleteAllergy' && <DeleteAllergyModal />}
     </>
   );
 };

@@ -25,6 +25,7 @@ import AddMedicalHistoryModal from '../Modal/AddMedicalHistoryModal';
 import AddMobilityAidModal from '../Modal/AddMobilityAidModal';
 import EditStaffAllocationModal from '../Modal/EditStaffAllocationModal';
 import EditSocialHistoryModal from '../Modal/EditSocialHistoryModal';
+import { toast } from 'sonner';
 
 const PatientInfoTab: React.FC<TabProps> = ({ id }) => {
   const [isNRICMasked, setisNRICMasked] = useState(true);
@@ -52,10 +53,10 @@ const PatientInfoTab: React.FC<TabProps> = ({ id }) => {
           ? await fetchPatientInfo(Number(id))
           : mockPatientInformation;
 
-      // console.log('Fetched Patient Info:', fetchedPatientInfo); // Debug Log
       setPatientInfo(fetchedPatientInfo);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
-      console.error('Error fetching patient information:', error);
+      toast.error('Failed to fetch patient information');
     }
   };
 
@@ -68,15 +69,15 @@ const PatientInfoTab: React.FC<TabProps> = ({ id }) => {
           ? mockSocialHistory
           : mockSocialHistory;
 
-      // console.log('Fetched Patient Social History', fetchedSocialHistory); // Debug Log
       setSocialHistory(fetchedSocialHistory);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
-      console.error('Error fetching patient information:', error);
+      toast.error('Failed to fetch patient social history');
     }
   };
 
   useEffect(() => {
-    console.log(id);
+    console.log('patientId', id);
     handleFetchPatientInfo();
     handleFetchSocialHistory();
   }, []);

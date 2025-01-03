@@ -10,6 +10,7 @@ import { fetchVitalTD } from '@/api/patients/vitals';
 import AddVitalModal from '../Modal/AddVitalModal';
 import { useModal } from '@/hooks/useModal';
 import DeleteVitalModal from '../Modal/DeleteVitalModal';
+import { toast } from 'sonner';
 
 const VitalTab: React.FC<TabProps> = ({ id }) => {
   const [vitalCheck, setVitalCheck] = useState<VitalCheckTD[]>([]);
@@ -24,17 +25,21 @@ const VitalTab: React.FC<TabProps> = ({ id }) => {
           ? await fetchVitalTD(Number(id))
           : mockVitalCheck;
 
-      console.log('Fetched Patient Vital Check', fetchedVitalCheck); // Debug Log
       setVitalCheck(fetchedVitalCheck);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
-      console.error('Error fetching patient vitals:', error);
+      toast.error('Failed to fetch vital for patient');
     }
   };
 
   useEffect(() => {
-    console.log(id);
+    console.log('patientId', id);
     handleFetchVitalCheck();
   }, []);
+
+  const refreshVitalData = () => {
+    handleFetchVitalCheck();
+  };
 
   const vitalCheckColumns = [
     { key: 'date', header: 'Date' },
@@ -62,7 +67,11 @@ const VitalTab: React.FC<TabProps> = ({ id }) => {
                 size="sm"
                 className="h-8 w-24 gap-1"
                 onClick={() =>
-                  openModal('addVital', { patientId: id, submitterId: '1' })
+                  openModal('addVital', {
+                    patientId: id,
+                    submitterId: '1',
+                    refreshVitalData,
+                  })
                 }
               >
                 <PlusCircle className="h-4 w-4" />
@@ -84,7 +93,10 @@ const VitalTab: React.FC<TabProps> = ({ id }) => {
                     size="sm"
                     className="mt-3"
                     onClick={() =>
-                      openModal('deleteVital', { vitalId: item.id })
+                      openModal('deleteVital', {
+                        vitalId: item.id,
+                        refreshVitalData,
+                      })
                     }
                   >
                     Delete

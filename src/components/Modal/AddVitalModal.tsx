@@ -5,9 +5,10 @@ import { useModal } from '@/hooks/useModal';
 
 const AddVitalModal: React.FC = () => {
   const { modalRef, activeModal, closeModal } = useModal();
-  const { patientId, submitterId } = activeModal.props as {
+  const { patientId, submitterId, refreshVitalData } = activeModal.props as {
     patientId: string;
     submitterId: string;
+    refreshVitalData: () => void;
   };
 
   const handleAddVital = async (event: React.FormEvent) => {
@@ -35,15 +36,15 @@ const AddVitalModal: React.FC = () => {
     };
 
     try {
-      console.log('vitalFormData: ', vitalFormData);
-      const response = await addVital(vitalFormData);
-      console.log(response);
+      // console.log('vitalFormData: ', vitalFormData);
+      await addVital(vitalFormData);
       closeModal();
-      toast.success('Vitals added successfully.');
+      toast.success('Vital added successfully.');
+      refreshVitalData();
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
-      console.log(error);
       closeModal();
-      toast.error('Failed to add vitals.');
+      toast.error('Failed to add patient vital.');
     }
   };
 

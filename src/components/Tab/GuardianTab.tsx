@@ -9,6 +9,7 @@ import { useEffect, useState } from 'react';
 
 import { useModal } from '@/hooks/useModal';
 import AddGuardianModal from '../Modal/AddGuardianModal';
+import { toast } from 'sonner';
 
 const GuardianTab: React.FC<TabProps> = ({ id }) => {
   const [guardian, setGuardian] = useState<GuardianTD[]>([]);
@@ -23,15 +24,15 @@ const GuardianTab: React.FC<TabProps> = ({ id }) => {
           ? mockGuardian
           : mockGuardian;
 
-      console.log('Fetched Patient Guardian', fetchedGuardianTD); // Debug Log
       setGuardian(fetchedGuardianTD);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
-      console.error('Error fetching patient guardian:', error);
+      toast.error('Failed to fetch guardian for patient');
     }
   };
 
   useEffect(() => {
-    console.log(id);
+    console.log('patientId', id);
     handleFetchGuardianTD();
   }, []);
 

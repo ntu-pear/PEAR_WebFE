@@ -67,11 +67,10 @@ export const fetchAllPatientTD = async (
     const response = await patientsAPI.get<PatientBase[]>(
       `/?skip=${skip}&limit=${limit}`
     );
-    console.log(response);
-    console.log(response.data);
+    console.log('GET all Patients', response.data);
     return convertToPatientTD(response.data);
   } catch (error) {
-    console.error(error);
+    console.error('GET all Patients', error);
     throw error;
   }
 };
@@ -79,10 +78,10 @@ export const fetchAllPatientTD = async (
 export const fetchPatientById = async (id: number): Promise<PatientBase> => {
   try {
     const response = await patientsAPI.get<PatientBase>(`/${id}`);
-    // console.log(response.data);
+    console.log('GET Patient', response.data);
     return response.data;
   } catch (error) {
-    console.error(error);
+    console.error('GET Patient', error);
     throw error;
   }
 };
@@ -93,6 +92,7 @@ export const fetchProfilePhotoAndName = async (
   try {
     const response = await patientsAPI.get<PatientBase>(`/${id}`);
     const patient = response.data;
+    console.log('GET Profile Photo and Name', patient);
     return {
       profilePicture: patient.profilePicture || '',
       name:
@@ -100,7 +100,7 @@ export const fetchProfilePhotoAndName = async (
       preferredName: patient.preferredName?.toUpperCase() || '',
     };
   } catch (error) {
-    console.error(error);
+    console.error('GET Profile Photo and Name', error);
     throw error;
   }
 };
@@ -111,6 +111,7 @@ export const fetchPatientInfo = async (
   try {
     const response = await patientsAPI.get<PatientBase>(`/${id}`);
     const p = response.data;
+    console.log('GET Patient Info', p);
     return {
       id: id,
       name: p.firstName.toUpperCase() + ' ' + p.lastName.toUpperCase(),
@@ -129,7 +130,7 @@ export const fetchPatientInfo = async (
       endDate: p.endDate ? formatDateString(p.endDate) : '',
     };
   } catch (error) {
-    console.error(error);
+    console.error('GET Patient Info', error);
     throw error;
   }
 };

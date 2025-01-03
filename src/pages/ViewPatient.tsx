@@ -1,7 +1,7 @@
 import { fetchProfilePhotoAndName } from '@/api/patients/patients';
-import React, { useEffect, useState } from 'react';
+import React, { Suspense, useEffect, useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 import {
@@ -9,17 +9,31 @@ import {
   ProfilePhotoAndName,
 } from '@/mocks/mockPatientDetails';
 
-import ActivityExclusionTab from '@/components/Tab/ActivityExclusionTab';
-import AllergyTab from '@/components/Tab/AllergyTab';
-import GuardianTab from '@/components/Tab/GuardianTab';
-import PatientInfoTab from '@/components/Tab/PatientInfoTab';
-import PersonalPreferenceTab from '@/components/Tab/PersonalPreferenceTab';
-import PrescriptionTab from '@/components/Tab/PrescriptionTab';
-import ProblemLogTab from '@/components/Tab/ProblemLogTab';
-import RoutineTab from '@/components/Tab/RoutineTab';
-import VitalTab from '@/components/Tab/VitalTab';
-import PhotoAlbumTab from '@/components/Tab/PhotoAlbumTab';
-import ActivityPreferenceTab from '@/components/Tab/ActivityPreferenceTab';
+const AllergyTab = React.lazy(() => import('@/components/Tab/AllergyTab'));
+const GuardianTab = React.lazy(() => import('@/components/Tab/GuardianTab'));
+const PatientInfoTab = React.lazy(
+  () => import('@/components/Tab/PatientInfoTab')
+);
+const VitalTab = React.lazy(() => import('@/components/Tab/VitalTab'));
+const PersonalPreferenceTab = React.lazy(
+  () => import('@/components/Tab/PersonalPreferenceTab')
+);
+const PrescriptionTab = React.lazy(
+  () => import('@/components/Tab/PrescriptionTab')
+);
+const ProblemLogTab = React.lazy(
+  () => import('@/components/Tab/ProblemLogTab')
+);
+const RoutineTab = React.lazy(() => import('@/components/Tab/RoutineTab'));
+const PhotoAlbumTab = React.lazy(
+  () => import('@/components/Tab/PhotoAlbumTab')
+);
+const ActivityPreferenceTab = React.lazy(
+  () => import('@/components/Tab/ActivityPreferenceTab')
+);
+const ActivityExclusionTab = React.lazy(
+  () => import('@/components/Tab/ActivityExclusionTab')
+);
 
 const ViewPatient: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -109,17 +123,63 @@ const ViewPatient: React.FC = () => {
             </TabsTrigger>
           </TabsList>
 
-          <PatientInfoTab id={id} />
-          <AllergyTab id={id} />
-          <VitalTab id={id} />
-          <PersonalPreferenceTab id={id} />
-          <ProblemLogTab id={id} />
-          <ActivityPreferenceTab id={id} />
-          <RoutineTab id={id} />
-          <PrescriptionTab id={id} />
-          <PhotoAlbumTab id={id} />
-          <GuardianTab id={id} />
-          <ActivityExclusionTab id={id} />
+          <Suspense fallback={<div>Loading...</div>}>
+            {activeTab === 'information' && (
+              <TabsContent value="information">
+                <PatientInfoTab id={id} />
+              </TabsContent>
+            )}
+            {activeTab === 'allergy' && (
+              <TabsContent value="allergy">
+                <AllergyTab id={id} />
+              </TabsContent>
+            )}
+            {activeTab === 'vital' && (
+              <TabsContent value="vital">
+                <VitalTab id={id} />
+              </TabsContent>
+            )}
+            {activeTab === 'personal-preference' && (
+              <TabsContent value="personal-preference">
+                <PersonalPreferenceTab id={id} />
+              </TabsContent>
+            )}
+            {activeTab === 'problem-log' && (
+              <TabsContent value="problem-log">
+                <ProblemLogTab id={id} />
+              </TabsContent>
+            )}
+            {activeTab === 'activity-preference' && (
+              <TabsContent value="activity-preference">
+                <ActivityPreferenceTab id={id} />
+              </TabsContent>
+            )}
+            {activeTab === 'routine' && (
+              <TabsContent value="routine">
+                <RoutineTab id={id} />
+              </TabsContent>
+            )}
+            {activeTab === 'prescription' && (
+              <TabsContent value="prescription">
+                <PrescriptionTab id={id} />
+              </TabsContent>
+            )}
+            {activeTab === 'photo-album' && (
+              <TabsContent value="photo-album">
+                <PhotoAlbumTab id={id} />
+              </TabsContent>
+            )}
+            {activeTab === 'guardian' && (
+              <TabsContent value="guardian">
+                <GuardianTab id={id} />
+              </TabsContent>
+            )}
+            {activeTab === 'activity-exclusion' && (
+              <TabsContent value="activity-exclusion">
+                <ActivityExclusionTab id={id} />
+              </TabsContent>
+            )}
+          </Suspense>
         </Tabs>
       </div>
     </div>

@@ -44,21 +44,23 @@ const convertToVitalTD = (vitals: VitalCheck[]): VitalCheckTD[] => {
     return []; // Return an empty array if vitals is not an array
   }
 
-  return vitals.map((v) => ({
-    id: v.id,
-    date: formatDateString(new Date(v.createdDateTime)),
-    time: new Date(v.createdDateTime).toLocaleTimeString(),
-    temperature: parseFloat(v.temperature.toFixed(1)),
-    weight: parseFloat(v.weight.toFixed(1)),
-    height: parseFloat(v.height.toFixed(2)),
-    systolicBP: parseFloat(v.systolicBP.toFixed(0)),
-    diastolicBP: parseFloat(v.diastolicBP.toFixed(0)),
-    heartRate: parseFloat(v.heartRate.toFixed(0)),
-    spO2: parseFloat(v.spO2.toFixed(0)),
-    bloodSugarLevel: parseFloat(v.bloodSugarLevel.toFixed(0)),
-    afterMeal: v.afterMeal,
-    remark: v.vitalRemarks || '',
-  }));
+  return vitals
+    .filter((v) => v.active === '1')
+    .map((v) => ({
+      id: v.id,
+      date: formatDateString(new Date(v.createdDateTime)),
+      time: new Date(v.createdDateTime).toLocaleTimeString(),
+      temperature: parseFloat(v.temperature.toFixed(1)),
+      weight: parseFloat(v.weight.toFixed(1)),
+      height: parseFloat(v.height.toFixed(2)),
+      systolicBP: parseFloat(v.systolicBP.toFixed(0)),
+      diastolicBP: parseFloat(v.diastolicBP.toFixed(0)),
+      heartRate: parseFloat(v.heartRate.toFixed(0)),
+      spO2: parseFloat(v.spO2.toFixed(0)),
+      bloodSugarLevel: parseFloat(v.bloodSugarLevel.toFixed(0)),
+      afterMeal: v.afterMeal,
+      remark: v.vitalRemarks || '',
+    }));
 };
 
 export const fetchVitalTD = async (
@@ -70,10 +72,10 @@ export const fetchVitalTD = async (
     const response = await vitalsAPI.get<VitalCheck[]>(
       `/list?patient_id=${id}&skip=${skip}&limit=${limit}`
     );
-    console.log(response.data);
+    console.log('GET all Vitals for a patient', response.data);
     return convertToVitalTD(response.data);
   } catch (error) {
-    console.error(error);
+    console.error('GET all Vitals for a patient', error);
     throw error;
   }
 };
@@ -83,24 +85,23 @@ export const addVital = async (
 ): Promise<VitalCheck> => {
   try {
     const response = await vitalsAPI.post<VitalCheck>(`/add`, formData);
-    console.log(response.data);
+    console.log('POST Add Vital for a patient', response.data);
     return response.data;
   } catch (error) {
-    console.error(error);
+    console.error('POST Add Vital for a patient', error);
     throw error;
   }
 };
 
-// backend api not working atm
 export const deleteVital = async (vitalId: number): Promise<VitalCheck> => {
   try {
     const response = await vitalsAPI.put<VitalCheck>(`/delete`, {
       id: vitalId,
     });
-    console.log(response.data);
+    console.log('PUT Delete Vital for a patient', response.data);
     return response.data;
   } catch (error) {
-    console.error(error);
+    console.error('PUT Delete Vital for a patient', error);
     throw error;
   }
 };
