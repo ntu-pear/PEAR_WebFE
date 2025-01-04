@@ -5,11 +5,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { TabsContent } from '../ui/tabs';
 import DataTable from '../Table/DataTable';
 import {
+  DoctorNoteTD,
+  MobilityAidTD,
   mockDiagnosedDementiaList,
   mockDoctorNotes,
   mockMaskedNRIC,
   mockMediclaDetails,
-  mockMobilityAids,
+  mockMobilityAidsTD,
   mockPatientInformation,
   mockSocialHistory,
   mockStaffAllocation,
@@ -26,12 +28,16 @@ import AddMobilityAidModal from '../Modal/AddMobilityAidModal';
 import EditStaffAllocationModal from '../Modal/EditStaffAllocationModal';
 import EditSocialHistoryModal from '../Modal/EditSocialHistoryModal';
 import { toast } from 'sonner';
+import { fetchDoctorNotes } from '@/api/patients/doctorNote';
+import { fetchMobilityAids } from '@/api/patients/mobility';
 
 const PatientInfoTab: React.FC<TabProps> = ({ id }) => {
   const [isNRICMasked, setisNRICMasked] = useState(true);
   const [patientInfo, setPatientInfo] = useState<PatientInformation | null>(
     null
   );
+  const [mobilityAids, setMobilityAids] = useState<MobilityAidTD[]>([]);
+  const [doctorNotes, setDoctorNotes] = useState<DoctorNoteTD[]>([]);
   const [nric, setNric] = useState('');
   const [socialHistory, setSocialHistory] = useState<SocialHistory | null>(
     null
@@ -60,6 +66,38 @@ const PatientInfoTab: React.FC<TabProps> = ({ id }) => {
     }
   };
 
+  const handleFetchMobilityAids = async () => {
+    if (!id || isNaN(Number(id))) return;
+    try {
+      const fetchedMobilityAids: MobilityAidTD[] =
+        import.meta.env.MODE === 'development' ||
+        import.meta.env.MODE === 'production'
+          ? await fetchMobilityAids(Number(id))
+          : mockMobilityAidsTD;
+
+      setMobilityAids(fetchedMobilityAids);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (error) {
+      toast.error('Failed to fetch patient mobility aids');
+    }
+  };
+
+  const handleFetchDoctorNotes = async () => {
+    if (!id || isNaN(Number(id))) return;
+    try {
+      const fetchedDoctorNotes: DoctorNoteTD[] =
+        import.meta.env.MODE === 'development' ||
+        import.meta.env.MODE === 'production'
+          ? await fetchDoctorNotes(Number(id))
+          : mockDoctorNotes;
+
+      setDoctorNotes(fetchedDoctorNotes);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (error) {
+      toast.error('Failed to fetch patient doctor notes');
+    }
+  };
+
   const handleFetchSocialHistory = async () => {
     if (!id || isNaN(Number(id))) return;
     try {
@@ -79,6 +117,8 @@ const PatientInfoTab: React.FC<TabProps> = ({ id }) => {
   useEffect(() => {
     console.log('patientId', id);
     handleFetchPatientInfo();
+    handleFetchMobilityAids();
+    handleFetchDoctorNotes();
     handleFetchSocialHistory();
   }, []);
 
@@ -302,7 +342,7 @@ const PatientInfoTab: React.FC<TabProps> = ({ id }) => {
           </CardHeader>
           <CardContent>
             <DataTable
-              data={mockMobilityAids}
+              data={mobilityAids}
               columns={mobilityAidsColumns}
               viewMore={false}
             />
@@ -317,7 +357,7 @@ const PatientInfoTab: React.FC<TabProps> = ({ id }) => {
           </CardHeader>
           <CardContent>
             <DataTable
-              data={mockDoctorNotes}
+              data={doctorNotes}
               columns={doctorNotesColumns}
               viewMore={false}
               hideActionsHeader={true}

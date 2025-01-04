@@ -3,7 +3,7 @@ import { Button } from '../ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { TabsContent } from '../ui/tabs';
 import DataTable from '../Table/DataTable';
-import { AllergyTD, mockAllergy } from '@/mocks/mockPatientDetails';
+import { AllergyTD, mockAllergyTD } from '@/mocks/mockPatientDetails';
 import TabProps from './types';
 import { useEffect, useState } from 'react';
 import { useModal } from '@/hooks/useModal';
@@ -23,7 +23,7 @@ const AllergyTab: React.FC<TabProps> = ({ id }) => {
         import.meta.env.MODE === 'development' ||
         import.meta.env.MODE === 'production'
           ? await fetchPatientAllergy(Number(id))
-          : mockAllergy;
+          : mockAllergyTD;
 
       setAllergy(fetchedAllergy);
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -42,9 +42,9 @@ const AllergyTab: React.FC<TabProps> = ({ id }) => {
   };
 
   const allergyColumns = [
-    { key: 'allergicTo', header: 'Allergic To' },
-    { key: 'reaction', header: 'Reaction' },
-    { key: 'notes', header: 'Notes' },
+    { key: 'allergicTo', header: 'Allergic To', width: '15%' },
+    { key: 'reaction', header: 'Reaction', width: '15%' },
+    { key: 'notes', header: 'Notes', width: '50%' },
   ];
 
   return (
@@ -78,7 +78,7 @@ const AllergyTab: React.FC<TabProps> = ({ id }) => {
               columns={allergyColumns}
               viewMore={false}
               renderActions={(item) => (
-                <div className="flex space-x-2">
+                <div className="flex space-x-2 w-[75px] sm:w-[150px]">
                   <Button
                     variant="destructive"
                     size="sm"

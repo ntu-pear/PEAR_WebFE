@@ -12,11 +12,19 @@ export const patientsAPI = axios.create({
   baseURL: `${VITE_PATIENT_SERVICE_URL}/patients`,
 });
 
+export const mobilityAPI = axios.create({
+  baseURL: `${VITE_PATIENT_SERVICE_URL}/Mobility`,
+});
+
+export const doctorNoteAPI = axios.create({
+  baseURL: `${VITE_PATIENT_SERVICE_URL}/DoctorNote`,
+});
+
 export const socialHistoryAPI = axios.create({
   baseURL: `${VITE_PATIENT_SERVICE_URL}/SocialHistory`,
 });
 
-export const vitalsAPI = axios.create({
+export const vitalAPI = axios.create({
   baseURL: `${VITE_PATIENT_SERVICE_URL}/Vital`,
 });
 

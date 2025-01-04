@@ -35,14 +35,14 @@ export interface MedicalDetails extends TableRowData {
   notes: string;
 }
 
-export interface MobilityAids extends TableRowData {
+export interface MobilityAidTD extends TableRowData {
   mobilityAids: string;
   remark: string;
   condition: string;
   date: string;
 }
 
-export interface DoctorNotes extends TableRowData {
+export interface DoctorNoteTD extends TableRowData {
   date: string;
   doctorName: string;
   notes: string;
@@ -155,31 +155,31 @@ export const mockProfilePhotoAndName: ProfilePhotoAndName = {
 
 export const mockPatientInformation: PatientInformation = {
   id: 1,
-  name: 'Bob Smith',
-  nric: 'Sxxxx123A',
-  dateOfBirth: '1 Jan 1955',
-  gender: 'Male',
-  address: 'Blk 123 Summer Street 102, #05-123, Singapore 35123',
-  inactiveDate: '12 Oct 2024',
+  name: 'BOB SMITH',
+  nric: 'SXXXX123A',
+  dateOfBirth: '1 JAN 1955',
+  gender: 'MALE',
+  address: 'BLK 123 SUMMER STREET 102, #05-123, SINGAPORE 35123',
+  inactiveDate: '12 OCT 2024',
   tempAddress: '-',
   homeNo: '12345678',
   handphoneNo: '23456789',
-  preferredName: 'Bob',
-  preferredLanguage: 'English',
-  underRespiteCare: 'No',
-  startDate: '15 Jul 2024',
-  endDate: '30 Aug 2024',
+  preferredName: 'BOB',
+  preferredLanguage: 'ENGLISH',
+  underRespiteCare: 'NO',
+  startDate: '15 JUL 2024',
+  endDate: '30 AUG 2024',
 };
 
-export const mockMaskedNRIC = 'Sxxxx123A';
+export const mockMaskedNRIC = 'SXXXX123A';
 
 export const mockUnmaskedNRIC = 'S1234123A';
 
 export const mockDiagnosedDementiaList: DiagnosedDementia[] = [
   {
     id: 1,
-    dementiaType: "Alzheimer's disease",
-    dementiaDate: '12 Jun 2024',
+    dementiaType: "ALZHEIMER'S DISEASE",
+    dementiaDate: '12 JUN 2024',
   },
 ];
 
@@ -188,50 +188,50 @@ export const mockMediclaDetails: MedicalDetails[] = [
     id: 1,
     medicalDetails: '1',
     informationSource: '1',
-    medicalEstimatedDate: '12 Jun 2024',
-    notes: 'notes',
+    medicalEstimatedDate: '12 JUN 2024',
+    notes: 'Notes',
   },
 ];
 
-export const mockMobilityAids: MobilityAids[] = [
+export const mockMobilityAidsTD: MobilityAidTD[] = [
   {
     id: 1,
-    mobilityAids: 'Crutches',
+    mobilityAids: 'CRUTCHES',
     remark: '1',
-    condition: 'Fully Recovered',
-    date: '5 Aug 2024',
+    condition: 'FULLY RECOVERED',
+    date: '5 AUG 2024',
   },
 ];
 
-export const mockDoctorNotes: DoctorNotes[] = [
+export const mockDoctorNotes: DoctorNoteTD[] = [
   {
     id: 1,
-    date: '12 Aug 2024',
-    doctorName: 'Daniel Lee',
-    notes: "Patient's condition is improving",
+    date: '12 AUG 2024',
+    doctorName: 'DANIEL LEE',
+    notes: "Patient's condition is improving.",
   },
 ];
 
 export const mockStaffAllocation: StaffAllocation[] = [
   {
     id: 1,
-    staffRole: 'Doctor',
-    staffName: 'Daniel Lee',
+    staffRole: 'DOCTOR',
+    staffName: 'DANIEL LEE',
   },
   {
     id: 2,
-    staffRole: 'Game Therapist',
-    staffName: 'Alan Tan',
+    staffRole: 'GAME THERAPIST',
+    staffName: 'ALAN TAN',
   },
   {
     id: 3,
-    staffRole: 'Supervisor',
-    staffName: 'Jessica Sim',
+    staffRole: 'SUPERVISOR',
+    staffName: 'JESSICA SIM',
   },
   {
     id: 4,
-    staffRole: 'Caregiver',
-    staffName: 'Jessica Sim',
+    staffRole: 'CAREGIVER',
+    staffName: 'JESSICA SIM',
   },
 ];
 
@@ -252,51 +252,51 @@ export const mockSocialHistory: SocialHistory = {
   tobaccoUse: '',
 };
 
-export const mockAllergy: AllergyTD[] = [
+export const mockAllergyTD: AllergyTD[] = [
   {
     id: 1,
-    allergicTo: 'Fish',
-    reaction: 'Rashes',
-    notes: 'SICK',
+    allergicTo: 'FISH',
+    reaction: 'RASHES',
+    notes: 'Fish makes patient sick.',
   },
   {
     id: 2,
-    allergicTo: 'Corns',
-    reaction: 'Nausea',
+    allergicTo: 'CORN',
+    reaction: 'NAUSEA',
     notes: '1',
   },
   {
     id: 3,
-    allergicTo: 'Eggs',
-    reaction: 'Vomitting',
-    notes: 'Test allergy, added at 1642 using webapp',
+    allergicTo: 'EGGS',
+    reaction: 'VOMITTING',
+    notes: 'test allergy, added at 1642 using webapp.',
   },
 ];
 
 export const mockVitalCheck: VitalCheckTD[] = [
   {
-    id: '1', // Assuming `TableRowData` includes an `id` field
-    date: '15 Aug 2024',
+    id: '1',
+    date: '15 AUG 2024',
     time: '09:30 AM',
     temperature: 36.8, // Normal body temperature in Celsius
     weight: 65.2, // Weight in kilograms
-    height: 1.65, // Height in centimeters
-    systolicBP: 130, // Slightly elevated systolic blood pressure
-    diastolicBP: 85, // Slightly elevated diastolic blood pressure
-    heartRate: 72, // Normal heart rate
-    spO2: 96, // Normal oxygen saturation level
-    bloodSugarLevel: 120, // Blood sugar in mg/dL (mildly elevated)
-    afterMeal: 'Yes', // Indicates the reading was taken after a meal
+    height: 1.65, // Height in meters
+    systolicBP: 130, // systolic blood pressure
+    diastolicBP: 85, // diastolic blood pressure
+    heartRate: 72,
+    spO2: 96, // oxygen saturation level
+    bloodSugarLevel: 4.5, //blood sugar in mmol/L
+    afterMeal: 'YES',
     remark:
-      'Patient exhibited mild confusion during measurement, but vitals are stable.', // Contextual remark
+      'Patient exhibited mild confusion during measurement, but vitals are stable.',
   },
 ];
 
 export const mockLike: PersonalPreference[] = [
   {
     id: '1',
-    dateCreated: '8 Aug 2024',
-    authorName: 'Jane',
+    dateCreated: '8 AUG 2024',
+    authorName: 'JANE',
     description: 'Enjoys soft and sweet treats, like pudding and applesauce.',
   },
 ];
@@ -304,8 +304,8 @@ export const mockLike: PersonalPreference[] = [
 export const mockDislike: PersonalPreference[] = [
   {
     id: '1',
-    dateCreated: '8 Aug 2024',
-    authorName: 'Jane',
+    dateCreated: '8 AUG 2024',
+    authorName: 'JANE',
     description: 'Dislikes food with hard textures or strong spices.',
   },
 ];
@@ -313,8 +313,8 @@ export const mockDislike: PersonalPreference[] = [
 export const mockHobby: PersonalPreference[] = [
   {
     id: '1',
-    dateCreated: '8 Aug 2024',
-    authorName: 'Jane',
+    dateCreated: '8 AUG 2024',
+    authorName: 'JANE',
     description:
       'Enjoys simple crafts like coloring with crayons or making collages with pre-cut shapes.',
   },
@@ -323,8 +323,8 @@ export const mockHobby: PersonalPreference[] = [
 export const mockHabit: PersonalPreference[] = [
   {
     id: '1',
-    dateCreated: '8 Aug 2024',
-    authorName: 'Jane',
+    dateCreated: '8 AUG 2024',
+    authorName: 'JANE',
     description:
       'Loves a daily walk in the park during the late afternoon for fresh air.',
   },
@@ -333,8 +333,8 @@ export const mockHabit: PersonalPreference[] = [
 export const mockProblemLog: ProblemLog[] = [
   {
     id: 1,
-    author: 'Jessica Sim',
-    description: 'Communication',
+    author: 'JESSICA SIM',
+    description: 'COMMUNICATION',
     remark: '1',
   },
 ];
@@ -342,60 +342,60 @@ export const mockProblemLog: ProblemLog[] = [
 export const mockActivityPreferences: ActivityPreference[] = [
   {
     id: 1,
-    activityName: 'Mahjong',
-    activityDescription: 'mahjong',
-    likeOrDislike: 'Like',
+    activityName: 'MAHJONG',
+    activityDescription: 'MAHJONG',
+    likeOrDislike: 'LIKE',
   },
 ];
 
 export const mockRoutine: Routine[] = [
   {
     id: '1',
-    activityName: 'Morning Walk',
+    activityName: 'MORNING WALK',
     routineIssue:
       'Needs supervision due to wandering and risk of disorientation.',
     routineTimeSlots: '08:00 AM - 08:30 AM',
-    includeInSchedule: 'Yes',
+    includeInSchedule: 'YES',
   },
 ];
 
 export const mockPrescription: Prescription[] = [
   {
     id: 1,
-    drugName: 'Antihistamines',
+    drugName: 'ANTIHISTAMINES',
     dosage: 2,
     frequencyPerDay: 1,
-    instruction: '2 pills 1 times per day, Consume after meal',
-    startDate: '6 Aug 2024',
-    endDate: '21 Aug 2024',
-    afterMeal: 'Yes',
+    instruction: '2 pills 1 times per day, consume after meal',
+    startDate: '6 AUG 2024',
+    endDate: '21 AUG 2024',
+    afterMeal: 'YES',
     remark: '1',
-    chronic: 'Yes',
+    chronic: 'YES',
   },
 ];
 
 export const mockGuardian: GuardianTD[] = [
   {
     id: 1,
-    guardianType: 'Primary Guardian',
+    guardianType: 'PRIMARY GUARDIAN',
     guardianName: 'AZIRUM QWE',
     preferredName: 'AZIRUMM',
-    nric: 'Sxxxx061B',
-    relationshipWithPatient: 'Parent',
+    nric: 'SXXXX061B',
+    relationshipWithPatient: 'PARENT',
     contractNo: '91111111',
-    address: 'Blk 123 Summer Street 102, #05-123, Singapore 35123',
-    email: 'azirumqwe@gmail.com',
+    address: 'BLK 123 SUMMER STREET 102, #05-123, SINGAPORE 35123',
+    email: 'AZIRUMQWE@GMAIL.COM',
   },
 ];
 
 export const mockActivityExclusion: ActivityExclusion[] = [
   {
     id: '1',
-    title: 'Avoid Unsupervised Outdoor Activities',
+    title: 'AVOID UNSUPERVISED OUTDOOR ACTIVITIES',
     description:
       'Patient should not go outside unaccompanied due to risks of wandering or disorientation.',
-    startDate: '15 Aug 2024',
-    endDate: '31 Dec 2024',
+    startDate: '15 AUG 2024',
+    endDate: '31 DEC 2024',
     remark:
       'Recommended by caregiver and physician due to increased episodes of confusion and wandering. Regular review needed.',
   },

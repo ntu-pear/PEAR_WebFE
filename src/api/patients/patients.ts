@@ -46,9 +46,9 @@ const convertToPatientTD = (patients: PatientBase[]): PatientTableData[] => {
 
   return patients.map((p) => ({
     id: p.id,
-    name: p.firstName + ' ' + p.lastName,
-    preferredName: p.preferredName ? p.preferredName : '',
-    nric: p.nric[0] + 'XXXX' + p.nric.slice(-3),
+    name: p.firstName?.toUpperCase() + ' ' + p.lastName?.toUpperCase(),
+    preferredName: p.preferredName ? p.preferredName?.toUpperCase() : '',
+    nric: p.nric[0] + 'XXXX' + p.nric.slice(-3)?.toUpperCase(),
     status: parseInt(p.isActive) > 0 ? 'Active' : 'Inactive',
     startDate: p.startDate ? formatDateString(p.startDate) : '',
     endDate: p.endDate ? formatDateString(p.endDate) : '',
@@ -96,7 +96,9 @@ export const fetchProfilePhotoAndName = async (
     return {
       profilePicture: patient.profilePicture || '',
       name:
-        patient.firstName.toUpperCase() + ' ' + patient.lastName.toUpperCase(),
+        patient.firstName?.toUpperCase() +
+        ' ' +
+        patient.lastName?.toUpperCase(),
       preferredName: patient.preferredName?.toUpperCase() || '',
     };
   } catch (error) {
@@ -114,16 +116,21 @@ export const fetchPatientInfo = async (
     console.log('GET Patient Info', p);
     return {
       id: id,
-      name: p.firstName.toUpperCase() + ' ' + p.lastName.toUpperCase(),
-      nric: p.nric[0] + 'XXXX' + p.nric.slice(-3),
+      name: p.firstName?.toUpperCase() + ' ' + p.lastName?.toUpperCase(),
+      nric: p.nric[0] + 'XXXX' + p.nric.slice(-3)?.toUpperCase(),
       dateOfBirth: p.dateOfBirth ? formatDateString(p.dateOfBirth) : '-',
-      gender: p.gender,
-      address: p.address,
+      gender:
+        p.gender?.toUpperCase() === 'F'
+          ? 'FEMALE'
+          : p.gender?.toUpperCase() === 'M'
+          ? 'MALE'
+          : '',
+      address: p.address?.toUpperCase(),
       inactiveDate: p.inActiveDate ? formatDateString(p.inActiveDate) : '-',
-      tempAddress: p.tempAddress || '-',
+      tempAddress: p.tempAddress?.toUpperCase() || '-',
       homeNo: p.homeNo || '-',
       handphoneNo: p.handphoneNo || '-',
-      preferredName: p.preferredName || '-',
+      preferredName: p.preferredName?.toUpperCase() || '-',
       preferredLanguage: '-',
       underRespiteCare: p.isRespiteCare,
       startDate: p.startDate ? formatDateString(p.startDate) : '',

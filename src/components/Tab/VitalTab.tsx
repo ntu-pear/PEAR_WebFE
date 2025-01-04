@@ -6,7 +6,7 @@ import DataTable from '../Table/DataTable';
 import { mockVitalCheck, VitalCheckTD } from '@/mocks/mockPatientDetails';
 import TabProps from './types';
 import { useEffect, useState } from 'react';
-import { fetchVitalTD } from '@/api/patients/vitals';
+import { fetchVitals } from '@/api/patients/vital';
 import AddVitalModal from '../Modal/AddVitalModal';
 import { useModal } from '@/hooks/useModal';
 import DeleteVitalModal from '../Modal/DeleteVitalModal';
@@ -22,7 +22,7 @@ const VitalTab: React.FC<TabProps> = ({ id }) => {
       const fetchedVitalCheck: VitalCheckTD[] =
         import.meta.env.MODE === 'development' ||
         import.meta.env.MODE === 'production'
-          ? await fetchVitalTD(Number(id))
+          ? await fetchVitals(Number(id))
           : mockVitalCheck;
 
       setVitalCheck(fetchedVitalCheck);

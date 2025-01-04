@@ -1,8 +1,8 @@
-import React from "react";
-import { TableCell, TableRow } from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
-import { TableRowData } from "./DataTable";
-import { Link } from "react-router-dom";
+import React from 'react';
+import { TableCell, TableRow } from '@/components/ui/table';
+import { Button } from '@/components/ui/button';
+import { TableRowData } from './DataTable';
+import { Link } from 'react-router-dom';
 
 interface DataTableRowProps<T extends TableRowData> {
   item: T;
@@ -14,14 +14,13 @@ interface DataTableRowProps<T extends TableRowData> {
   }>;
   viewMore: boolean;
   viewMoreLink?: string;
-  renderActions?: (item: T) => React.ReactNode; 
+  renderActions?: (item: T) => React.ReactNode;
 }
 
 // Utility function to access nested properties
 const getNestedValue = (obj: any, path: string): any => {
   return path.split('.').reduce((acc, key) => acc && acc[key], obj);
 };
-
 
 function DataTableRow<T extends TableRowData>({
   item,
@@ -33,23 +32,26 @@ function DataTableRow<T extends TableRowData>({
   return (
     <TableRow>
       {columns.map((column) => (
-        <TableCell key={column.key.toString()} style={{ width: column.width ? column.width : "auto" }}>
+        <TableCell
+          key={column.key.toString()}
+          style={{ width: column.width ? column.width : 'auto' }}
+        >
           {column.render
-            ? column.render(getNestedValue(item, column.key.toString()), item)  // Use nested value if present
-            : getNestedValue(item, column.key.toString())} {/* Fallback to the direct value */}
+            ? column.render(getNestedValue(item, column.key.toString()), item) // Use nested value if present
+            : getNestedValue(item, column.key.toString())}{' '}
+          {/* Fallback to the direct value */}
         </TableCell>
       ))}
       <TableCell className="flex justify-around">
-        {viewMore && viewMoreLink? (
+        {viewMore && viewMoreLink ? (
           <Link to={viewMoreLink}>
-          <Button aria-label="View more" variant="default" size="sm">
-            View More
-          </Button>
+            <Button aria-label="View more" variant="default" size="sm">
+              View More
+            </Button>
           </Link>
         ) : null}
-
-
-        {renderActions ? renderActions(item) : null} {/* Render custom actions */}  
+        {renderActions ? renderActions(item) : null}{' '}
+        {/* Render custom actions */}
       </TableCell>
     </TableRow>
   );

@@ -1,4 +1,4 @@
-import { addVital, VitalFormData } from '@/api/patients/vitals';
+import { addVital, VitalFormData } from '@/api/patients/vital';
 import { Button } from '../ui/button';
 import { toast } from 'sonner';
 import { useModal } from '@/hooks/useModal';

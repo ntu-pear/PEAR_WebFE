@@ -76,8 +76,8 @@ export const convertToAllergyTD = (allergies: Allergy[]): AllergyTD[] => {
     .filter((a) => a.Active === '1')
     .map((a) => ({
       id: a.Patient_AllergyID,
-      allergicTo: a.AllergyTypeValue,
-      reaction: a.AllergyReactionTypeValue,
+      allergicTo: a.AllergyTypeValue?.toUpperCase(),
+      reaction: a.AllergyReactionTypeValue?.toUpperCase(),
       notes: a.AllergyRemarks || '',
     }));
 };

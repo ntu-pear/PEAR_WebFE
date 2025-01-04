@@ -1,5 +1,5 @@
 import { VitalCheckTD } from '@/mocks/mockPatientDetails';
-import { vitalsAPI } from '../apiConfig';
+import { vitalAPI } from '../apiConfig';
 import { formatDateString } from '@/utils/formatDate';
 
 export interface VitalCheck {
@@ -40,7 +40,7 @@ export interface VitalFormData {
 
 const convertToVitalTD = (vitals: VitalCheck[]): VitalCheckTD[] => {
   if (!Array.isArray(vitals)) {
-    console.error('vitals is not an array', vitals);
+    console.error('vitals is not asn array', vitals);
     return []; // Return an empty array if vitals is not an array
   }
 
@@ -58,18 +58,18 @@ const convertToVitalTD = (vitals: VitalCheck[]): VitalCheckTD[] => {
       heartRate: parseFloat(v.heartRate.toFixed(0)),
       spO2: parseFloat(v.spO2.toFixed(0)),
       bloodSugarLevel: parseFloat(v.bloodSugarLevel.toFixed(0)),
-      afterMeal: v.afterMeal,
+      afterMeal: v.afterMeal?.toUpperCase(),
       remark: v.vitalRemarks || '',
     }));
 };
 
-export const fetchVitalTD = async (
+export const fetchVitals = async (
   id: number,
   skip: number = 0,
   limit: number = 10
 ): Promise<VitalCheckTD[]> => {
   try {
-    const response = await vitalsAPI.get<VitalCheck[]>(
+    const response = await vitalAPI.get<VitalCheck[]>(
       `/list?patient_id=${id}&skip=${skip}&limit=${limit}`
     );
     console.log('GET all Vitals for a patient', response.data);
@@ -84,7 +84,7 @@ export const addVital = async (
   formData: VitalFormData
 ): Promise<VitalCheck> => {
   try {
-    const response = await vitalsAPI.post<VitalCheck>(`/add`, formData);
+    const response = await vitalAPI.post<VitalCheck>(`/add`, formData);
     console.log('POST Add Vital for a patient', response.data);
     return response.data;
   } catch (error) {
@@ -95,7 +95,7 @@ export const addVital = async (
 
 export const deleteVital = async (vitalId: number): Promise<VitalCheck> => {
   try {
-    const response = await vitalsAPI.put<VitalCheck>(`/delete`, {
+    const response = await vitalAPI.put<VitalCheck>(`/delete`, {
       id: vitalId,
     });
     console.log('PUT Delete Vital for a patient', response.data);
