@@ -13,14 +13,14 @@ import {
   mockMediclaDetails,
   mockMobilityAidsTD,
   mockPatientInformation,
-  mockSocialHistory,
+  mockSocialHistoryTD,
   mockStaffAllocation,
   mockUnmaskedNRIC,
   PatientInformation,
-  SocialHistory,
+  SocialHistoryTD,
 } from '@/mocks/mockPatientDetails';
 import TabProps from './types';
-import { fetchPatientInfo } from '@/api/patients/patients';
+import { fetchPatientInfo, fetchPatientNRIC } from '@/api/patients/patients';
 import { useModal } from '@/hooks/useModal';
 import EditPatientInfoModal from '../Modal/EditPatientInfoModal';
 import AddMedicalHistoryModal from '../Modal/AddMedicalHistoryModal';
@@ -30,24 +30,41 @@ import EditSocialHistoryModal from '../Modal/EditSocialHistoryModal';
 import { toast } from 'sonner';
 import { fetchDoctorNotes } from '@/api/patients/doctorNote';
 import { fetchMobilityAids } from '@/api/patients/mobility';
+import { fetchSocialHistory } from '@/api/patients/socialHistory';
 
 const PatientInfoTab: React.FC<TabProps> = ({ id }) => {
-  const [isNRICMasked, setisNRICMasked] = useState(true);
+  const [nricData, setNricData] = useState({
+    nric: '',
+    isMasked: true,
+  });
   const [patientInfo, setPatientInfo] = useState<PatientInformation | null>(
     null
   );
   const [mobilityAids, setMobilityAids] = useState<MobilityAidTD[]>([]);
   const [doctorNotes, setDoctorNotes] = useState<DoctorNoteTD[]>([]);
-  const [nric, setNric] = useState('');
-  const [socialHistory, setSocialHistory] = useState<SocialHistory | null>(
+  const [socialHistory, setSocialHistory] = useState<SocialHistoryTD | null>(
     null
   );
   const { activeModal, openModal } = useModal();
 
-  const handleNRICToggle = () => {
-    const updatedNric = isNRICMasked ? mockUnmaskedNRIC : mockMaskedNRIC;
-    setNric(updatedNric);
-    setisNRICMasked(!isNRICMasked);
+  const handleNRICToggle = async () => {
+    if (!id || isNaN(Number(id))) return;
+    try {
+      const updatedNric: string =
+        import.meta.env.MODE === 'development' ||
+        import.meta.env.MODE === 'production'
+          ? await fetchPatientNRIC(Number(id), !nricData.isMasked)
+          : nricData.isMasked
+          ? mockUnmaskedNRIC
+          : mockMaskedNRIC;
+      setNricData({
+        nric: updatedNric,
+        isMasked: !nricData.isMasked,
+      });
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (error) {
+      toast.error('Failed to fetch patient NRIC');
+    }
   };
 
   const handleFetchPatientInfo = async () => {
@@ -60,6 +77,10 @@ const PatientInfoTab: React.FC<TabProps> = ({ id }) => {
           : mockPatientInformation;
 
       setPatientInfo(fetchedPatientInfo);
+      setNricData({
+        nric: fetchedPatientInfo.nric,
+        isMasked: true,
+      });
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       toast.error('Failed to fetch patient information');
@@ -101,11 +122,11 @@ const PatientInfoTab: React.FC<TabProps> = ({ id }) => {
   const handleFetchSocialHistory = async () => {
     if (!id || isNaN(Number(id))) return;
     try {
-      const fetchedSocialHistory: SocialHistory =
+      const fetchedSocialHistory: SocialHistoryTD =
         import.meta.env.MODE === 'development' ||
         import.meta.env.MODE === 'production'
-          ? mockSocialHistory
-          : mockSocialHistory;
+          ? await fetchSocialHistory(Number(id))
+          : mockSocialHistoryTD;
 
       setSocialHistory(fetchedSocialHistory);
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -128,15 +149,16 @@ const PatientInfoTab: React.FC<TabProps> = ({ id }) => {
     { key: 'dateOfBirth', header: 'Date Of Birth' },
     { key: 'gender', header: 'Gender' },
     { key: 'address', header: 'Address' },
-    { key: 'inactiveDate', header: 'Inactive Date' },
     { key: 'temporaryAddress', header: 'Temporary Address' },
     { key: 'homeNo', header: 'Home No' },
     { key: 'handphoneNo', header: 'Handphone No' },
     { key: 'preferredName', header: 'Preferred Name' },
     { key: 'perferredLanguage', header: 'Preferred Language' },
+    { key: 'privacyLevel', header: 'Privacy Level' },
     { key: 'underRespiteCare', header: 'Under Respite Care' },
     { key: 'startDate', header: 'Start Date' },
     { key: 'endDate', header: 'End Date' },
+    { key: 'inactiveDate', header: 'Inactive Date' },
   ];
 
   const dementiaColumns = [
@@ -214,15 +236,9 @@ const PatientInfoTab: React.FC<TabProps> = ({ id }) => {
                       <p className="text-sm font-medium">{column.header}</p>
                       <div className="text-sm text-muted-foreground flex items-center space-x-2">
                         {column.key === 'nric'
-                          ? !isNRICMasked
-                            ? nric || '-'
-                            : nric ||
-                              patientInfo?.[
-                                column.key as keyof PatientInformation
-                              ] ||
-                              '-'
+                          ? nricData.nric || '-'
                           : patientInfo?.[
-                              column.key as keyof PatientInformation
+                              column.key as keyof PatientInformation // else if key is not nric
                             ] || '-'}
                         {column.key === 'nric' && (
                           <Button
@@ -231,10 +247,10 @@ const PatientInfoTab: React.FC<TabProps> = ({ id }) => {
                             onClick={handleNRICToggle}
                             className="h-6 w-6 flex items-center justify-center ml-1"
                           >
-                            {isNRICMasked ? (
-                              <EyeIcon className="h-5 w-5" /> // Masked
+                            {nricData.isMasked ? (
+                              <EyeOffIcon className="h-5 w-5" /> // Masked
                             ) : (
-                              <EyeOffIcon className="h-5 w-5" /> // Unmasked
+                              <EyeIcon className="h-5 w-5" /> // Unmasked
                             )}
                           </Button>
                         )}
@@ -251,15 +267,9 @@ const PatientInfoTab: React.FC<TabProps> = ({ id }) => {
                       <p className="text-sm font-medium">{column.header}</p>
                       <div className="text-sm text-muted-foreground flex items-center space-x-2">
                         {column.key === 'nric'
-                          ? !isNRICMasked
-                            ? nric || '-'
-                            : nric ||
-                              patientInfo?.[
-                                column.key as keyof PatientInformation
-                              ] ||
-                              '-'
+                          ? nricData.nric || '-'
                           : patientInfo?.[
-                              column.key as keyof PatientInformation
+                              column.key as keyof PatientInformation // else if key is not nric
                             ] || '-'}
                         {column.key === 'nric' && (
                           <Button
@@ -268,10 +278,10 @@ const PatientInfoTab: React.FC<TabProps> = ({ id }) => {
                             onClick={handleNRICToggle}
                             className="h-6 w-6 flex items-center justify-center ml-1"
                           >
-                            {isNRICMasked ? (
-                              <EyeIcon className="h-5 w-5" /> // Masked
+                            {nricData.isMasked ? (
+                              <EyeOffIcon className="h-5 w-5" /> // Masked
                             ) : (
-                              <EyeOffIcon className="h-5 w-5" /> // Unmasked
+                              <EyeIcon className="h-5 w-5" /> // Unmasked
                             )}
                           </Button>
                         )}
@@ -417,7 +427,7 @@ const PatientInfoTab: React.FC<TabProps> = ({ id }) => {
                     <div key={column.key} className="space-y-1">
                       <p className="text-sm font-medium">{column.header}</p>
                       <p className="text-sm text-muted-foreground">
-                        {socialHistory?.[column.key as keyof SocialHistory] ||
+                        {socialHistory?.[column.key as keyof SocialHistoryTD] ||
                           '-'}
                       </p>
                     </div>
@@ -431,7 +441,7 @@ const PatientInfoTab: React.FC<TabProps> = ({ id }) => {
                     <div key={column.key} className="space-y-1">
                       <p className="text-sm font-medium">{column.header}</p>
                       <p className="text-sm text-muted-foreground">
-                        {socialHistory?.[column.key as keyof SocialHistory] ||
+                        {socialHistory?.[column.key as keyof SocialHistoryTD] ||
                           '-'}
                       </p>
                     </div>

@@ -5,6 +5,7 @@ import {
   PatientInformation,
   ProfilePhotoAndName,
 } from '@/mocks/mockPatientDetails';
+import { convertToYesNo } from '@/utils/convertToYesNo';
 
 export interface PatientBase {
   firstName: string;
@@ -117,6 +118,7 @@ export const fetchPatientInfo = async (
     return {
       id: id,
       name: p.firstName?.toUpperCase() + ' ' + p.lastName?.toUpperCase(),
+      preferredName: p.preferredName?.toUpperCase() || '-',
       nric: p.nric[0] + 'XXXX' + p.nric.slice(-3)?.toUpperCase(),
       dateOfBirth: p.dateOfBirth ? formatDateString(p.dateOfBirth) : '-',
       gender:
@@ -126,18 +128,30 @@ export const fetchPatientInfo = async (
           ? 'MALE'
           : '',
       address: p.address?.toUpperCase(),
-      inactiveDate: p.inActiveDate ? formatDateString(p.inActiveDate) : '-',
       tempAddress: p.tempAddress?.toUpperCase() || '-',
       homeNo: p.homeNo || '-',
       handphoneNo: p.handphoneNo || '-',
-      preferredName: p.preferredName?.toUpperCase() || '-',
       preferredLanguage: '-',
-      underRespiteCare: p.isRespiteCare,
+      privacyLevel: p.privacyLevel,
+      underRespiteCare: convertToYesNo(p.isRespiteCare),
       startDate: p.startDate ? formatDateString(p.startDate) : '',
       endDate: p.endDate ? formatDateString(p.endDate) : '',
+      inactiveDate: p.inActiveDate ? formatDateString(p.inActiveDate) : '-',
     };
   } catch (error) {
     console.error('GET Patient Info', error);
     throw error;
   }
+};
+
+//temporary, need actual api for masked and unmasked nric
+export const fetchPatientNRIC = async (
+  id: number,
+  isNRICMasked: boolean
+): Promise<string> => {
+  const response = await patientsAPI.get<PatientBase>(`/${id}`);
+  const nric = response.data?.nric;
+  console.log('GET Patient NRIC', nric);
+
+  return isNRICMasked ? nric[0] + 'XXXX' + nric.slice(-3)?.toUpperCase() : nric;
 };

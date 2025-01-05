@@ -53,7 +53,7 @@ export interface StaffAllocation extends TableRowData {
   staffName: string;
 }
 
-export interface SocialHistory extends TableRowData {
+export interface SocialHistoryTD extends TableRowData {
   alcoholUse: string;
   caffeineUse: string;
   diet: string;
@@ -235,7 +235,7 @@ export const mockStaffAllocation: StaffAllocation[] = [
   },
 ];
 
-export const mockSocialHistory: SocialHistory = {
+export const mockSocialHistoryTD: SocialHistoryTD = {
   id: 1,
   alcoholUse: '',
   caffeineUse: '',

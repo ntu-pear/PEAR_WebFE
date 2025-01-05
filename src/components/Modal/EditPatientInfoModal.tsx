@@ -178,6 +178,7 @@ const EditPatientInfoModal: React.FC = () => {
               className="mt-1 block w-full p-2 border rounded-md text-gray-900"
               required
             >
+              <option value="">Please select an option</option>
               <option value="1">1</option>
               <option value="2">2</option>
               <option value="3">3</option>
@@ -193,6 +194,7 @@ const EditPatientInfoModal: React.FC = () => {
               className="mt-1 block w-full p-2 border rounded-md text-gray-900"
               required
             >
+              <option value="">Please select an option</option>
               <option value="Cantonese">Cantonese</option>
               <option value="English">English</option>
               <option value="Hakka">Hakka</option>
@@ -216,6 +218,7 @@ const EditPatientInfoModal: React.FC = () => {
               className="mt-1 block w-full p-2 border rounded-md text-gray-900"
               required
             >
+              <option value="">Please select an option</option>
               <option value="yes">Yes</option>
               <option value="no">No</option>
             </select>
@@ -229,6 +232,7 @@ const EditPatientInfoModal: React.FC = () => {
               className="mt-1 block w-full p-2 border rounded-md text-gray-900"
               required
             >
+              <option value="">Please select an option</option>
               <option value="yes">Yes</option>
               <option value="no">No</option>
             </select>
