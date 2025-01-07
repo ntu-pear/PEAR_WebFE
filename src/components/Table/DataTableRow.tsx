@@ -11,6 +11,7 @@ interface DataTableRowProps<T extends TableRowData> {
     header: string;
     width?: string;
     render?: (value: any, item: T) => React.ReactNode;
+    className?: string;
   }>;
   viewMore: boolean;
   viewMoreLink?: string;
@@ -34,6 +35,7 @@ function DataTableRow<T extends TableRowData>({
       {columns.map((column) => (
         <TableCell
           key={column.key.toString()}
+          className={column.className || ''}
           style={{ width: column.width ? column.width : 'auto' }}
         >
           {column.render

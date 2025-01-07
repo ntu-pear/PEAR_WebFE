@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { ListFilter, File, PlusCircle } from 'lucide-react';
+import { ListFilter, File } from 'lucide-react';
 import {
   Card,
   CardContent,
@@ -19,7 +19,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
-import Header from '@/components/Header';
+import Searchbar from '@/components/Searchbar';
 import DataTable from '@/components/Table/DataTable';
 
 import {
@@ -128,15 +128,23 @@ const PatientTable: React.FC = () => {
         </Badge>
       ),
     },
-    { key: 'startDate', header: 'Start Date' },
-    { key: 'endDate', header: 'End Date' },
-    { key: 'inactiveDate', header: 'Inactive Date' },
+    {
+      key: 'startDate',
+      header: 'Start Date',
+      className: 'hidden md:table-cell',
+    },
+    { key: 'endDate', header: 'End Date', className: 'hidden md:table-cell' },
+    {
+      key: 'inactiveDate',
+      header: 'Inactive Date',
+      className: 'hidden md:table-cell',
+    },
   ];
 
   return (
-    <div className="flex min-h-screen w-full flex-col container mx-auto px-4">
+    <div className="flex min-h-screen w-full flex-col container mx-auto px-0 sm:px-4">
       <div className="flex flex-col sm:gap-4 sm:py-4 sm:pl-14">
-        <Header onSearchChange={handleInputChange} />
+        <Searchbar searchItem={searchItem} onSearchChange={handleInputChange} />
         <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
           <Tabs value={tabValue} onValueChange={setTabValue}>
             <div className="flex items-center">
@@ -144,47 +152,45 @@ const PatientTable: React.FC = () => {
                 <TabsTrigger value="all">All Patients</TabsTrigger>
                 <TabsTrigger value="my_patients">My Patients</TabsTrigger>
               </TabsList>
-              <div className="ml-auto flex items-center gap-2">
-                <DropdownMenu modal={false}>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="sm" className="h-8 gap-1">
-                      <ListFilter className="h-4 w-4" />
-                      <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                        Filter
-                      </span>
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuLabel>Filter by Status</DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuRadioGroup
-                      value={activeStatus}
-                      onValueChange={setActiveStatus}
-                    >
-                      <DropdownMenuRadioItem value="All">
-                        All
-                      </DropdownMenuRadioItem>
-                      <DropdownMenuRadioItem value="Active">
-                        Active
-                      </DropdownMenuRadioItem>
-                      <DropdownMenuRadioItem value="Inactive">
-                        Inactive
-                      </DropdownMenuRadioItem>
-                    </DropdownMenuRadioGroup>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-                <Button size="sm" variant="outline" className="h-8 gap-1">
-                  <File className="h-4 w-4" />
-                  <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                    Export
-                  </span>
-                </Button>
-                <Button size="sm" className="h-8 gap-1">
-                  <PlusCircle className="h-4 w-4" />
-                  <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                    Add Patient
-                  </span>
-                </Button>
+              <div className="flex items-center gap-2 ml-auto">
+                <div className="flex">
+                  <DropdownMenu modal={false}>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" size="sm" className="h-8 gap-1">
+                        <ListFilter className="h-4 w-4" />
+                        <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+                          Filter
+                        </span>
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuLabel>Filter by Status</DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuRadioGroup
+                        value={activeStatus}
+                        onValueChange={setActiveStatus}
+                      >
+                        <DropdownMenuRadioItem value="All">
+                          All
+                        </DropdownMenuRadioItem>
+                        <DropdownMenuRadioItem value="Active">
+                          Active
+                        </DropdownMenuRadioItem>
+                        <DropdownMenuRadioItem value="Inactive">
+                          Inactive
+                        </DropdownMenuRadioItem>
+                      </DropdownMenuRadioGroup>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+                <div className="flex">
+                  <Button size="sm" variant="outline" className="h-8 gap-1">
+                    <File className="h-4 w-4" />
+                    <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+                      Export
+                    </span>
+                  </Button>
+                </div>
               </div>
             </div>
             <TabsContent value="all">
