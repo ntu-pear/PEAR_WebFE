@@ -103,7 +103,7 @@ const ViewPatient: React.FC = () => {
           onValueChange={handleTabChange}
           className="flex flex-col sm:pl-14"
         >
-          <TabsList className="flex justify-between">
+          <TabsList className="flex items-center flex-wrap h-auto space-y-1 justify-start xl:justify-between">
             <TabsTrigger value="information">Information</TabsTrigger>
             <TabsTrigger value="allergy">Allergy</TabsTrigger>
             <TabsTrigger value="vital">Vital</TabsTrigger>

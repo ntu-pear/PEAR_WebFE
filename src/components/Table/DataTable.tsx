@@ -1,13 +1,13 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo } from 'react';
 import {
   Table,
   TableBody,
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import DataTableRow from "./DataTableRow";
-import { Button } from "@/components/ui/button";
+} from '@/components/ui/table';
+import DataTableRow from './DataTableRow';
+import { Button } from '@/components/ui/button';
 
 export interface TableRowData {
   id: string | number;
@@ -20,6 +20,7 @@ interface DataTableProps<T extends TableRowData> {
     key: keyof T;
     header: string;
     render?: (value: any, item: T) => React.ReactNode;
+    className?: string;
   }>;
   itemsPerPage?: number; // Optional prop to specify number of items per page
   viewMore: boolean;
@@ -79,12 +80,14 @@ function DataTable<T extends TableRowData>({
               {columns.map((column) => (
                 <TableHead
                   key={column.key.toString()}
-                  className="cursor-pointer"
+                  className={`cursor-pointer ${column.className || ''}`}
                 >
                   {column.header}
                 </TableHead>
               ))}
-              {hideActionsHeader ? null :<TableHead className="pl-9">Actions</TableHead>} 
+              {hideActionsHeader ? null : (
+                <TableHead className="pl-9">Actions</TableHead>
+              )}
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -94,7 +97,9 @@ function DataTable<T extends TableRowData>({
                 item={item}
                 columns={columns}
                 viewMore={viewMore}
-                viewMoreLink = {`${viewMoreBaseLink}/${item.id}${activeTab ? `?tab=${activeTab}` : ""}`} 
+                viewMoreLink={`${viewMoreBaseLink}/${item.id}${
+                  activeTab ? `?tab=${activeTab}` : ''
+                }`}
                 renderActions={renderActions} // Pass the custom renderActions function
               />
             ))}
@@ -106,11 +111,11 @@ function DataTable<T extends TableRowData>({
       {data.length > 0 && (
         <div className="flex items-center justify-between py-4">
           <div className="text-xs text-muted-foreground">
-            Showing{" "}
+            Showing{' '}
             <strong>
               {(currentPage - 1) * itemsPerPage + 1}-
               {Math.min(currentPage * itemsPerPage, data.length)}
-            </strong>{" "}
+            </strong>{' '}
             of <strong>{data.length}</strong> records
           </div>
           <div className="flex items-center space-x-2">
