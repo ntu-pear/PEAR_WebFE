@@ -15,4 +15,9 @@ export default defineConfig({
     outDir: 'dist',  // Output directory for Vite builds
     emptyOutDir: true,  // Clean the output directory before each build
   },
+  server: {
+    watch: {
+      usePolling: true
+    }
+  }
 });
