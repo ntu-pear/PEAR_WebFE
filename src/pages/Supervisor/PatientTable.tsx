@@ -206,7 +206,7 @@ const PatientTable: React.FC = () => {
                     data={patientTDList}
                     columns={columns}
                     viewMore={true}
-                    viewMoreBaseLink={'/ViewPatient'}
+                    viewMoreBaseLink={'/supervisor/view-patient'}
                     activeTab={'information'}
                   />
                 </CardContent>
@@ -225,7 +225,7 @@ const PatientTable: React.FC = () => {
                     data={patientTDList}
                     columns={columns}
                     viewMore={true}
-                    viewMoreBaseLink={'/ViewPatient'}
+                    viewMoreBaseLink={'/supervisor/view-patient'}
                     activeTab={'information'}
                   />
                 </CardContent>

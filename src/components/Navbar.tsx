@@ -13,6 +13,7 @@ import { Sun, Moon, Bell } from 'lucide-react';
 import { useTheme } from '@/components/ThemeProvider';
 // import Sidebar from '@/components/Sidebar';
 import SidebarMenu from '@/components/Sidebar/SidebarMenu';
+import { useAuth } from '@/hooks/useAuth';
 
 const Navbar: React.FC = () => {
   const initialNotifications = [
@@ -55,6 +56,7 @@ const Navbar: React.FC = () => {
   const { theme, setTheme } = useTheme();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [notifications, setNotifications] = useState(initialNotifications);
+  const { logout } = useAuth();
 
   const clearNotifications = () => {
     setNotifications([]);
@@ -62,6 +64,10 @@ const Navbar: React.FC = () => {
 
   const toggleDropdown = () => {
     setDropdownOpen(!dropdownOpen);
+  };
+
+  const handleLogout = () => {
+    logout();
   };
 
   return (
@@ -72,7 +78,10 @@ const Navbar: React.FC = () => {
           <div className="flex items-center">
             <SidebarMenu />
             {/* <Sidebar /> */}
-            <Link to="/" className="flex-shrink-0 ml-4">
+            <Link
+              to="/supervisor/manage-patients"
+              className="flex-shrink-0 ml-4"
+            >
               <img className="h-12 w-24" src="/pear.png" alt="Pear Logo" />
             </Link>
           </div>
@@ -181,7 +190,9 @@ const Navbar: React.FC = () => {
                 <DropdownMenuItem>Settings</DropdownMenuItem>
                 <DropdownMenuItem>Support</DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>Logout</DropdownMenuItem>
+                <DropdownMenuItem onClick={handleLogout}>
+                  Logout
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
