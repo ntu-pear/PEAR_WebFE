@@ -1,9 +1,11 @@
 import './App.css';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Navbar from './components/Navbar';
 import { ThemeProvider } from './components/ThemeProvider';
+import { Toaster } from './components/ui/sonner';
+import { ModalProvider } from './hooks/useModal';
+import { AuthProvider } from './hooks/useAuth';
+import ProtectedRoute from './components/ProtectedRoute';
 
-// import Dashboard from "./pages/Dashboard/Dashboard";
 import PatientTable from './pages/Supervisor/PatientTable';
 import AddPatient from './pages/Supervisor/AddPatient';
 import ManageAdhoc from './pages/Supervisor/ManageAdhoc';
@@ -15,58 +17,52 @@ import ManageMedication from './pages/Supervisor/ManageMedication';
 import ManageActivities from './pages/Supervisor/ManageActivities';
 import ViewPatient from './pages/ViewPatient';
 import TestGeocode from './pages/testGeocode';
-import { Toaster } from './components/ui/sonner';
-import { ModalProvider } from './hooks/useModal';
+import Unauthorized from './pages/Unauthorized';
+import NotFound from './pages/NotFound';
 
 const App: React.FC = () => {
-  const isAuthPage =
-    location.pathname === '/Login' || location.pathname === '/ForgotPassword';
   return (
     <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
       <Router>
         <div className="min-h-screen bg-background font-sans antialiased">
-          {!isAuthPage && <Navbar />}
-          <ModalProvider>
-            <main>
-              <Routes>
-                {/* <Route path="/" element={<Dashboard />} /> */}
-                <Route path="/Login" element={<Login />} />
-                <Route path="/ForgotPassword" element={<ForgotPassword />} />
-                <Route path="/ViewPatient/:id" element={<ViewPatient />} />
-                <Route path="/" element={<PatientTable />} />
+          <AuthProvider>
+            <ModalProvider>
+              <main>
+                <Routes>
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/forgot-password" element={<ForgotPassword />} />
 
-                {/* Routes for Supervisor*/}
-                <Route
-                  path="/Supervisor/ManagePatients"
-                  element={<PatientTable />}
-                />
-                <Route
-                  path="/Supervisor/AddPatients"
-                  element={<AddPatient />}
-                />
-                <Route
-                  path="/Supervisor/ViewMedicationSchedule"
-                  element={<ViewMedicationSchedule />}
-                />
-                <Route
-                  path="/Supervisor/ManageMedication"
-                  element={<ManageMedication />}
-                />
-                <Route
-                  path="/Supervisor/ManageActivities"
-                  element={<ManageActivities />}
-                />
-                <Route
-                  path="/Supervisor/ManageAdhoc"
-                  element={<ManageAdhoc />}
-                />
-                <Route path="/Supervisor/AddAdhoc" element={<AddAdhoc />} />
+                  {/* Routes for Supervisor */}
+                  <Route
+                    path="/supervisor/*"
+                    element={<ProtectedRoute allowedRoles={['SUPERVISOR']} />}
+                  >
+                    <Route path="manage-patients" element={<PatientTable />} />
+                    <Route path="view-patient/:id" element={<ViewPatient />} />
+                    <Route path="add-patient" element={<AddPatient />} />
+                    <Route
+                      path="view-medication-schedule"
+                      element={<ViewMedicationSchedule />}
+                    />
+                    <Route
+                      path="manage-medication"
+                      element={<ManageMedication />}
+                    />
+                    <Route
+                      path="manage-activities"
+                      element={<ManageActivities />}
+                    />
+                    <Route path="manage-adhoc" element={<ManageAdhoc />} />
+                    <Route path="add-adhoc" element={<AddAdhoc />} />
+                  </Route>
 
-                {/* Routes for Other roles */}
-                <Route path="/TestGeocode" element={<TestGeocode />} />
-              </Routes>
-            </main>
-          </ModalProvider>
+                  <Route path="/unauthorized" element={<Unauthorized />} />
+                  <Route path="/not-found" element={<NotFound />} />
+                  <Route path="/test-geocode" element={<TestGeocode />} />
+                </Routes>
+              </main>
+            </ModalProvider>
+          </AuthProvider>
           <Toaster richColors />
         </div>
       </Router>
