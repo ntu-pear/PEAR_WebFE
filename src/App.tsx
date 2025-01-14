@@ -1,5 +1,10 @@
 import './App.css';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from 'react-router-dom';
 import { ThemeProvider } from './components/ThemeProvider';
 import { Toaster } from './components/ui/sonner';
 import { ModalProvider } from './hooks/useModal';
@@ -59,6 +64,7 @@ const App: React.FC = () => {
                   <Route path="/unauthorized" element={<Unauthorized />} />
                   <Route path="/not-found" element={<NotFound />} />
                   <Route path="/test-geocode" element={<TestGeocode />} />
+                  <Route path="/" element={<Navigate to="/login" />} />
                 </Routes>
               </main>
             </ModalProvider>
