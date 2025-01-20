@@ -24,10 +24,11 @@ import ViewPatient from './pages/ViewPatient';
 import TestGeocode from './pages/testGeocode';
 import Unauthorized from './pages/Unauthorized';
 import NotFound from './pages/NotFound';
+import TempPage from './pages/TempPage';
 
 const App: React.FC = () => {
   return (
-    <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+    <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
       <Router>
         <div className="min-h-screen bg-background font-sans antialiased">
           <AuthProvider>
@@ -59,6 +60,40 @@ const App: React.FC = () => {
                     />
                     <Route path="manage-adhoc" element={<ManageAdhoc />} />
                     <Route path="add-adhoc" element={<AddAdhoc />} />
+                  </Route>
+
+                  {/* Routes for Admin*/}
+                  <Route
+                    path="admin/*"
+                    element={<ProtectedRoute allowedRoles={['ADMIN']} />}
+                  >
+                    <Route path="temp-page" element={<TempPage />} />
+                  </Route>
+
+                  {/* Routes for Doctor*/}
+                  <Route
+                    path="doctor/*"
+                    element={<ProtectedRoute allowedRoles={['DOCTOR']} />}
+                  >
+                    <Route path="temp-page" element={<TempPage />} />
+                  </Route>
+
+                  {/* Routes for Guardian*/}
+                  <Route
+                    path="guardian/*"
+                    element={<ProtectedRoute allowedRoles={['GUARDIAN']} />}
+                  >
+                    <Route path="temp-page" element={<TempPage />} />
+                  </Route>
+
+                  {/* Routes for Game Therapist*/}
+                  <Route
+                    path="game-therapist/*"
+                    element={
+                      <ProtectedRoute allowedRoles={['GAME THERAPIST']} />
+                    }
+                  >
+                    <Route path="temp-page" element={<TempPage />} />
                   </Route>
 
                   <Route path="/unauthorized" element={<Unauthorized />} />

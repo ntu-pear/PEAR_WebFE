@@ -4,11 +4,12 @@ import { Input } from '@/components/ui/input';
 import { EyeIcon, EyeOffIcon, UserIcon } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router';
+import { toast } from 'sonner';
 
 const Login: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
 
-  const { currentUser, login } = useAuth();
+  const { currentUser, login, logout } = useAuth();
 
   const navigate = useNavigate();
 
@@ -26,16 +27,20 @@ const Login: React.FC = () => {
     if (currentUser) {
       switch (currentUser.roleName) {
         case 'ADMIN':
-          console.log('admin');
+          navigate('/admin/temp-page', { replace: true });
+          break;
+        case 'CAREGIVER':
+          toast.error('Caregiver is only available on mobile.');
+          logout();
           break;
         case 'DOCTOR':
-          console.log('doctor');
+          navigate('/doctor/temp-page', { replace: true });
           break;
         case 'GUARDIAN':
-          console.log('guardian');
+          navigate('/guardian/temp-page', { replace: true });
           break;
         case 'GAME THERAPIST':
-          console.log('game therapist');
+          navigate('/game-therapist/temp-page', { replace: true });
           break;
         case 'SUPERVISOR':
           navigate('/supervisor/manage-patients', { replace: true });
@@ -69,7 +74,7 @@ const Login: React.FC = () => {
               name="email"
               type="email"
               placeholder="Email"
-              className="pl-10"
+              className="pl-10 text-gray-700"
               title="Enter a valid email address."
             />
             <UserIcon
@@ -83,7 +88,7 @@ const Login: React.FC = () => {
               name="password"
               type={showPassword ? 'text' : 'password'}
               placeholder="Password"
-              className="pr-10"
+              className="pr-10 text-gray-700"
               pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*[^a-zA-Z0-9])(?=.*[^ ]).{8,}$"
               title="Must contain at least one lowercase letter, one uppercase letter, one non-alphanumeric character, no spaces, and at least 8 characters."
             />
@@ -95,7 +100,7 @@ const Login: React.FC = () => {
               {showPassword ? <EyeOffIcon size={32} /> : <EyeIcon size={32} />}
             </button>
           </div>
-          <Button className="w-full bg-cyan-500 hover:bg-cyan-600">
+          <Button className="w-full bg-cyan-500 hover:bg-cyan-600 text-white">
             LOGIN
           </Button>
         </form>

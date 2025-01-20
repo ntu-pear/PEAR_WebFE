@@ -67,6 +67,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       }
 
       const user = await getCurrentUser();
+      if (user?.roleName === 'CAREGIVER') {
+        throw new Error('Caregiver is only available on mobile application.');
+      }
+
       setCurrentUser(user);
       console.log('User fetched on refresh:', user);
     } catch (error) {
