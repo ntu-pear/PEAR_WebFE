@@ -23,7 +23,7 @@ export interface PatientInformation extends TableRowData {
   endDate: string;
 }
 
-export interface DiagnosedDementia extends TableRowData {
+export interface DiagnosedDementiaTD extends TableRowData {
   dementiaType: string;
   dementiaDate: string;
 }
@@ -176,7 +176,7 @@ export const mockMaskedNRIC = 'SXXXX123A';
 
 export const mockUnmaskedNRIC = 'S1234123A';
 
-export const mockDiagnosedDementiaList: DiagnosedDementia[] = [
+export const mockDiagnosedDementiaList: DiagnosedDementiaTD[] = [
   {
     id: 1,
     dementiaType: "ALZHEIMER'S DISEASE",

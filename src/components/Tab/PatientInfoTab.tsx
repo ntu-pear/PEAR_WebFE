@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { TabsContent } from '../ui/tabs';
 import DataTable from '../Table/DataTable';
 import {
+  DiagnosedDementiaTD,
   DoctorNoteTD,
   MobilityAidTD,
   mockDiagnosedDementiaList,
@@ -31,6 +32,7 @@ import { toast } from 'sonner';
 import { fetchDoctorNotes } from '@/api/patients/doctorNote';
 import { fetchMobilityAids } from '@/api/patients/mobility';
 import { fetchSocialHistory } from '@/api/patients/socialHistory';
+import { fetchDiagnosedDementia } from '@/api/patients/diagnosedDementia';
 
 const PatientInfoTab: React.FC<TabProps> = ({ id }) => {
   const [nricData, setNricData] = useState({
@@ -40,6 +42,9 @@ const PatientInfoTab: React.FC<TabProps> = ({ id }) => {
   const [patientInfo, setPatientInfo] = useState<PatientInformation | null>(
     null
   );
+  const [diagnosedDementia, setDiagnosedDementia] = useState<
+    DiagnosedDementiaTD[]
+  >([]);
   const [mobilityAids, setMobilityAids] = useState<MobilityAidTD[]>([]);
   const [doctorNotes, setDoctorNotes] = useState<DoctorNoteTD[]>([]);
   const [socialHistory, setSocialHistory] = useState<SocialHistoryTD | null>(
@@ -84,6 +89,21 @@ const PatientInfoTab: React.FC<TabProps> = ({ id }) => {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       toast.error('Failed to fetch patient information');
+    }
+  };
+
+  const handleFetchDiagnosedDementia = async () => {
+    if (!id || isNaN(Number(id))) return;
+    try {
+      const fetchedDiagnosedDementia: DiagnosedDementiaTD[] =
+        import.meta.env.MODE === 'development' ||
+        import.meta.env.MODE === 'production'
+          ? await fetchDiagnosedDementia(Number(id))
+          : mockDiagnosedDementiaList;
+      setDiagnosedDementia(fetchedDiagnosedDementia);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (error) {
+      toast.error('Failed to fetch patient diagnosed dementia');
     }
   };
 
@@ -138,6 +158,7 @@ const PatientInfoTab: React.FC<TabProps> = ({ id }) => {
   useEffect(() => {
     console.log('patientId', id);
     handleFetchPatientInfo();
+    handleFetchDiagnosedDementia();
     handleFetchMobilityAids();
     handleFetchDoctorNotes();
     handleFetchSocialHistory();
@@ -300,7 +321,7 @@ const PatientInfoTab: React.FC<TabProps> = ({ id }) => {
             </CardHeader>
             <CardContent>
               <DataTable
-                data={mockDiagnosedDementiaList}
+                data={diagnosedDementia}
                 columns={dementiaColumns}
                 viewMore={false}
                 hideActionsHeader={true}

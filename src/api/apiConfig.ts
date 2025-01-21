@@ -15,6 +15,14 @@ export const patientsAPI = axios.create({
   baseURL: `${VITE_PATIENT_SERVICE_URL}/patients`,
 });
 
+export const dementiaList = axios.create({
+  baseURL: `${VITE_PATIENT_SERVICE_URL}/PatientAssignedDementiaList`,
+});
+
+export const getPatientAssignedDementia = axios.create({
+  baseURL: `${VITE_PATIENT_SERVICE_URL}/get_assigned_dementias`,
+});
+
 export const mobilityAPI = axios.create({
   baseURL: `${VITE_PATIENT_SERVICE_URL}/Mobility`,
 });
