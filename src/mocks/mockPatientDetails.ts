@@ -76,6 +76,7 @@ export interface AllergyTD extends TableRowData {
 }
 
 export interface VitalCheckTD extends TableRowData {
+  patientId: number;
   date: string;
   time: string;
   temperature: number;
@@ -275,7 +276,8 @@ export const mockAllergyTD: AllergyTD[] = [
 
 export const mockVitalCheck: VitalCheckTD[] = [
   {
-    id: '1',
+    id: 1,
+    patientId: 1,
     date: '15 AUG 2024',
     time: '09:30 AM',
     temperature: 36.8, // Normal body temperature in Celsius
@@ -294,7 +296,7 @@ export const mockVitalCheck: VitalCheckTD[] = [
 
 export const mockLike: PersonalPreference[] = [
   {
-    id: '1',
+    id: 1,
     dateCreated: '8 AUG 2024',
     authorName: 'JANE',
     description: 'Enjoys soft and sweet treats, like pudding and applesauce.',
@@ -303,7 +305,7 @@ export const mockLike: PersonalPreference[] = [
 
 export const mockDislike: PersonalPreference[] = [
   {
-    id: '1',
+    id: 1,
     dateCreated: '8 AUG 2024',
     authorName: 'JANE',
     description: 'Dislikes food with hard textures or strong spices.',
@@ -312,7 +314,7 @@ export const mockDislike: PersonalPreference[] = [
 
 export const mockHobby: PersonalPreference[] = [
   {
-    id: '1',
+    id: 1,
     dateCreated: '8 AUG 2024',
     authorName: 'JANE',
     description:
@@ -322,7 +324,7 @@ export const mockHobby: PersonalPreference[] = [
 
 export const mockHabit: PersonalPreference[] = [
   {
-    id: '1',
+    id: 1,
     dateCreated: '8 AUG 2024',
     authorName: 'JANE',
     description:
@@ -350,7 +352,7 @@ export const mockActivityPreferences: ActivityPreference[] = [
 
 export const mockRoutine: Routine[] = [
   {
-    id: '1',
+    id: 1,
     activityName: 'MORNING WALK',
     routineIssue:
       'Needs supervision due to wandering and risk of disorientation.',
@@ -390,7 +392,7 @@ export const mockGuardian: GuardianTD[] = [
 
 export const mockActivityExclusion: ActivityExclusion[] = [
   {
-    id: '1',
+    id: 1,
     title: 'AVOID UNSUPERVISED OUTDOOR ACTIVITIES',
     description:
       'Patient should not go outside unaccompanied due to risks of wandering or disorientation.',

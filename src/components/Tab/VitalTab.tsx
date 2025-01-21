@@ -11,6 +11,7 @@ import AddVitalModal from '../Modal/AddVitalModal';
 import { useModal } from '@/hooks/useModal';
 import DeleteVitalModal from '../Modal/DeleteVitalModal';
 import { toast } from 'sonner';
+import EditVitalModal from '../Modal/EditVitalModal';
 
 const VitalTab: React.FC<TabProps> = ({ id }) => {
   const [vitalCheck, setVitalCheck] = useState<VitalCheckTD[]>([]);
@@ -89,12 +90,27 @@ const VitalTab: React.FC<TabProps> = ({ id }) => {
               renderActions={(item) => (
                 <div className="flex space-x-2">
                   <Button
+                    size="sm"
+                    className="mt-3"
+                    onClick={() =>
+                      openModal('editVital', {
+                        vitalId: String(item.id),
+                        vitalData: item,
+                        patientId: String(id),
+                        submitterId: '1',
+                        refreshVitalData,
+                      })
+                    }
+                  >
+                    Edit
+                  </Button>
+                  <Button
                     variant="destructive"
                     size="sm"
                     className="mt-3"
                     onClick={() =>
                       openModal('deleteVital', {
-                        vitalId: item.id,
+                        vitalId: String(item.id),
                         refreshVitalData,
                       })
                     }
@@ -108,7 +124,7 @@ const VitalTab: React.FC<TabProps> = ({ id }) => {
         </Card>
       </TabsContent>
       {activeModal.name === 'addVital' && <AddVitalModal />}
-
+      {activeModal.name === 'editVital' && <EditVitalModal />}
       {activeModal.name === 'deleteVital' && <DeleteVitalModal />}
     </>
   );

@@ -1,18 +1,38 @@
-import { addVital, VitalFormData } from '@/api/patients/vital';
+import { updateVital, VitalFormData } from '@/api/patients/vital';
 import { Button } from '../ui/button';
 import { toast } from 'sonner';
 import { useModal } from '@/hooks/useModal';
+import { VitalCheckTD } from '@/mocks/mockPatientDetails';
+import { useEffect, useState } from 'react';
 
-const AddVitalModal: React.FC = () => {
+const EditVitalModal: React.FC = () => {
+  const [rowData, setRowData] = useState<VitalFormData | null>(null);
   const { modalRef, activeModal, closeModal } = useModal();
-  const { patientId, submitterId, refreshVitalData } = activeModal.props as {
-    patientId: string;
-    submitterId: string;
-    refreshVitalData: () => void;
+  const { vitalId, vitalData, patientId, submitterId, refreshVitalData } =
+    activeModal.props as {
+      vitalId: string;
+      vitalData: VitalCheckTD;
+      patientId: string;
+      submitterId: string;
+      refreshVitalData: () => void;
+    };
+
+  const handleChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
+  ) => {
+    const { name, value } = e.target;
+    if (rowData) {
+      setRowData({ ...rowData, [name]: value });
+    }
   };
 
-  const handleAddVital = async (event: React.FormEvent) => {
+  const handleEditVital = async (event: React.FormEvent) => {
     event.preventDefault();
+
+    if (!vitalId || isNaN(Number(vitalId))) return;
+
     // Create a new FormData object from the event's target
     const formData = new FormData(event.target as HTMLFormElement);
 
@@ -31,28 +51,44 @@ const AddVitalModal: React.FC = () => {
       BloodSugarLevel: parseFloat(formDataObj.BloodSugarLevel as string),
       VitalRemarks: formDataObj.VitalRemarks as string,
       IsAfterMeal: formDataObj.IsAfterMeal as string,
-      CreatedById: parseInt(submitterId as string, 10),
       UpdatedById: parseInt(submitterId as string, 10),
     };
 
     try {
       // console.log('vitalFormData: ', vitalFormData);
-      await addVital(vitalFormData);
+      await updateVital(Number(vitalId), vitalFormData);
       closeModal();
-      toast.success('Vital added successfully.');
+      toast.success('Vital updated successfully.');
       refreshVitalData();
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       closeModal();
-      toast.error('Failed to add patient vital.');
+      toast.error('Failed to update patient vital.');
     }
   };
+
+  useEffect(() => {
+    if (vitalData) {
+      setRowData({
+        Temperature: vitalData.temperature,
+        Weight: vitalData.weight,
+        Height: vitalData.height,
+        SystolicBP: vitalData.systolicBP,
+        DiastolicBP: vitalData.diastolicBP,
+        HeartRate: vitalData.heartRate,
+        SpO2: vitalData.spO2,
+        BloodSugarLevel: vitalData.bloodSugarLevel,
+        VitalRemarks: vitalData.remark,
+        IsAfterMeal: vitalData.afterMeal,
+      });
+    }
+  }, [vitalData, patientId, submitterId]);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
       <div ref={modalRef} className="bg-background p-8 rounded-md w-[600px]">
-        <h3 className="text-lg font-medium mb-5">Add Vital</h3>
-        <form onSubmit={handleAddVital} className="grid grid-cols-2 gap-4">
+        <h3 className="text-lg font-medium mb-5">Edit Vital</h3>
+        <form onSubmit={handleEditVital} className="grid grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium">
               Temperature (°C)<span className="text-red-600">*</span>
@@ -63,6 +99,8 @@ const AddVitalModal: React.FC = () => {
               min={35}
               max={38}
               step={0.1}
+              value={rowData?.Temperature ?? ''}
+              onChange={handleChange}
               className="mt-1 block w-full p-2 border rounded-md text-gray-900"
               required
             />
@@ -78,6 +116,8 @@ const AddVitalModal: React.FC = () => {
               min={40}
               max={150}
               step={0.1}
+              value={rowData?.Weight ?? ''}
+              onChange={handleChange}
               className="mt-1 block w-full p-2 border rounded-md text-gray-900"
               required
             />
@@ -93,6 +133,8 @@ const AddVitalModal: React.FC = () => {
               min={1.2}
               max={2.2}
               step={0.01}
+              value={rowData?.Height ?? ''}
+              onChange={handleChange}
               className="mt-1 block w-full p-2 border rounded-md text-gray-900"
               required
             />
@@ -107,6 +149,8 @@ const AddVitalModal: React.FC = () => {
               type="number"
               min={91}
               max={140}
+              value={rowData?.SystolicBP ?? ''}
+              onChange={handleChange}
               className="mt-1 block w-full p-2 border rounded-md text-gray-900"
               required
             />
@@ -121,6 +165,8 @@ const AddVitalModal: React.FC = () => {
               type="number"
               min={61}
               max={90}
+              value={rowData?.DiastolicBP ?? ''}
+              onChange={handleChange}
               className="mt-1 block w-full p-2 border rounded-md text-gray-900"
               required
             />
@@ -135,6 +181,8 @@ const AddVitalModal: React.FC = () => {
               type="number"
               min={60}
               max={100}
+              value={rowData?.HeartRate ?? ''}
+              onChange={handleChange}
               className="mt-1 block w-full p-2 border rounded-md text-gray-900"
               required
             />
@@ -150,6 +198,8 @@ const AddVitalModal: React.FC = () => {
               min={95}
               max={100}
               step={0.1}
+              value={rowData?.SpO2 ?? ''}
+              onChange={handleChange}
               className="mt-1 block w-full p-2 border rounded-md text-gray-900"
               required
             />
@@ -165,6 +215,8 @@ const AddVitalModal: React.FC = () => {
               type="number"
               min={6}
               max={13}
+              value={rowData?.BloodSugarLevel ?? ''}
+              onChange={handleChange}
               className="mt-1 block w-full p-2 border rounded-md text-gray-900"
               required
             />
@@ -176,6 +228,8 @@ const AddVitalModal: React.FC = () => {
             </label>
             <textarea
               name="VitalRemarks"
+              value={rowData?.VitalRemarks ?? ''}
+              onChange={handleChange}
               className="mt-1 block w-full p-2 border rounded-md text-gray-900"
               required
             />
@@ -187,6 +241,8 @@ const AddVitalModal: React.FC = () => {
             </label>
             <select
               name="IsAfterMeal"
+              value={rowData?.IsAfterMeal ?? ''}
+              onChange={handleChange}
               className="mt-1 block w-full p-2 border rounded-md text-gray-900"
               required
             >
@@ -200,7 +256,7 @@ const AddVitalModal: React.FC = () => {
             <Button variant="outline" onClick={closeModal}>
               Cancel
             </Button>
-            <Button type="submit">Add</Button>
+            <Button type="submit">Update</Button>
           </div>
         </form>
       </div>
@@ -208,4 +264,4 @@ const AddVitalModal: React.FC = () => {
   );
 };
 
-export default AddVitalModal;
+export default EditVitalModal;

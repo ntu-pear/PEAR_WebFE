@@ -30,7 +30,7 @@ export const convertToMobilityAidTD = (
       mobilityAids: ma.mobilityListId.toString().toUpperCase(),
       remark: '',
       condition: '',
-      date: ma.createdDate ? formatDateString(new Date(ma.createdDate)) : '',
+      date: ma.createdDate ? formatDateString(ma.createdDate) : '',
     }));
 };
 
