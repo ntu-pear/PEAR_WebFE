@@ -27,3 +27,7 @@ export const formatTime = (date: string) => {
 export const formatTimeString = (date: string) => {
   return formatTime(date).toString().toUpperCase();
 };
+
+export const getDateTimeNowInUTC = () => {
+  return dayjs.utc().toISOString();
+};

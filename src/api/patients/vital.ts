@@ -1,6 +1,7 @@
 import { VitalCheckTD } from '@/mocks/mockPatientDetails';
 import { vitalAPI } from '../apiConfig';
 import { formatDateString, formatTimeString } from '@/utils/formatDate';
+import { convertToYesNo } from '@/utils/convertToYesNo';
 
 export interface VitalCheck {
   IsDeleted: string;
@@ -59,7 +60,7 @@ const convertToVitalTD = (vitals: VitalCheck[]): VitalCheckTD[] => {
       heartRate: parseFloat(v.HeartRate.toFixed(0)),
       spO2: parseFloat(v.SpO2.toFixed(0)),
       bloodSugarLevel: parseFloat(v.BloodSugarLevel.toFixed(0)),
-      afterMeal: v.IsAfterMeal?.toUpperCase(),
+      afterMeal: convertToYesNo(v.IsAfterMeal)?.toUpperCase(),
       remark: v.VitalRemarks || '',
     }));
 };

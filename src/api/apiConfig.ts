@@ -59,6 +59,10 @@ export const deletePatientAllergyAPI = axios.create({
   baseURL: `${VITE_PATIENT_SERVICE_URL}/delete_patient_allergy`,
 });
 
+export const prescriptionAPI = axios.create({
+  baseURL: `${VITE_PATIENT_SERVICE_URL}/Prescription`,
+});
+
 export const guardianAPI = axios.create({
   baseURL: `${VITE_PATIENT_SERVICE_URL}/Guardian`,
 });

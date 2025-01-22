@@ -1,3 +1,4 @@
+import { PrescriptionList } from '@/api/patients/prescription';
 import { TableRowData } from '@/components/Table/DataTable';
 
 export interface ProfilePhotoAndName {
@@ -116,16 +117,17 @@ export interface Routine extends TableRowData {
   includeInSchedule: string;
 }
 
-export interface Prescription extends TableRowData {
+export interface PrescriptionTD extends TableRowData {
   drugName: string;
-  dosage: number;
+  dosage: string;
   frequencyPerDay: number;
   instruction: string;
   startDate: string;
   endDate: string;
   afterMeal: string;
   remark: string;
-  chronic: string;
+  //chronic: string;
+  status: string;
 }
 
 export interface GuardianTD extends TableRowData {
@@ -361,18 +363,116 @@ export const mockRoutine: Routine[] = [
   },
 ];
 
-export const mockPrescription: Prescription[] = [
+export const mockPrescriptionList: PrescriptionList[] = [
+  {
+    Id: 1,
+    IsDeleted: '0',
+    CreatedDateTime: '2025-01-17T20:27:46.063Z',
+    UpdatedDateTime: '2025-01-17T20:27:46.063Z',
+    Value: 'Acetaminophen',
+  },
+  {
+    Id: 2,
+    IsDeleted: '0',
+    CreatedDateTime: '2025-01-17T20:27:46.063Z',
+    UpdatedDateTime: '2025-01-17T20:27:46.063Z',
+    Value: 'Diphenhydramine',
+  },
+  {
+    Id: 3,
+    IsDeleted: '0',
+    CreatedDateTime: '2025-01-17T20:27:46.063Z',
+    UpdatedDateTime: '2025-01-17T20:27:46.063Z',
+    Value: 'Donepezil',
+  },
+  {
+    Id: 4,
+    IsDeleted: '0',
+    CreatedDateTime: '2025-01-17T20:27:46.063Z',
+    UpdatedDateTime: '2025-01-17T20:27:46.063Z',
+    Value: 'Galantamine',
+  },
+  {
+    Id: 5,
+    IsDeleted: '0',
+    CreatedDateTime: '2025-01-17T20:27:46.063Z',
+    UpdatedDateTime: '2025-01-17T20:27:46.063Z',
+    Value: 'Guaifenesin',
+  },
+  {
+    Id: 6,
+    IsDeleted: '0',
+    CreatedDateTime: '2025-01-17T20:27:46.063Z',
+    UpdatedDateTime: '2025-01-17T20:27:46.063Z',
+    Value: 'Ibuprofen',
+  },
+  {
+    Id: 7,
+    IsDeleted: '0',
+    CreatedDateTime: '2025-01-17T20:27:46.063Z',
+    UpdatedDateTime: '2025-01-17T20:27:46.063Z',
+    Value: 'Memantine',
+  },
+  {
+    Id: 8,
+    IsDeleted: '0',
+    CreatedDateTime: '2025-01-17T20:27:46.063Z',
+    UpdatedDateTime: '2025-01-17T20:27:46.063Z',
+    Value: 'Olanzapine',
+  },
+  {
+    Id: 9,
+    IsDeleted: '0',
+    CreatedDateTime: '2025-01-17T20:27:46.063Z',
+    UpdatedDateTime: '2025-01-17T20:27:46.063Z',
+    Value: 'Paracetamol',
+  },
+  {
+    Id: 10,
+    IsDeleted: '0',
+    CreatedDateTime: '2025-01-17T20:27:46.063Z',
+    UpdatedDateTime: '2025-01-17T20:27:46.063Z',
+    Value: 'Rivastigmine',
+  },
+  {
+    Id: 11,
+    IsDeleted: '0',
+    CreatedDateTime: '2025-01-17T20:27:46.063Z',
+    UpdatedDateTime: '2025-01-17T20:27:46.063Z',
+    Value: 'Salbutamol',
+  },
+  {
+    Id: 12,
+    IsDeleted: '0',
+    CreatedDateTime: '2025-01-17T20:27:46.063Z',
+    UpdatedDateTime: '2025-01-17T20:27:46.063Z',
+    Value: 'Dextromethorphan',
+  },
+  {
+    Id: 13,
+    IsDeleted: '0',
+    CreatedDateTime: '2025-01-17T20:27:46.063Z',
+    UpdatedDateTime: '2025-01-17T20:27:46.063Z',
+    Value: 'Antihistamines',
+  },
+];
+
+export const mockPrescriptionListData = {
+  data: mockPrescriptionList,
+};
+
+export const mockPrescription: PrescriptionTD[] = [
   {
     id: 1,
     drugName: 'ANTIHISTAMINES',
-    dosage: 2,
+    dosage: '2',
     frequencyPerDay: 1,
     instruction: '2 pills 1 times per day, consume after meal',
     startDate: '6 AUG 2024',
     endDate: '21 AUG 2024',
     afterMeal: 'YES',
     remark: '1',
-    chronic: 'YES',
+    status: 'NON-CHRONIC',
   },
 ];
 
