@@ -31,3 +31,11 @@ export const formatTimeString = (date: string) => {
 export const getDateTimeNowInUTC = () => {
   return dayjs.utc().toISOString();
 };
+
+export const getDateForDatePicker = (isoDateTime: string) => {
+  return dayjs(isoDateTime).format('YYYY-MM-DD');
+};
+
+export const convertToUTCISOString = (date: string) => {
+  return dayjs.utc(date, 'YYYY-MM-DD').toISOString();
+};

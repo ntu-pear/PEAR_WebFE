@@ -164,13 +164,17 @@ const PatientInfoTab: React.FC<TabProps> = ({ id }) => {
     handleFetchSocialHistory();
   }, []);
 
+  const refreshPatientData = () => {
+    handleFetchPatientInfo();
+  };
+
   const patientInformationColumns = [
     { key: 'name', header: 'Name' },
     { key: 'nric', header: 'NRIC' },
     { key: 'dateOfBirth', header: 'Date Of Birth' },
     { key: 'gender', header: 'Gender' },
     { key: 'address', header: 'Address' },
-    { key: 'temporaryAddress', header: 'Temporary Address' },
+    { key: 'tempAddress', header: 'Temporary Address' },
     { key: 'homeNo', header: 'Home No' },
     { key: 'handphoneNo', header: 'Handphone No' },
     { key: 'preferredName', header: 'Preferred Name' },
@@ -238,7 +242,13 @@ const PatientInfoTab: React.FC<TabProps> = ({ id }) => {
                 <Button
                   size="sm"
                   className="h-8 w-24 gap-1"
-                  onClick={() => openModal('editPatientInfo')}
+                  onClick={() =>
+                    openModal('editPatientInfo', {
+                      patientId: String(id),
+                      submitterId: '2',
+                      refreshPatientData,
+                    })
+                  }
                 >
                   <FilePenLine className="h-4 w-4" />
                   <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">

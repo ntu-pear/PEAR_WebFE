@@ -47,7 +47,7 @@ const convertToPatientTD = (patients: PatientBase[]): PatientTableData[] => {
 
   return patients.map((p) => ({
     id: p.id,
-    name: p.firstName?.toUpperCase() + ' ' + p.lastName?.toUpperCase(),
+    name: p.firstName?.toUpperCase(),
     preferredName: p.preferredName ? p.preferredName?.toUpperCase() : '',
     nric: p.nric[0] + 'XXXX' + p.nric.slice(-3)?.toUpperCase(),
     status: parseInt(p.isActive) > 0 ? 'Active' : 'Inactive',
@@ -57,6 +57,40 @@ const convertToPatientTD = (patients: PatientBase[]): PatientTableData[] => {
     supervisorId: 2,
     image: p.profilePicture,
   }));
+};
+
+const toUpperCasePatient = (patient: PatientBase): PatientBase => {
+  return {
+    firstName: patient.firstName?.toUpperCase() || '',
+    lastName: patient.lastName?.toUpperCase() || '',
+    nric: patient.nric?.toUpperCase() || '',
+    address: patient.address?.toUpperCase() || '',
+    tempAddress: patient.tempAddress?.toUpperCase() || '',
+    homeNo: patient.homeNo,
+    handphoneNo: patient.handphoneNo,
+    gender: patient.gender?.toUpperCase() || '',
+    dateOfBirth: patient.dateOfBirth,
+    guardianId: patient.guardianId,
+    isApproved: patient.isApproved,
+    preferredName: patient.preferredName?.toUpperCase() || '',
+    preferredLanguageId: patient.preferredLanguageId,
+    updateBit: patient.updateBit,
+    autoGame: patient.autoGame,
+    startDate: patient.startDate,
+    endDate: patient.endDate,
+    isActive: patient.isActive,
+    isRespiteCare: patient.isRespiteCare,
+    privacyLevel: patient.privacyLevel,
+    terminationReason: patient.terminationReason?.toUpperCase() || '',
+    inActiveReason: patient.inActiveReason?.toUpperCase() || '',
+    inActiveDate: patient.inActiveDate,
+    profilePicture: patient.profilePicture,
+    createdDate: patient.createdDate,
+    modifiedDate: patient.modifiedDate,
+    createdById: patient.createdById,
+    modifiedById: patient.modifiedById,
+    id: patient.id,
+  };
 };
 
 //Get All Patients with skip and limit
@@ -80,7 +114,7 @@ export const fetchPatientById = async (id: number): Promise<PatientBase> => {
   try {
     const response = await patientsAPI.get<PatientBase>(`/${id}`);
     console.log('GET Patient', response.data);
-    return response.data;
+    return toUpperCasePatient(response.data);
   } catch (error) {
     console.error('GET Patient', error);
     throw error;
@@ -96,10 +130,7 @@ export const fetchProfilePhotoAndName = async (
     console.log('GET Profile Photo and Name', patient);
     return {
       profilePicture: patient.profilePicture || '',
-      name:
-        patient.firstName?.toUpperCase() +
-        ' ' +
-        patient.lastName?.toUpperCase(),
+      name: patient.firstName?.toUpperCase(),
       preferredName: patient.preferredName?.toUpperCase() || '',
     };
   } catch (error) {
@@ -117,7 +148,7 @@ export const fetchPatientInfo = async (
     console.log('GET Patient Info', p);
     return {
       id: id,
-      name: p.firstName?.toUpperCase() + ' ' + p.lastName?.toUpperCase(),
+      name: p.firstName?.toUpperCase(),
       preferredName: p.preferredName?.toUpperCase() || '-',
       nric: p.nric[0] + 'XXXX' + p.nric.slice(-3)?.toUpperCase(),
       dateOfBirth: p.dateOfBirth ? formatDateString(p.dateOfBirth) : '-',
@@ -154,4 +185,18 @@ export const fetchPatientNRIC = async (
   console.log('GET Patient NRIC', nric);
 
   return isNRICMasked ? nric[0] + 'XXXX' + nric.slice(-3)?.toUpperCase() : nric;
+};
+
+export const updatePatient = async (
+  id: number,
+  patient: PatientBase
+): Promise<PatientBase> => {
+  try {
+    const response = await patientsAPI.put<PatientBase>(`/${id}`, patient);
+    console.log('PUT update Patient Info', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('PUT update Patient Info', error);
+    throw error;
+  }
 };
