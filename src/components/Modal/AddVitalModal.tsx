@@ -191,8 +191,8 @@ const AddVitalModal: React.FC = () => {
               required
             >
               <option value="">Please select a option</option>
-              <option value="1">Yes</option>
               <option value="0">No</option>
+              <option value="1">Yes</option>
             </select>
           </div>
 

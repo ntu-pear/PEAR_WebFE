@@ -79,7 +79,7 @@ const EditVitalModal: React.FC = () => {
         SpO2: vitalData.spO2,
         BloodSugarLevel: vitalData.bloodSugarLevel,
         VitalRemarks: vitalData.remark,
-        IsAfterMeal: vitalData.afterMeal,
+        IsAfterMeal: vitalData.afterMeal === 'YES' ? '1' : '0',
       });
     }
   }, [vitalData, patientId, submitterId]);
@@ -247,8 +247,8 @@ const EditVitalModal: React.FC = () => {
               required
             >
               <option value="">Please select a option</option>
-              <option value="1">Yes</option>
               <option value="0">No</option>
+              <option value="1">Yes</option>
             </select>
           </div>
 
