@@ -96,6 +96,22 @@ const menuSections: MenuSection[] = [
     ],
   },
   {
+    title: 'DEVELOPER',
+    items: [
+      {
+        title: 'Edit Roles',
+        icon: 'Wrench',
+        path: '/Admin/EditRoles',
+      },
+      // {
+      //   title: 'Manage Social History'
+      // },
+      // {
+      //   title: 'Manage Miscellaneous'
+      // }
+    ]
+  },
+  {
     title: 'OTHERS',
     items: [
       {
