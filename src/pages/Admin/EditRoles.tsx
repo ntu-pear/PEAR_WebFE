@@ -6,6 +6,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import useGetRoles from '@/hooks/useGetRoles';
+import { Button } from '@/components/ui/button';
 
 const EditRoles: React.FC = () => {
   const { data } = useGetRoles()
@@ -18,8 +19,24 @@ const EditRoles: React.FC = () => {
             <CardHeader>
               <CardTitle>All Roles</CardTitle>
             </CardHeader>
-            <CardContent className="overflow-x-auto">
-              <ul>{data?.map((role) => <li key={role.id}>{role.id} {role.name}</li>)}</ul>
+            <CardContent className="flex flex-col align-middle">
+              <Button className='bg-sky-600 self-center'>Create Role</Button>
+              <ul>
+                {data?.map((role) =>
+                  <li key={role.id}>
+                    <Card className='m-3'>
+                      <CardHeader className='bg-sky-400 py-3 text-white font-semibold'>Role ID: {role.id}</CardHeader>
+                      <CardContent className='py-4 text-xl flex justify-between'>
+                        {role.name}
+                        <div>
+                          <Button color='green' className='border-green-500 bg-transparent text-green-500 border-2 mr-1 '>Edit</Button>
+                          <Button className='border-red-500 bg-transparent text-red-500 border-2'>Delete</Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </li>
+                )}
+              </ul>
             </CardContent>
           </Card>
         </main>
