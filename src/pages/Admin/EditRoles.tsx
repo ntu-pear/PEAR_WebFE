@@ -7,9 +7,11 @@ import {
 } from '@/components/ui/card';
 import useGetRoles from '@/hooks/useGetRoles';
 import { Button } from '@/components/ui/button';
+import { useNavigate } from 'react-router';
 
 const EditRoles: React.FC = () => {
   const { data } = useGetRoles()
+  const navigate = useNavigate()
 
   return (
     <div className="flex min-h-screen w-full flex-col container mx-auto px-0 sm:px-4">
@@ -20,7 +22,7 @@ const EditRoles: React.FC = () => {
               <CardTitle>All Roles</CardTitle>
             </CardHeader>
             <CardContent className="flex flex-col align-middle">
-              <Button className='bg-sky-600 self-center'>Create Role</Button>
+              <Button className='bg-sky-600 self-center' onClick={() => navigate("/Admin/CreateRole")}>Create Role</Button>
               <ul>
                 {data?.map((role) =>
                   <li key={role.id}>
@@ -29,7 +31,7 @@ const EditRoles: React.FC = () => {
                       <CardContent className='py-4 text-xl flex justify-between'>
                         {role.name}
                         <div>
-                          <Button color='green' className='border-green-500 bg-transparent text-green-500 border-2 mr-1 '>Edit</Button>
+                          <Button className='border-green-500 bg-transparent text-green-500 border-2 mr-1 '>Edit</Button>
                           <Button className='border-red-500 bg-transparent text-red-500 border-2'>Delete</Button>
                         </div>
                       </CardContent>
