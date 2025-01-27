@@ -8,10 +8,13 @@ import {
 import useGetRoles from '@/hooks/user/useGetRoles';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router';
+import { useModal } from '@/hooks/useModal';
+import DeleteRoleModal from '@/components/Modal/DeleteRoleModal';
 
 const EditRoles: React.FC = () => {
   const { data } = useGetRoles()
   const navigate = useNavigate()
+  const { activeModal, openModal } = useModal()
 
   return (
     <div className="flex min-h-screen w-full flex-col container mx-auto px-0 sm:px-4">
@@ -37,7 +40,12 @@ const EditRoles: React.FC = () => {
                           >
                             Edit
                           </Button>
-                          <Button className='border-red-500 bg-transparent text-red-500 border-2'>Delete</Button>
+                          <Button
+                            className='border-red-500 bg-transparent text-red-500 border-2'
+                            onClick={() => openModal('deleteRole', { role })}
+                          >
+                            Delete
+                          </Button>
                         </div>
                       </CardContent>
                     </Card>
@@ -48,6 +56,7 @@ const EditRoles: React.FC = () => {
           </Card>
         </main>
       </div>
+      {activeModal.name === 'deleteRole' && <DeleteRoleModal />}
     </div>
   );
 };
