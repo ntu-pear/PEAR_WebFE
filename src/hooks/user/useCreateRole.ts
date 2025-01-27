@@ -7,7 +7,7 @@ const useCreateRole = () => {
   // to be replaced with real api call
   return useMutation({
     mutationFn: (roleName: string) => {return Promise.resolve(roleName)},
-    onSuccess: () => navigate("/Admin/EditRoles")
+    onSuccess: () => navigate(-1)
   })
 }
 
