@@ -23,6 +23,7 @@ import {
   QueryClientProvider,
 } from '@tanstack/react-query'
 import CreateRole from './pages/Admin/CreateRole';
+import EditRole from './pages/Admin/EditRole';
 
 const queryClient = new QueryClient()
 
@@ -46,6 +47,7 @@ const App: React.FC = () => {
                   {/* Routes for Admin */}
                   <Route path="/Admin/EditRoles" element={<EditRoles />} />
                   <Route path="/Admin/CreateRole" element={<CreateRole />} />
+                  <Route path="/Admin/EditRole/:id" element={<EditRole />} />
                   {/* Routes for Supervisor*/}
                   <Route
                     path="/Supervisor/ManagePatients"

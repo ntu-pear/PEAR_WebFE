@@ -9,7 +9,7 @@ import {
 import { useForm, SubmitHandler } from "react-hook-form"
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router';
-import useCreateRole from '@/hooks/useCreateRole';
+import useCreateRole from '@/hooks/user/useCreateRole';
 
 type RoleForm = {
   name: string
