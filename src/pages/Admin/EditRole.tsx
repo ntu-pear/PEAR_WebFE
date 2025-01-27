@@ -14,9 +14,8 @@ import { UserRole } from '@/mocks/mockRoles';
 
 const EditRole: React.FC = () => {
   const navigate = useNavigate()
-  const location = useLocation()
-  const { role: { name, id } } = location.state
-  const { data } = useGetUsersFromRole(convertToLowerCamelCase(name) as UserRole)
+  const { state: { role } } = useLocation()
+  const { data } = useGetUsersFromRole(convertToLowerCamelCase(role.name) as UserRole)
 
   return (
     <div className="flex min-h-screen w-full flex-col container mx-auto px-0 sm:px-4">
@@ -32,7 +31,7 @@ const EditRole: React.FC = () => {
                 <input
                   type="text"
                   className="border border-gray-300 rounded-md px-3 w-5/6 bg-slate-200 h-full"
-                  value={id}
+                  value={role.id}
                   readOnly
                 />
               </div>
@@ -41,11 +40,11 @@ const EditRole: React.FC = () => {
                 <input
                   type="text"
                   className="border border-gray-300 rounded-md px-3 w-5/6 bg-slate-200 h-full"
-                  value={name}
+                  value={role.name}
                   readOnly
                 />
               </div>
-              <Button className='bg-red-500 w-20 mb-2' onClick={() => navigate("/Admin/EditRoles")}>Back</Button>
+              <Button className='bg-red-500 w-20 mb-2' onClick={() => navigate(-1)}>Back</Button>
               <Card className='border border-blue-400'>
                 <CardHeader className='bg-blue-400 text-white'>
                   <CardTitle>Users in this role</CardTitle>
@@ -55,7 +54,12 @@ const EditRole: React.FC = () => {
                     {data?.map((user) => (<li key={user} className='text-xl'>{user}</li>))}
                   </ul>
                   <div className='bg-slate-200 py-2 px-4 border-t-2 border-slate-300'>
-                    <Button className='bg-blue-500'>Add or Remove Users</Button>
+                    <Button
+                      className='bg-blue-500'
+                      onClick={() => navigate(`/Admin/EditUserInRole/${role.id}`, { state: { role } })}
+                    >
+                      Add or Remove Users
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
