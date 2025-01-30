@@ -168,6 +168,10 @@ const PatientInfoTab: React.FC<TabProps> = ({ id }) => {
     handleFetchPatientInfo();
   };
 
+  const refreshMobilityData = () => {
+    handleFetchMobilityAids();
+  };
+
   const patientInformationColumns = [
     { key: 'name', header: 'Name' },
     { key: 'nric', header: 'NRIC' },
@@ -372,7 +376,13 @@ const PatientInfoTab: React.FC<TabProps> = ({ id }) => {
               <Button
                 size="sm"
                 className="h-8 w-24 gap-1"
-                onClick={() => openModal('addMobilityAids')}
+                onClick={() =>
+                  openModal('addMobilityAids', {
+                    patientId: String(id),
+                    submitterId: '2',
+                    refreshMobilityData,
+                  })
+                }
               >
                 <PlusCircle className="h-4 w-4" />
                 <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
