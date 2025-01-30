@@ -26,7 +26,7 @@ export const convertToDoctorNotesTD = (
     .filter((dn) => dn.isDeleted === '0')
     .map((dn) => ({
       id: dn.id,
-      date: dn.createdDate ? formatDateString(new Date(dn.createdDate)) : '',
+      date: dn.createdDate ? formatDateString(dn.createdDate) : '',
       doctorName: dn.doctorId.toString().toUpperCase(), //temporary use doctorId for now
       notes: dn.doctorRemarks || '',
     }));

@@ -9,7 +9,7 @@ import {
 
 export interface Allergy {
   AllergyRemarks: string;
-  Active: string;
+  IsDeleted: string;
   Patient_AllergyID: number;
   PatientID: number;
   AllergyTypeValue: string;
@@ -22,7 +22,7 @@ export interface Allergy {
 
 export interface AllergyFormData {
   AllergyRemarks: string;
-  Active: string;
+  IsDeleted: string;
   PatientID: number;
   AllergyTypeID: number;
   AllergyReactionTypeID: number;
@@ -30,7 +30,7 @@ export interface AllergyFormData {
 
 export interface AllergyType {
   Value: string;
-  Active: string;
+  IsDeleted: string;
   AllergyTypeID: number;
   CreatedDateTime: string;
   UpdatedDateTime: string;
@@ -38,7 +38,7 @@ export interface AllergyType {
 
 export interface AllergyReactionType {
   Value: string;
-  Active: string;
+  IsDeleted: string;
   AllergyReactionTypeID: number;
   CreatedDateTime: string;
   UpdatedDateTime: string;
@@ -48,7 +48,7 @@ export interface AllergyReactionType {
 
 export interface AllergyAddFormData {
   AllergyRemarks: string;
-  Active: string;
+  IsDeleted: string;
   PatientID?: number;
   AllergyTypeID: number;
   AllergyReactionTypeID: number;
@@ -58,7 +58,7 @@ export interface AllergyAddFormData {
 
 export interface AllergyUpdateFormData {
   AllergyRemarks: string;
-  Active: string;
+  IsDeleted: string;
   PatientID?: number;
   AllergyTypeID: number;
   AllergyReactionTypeID: number;
@@ -73,7 +73,8 @@ export const convertToAllergyTD = (allergies: Allergy[]): AllergyTD[] => {
   }
 
   return allergies
-    .filter((a) => a.Active === '1')
+    .filter((a) => a.IsDeleted === '0')
+    .sort((a, b) => b.Patient_AllergyID - a.Patient_AllergyID) // Descending order
     .map((a) => ({
       id: a.Patient_AllergyID,
       allergicTo: a.AllergyTypeValue?.toUpperCase(),
@@ -99,7 +100,7 @@ export const fetchAllAllergyTypes = async (): Promise<AllergyType[]> => {
   try {
     const response = await allergyTypeAPI.get<AllergyType[]>('');
     console.log('GET all Allergy Reaction Types', response.data);
-    return response.data;
+    return response.data?.sort((a, b) => a.Value.localeCompare(b.Value));
   } catch (error) {
     console.error('GET all Allergy Reaction Types', error);
     throw error;
@@ -114,7 +115,7 @@ export const fetchAllAllergyReactionTypes = async (): Promise<
       ''
     );
     console.log('GET all Allergy Reaction Types', response.data);
-    return response.data;
+    return response.data?.sort((a, b) => a.Value.localeCompare(b.Value));
   } catch (error) {
     console.error('GET all Allergy Reaction Types', error);
     throw error;
@@ -138,7 +139,7 @@ export const addPatientAllergy = async (
   }
 };
 
-// not working atm, backend api does not update active to '0'
+// not working atm, backend api does not update isDeleted to 1'
 export const deletePatientAllergy = async (
   patient_allergy_id: number
 ): Promise<Allergy> => {

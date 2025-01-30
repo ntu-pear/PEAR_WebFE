@@ -56,7 +56,7 @@ const AddAllergyModal: React.FC = () => {
 
     const allergyFormData: AllergyAddFormData = {
       AllergyRemarks: formDataObj.AllergyRemarks as string,
-      Active: '1',
+      IsDeleted: '0',
       PatientID: parseInt(patientId as string, 10),
       AllergyTypeID: parseInt(formDataObj.AllergyTypeID as string, 10),
       AllergyReactionTypeID: parseInt(

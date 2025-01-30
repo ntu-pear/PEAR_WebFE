@@ -15,8 +15,20 @@ export const patientsAPI = axios.create({
   baseURL: `${VITE_PATIENT_SERVICE_URL}/patients`,
 });
 
-export const mobilityAPI = axios.create({
-  baseURL: `${VITE_PATIENT_SERVICE_URL}/Mobility`,
+export const dementiaList = axios.create({
+  baseURL: `${VITE_PATIENT_SERVICE_URL}/PatientAssignedDementiaList`,
+});
+
+export const getPatientAssignedDementia = axios.create({
+  baseURL: `${VITE_PATIENT_SERVICE_URL}/get_assigned_dementias`,
+});
+
+export const mobilityListAPI = axios.create({
+  baseURL: `${VITE_PATIENT_SERVICE_URL}/Mobility/List`,
+});
+
+export const patientMobilityAPI = axios.create({
+  baseURL: `${VITE_PATIENT_SERVICE_URL}/MobilityMapping/List`,
 });
 
 export const doctorNoteAPI = axios.create({
@@ -49,6 +61,10 @@ export const createPatientAllergyAPI = axios.create({
 
 export const deletePatientAllergyAPI = axios.create({
   baseURL: `${VITE_PATIENT_SERVICE_URL}/delete_patient_allergy`,
+});
+
+export const prescriptionAPI = axios.create({
+  baseURL: `${VITE_PATIENT_SERVICE_URL}/Prescription`,
 });
 
 export const guardianAPI = axios.create({

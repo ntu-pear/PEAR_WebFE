@@ -1,3 +1,4 @@
+import { PrescriptionList } from '@/api/patients/prescription';
 import { TableRowData } from '@/components/Table/DataTable';
 
 export interface ProfilePhotoAndName {
@@ -23,7 +24,15 @@ export interface PatientInformation extends TableRowData {
   endDate: string;
 }
 
-export interface DiagnosedDementia extends TableRowData {
+export interface PreferredLanguage {
+  id: number;
+  isDeleted: string;
+  createdDateTime: string;
+  modifiedDateTime: string;
+  value: string;
+}
+
+export interface DiagnosedDementiaTD extends TableRowData {
   dementiaType: string;
   dementiaDate: string;
 }
@@ -76,6 +85,7 @@ export interface AllergyTD extends TableRowData {
 }
 
 export interface VitalCheckTD extends TableRowData {
+  patientId: number;
   date: string;
   time: string;
   temperature: number;
@@ -115,16 +125,17 @@ export interface Routine extends TableRowData {
   includeInSchedule: string;
 }
 
-export interface Prescription extends TableRowData {
+export interface PrescriptionTD extends TableRowData {
   drugName: string;
-  dosage: number;
+  dosage: string;
   frequencyPerDay: number;
   instruction: string;
   startDate: string;
   endDate: string;
   afterMeal: string;
   remark: string;
-  chronic: string;
+  //chronic: string;
+  status: string;
 }
 
 export interface GuardianTD extends TableRowData {
@@ -175,7 +186,192 @@ export const mockMaskedNRIC = 'SXXXX123A';
 
 export const mockUnmaskedNRIC = 'S1234123A';
 
-export const mockDiagnosedDementiaList: DiagnosedDementia[] = [
+export const mockPreferredLanguageList: PreferredLanguage[] = [
+  {
+    id: 1,
+    isDeleted: '0',
+    createdDateTime: '2024-10-05 21:46:52.133',
+    modifiedDateTime: '2024-10-05 21:46:52.133',
+    value: 'Cantonese',
+  },
+  {
+    id: 2,
+    isDeleted: '0',
+    createdDateTime: '2024-10-05 21:46:52.133',
+    modifiedDateTime: '2024-10-05 21:46:52.133',
+    value: 'English',
+  },
+  {
+    id: 3,
+    isDeleted: '0',
+    createdDateTime: '2024-10-05 21:46:52.133',
+    modifiedDateTime: '2024-10-05 21:46:52.133',
+    value: 'Hainanese',
+  },
+  {
+    id: 4,
+    isDeleted: '0',
+    createdDateTime: '2024-10-05 21:46:52.133',
+    modifiedDateTime: '2024-10-05 21:46:52.133',
+    value: 'Hakka',
+  },
+  {
+    id: 5,
+    isDeleted: '0',
+    createdDateTime: '2024-10-05 21:46:52.133',
+    modifiedDateTime: '2024-10-05 21:46:52.133',
+    value: 'Hindi',
+  },
+  {
+    id: 6,
+    isDeleted: '0',
+    createdDateTime: '2024-10-05 21:46:52.133',
+    modifiedDateTime: '2024-10-05 21:46:52.133',
+    value: 'Hokkien',
+  },
+  {
+    id: 7,
+    isDeleted: '0',
+    createdDateTime: '2024-10-05 21:46:52.133',
+    modifiedDateTime: '2024-10-05 21:46:52.133',
+    value: 'Malay',
+  },
+  {
+    id: 8,
+    isDeleted: '0',
+    createdDateTime: '2024-10-05 21:46:52.133',
+    modifiedDateTime: '2024-10-05 21:46:52.133',
+    value: 'Mandarin',
+  },
+  {
+    id: 9,
+    isDeleted: '0',
+    createdDateTime: '2024-10-05 21:46:52.133',
+    modifiedDateTime: '2024-10-05 21:46:52.133',
+    value: 'Tamil',
+  },
+  {
+    id: 10,
+    isDeleted: '0',
+    createdDateTime: '2024-10-05 21:46:52.133',
+    modifiedDateTime: '2024-10-05 21:46:52.133',
+    value: 'Teochew',
+  },
+  {
+    id: 11,
+    isDeleted: '0',
+    createdDateTime: '2024-10-05 21:46:52.133',
+    modifiedDateTime: '2024-10-05 21:46:52.133',
+    value: 'Japanese',
+  },
+  {
+    id: 12,
+    isDeleted: '0',
+    createdDateTime: '2024-10-05 21:46:52.133',
+    modifiedDateTime: '2024-10-05 21:46:52.133',
+    value: 'Spanish',
+  },
+  {
+    id: 13,
+    isDeleted: '0',
+    createdDateTime: '2024-10-05 21:46:52.133',
+    modifiedDateTime: '2024-10-05 21:46:52.133',
+    value: 'Korean',
+  },
+  {
+    id: 14,
+    isDeleted: '0',
+    createdDateTime: '2024-10-05 21:49:04.863',
+    modifiedDateTime: '2024-10-05 21:49:04.863',
+    value: 'Cantonese',
+  },
+  {
+    id: 15,
+    isDeleted: '0',
+    createdDateTime: '2024-10-05 21:49:04.863',
+    modifiedDateTime: '2024-10-05 21:49:04.863',
+    value: 'English',
+  },
+  {
+    id: 16,
+    isDeleted: '0',
+    createdDateTime: '2024-10-05 21:49:04.863',
+    modifiedDateTime: '2024-10-05 21:49:04.863',
+    value: 'Hainanese',
+  },
+  {
+    id: 17,
+    isDeleted: '0',
+    createdDateTime: '2024-10-05 21:49:04.863',
+    modifiedDateTime: '2024-10-05 21:49:04.863',
+    value: 'Hakka',
+  },
+  {
+    id: 18,
+    isDeleted: '0',
+    createdDateTime: '2024-10-05 21:49:04.863',
+    modifiedDateTime: '2024-10-05 21:49:04.863',
+    value: 'Hindi',
+  },
+  {
+    id: 19,
+    isDeleted: '0',
+    createdDateTime: '2024-10-05 21:49:04.863',
+    modifiedDateTime: '2024-10-05 21:49:04.863',
+    value: 'Hokkien',
+  },
+  {
+    id: 20,
+    isDeleted: '0',
+    createdDateTime: '2024-10-05 21:49:04.863',
+    modifiedDateTime: '2024-10-05 21:49:04.863',
+    value: 'Malay',
+  },
+  {
+    id: 21,
+    isDeleted: '0',
+    createdDateTime: '2024-10-05 21:49:04.863',
+    modifiedDateTime: '2024-10-05 21:49:04.863',
+    value: 'Mandarin',
+  },
+  {
+    id: 22,
+    isDeleted: '0',
+    createdDateTime: '2024-10-05 21:49:04.863',
+    modifiedDateTime: '2024-10-05 21:49:04.863',
+    value: 'Tamil',
+  },
+  {
+    id: 23,
+    isDeleted: '0',
+    createdDateTime: '2024-10-05 21:49:04.863',
+    modifiedDateTime: '2024-10-05 21:49:04.863',
+    value: 'Teochew',
+  },
+  {
+    id: 24,
+    isDeleted: '0',
+    createdDateTime: '2024-10-05 21:49:04.863',
+    modifiedDateTime: '2024-10-05 21:49:04.863',
+    value: 'Japanese',
+  },
+  {
+    id: 25,
+    isDeleted: '0',
+    createdDateTime: '2024-10-05 21:49:04.863',
+    modifiedDateTime: '2024-10-05 21:49:04.863',
+    value: 'Spanish',
+  },
+  {
+    id: 26,
+    isDeleted: '0',
+    createdDateTime: '2024-10-05 21:49:04.863',
+    modifiedDateTime: '2024-10-05 21:49:04.863',
+    value: 'Korean',
+  },
+];
+
+export const mockDiagnosedDementiaList: DiagnosedDementiaTD[] = [
   {
     id: 1,
     dementiaType: "ALZHEIMER'S DISEASE",
@@ -275,7 +471,8 @@ export const mockAllergyTD: AllergyTD[] = [
 
 export const mockVitalCheck: VitalCheckTD[] = [
   {
-    id: '1',
+    id: 1,
+    patientId: 1,
     date: '15 AUG 2024',
     time: '09:30 AM',
     temperature: 36.8, // Normal body temperature in Celsius
@@ -294,7 +491,7 @@ export const mockVitalCheck: VitalCheckTD[] = [
 
 export const mockLike: PersonalPreference[] = [
   {
-    id: '1',
+    id: 1,
     dateCreated: '8 AUG 2024',
     authorName: 'JANE',
     description: 'Enjoys soft and sweet treats, like pudding and applesauce.',
@@ -303,7 +500,7 @@ export const mockLike: PersonalPreference[] = [
 
 export const mockDislike: PersonalPreference[] = [
   {
-    id: '1',
+    id: 1,
     dateCreated: '8 AUG 2024',
     authorName: 'JANE',
     description: 'Dislikes food with hard textures or strong spices.',
@@ -312,7 +509,7 @@ export const mockDislike: PersonalPreference[] = [
 
 export const mockHobby: PersonalPreference[] = [
   {
-    id: '1',
+    id: 1,
     dateCreated: '8 AUG 2024',
     authorName: 'JANE',
     description:
@@ -322,7 +519,7 @@ export const mockHobby: PersonalPreference[] = [
 
 export const mockHabit: PersonalPreference[] = [
   {
-    id: '1',
+    id: 1,
     dateCreated: '8 AUG 2024',
     authorName: 'JANE',
     description:
@@ -350,7 +547,7 @@ export const mockActivityPreferences: ActivityPreference[] = [
 
 export const mockRoutine: Routine[] = [
   {
-    id: '1',
+    id: 1,
     activityName: 'MORNING WALK',
     routineIssue:
       'Needs supervision due to wandering and risk of disorientation.',
@@ -359,18 +556,116 @@ export const mockRoutine: Routine[] = [
   },
 ];
 
-export const mockPrescription: Prescription[] = [
+export const mockPrescriptionList: PrescriptionList[] = [
+  {
+    Id: 1,
+    IsDeleted: '0',
+    CreatedDateTime: '2025-01-17T20:27:46.063Z',
+    UpdatedDateTime: '2025-01-17T20:27:46.063Z',
+    Value: 'Acetaminophen',
+  },
+  {
+    Id: 2,
+    IsDeleted: '0',
+    CreatedDateTime: '2025-01-17T20:27:46.063Z',
+    UpdatedDateTime: '2025-01-17T20:27:46.063Z',
+    Value: 'Diphenhydramine',
+  },
+  {
+    Id: 3,
+    IsDeleted: '0',
+    CreatedDateTime: '2025-01-17T20:27:46.063Z',
+    UpdatedDateTime: '2025-01-17T20:27:46.063Z',
+    Value: 'Donepezil',
+  },
+  {
+    Id: 4,
+    IsDeleted: '0',
+    CreatedDateTime: '2025-01-17T20:27:46.063Z',
+    UpdatedDateTime: '2025-01-17T20:27:46.063Z',
+    Value: 'Galantamine',
+  },
+  {
+    Id: 5,
+    IsDeleted: '0',
+    CreatedDateTime: '2025-01-17T20:27:46.063Z',
+    UpdatedDateTime: '2025-01-17T20:27:46.063Z',
+    Value: 'Guaifenesin',
+  },
+  {
+    Id: 6,
+    IsDeleted: '0',
+    CreatedDateTime: '2025-01-17T20:27:46.063Z',
+    UpdatedDateTime: '2025-01-17T20:27:46.063Z',
+    Value: 'Ibuprofen',
+  },
+  {
+    Id: 7,
+    IsDeleted: '0',
+    CreatedDateTime: '2025-01-17T20:27:46.063Z',
+    UpdatedDateTime: '2025-01-17T20:27:46.063Z',
+    Value: 'Memantine',
+  },
+  {
+    Id: 8,
+    IsDeleted: '0',
+    CreatedDateTime: '2025-01-17T20:27:46.063Z',
+    UpdatedDateTime: '2025-01-17T20:27:46.063Z',
+    Value: 'Olanzapine',
+  },
+  {
+    Id: 9,
+    IsDeleted: '0',
+    CreatedDateTime: '2025-01-17T20:27:46.063Z',
+    UpdatedDateTime: '2025-01-17T20:27:46.063Z',
+    Value: 'Paracetamol',
+  },
+  {
+    Id: 10,
+    IsDeleted: '0',
+    CreatedDateTime: '2025-01-17T20:27:46.063Z',
+    UpdatedDateTime: '2025-01-17T20:27:46.063Z',
+    Value: 'Rivastigmine',
+  },
+  {
+    Id: 11,
+    IsDeleted: '0',
+    CreatedDateTime: '2025-01-17T20:27:46.063Z',
+    UpdatedDateTime: '2025-01-17T20:27:46.063Z',
+    Value: 'Salbutamol',
+  },
+  {
+    Id: 12,
+    IsDeleted: '0',
+    CreatedDateTime: '2025-01-17T20:27:46.063Z',
+    UpdatedDateTime: '2025-01-17T20:27:46.063Z',
+    Value: 'Dextromethorphan',
+  },
+  {
+    Id: 13,
+    IsDeleted: '0',
+    CreatedDateTime: '2025-01-17T20:27:46.063Z',
+    UpdatedDateTime: '2025-01-17T20:27:46.063Z',
+    Value: 'Antihistamines',
+  },
+];
+
+export const mockPrescriptionListData = {
+  data: mockPrescriptionList,
+};
+
+export const mockPrescription: PrescriptionTD[] = [
   {
     id: 1,
     drugName: 'ANTIHISTAMINES',
-    dosage: 2,
+    dosage: '2',
     frequencyPerDay: 1,
     instruction: '2 pills 1 times per day, consume after meal',
     startDate: '6 AUG 2024',
     endDate: '21 AUG 2024',
     afterMeal: 'YES',
     remark: '1',
-    chronic: 'YES',
+    status: 'NON-CHRONIC',
   },
 ];
 
@@ -390,7 +685,7 @@ export const mockGuardian: GuardianTD[] = [
 
 export const mockActivityExclusion: ActivityExclusion[] = [
   {
-    id: '1',
+    id: 1,
     title: 'AVOID UNSUPERVISED OUTDOOR ACTIVITIES',
     description:
       'Patient should not go outside unaccompanied due to risks of wandering or disorientation.',
