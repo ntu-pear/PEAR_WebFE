@@ -3,13 +3,47 @@ import { Button } from '../ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { TabsContent } from '../ui/tabs';
 import DataTable from '../Table/DataTable';
-import { mockPrescription } from '@/mocks/mockPatientDetails';
+import { mockPrescription, PrescriptionTD } from '@/mocks/mockPatientDetails';
 import TabProps from './types';
 import { useModal } from '@/hooks/useModal';
 import AddPrescriptionModal from '../Modal/AddPrescriptionModal';
+import { fetchPatientPrescription } from '@/api/patients/prescription';
+import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
+import DeletePrescriptionModal from '../Modal/DeletePrescriptionModal';
 
-const PrescriptionTab: React.FC<TabProps> = () => {
+const PrescriptionTab: React.FC<TabProps> = ({ id }) => {
   const { activeModal, openModal } = useModal();
+  const [prescription, setPrescription] = useState<PrescriptionTD[]>([]);
+
+  const handleFetchPrescription = async () => {
+    if (!id || isNaN(Number(id))) return;
+
+    try {
+      const fetchedPrescription: PrescriptionTD[] =
+        import.meta.env.MODE === 'development' ||
+        import.meta.env.MODE === 'production'
+          ? await fetchPatientPrescription(Number(id))
+          : mockPrescription;
+
+      setPrescription(fetchedPrescription);
+
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (error) {
+      toast.error('Failed to fetch prescription for patient');
+    }
+  };
+
+  useEffect(() => {
+    console.log('patientId', id);
+
+    handleFetchPrescription();
+  }, []);
+
+  const refreshPrescriptionData = () => {
+    handleFetchPrescription();
+  };
+
   const prescriptionColumns = [
     { key: 'drugName', header: 'Drug Name' },
     { key: 'dosage', header: 'Dosage' },
@@ -19,7 +53,7 @@ const PrescriptionTab: React.FC<TabProps> = () => {
     { key: 'endDate', header: 'End Date' },
     { key: 'afterMeal', header: 'After Meal' },
     { key: 'remark', header: 'Remark' },
-    { key: 'chronic', header: 'Chronic' },
+    { key: 'status', header: 'Status' },
   ];
 
   return (
@@ -32,7 +66,13 @@ const PrescriptionTab: React.FC<TabProps> = () => {
               <Button
                 size="sm"
                 className="h-8 w-24 gap-1"
-                onClick={() => openModal('addPrescription')}
+                onClick={() =>
+                  openModal('addPrescription', {
+                    patientId: id,
+                    submitterId: '1',
+                    refreshPrescriptionData,
+                  })
+                }
               >
                 <PlusCircle className="h-4 w-4" />
                 <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
@@ -43,14 +83,33 @@ const PrescriptionTab: React.FC<TabProps> = () => {
           </CardHeader>
           <CardContent>
             <DataTable
-              data={mockPrescription}
+              data={prescription}
               columns={prescriptionColumns}
               viewMore={false}
+              renderActions={(item) => (
+                <div className="flex space-x-2">
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    className="mt-3"
+                    onClick={() =>
+                      openModal('deletePrescription', {
+                        prescriptionId: String(item.id),
+                        submitterId: '1',
+                        refreshPrescriptionData,
+                      })
+                    }
+                  >
+                    Delete
+                  </Button>
+                </div>
+              )}
             />
           </CardContent>
         </Card>
       </TabsContent>
       {activeModal.name === 'addPrescription' && <AddPrescriptionModal />}
+      {activeModal.name === 'deletePrescription' && <DeletePrescriptionModal />}
     </>
   );
 };

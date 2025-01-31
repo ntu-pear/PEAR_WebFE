@@ -1,41 +1,42 @@
 import { VitalCheckTD } from '@/mocks/mockPatientDetails';
 import { vitalAPI } from '../apiConfig';
-import { formatDateString } from '@/utils/formatDate';
+import { formatDateString, formatTimeString } from '@/utils/formatDate';
+import { convertToYesNo } from '@/utils/convertToYesNo';
 
 export interface VitalCheck {
-  active: string;
-  patientId: number;
-  afterMeal: string;
-  temperature: number;
-  systolicBP: number;
-  diastolicBP: number;
-  heartRate: number;
-  spO2: number;
-  bloodSugarLevel: number;
-  height: number;
-  weight: number;
-  vitalRemarks?: string;
-  id: number;
-  createdDateTime: string;
-  modifiedDateTime: string;
-  createdById: number;
-  modifiedById: number;
+  IsDeleted: string;
+  PatientId: number;
+  IsAfterMeal: string;
+  Temperature: number;
+  SystolicBP: number;
+  DiastolicBP: number;
+  HeartRate: number;
+  SpO2: number;
+  BloodSugarLevel: number;
+  Height: number;
+  Weight: number;
+  VitalRemarks?: string;
+  Id: number;
+  CreatedDateTime: string;
+  UpdatedDateTime: string;
+  CreatedById: number;
+  UpdatedById: number;
 }
 
 export interface VitalFormData {
-  patientId?: number;
-  temperature: number;
-  weight: number;
-  height: number;
-  systolicBP: number;
-  diastolicBP: number;
-  heartRate: number;
-  spO2: number;
-  bloodSugarLevel: number;
-  vitalRemarks?: string;
-  afterMeal: string;
-  createdById?: number;
-  modifiedById?: number;
+  PatientId?: number;
+  IsAfterMeal: string;
+  Temperature: number;
+  SystolicBP: number;
+  DiastolicBP: number;
+  HeartRate: number;
+  SpO2: number;
+  BloodSugarLevel: number;
+  Height: number;
+  Weight: number;
+  VitalRemarks?: string;
+  CreatedById?: number;
+  UpdatedById?: number;
 }
 
 const convertToVitalTD = (vitals: VitalCheck[]): VitalCheckTD[] => {
@@ -45,21 +46,22 @@ const convertToVitalTD = (vitals: VitalCheck[]): VitalCheckTD[] => {
   }
 
   return vitals
-    .filter((v) => v.active === '1')
+    .filter((v) => v.IsDeleted === '0')
     .map((v) => ({
-      id: v.id,
-      date: formatDateString(new Date(v.createdDateTime)),
-      time: new Date(v.createdDateTime).toLocaleTimeString(),
-      temperature: parseFloat(v.temperature.toFixed(1)),
-      weight: parseFloat(v.weight.toFixed(1)),
-      height: parseFloat(v.height.toFixed(2)),
-      systolicBP: parseFloat(v.systolicBP.toFixed(0)),
-      diastolicBP: parseFloat(v.diastolicBP.toFixed(0)),
-      heartRate: parseFloat(v.heartRate.toFixed(0)),
-      spO2: parseFloat(v.spO2.toFixed(0)),
-      bloodSugarLevel: parseFloat(v.bloodSugarLevel.toFixed(0)),
-      afterMeal: v.afterMeal?.toUpperCase(),
-      remark: v.vitalRemarks || '',
+      id: v.Id,
+      patientId: v.PatientId,
+      date: formatDateString(v.CreatedDateTime),
+      time: formatTimeString(v.CreatedDateTime),
+      temperature: parseFloat(v.Temperature.toFixed(1)),
+      weight: parseFloat(v.Weight.toFixed(1)),
+      height: parseFloat(v.Height.toFixed(2)),
+      systolicBP: parseFloat(v.SystolicBP.toFixed(0)),
+      diastolicBP: parseFloat(v.DiastolicBP.toFixed(0)),
+      heartRate: parseFloat(v.HeartRate.toFixed(0)),
+      spO2: parseFloat(v.SpO2.toFixed(0)),
+      bloodSugarLevel: parseFloat(v.BloodSugarLevel.toFixed(0)),
+      afterMeal: convertToYesNo(v.IsAfterMeal)?.toUpperCase(),
+      remark: v.VitalRemarks || '',
     }));
 };
 
@@ -93,10 +95,27 @@ export const addVital = async (
   }
 };
 
+export const updateVital = async (
+  vitalId: number,
+  formData: VitalFormData
+): Promise<VitalCheck> => {
+  try {
+    const response = await vitalAPI.put<VitalCheck>(
+      `/update/${vitalId}`,
+      formData
+    );
+    console.log('PUT Update Vital for a patient', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('PUT Update Vital for a patient', error);
+    throw error;
+  }
+};
+
 export const deleteVital = async (vitalId: number): Promise<VitalCheck> => {
   try {
     const response = await vitalAPI.put<VitalCheck>(`/delete`, {
-      id: vitalId,
+      Id: vitalId,
     });
     console.log('PUT Delete Vital for a patient', response.data);
     return response.data;

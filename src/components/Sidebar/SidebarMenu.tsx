@@ -9,6 +9,8 @@ import {
 import { Menu, ChevronDown, ChevronUp } from 'lucide-react';
 import * as Icons from 'lucide-react';
 import { LucideIcon } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/hooks/useAuth';
 
 // Types
 interface MenuItem {
@@ -23,30 +25,29 @@ interface MenuSection {
   items: MenuItem[];
 }
 
-// Menu data
-const menuSections: MenuSection[] = [
+const supervisorMenu: MenuSection[] = [
   {
     title: 'PATIENTS',
     items: [
       {
         title: 'Manage Patients',
         icon: 'UserRound',
-        path: '/Supervisor/ManagePatients',
+        path: '/supervisor/manage-patients',
       },
       {
         title: 'Add Patients',
-        icon: 'UserPlus',
-        path: '/Supervisor/AddPatients',
+        icon: 'UserRoundPlus',
+        path: '/supervisor/add-patient',
       },
       {
         title: 'View Medication Schedule',
         icon: 'Calendar',
-        path: '/Supervisor/ViewMedicationSchedule',
+        path: '/supervisor/view-medication-schedule',
       },
       {
         title: 'Manage Medication',
         icon: 'Pill',
-        path: '/Supervisor/ManageMedication',
+        path: '/supervisor/manage-medication',
       },
     ],
   },
@@ -56,7 +57,7 @@ const menuSections: MenuSection[] = [
       {
         title: 'Manage Activities',
         icon: 'List',
-        path: '/Supervisor/ManageActivities',
+        path: '/supervisor/manage-activities',
       },
     ],
   },
@@ -66,7 +67,7 @@ const menuSections: MenuSection[] = [
       {
         title: 'Manage Attendance',
         icon: 'CheckSquare',
-        path: '/Supervisor/ManageAttendance',
+        path: '/supervisor/manage-attendance',
       },
     ],
   },
@@ -76,12 +77,12 @@ const menuSections: MenuSection[] = [
       {
         title: 'Manage Adhoc',
         icon: 'Clipboard',
-        path: '/Supervisor/ManageAdhoc',
+        path: '/supervisor/manage-adhoc',
       },
       {
         title: 'Add Adhoc',
         icon: 'ClipboardPlus',
-        path: '/Supervisor/AddAdhoc',
+        path: '/supervisor/add-adhoc',
       },
     ],
   },
@@ -91,7 +92,85 @@ const menuSections: MenuSection[] = [
       {
         title: 'Display Schedule',
         icon: 'Calendar',
-        path: '/Supervisor/DisplaySchedule',
+        path: '/supervisor/display-schedule',
+      },
+    ],
+  },
+  {
+    title: 'OTHERS',
+    items: [
+      {
+        title: 'View Highlights',
+        icon: 'Star',
+        path: '/supevisor/view-highlights',
+      },
+      {
+        title: 'Manage Approval Requests',
+        icon: 'SquareCheck',
+        path: '/supervisor/manage-approval-requests',
+      },
+      {
+        title: 'View Activity Logs',
+        icon: 'BookText',
+        path: '/supervisor/view-activity-logs',
+      },
+      {
+        title: 'View Privacy Settings',
+        icon: 'Lock',
+        path: '/supervisor/view-privacy-settings',
+      },
+      {
+        title: 'Manage List Items',
+        icon: 'List',
+        path: '/supervisor/manage-list-items',
+      },
+    ],
+  },
+];
+
+const adminMenu: MenuSection[] = [
+  {
+    title: 'ACCOUNTS',
+    items: [
+      {
+        title: 'Manage Accounts',
+        icon: 'UserRound',
+        path: '/admin/manage-accounts',
+      },
+      {
+        title: 'Add Patients',
+        icon: 'UserRoundPlus',
+        path: '/admin/register-account',
+      },
+      {
+        title: 'Manage Roles',
+        icon: 'UserRoundCog',
+        path: '/admin/manage-roles',
+      },
+    ],
+  },
+  {
+    title: 'CENTRES',
+    items: [
+      {
+        title: 'Manage Activities',
+        icon: 'List',
+        path: '/admin/manage-activities',
+      },
+    ],
+  },
+  {
+    title: 'LIST',
+    items: [
+      {
+        title: 'Manage Lists',
+        icon: 'List',
+        path: '/admin/manage-lists',
+      },
+      {
+        title: 'View Lists Log',
+        icon: 'List',
+        path: '/admin/view-lists-log',
       },
     ],
   },
@@ -101,43 +180,37 @@ const menuSections: MenuSection[] = [
       {
         title: 'Edit Roles',
         icon: 'Wrench',
-        path: '/Admin/EditRoles',
+        path: '/admin/edit-roles',
       },
-      // {
-      //   title: 'Manage Social History'
-      // },
-      // {
-      //   title: 'Manage Miscellaneous'
-      // }
-    ]
+      {
+        title: 'Manage Social History',
+        icon: 'Wrench',
+        path: '/admin/manage-social-history',
+      },
+      {
+        title: 'Manage Miscellaneous',
+        icon: 'Wrench',
+        path: '/admin/manage-miscellaneous',
+      },
+    ],
   },
   {
     title: 'OTHERS',
     items: [
       {
-        title: 'View Highlights',
-        icon: 'Star',
-        path: '/Supervisor/ViewHighlights',
+        title: 'Account Logs',
+        icon: 'UserRound',
+        path: '/admin/view-highlights',
       },
       {
         title: 'Manage Approval Requests',
-        icon: 'FileText',
-        path: '/Supervisor/ManageApprovalRequests',
+        icon: 'SquareCheck',
+        path: '/admin/manage-approval-requests',
       },
       {
-        title: 'View Activity Logs',
+        title: 'Manage Notification Scenarios',
         icon: 'BookText',
-        path: '/Supervisor/ViewActivityLogs',
-      },
-      {
-        title: 'View Privacy Settings',
-        icon: 'Lock',
-        path: '/Supervisor/ViewPrivacySettings',
-      },
-      {
-        title: 'Manage List Items',
-        icon: 'List',
-        path: '/Supervisor/ManageListItems',
+        path: '/admin/manage-notification-scenarios',
       },
     ],
   },
@@ -172,13 +245,20 @@ const MenuItem: React.FC<{
   to: string;
   icon: string;
   label: string;
-  onClick: () => void;
-}> = ({ to, icon, label, onClick }) => {
+  closeSheet: () => void;
+}> = ({ to, icon, label, closeSheet }) => {
   const IconComponent = Icons[icon as keyof typeof Icons] as LucideIcon;
+
+  const navigate = useNavigate();
+
+  const handleNavigation = () => {
+    navigate(to);
+    closeSheet();
+  };
 
   return (
     <Button variant="ghost" className="w-full justify-start text-base" asChild>
-      <a href={to} onClick={onClick} className="flex items-center">
+      <a onClick={handleNavigation} className="flex items-center">
         <IconComponent className="mr-2 h-5 w-5" />
         <span>{label}</span>
       </a>
@@ -189,8 +269,14 @@ const MenuItem: React.FC<{
 // Main SidebarMenu component
 const SidebarMenu: React.FC = () => {
   const [open, setOpen] = useState(false);
-
   const closeSheet = () => setOpen(false);
+  const { currentUser } = useAuth();
+  const menuSections =
+    currentUser?.roleName === 'ADMIN'
+      ? adminMenu
+      : currentUser?.roleName === 'SUPERVISOR'
+      ? supervisorMenu
+      : null;
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -205,19 +291,20 @@ const SidebarMenu: React.FC = () => {
             <img className="h-12 w-24" src="/pear.png" alt="Pear Logo" />
           </div>
           <div className="flex-grow overflow-y-auto">
-            {menuSections.map((section) => (
-              <ExpandableSection key={section.title} title={section.title}>
-                {section.items.map((item) => (
-                  <MenuItem
-                    key={item.title}
-                    to={item.path}
-                    icon={item.icon}
-                    label={item.title}
-                    onClick={closeSheet}
-                  />
-                ))}
-              </ExpandableSection>
-            ))}
+            {menuSections &&
+              menuSections.map((section) => (
+                <ExpandableSection key={section.title} title={section.title}>
+                  {section.items.map((item) => (
+                    <MenuItem
+                      key={item.title}
+                      to={item.path}
+                      icon={item.icon}
+                      label={item.title}
+                      closeSheet={closeSheet}
+                    />
+                  ))}
+                </ExpandableSection>
+              ))}
           </div>
         </div>
       </SheetContent>

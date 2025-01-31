@@ -1,10 +1,5 @@
 import React from 'react';
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import useGetRoles from '@/hooks/user/useGetRoles';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router';
@@ -12,9 +7,9 @@ import { useModal } from '@/hooks/useModal';
 import DeleteRoleModal from '@/components/Modal/DeleteRoleModal';
 
 const EditRoles: React.FC = () => {
-  const { data } = useGetRoles()
-  const navigate = useNavigate()
-  const { activeModal, openModal } = useModal()
+  const { data } = useGetRoles();
+  const navigate = useNavigate();
+  const { activeModal, openModal } = useModal();
 
   return (
     <div className="flex min-h-screen w-full flex-col container mx-auto px-0 sm:px-4">
@@ -25,23 +20,34 @@ const EditRoles: React.FC = () => {
               <CardTitle>All Roles</CardTitle>
             </CardHeader>
             <CardContent className="flex flex-col align-middle">
-              <Button className='bg-sky-600 self-center' onClick={() => navigate("/Admin/CreateRole")}>Create Role</Button>
+              <Button
+                className="bg-sky-600 self-center"
+                onClick={() => navigate('/admin/create-role')}
+              >
+                Create Role
+              </Button>
               <ul>
-                {data?.map((role) =>
+                {data?.map((role) => (
                   <li key={role.id}>
-                    <Card className='m-3'>
-                      <CardHeader className='bg-sky-400 py-3 text-white font-semibold'>Role ID: {role.id}</CardHeader>
-                      <CardContent className='py-4 text-xl flex justify-between'>
+                    <Card className="m-3">
+                      <CardHeader className="bg-sky-400 py-3 text-white font-semibold">
+                        Role ID: {role.id}
+                      </CardHeader>
+                      <CardContent className="py-4 text-xl flex justify-between">
                         {role.name}
                         <div>
                           <Button
-                            className='border-green-500 bg-transparent text-green-500 border-2 mr-1'
-                            onClick={() => navigate(`/Admin/EditRole/${role.id}`, { state: { role } })}
+                            className="border-green-500 bg-transparent text-green-500 border-2 mr-1"
+                            onClick={() =>
+                              navigate(`/admin/edit-role/${role.id}`, {
+                                state: { role },
+                              })
+                            }
                           >
                             Edit
                           </Button>
                           <Button
-                            className='border-red-500 bg-transparent text-red-500 border-2'
+                            className="border-red-500 bg-transparent text-red-500 border-2"
                             onClick={() => openModal('deleteRole', { role })}
                           >
                             Delete
@@ -50,7 +56,7 @@ const EditRoles: React.FC = () => {
                       </CardContent>
                     </Card>
                   </li>
-                )}
+                ))}
               </ul>
             </CardContent>
           </Card>
