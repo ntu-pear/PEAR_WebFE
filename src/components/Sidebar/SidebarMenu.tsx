@@ -10,6 +10,7 @@ import { Menu, ChevronDown, ChevronUp } from 'lucide-react';
 import * as Icons from 'lucide-react';
 import { LucideIcon } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/hooks/useAuth';
 
 // Types
 interface MenuItem {
@@ -24,8 +25,7 @@ interface MenuSection {
   items: MenuItem[];
 }
 
-// Menu data
-const menuSections: MenuSection[] = [
+const supervisorMenu: MenuSection[] = [
   {
     title: 'PATIENTS',
     items: [
@@ -36,7 +36,7 @@ const menuSections: MenuSection[] = [
       },
       {
         title: 'Add Patients',
-        icon: 'UserPlus',
+        icon: 'UserRoundPlus',
         path: '/supervisor/add-patient',
       },
       {
@@ -106,7 +106,7 @@ const menuSections: MenuSection[] = [
       },
       {
         title: 'Manage Approval Requests',
-        icon: 'FileText',
+        icon: 'SquareCheck',
         path: '/supervisor/manage-approval-requests',
       },
       {
@@ -123,6 +123,94 @@ const menuSections: MenuSection[] = [
         title: 'Manage List Items',
         icon: 'List',
         path: '/supervisor/manage-list-items',
+      },
+    ],
+  },
+];
+
+const adminMenu: MenuSection[] = [
+  {
+    title: 'ACCOUNTS',
+    items: [
+      {
+        title: 'Manage Accounts',
+        icon: 'UserRound',
+        path: '/admin/manage-accounts',
+      },
+      {
+        title: 'Add Patients',
+        icon: 'UserRoundPlus',
+        path: '/admin/register-account',
+      },
+      {
+        title: 'Manage Roles',
+        icon: 'UserRoundCog',
+        path: '/admin/manage-roles',
+      },
+    ],
+  },
+  {
+    title: 'CENTRES',
+    items: [
+      {
+        title: 'Manage Activities',
+        icon: 'List',
+        path: '/admin/manage-activities',
+      },
+    ],
+  },
+  {
+    title: 'LIST',
+    items: [
+      {
+        title: 'Manage Lists',
+        icon: 'List',
+        path: '/admin/manage-lists',
+      },
+      {
+        title: 'View Lists Log',
+        icon: 'List',
+        path: '/admin/view-lists-log',
+      },
+    ],
+  },
+  {
+    title: 'DEVELOPER',
+    items: [
+      {
+        title: 'Edit Roles',
+        icon: 'Wrench',
+        path: '/admin/edit-roles',
+      },
+      {
+        title: 'Manage Social History',
+        icon: 'Wrench',
+        path: '/admin/manage-social-history',
+      },
+      {
+        title: 'Manage Miscellaneous',
+        icon: 'Wrench',
+        path: '/admin/manage-miscellaneous',
+      },
+    ],
+  },
+  {
+    title: 'OTHERS',
+    items: [
+      {
+        title: 'Account Logs',
+        icon: 'UserRound',
+        path: '/admin/view-highlights',
+      },
+      {
+        title: 'Manage Approval Requests',
+        icon: 'SquareCheck',
+        path: '/admin/manage-approval-requests',
+      },
+      {
+        title: 'Manage Notification Scenarios',
+        icon: 'BookText',
+        path: '/admin/manage-notification-scenarios',
       },
     ],
   },
@@ -181,8 +269,14 @@ const MenuItem: React.FC<{
 // Main SidebarMenu component
 const SidebarMenu: React.FC = () => {
   const [open, setOpen] = useState(false);
-
   const closeSheet = () => setOpen(false);
+  const { currentUser } = useAuth();
+  const menuSections =
+    currentUser?.roleName === 'ADMIN'
+      ? adminMenu
+      : currentUser?.roleName === 'SUPERVISOR'
+      ? supervisorMenu
+      : null;
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -197,19 +291,20 @@ const SidebarMenu: React.FC = () => {
             <img className="h-12 w-24" src="/pear.png" alt="Pear Logo" />
           </div>
           <div className="flex-grow overflow-y-auto">
-            {menuSections.map((section) => (
-              <ExpandableSection key={section.title} title={section.title}>
-                {section.items.map((item) => (
-                  <MenuItem
-                    key={item.title}
-                    to={item.path}
-                    icon={item.icon}
-                    label={item.title}
-                    closeSheet={closeSheet}
-                  />
-                ))}
-              </ExpandableSection>
-            ))}
+            {menuSections &&
+              menuSections.map((section) => (
+                <ExpandableSection key={section.title} title={section.title}>
+                  {section.items.map((item) => (
+                    <MenuItem
+                      key={item.title}
+                      to={item.path}
+                      icon={item.icon}
+                      label={item.title}
+                      closeSheet={closeSheet}
+                    />
+                  ))}
+                </ExpandableSection>
+              ))}
           </div>
         </div>
       </SheetContent>
