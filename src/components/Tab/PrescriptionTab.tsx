@@ -11,6 +11,7 @@ import { fetchPatientPrescription } from '@/api/patients/prescription';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import DeletePrescriptionModal from '../Modal/DeletePrescriptionModal';
+import EditPrescriptionModal from '../Modal/EditPrescriptionModal';
 
 const PrescriptionTab: React.FC<TabProps> = ({ id }) => {
   const { activeModal, openModal } = useModal();
@@ -125,6 +126,7 @@ const PrescriptionTab: React.FC<TabProps> = ({ id }) => {
       </TabsContent>
       {activeModal.name === 'addPrescription' && <AddPrescriptionModal />}
       {activeModal.name === 'deletePrescription' && <DeletePrescriptionModal />}
+      {activeModal.name === 'editPrescription' && <EditPrescriptionModal />}
     </>
   );
 };

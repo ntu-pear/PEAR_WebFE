@@ -65,6 +65,18 @@ export interface PrescriptionDelete {
   UpdatedById: number;
 }
 
+export interface PrescriptionUpdate {
+  PatientId: number;
+  PrescriptionListId: number;
+  Dosage: string;
+  FrequencyPerDay: number;
+  Instruction: string;
+  StartDate: string;
+  PrescriptionRemarks: string;
+  UpdatedDateTime: string;
+  UpdatedById: number;
+}
+
 const convertToPrescriptionTD = (
   prescriptionList: PrescriptionList[],
   prescriptions: Prescription[]
@@ -166,6 +178,25 @@ export const deletePatientPrescription = async (
     return response.data;
   } catch (error) {
     console.error('PUT Delete patient prescription', error);
+    throw error;
+  }
+};
+
+export const updatePatientPrescription = async (
+  prescriptionId: number,
+  prescriptionUpdate: PrescriptionUpdate
+): Promise<Prescription> => {
+  try {
+    const response = await prescriptionAPI.put<Prescription>(
+      `/update/${prescriptionId}`,
+      prescriptionUpdate
+    );
+
+    console.log('PUT Update patient prescription', response.data);
+
+    return response.data;
+  } catch (error) {
+    console.error('PUT Update patient prescription', error);
     throw error;
   }
 };
