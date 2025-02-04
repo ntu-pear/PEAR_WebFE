@@ -86,8 +86,23 @@ const PrescriptionTab: React.FC<TabProps> = ({ id }) => {
               data={prescription}
               columns={prescriptionColumns}
               viewMore={false}
-              renderActions={(item) => (
+              renderActions={(item) => (                
                 <div className="flex space-x-2">
+                  <Button variant="default"
+                    size="sm"
+                    className="mt-3"
+                    onClick={() => {
+                      openModal('editPrescription', {
+                        prescriptionId: String(item.id),
+                        submitterId: '1',
+                        refreshPrescriptionData,
+                      })
+                    }
+                      
+                    }
+                  >
+                    Edit
+                  </Button>
                   <Button
                     variant="destructive"
                     size="sm"
