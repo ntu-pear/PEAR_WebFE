@@ -84,3 +84,7 @@ export const loginAPI = axios.create({
 export const getCurrentUserAPI = axios.create({
   baseURL: `${VITE_USER_SERVICE_URL}/current_user`,
 });
+
+export const userAPI = axios.create({
+  baseURL: `${VITE_USER_SERVICE_URL}/user`,
+});

@@ -89,8 +89,6 @@ const Login: React.FC = () => {
               type={showPassword ? 'text' : 'password'}
               placeholder="Password"
               className="pr-10 text-gray-700"
-              pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*[^a-zA-Z0-9])(?=.*[^ ]).{8,}$"
-              title="Must contain at least one lowercase letter, one uppercase letter, one non-alphanumeric character, no spaces, and at least 8 characters."
             />
             <button
               type="button"

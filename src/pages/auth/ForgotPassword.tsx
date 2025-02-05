@@ -1,12 +1,53 @@
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import {
-  /*CalendarIcon,*/ MailIcon,
-  UserIcon /*BriefcaseIcon*/,
-} from 'lucide-react';
-import { DatePicker } from 'antd';
+  requestResetPassword,
+  RequestResetPasswordForm,
+} from '@/api/users/auth';
+import { Button } from '@/components/ui/button';
+import { useState } from 'react';
+import { toast } from 'sonner';
 
 const ForgotPassword: React.FC = () => {
+  const [nric, setNRIC] = useState<string>('');
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { value } = e.target;
+    const upperCaseValue = value.toUpperCase();
+    setNRIC(upperCaseValue);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    e.currentTarget.value = e.currentTarget.value.toUpperCase();
+  };
+
+  const handleRequestResetPassword = async (event: React.FormEvent) => {
+    event.preventDefault();
+
+    // Create a new FormData object from the event's target
+    const formData = new FormData(event.target as HTMLFormElement);
+
+    // Convert FormData entries to an object
+    const formDataObj = Object.fromEntries(formData.entries());
+
+    const requestResetPasswordFormData: RequestResetPasswordForm = {
+      nric_DateOfBirth: formDataObj.dateOfBirth as string,
+      nric: formDataObj.nric as string,
+      email: formDataObj.email as string,
+      roleName: formDataObj.roleName as string,
+    };
+
+    try {
+      console.log(
+        'requestResetPasswordFormData: ',
+        requestResetPasswordFormData
+      );
+      await requestResetPassword(requestResetPasswordFormData);
+      toast.success('Reset password link have been sent to your email.');
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (error) {
+      toast.error('Invalid Details. Failed to send reset password link');
+    }
+  };
+
   return (
     <div
       className="relative min-h-screen flex items-center justify-center bg-cover bg-center"
@@ -23,35 +64,45 @@ const ForgotPassword: React.FC = () => {
           <img className="h-24 w-48" src="/pear.png" alt="Pear Logo" />
         </div>
         <h2 className="text-2xl font-bold text-center mb-6">Forgot Password</h2>
-        <form className="space-y-4">
+        <form className="space-y-4" onSubmit={handleRequestResetPassword}>
           <div className="space-y-2">
             <label
               htmlFor="dob"
               className="block text-sm font-medium text-gray-700"
             >
-              Date of Birth
+              Date of Birth <span className="text-red-600">*</span>
             </label>
             <div className="w-full">
-              <DatePicker className="w-full" />
+              <input
+                type="date"
+                name="dateOfBirth"
+                className="mt-1 block w-full p-2 border rounded-md text-gray-900"
+                required
+              />
             </div>
           </div>
+
           <div className="space-y-2">
             <label
               htmlFor="nric"
               className="block text-sm font-medium text-gray-700"
             >
-              NRIC
+              NRIC <span className="text-red-600">*</span>
             </label>
             <div className="relative">
-              <Input
+              <input
                 id="nric"
+                name="nric"
                 type="text"
+                value={nric}
+                pattern="^(S|T|F|G)\d{7}[A-Z]$"
+                minLength={9}
+                maxLength={9}
+                onChange={(e) => handleChange(e)}
+                onKeyDown={(e) => handleKeyDown(e)}
                 placeholder="NRIC"
-                className="pl-10 text-gray-700"
-              />
-              <UserIcon
-                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-                size={20}
+                className="mt-1 block w-full p-2 border rounded-md text-gray-900"
+                required
               />
             </div>
           </div>
@@ -60,25 +111,23 @@ const ForgotPassword: React.FC = () => {
               htmlFor="email"
               className="block text-sm font-medium text-gray-700"
             >
-              Email
+              Email <span className="text-red-600">*</span>
             </label>
             <div className="relative">
-              <Input
+              <input
                 id="email"
+                name="email"
                 type="email"
                 placeholder="Email"
-                className="pl-10 text-gray-700"
-              />
-              <MailIcon
-                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-                size={20}
+                className="mt-1 block w-full p-2 border rounded-md text-gray-900"
+                required
               />
             </div>
           </div>
           <div className="space-y-2">
             <div className="col-span-2">
               <label className="block text-sm font-medium text-gray-600">
-                Role
+                Role <span className="text-red-600">*</span>
               </label>
               <select
                 name="roleName"
@@ -96,11 +145,11 @@ const ForgotPassword: React.FC = () => {
             </div>
           </div>
           <Button className="w-full bg-cyan-500 hover:bg-cyan-600 text-white">
-            Reset Password
+            Send Reset Password Email
           </Button>
         </form>
         <div className="text-center mt-4">
-          <a href="/Login" className="text-sm text-gray-600 hover:underline">
+          <a href="/login" className="text-sm text-gray-600 hover:underline">
             Back to Login
           </a>
         </div>

@@ -1,4 +1,5 @@
-import { loginAPI, getCurrentUserAPI } from '../apiConfig';
+import axios from 'axios';
+import { loginAPI, getCurrentUserAPI, userAPI } from '../apiConfig';
 import Cookies from 'js-cookie';
 
 export interface Token {
@@ -9,6 +10,18 @@ export interface Token {
 export interface CurrentUser {
   userId: string;
   roleName: string;
+}
+
+export interface RequestResetPasswordForm {
+  nric_DateOfBirth: string;
+  nric: string;
+  email: string;
+  roleName: string;
+}
+
+export interface ResetPasswordForm {
+  newPassword: string;
+  confirmPassword: string;
 }
 
 const TOKEN_COOKIE_NAME = 'token';
@@ -75,4 +88,59 @@ export const getCurrentUser = async () => {
 
 export const sendLogout = () => {
   Cookies.remove(TOKEN_COOKIE_NAME);
+};
+
+export const requestResetPassword = async (
+  requestResetPasswordForm: RequestResetPasswordForm
+) => {
+  try {
+    const response = await userAPI.post(
+      `/request_reset_password/`,
+      requestResetPasswordForm
+    );
+    console.log('POST request reset password', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('POST request reset password', error);
+    throw error;
+  }
+};
+
+export const resetPassword = async (
+  resetPasswordForm: ResetPasswordForm,
+  token: string
+) => {
+  try {
+    const response = await userAPI.post(
+      `/reset_user_password/`,
+      resetPasswordForm,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    console.log('POST reset password', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('POST reset password', error);
+
+    if (axios.isAxiosError(error)) {
+      // Extract error response if available
+      const status = error.response?.status;
+      const message = error.response?.data?.message || 'Something went wrong';
+
+      if (status === 400) {
+        throw `Bad Request. ${message}`;
+      } else if (status === 401) {
+        throw 'Invalid or expired token';
+      } else if (status === 404) {
+        throw `${message}`;
+      } else {
+        throw 'Internal Server error. Please try again later.';
+      }
+    } else {
+      throw 'Network error. Please check your connection';
+    }
+  }
 };
