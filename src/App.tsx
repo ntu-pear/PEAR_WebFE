@@ -33,6 +33,7 @@ import Unauthorized from './pages/Unauthorized';
 import NotFound from './pages/NotFound';
 import TempPage from './pages/TempPage';
 import ResetPassword from './pages/auth/ResetPassword';
+import ResendRegistrationEmail from './pages/auth/ResendRegistrationEmail';
 
 const queryClient = new QueryClient();
 
@@ -50,6 +51,14 @@ const App: React.FC = () => {
                     <Route
                       path="/forgot-password"
                       element={<ForgotPassword />}
+                    />
+                    <Route
+                      path="/forget-password/:token"
+                      element={<ResetPassword />}
+                    />
+                    <Route
+                      path="/resend-registration-email"
+                      element={<ResendRegistrationEmail />}
                     />
 
                     {/* Routes for Supervisor */}
@@ -126,10 +135,6 @@ const App: React.FC = () => {
                     <Route path="/unauthorized" element={<Unauthorized />} />
                     <Route path="/not-found" element={<NotFound />} />
                     <Route path="/test-geocode" element={<TestGeocode />} />
-                    <Route
-                      path="/forget-password/:token"
-                      element={<ResetPassword />}
-                    />
                     <Route path="/" element={<Navigate to="/login" />} />
                   </Routes>
                 </main>

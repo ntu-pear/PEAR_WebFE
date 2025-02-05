@@ -144,3 +144,19 @@ export const resetPassword = async (
     }
   }
 };
+
+export const resendtRegistrationEmail = async (
+  resendtRegistrationEmailForm: RequestResetPasswordForm
+) => {
+  try {
+    const response = await userAPI.post(
+      `/request/resend_registration_email`,
+      resendtRegistrationEmailForm
+    );
+    console.log('POST resend registration email', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('POST resend registration email', error);
+    throw error;
+  }
+};

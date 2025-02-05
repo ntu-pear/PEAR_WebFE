@@ -58,7 +58,7 @@ const ForgotPassword: React.FC = () => {
         <div className="flex justify-center mb-8">
           <img className="h-24 w-48" src="/pear.png" alt="Pear Logo" />
         </div>
-        <h2 className="text-2xl font-bold text-center mb-6">Forgot Password</h2>
+        <h2 className="text-2xl font-bold text-center mb-6">Reset Password</h2>
         <form className="space-y-4" onSubmit={handleResetPassword}>
           <div className="space-y-2">
             <label

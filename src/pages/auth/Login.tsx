@@ -102,12 +102,20 @@ const Login: React.FC = () => {
             LOGIN
           </Button>
         </form>
-        <div className="text-center mt-4">
+        <div className="text-center mt-6">
           <a
             href="/forgot-password"
             className="text-sm text-gray-600 hover:underline"
           >
             Forgot Password?
+          </a>
+        </div>
+        <div className="text-center mt-2">
+          <a
+            href="/resend-registration-email"
+            className="text-sm text-gray-600 hover:underline"
+          >
+            Resend Registration Email?
           </a>
         </div>
       </div>
