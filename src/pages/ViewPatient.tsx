@@ -50,7 +50,7 @@ const ViewPatient: React.FC = () => {
       const fetchedData: ProfilePhotoAndName =
         import.meta.env.MODE === 'development' ||
         import.meta.env.MODE === 'production'
-          ? await fetchProfilePhotoAndName(Number(id))
+          ? mockProfilePhotoAndName//await fetchProfilePhotoAndName(Number(id))
           : mockProfilePhotoAndName;
       // console.log(fetchedData);
       setProfilePhotoAndName(fetchedData);

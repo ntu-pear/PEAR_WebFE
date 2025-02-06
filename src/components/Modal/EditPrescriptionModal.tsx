@@ -39,6 +39,7 @@ const EditPrescriptionModal: React.FC = () => {
       try {
         const response = await fetchPrescriptionById(Number(prescriptionId));
         setPrescription(response);
+        setStartDate(response.StartDate);
       } catch (error) {
         toast.error('Failed to fetch prescription details');
       }
@@ -59,11 +60,16 @@ const EditPrescriptionModal: React.FC = () => {
         Dosage: prescription.Dosage,
         FrequencyPerDay: prescription.FrequencyPerDay,
         Instruction: prescription.Instruction,
-        StartDate: prescription.StartDate,
+        StartDate: startDate,
+        EndDate: prescription.EndDate,
+        IsAfterMeal: prescription.IsAfterMeal,
         PrescriptionRemarks: prescription.PrescriptionRemarks,
-        UpdatedDateTime: getDateTimeNowInUTC(),
+        Status: prescription.Status,
+        UpdatedDateTime: getDateTimeNowInUTC() as string,
         UpdatedById: parseInt(submitterId, 10),
       };
+
+      console.log(updatedPrescription);
 
       await updatePatientPrescription(Number(prescriptionId), updatedPrescription);
       toast.success('Prescription updated successfully.');
@@ -107,6 +113,7 @@ const EditPrescriptionModal: React.FC = () => {
                 name="IsAfterMeal"
                 className="mt-1 block w-full p-2 border rounded-md text-gray-900"
                 value={prescription.IsAfterMeal}
+                onChange={(e) => setPrescription({ ...prescription, IsAfterMeal: e.target.value })}
                 required
               >
                 <option value="">Please select a option</option>
@@ -152,6 +159,7 @@ const EditPrescriptionModal: React.FC = () => {
                 name="Status"
                 className="mt-1 block w-full p-2 border rounded-md text-gray-900"
                 value={prescription.Status}
+                onChange={(e) => setPrescription({ ...prescription, Status: e.target.value })}
                 required
               >
                 <option value="">Please select a option</option>
@@ -168,6 +176,8 @@ const EditPrescriptionModal: React.FC = () => {
                 name="Instruction"
                 className="mt-1 block w-full p-2 border rounded-md text-gray-900"
                 value={prescription.Instruction}
+                onChange={(e) => setPrescription({ ...prescription, Instruction: e.target.value })}
+                maxLength={255}
                 required
               />
             </div>
@@ -195,6 +205,7 @@ const EditPrescriptionModal: React.FC = () => {
                   name="EndDate"
                   className="mt-1 block w-full p-2 border rounded-md text-gray-900"
                   defaultValue={prescription.EndDate.substring(0, 10)}
+                  onChange={(e) => setPrescription({ ...prescription, EndDate: e.target.value })}
                   min={startDate}
                   required
                 />
@@ -210,6 +221,7 @@ const EditPrescriptionModal: React.FC = () => {
                 className="mt-1 block w-full p-2 border rounded-md text-gray-900"
                 value={prescription.PrescriptionRemarks}
                 onChange={(e) => setPrescription({ ...prescription, PrescriptionRemarks: e.target.value })}
+                maxLength={255}
               />
             </div>
 
