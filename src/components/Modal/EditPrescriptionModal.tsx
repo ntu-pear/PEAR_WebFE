@@ -23,7 +23,8 @@ const EditPrescriptionModal: React.FC = () => {
 
   const [prescription, setPrescription] = useState<Prescription | null>(null);
   const [prescriptionList, setPrescriptionList] = useState<PrescriptionList[]>([]);
-
+  const [startDate, setStartDate] = useState('');
+  
   useEffect(() => {
     const handleFetchPrescriptionList = async () => {
       try {
@@ -100,6 +101,23 @@ const EditPrescriptionModal: React.FC = () => {
 
             <div>
               <label className="block text-sm font-medium">
+                To be taken<span className="text-red-600">*</span>
+              </label>
+              <select
+                name="IsAfterMeal"
+                className="mt-1 block w-full p-2 border rounded-md text-gray-900"
+                value={prescription.IsAfterMeal}
+                required
+              >
+                <option value="">Please select a option</option>
+                <option value="0">Before Meal</option>
+                <option value="1">After Meal</option>
+                <option value="2">Doesn't Matter</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium">
                 Dosage<span className="text-red-600">*</span>
               </label>
               <input
@@ -126,18 +144,61 @@ const EditPrescriptionModal: React.FC = () => {
               />
             </div>
 
-            <div>
+            <div className="col-span-1">
               <label className="block text-sm font-medium">
-                Start Date<span className="text-red-600">*</span>
+                Status<span className="text-red-600">*</span>
               </label>
-              <input
-                type="date"
-                name="StartDate"
+              <select
+                name="Status"
                 className="mt-1 block w-full p-2 border rounded-md text-gray-900"
-                value={prescription.StartDate}
-                onChange={(e) => setPrescription({ ...prescription, StartDate: e.target.value })}
+                value={prescription.Status}
+                required
+              >
+                <option value="">Please select a option</option>
+                <option value="0">NON-CHRONIC</option>
+                <option value="1">CHRONIC</option>
+              </select>
+            </div>
+
+            <div className="col-span-2">
+              <label className="block text-sm font-medium">
+                Instruction<span className="text-red-600">*</span>
+              </label>
+              <textarea
+                name="Instruction"
+                className="mt-1 block w-full p-2 border rounded-md text-gray-900"
+                value={prescription.Instruction}
                 required
               />
+            </div>
+
+            <div className="col-span-2 flex space-x-4">
+              <div className="w-full">
+                <label className="block text-sm font-medium">
+                  Start Date <span className="text-red-600">*</span>
+                </label>
+                <input
+                  type="date"
+                  name="StartDate"
+                  className="mt-1 block w-full p-2 border rounded-md text-gray-900"
+                  defaultValue={prescription.StartDate.substring(0, 10)}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="w-full">
+                <label className="block text-sm font-medium">
+                  End Date <span className="text-red-600">*</span>
+                </label>
+                <input
+                  type="date"
+                  name="EndDate"
+                  className="mt-1 block w-full p-2 border rounded-md text-gray-900"
+                  defaultValue={prescription.EndDate.substring(0, 10)}
+                  min={startDate}
+                  required
+                />
+              </div>
             </div>
 
             <div className="col-span-2">

@@ -187,6 +187,8 @@ export const updatePatientPrescription = async (
   prescriptionUpdate: PrescriptionUpdate
 ): Promise<Prescription> => {
   try {
+    console.log('PUT Update patient prescription', prescriptionUpdate);
+
     const response = await prescriptionAPI.put<Prescription>(
       `/update/${prescriptionId}`,
       prescriptionUpdate
