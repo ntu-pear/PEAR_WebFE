@@ -129,3 +129,13 @@
   color: #666;
 }
 
+.truncate-column {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: left;
+}
+
+.table-fixed {
+  width: 100%;
+  table-layout: fixed;
+}

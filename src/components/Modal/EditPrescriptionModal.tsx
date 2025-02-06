@@ -83,7 +83,7 @@ const EditPrescriptionModal: React.FC = () => {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
       <div ref={modalRef} className="bg-background p-8 rounded-md w-[600px]">
-        <h3 className="text-lg font-medium mb-5">Edit Medical Prescription</h3>
+        <h3 className="text-lg font-medium mb-5">Medical Prescription</h3>
         {prescription ? (
           <form onSubmit={handleUpdatePrescription} className="grid grid-cols-2 gap-4">
             <div>
@@ -229,7 +229,7 @@ const EditPrescriptionModal: React.FC = () => {
               <Button type="button" variant="secondary" onClick={closeModal}>
                 Cancel
               </Button>
-              <Button type="submit">Update</Button>
+              <Button type="submit" variant="destructive">Save Changes</Button>
             </div>
           </form>
         ) : (
