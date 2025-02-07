@@ -264,7 +264,7 @@ const EditPatientInfoModal: React.FC = () => {
   const validatePersonalInfo = () => {
     if (!patient) return false;
     if (
-      !patient.firstName ||
+      !patient.name ||
       !patient.preferredName ||
       !patient.nric ||
       !patient.dateOfBirth ||
@@ -350,8 +350,8 @@ const EditPatientInfoModal: React.FC = () => {
                 </label>
                 <input
                   type="text"
-                  name="firstName"
-                  value={patient?.firstName || ''}
+                  name="name"
+                  value={patient?.name || ''}
                   onKeyDown={(e) => handleKeyDown(e)}
                   onChange={(e) => handleChange(e)}
                   className="mt-1 block w-full p-2 border rounded-md text-gray-900"

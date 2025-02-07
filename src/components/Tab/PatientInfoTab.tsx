@@ -182,7 +182,7 @@ const PatientInfoTab: React.FC<TabProps> = ({ id }) => {
     { key: 'homeNo', header: 'Home No' },
     { key: 'handphoneNo', header: 'Handphone No' },
     { key: 'preferredName', header: 'Preferred Name' },
-    { key: 'perferredLanguage', header: 'Preferred Language' },
+    { key: 'preferredLanguage', header: 'Preferred Language' },
     { key: 'privacyLevel', header: 'Privacy Level' },
     { key: 'underRespiteCare', header: 'Under Respite Care' },
     { key: 'startDate', header: 'Start Date' },
