@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,6 +16,8 @@ import SidebarMenu from '@/components/Sidebar/SidebarMenu';
 import { useAuth } from '@/hooks/useAuth';
 
 const Navbar: React.FC = () => {
+  const navigate = useNavigate();
+
   const initialNotifications = [
     {
       id: 1,
@@ -66,16 +68,47 @@ const Navbar: React.FC = () => {
     setDropdownOpen(!dropdownOpen);
   };
 
+  const handleUserSettings = () => {
+    const settingsBaseLink = (() => {
+      switch (currentUser?.roleName) {
+        case 'ADMIN':
+          return '/admin/settings/profile';
+        case 'SUPERVISOR':
+          return '/supervisor/settings/profile';
+        case 'DOCTOR':
+          return '/doctor/settings/profile';
+        case 'GAME THERAPIST':
+          return '/game-therapist/settings/profile';
+        case 'GUARDIAN':
+          return '/guardian/settings/profile';
+        default:
+          return '/login';
+      }
+    })();
+
+    navigate(settingsBaseLink, { replace: true });
+  };
+
   const handleLogout = () => {
     logout();
   };
 
-  const linkPath =
-    currentUser?.roleName === 'ADMIN'
-      ? '/admin/manage-accounts'
-      : currentUser?.roleName === 'SUPERVISOR'
-      ? '/supervisor/manage-patients'
-      : '/login';
+  const linkPath = (() => {
+    switch (currentUser?.roleName) {
+      case 'ADMIN':
+        return '/admin/manage-accounts';
+      case 'SUPERVISOR':
+        return '/supervisor/manage-patients';
+      case 'DOCTOR':
+        return '/doctor/temp-page';
+      case 'GAME THERAPIST':
+        return '/game-therapist/temp-page';
+      case 'GUARDIAN':
+        return '/guardian/temp-page';
+      default:
+        return '/login';
+    }
+  })();
 
   return (
     <nav className="bg-background border-b">
@@ -191,7 +224,9 @@ const Navbar: React.FC = () => {
               <DropdownMenuContent align="end">
                 <DropdownMenuLabel>My Account</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>Settings</DropdownMenuItem>
+                <DropdownMenuItem onClick={handleUserSettings}>
+                  Settings
+                </DropdownMenuItem>
                 <DropdownMenuItem>Support</DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleLogout}>
