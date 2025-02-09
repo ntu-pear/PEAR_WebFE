@@ -37,7 +37,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       const response = await getCurrentUser();
       console.log(response);
       setCurrentUser(response);
-      toast.success('Login successful.');
+
+      if (response?.roleName !== 'CAREGIVER') {
+        toast.success('Login successful.');
+      }
     } catch (error) {
       if (error instanceof Error) {
         toast.error(`Failed to Login. ${error.message}`);
@@ -53,7 +56,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   const logout = async () => {
     setCurrentUser(null);
     await sendLogout();
-    toast.success('Logout successful.');
+
+    if (currentUser?.roleName !== 'CAREGIVER') {
+      toast.success('Logout successful.');
+    }
+
     navigate('/login', { replace: true });
     setIsLoading(false);
   };
