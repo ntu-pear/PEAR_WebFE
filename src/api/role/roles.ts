@@ -25,3 +25,16 @@ export const fetchRoles = async () => {
     throw error;
   }
 };
+
+export const deleteRole = async (id: string) => {
+  try {
+    const token = retrieveTokenFromCookie()
+    if (!token) throw new Error('Token not found')
+    const response = await roleAPI.delete(`/${id}`)
+    console.log('DELETE role', response.data)
+    return response.data
+  } catch (error) {
+    console.error('GET all roles', error)
+    throw error;
+  }
+}
