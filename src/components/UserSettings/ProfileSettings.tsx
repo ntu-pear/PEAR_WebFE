@@ -20,17 +20,20 @@ const ProfileSettings: React.FC = () => {
   const { activeModal, openModal } = useModal();
   const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
 
-  const handleFetchProfile = () => {
+  const handleFetchProfilePhoto = async () => {
     setProfilePhoto('https://github.com/shadcn.png');
   };
 
-  useEffect(() => {
-    handleFetchProfile();
-  }, []);
+  const handleFetchProfileData = async () => {};
 
-  const refreshProfileData = () => {
-    handleFetchProfile();
+  const refreshProfile = () => {
+    handleFetchProfilePhoto();
+    handleFetchProfileData();
   };
+
+  useEffect(() => {
+    refreshProfile();
+  }, []);
 
   return (
     <>
@@ -77,7 +80,7 @@ const ProfileSettings: React.FC = () => {
                       <DropdownMenuItem
                         onClick={() =>
                           openModal('uploadProfilePhoto', {
-                            refreshProfileData,
+                            refreshProfile,
                           })
                         }
                       >
@@ -88,7 +91,7 @@ const ProfileSettings: React.FC = () => {
                         className="text-destructive focus:text-destructive"
                         onClick={() =>
                           openModal('deleteProfilePhoto', {
-                            refreshProfileData,
+                            refreshProfile,
                           })
                         }
                       >

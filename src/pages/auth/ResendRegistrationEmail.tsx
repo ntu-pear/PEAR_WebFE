@@ -1,7 +1,7 @@
 import {
   RequestResetPasswordForm,
-  resendtRegistrationEmail,
-} from '@/api/users/auth';
+  resendRegistrationEmail,
+} from '@/api/users/user';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -40,7 +40,7 @@ const ResendRegistrationEmail: React.FC = () => {
         'resendRegistrationEmailFormData: ',
         resendRegistrationEmailFormData
       );
-      await resendtRegistrationEmail(resendRegistrationEmailFormData);
+      await resendRegistrationEmail(resendRegistrationEmailFormData);
       toast.success('A new registration link have been sent to your email.');
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
