@@ -34,7 +34,7 @@ const EditRoles: React.FC = () => {
                         Role ID: {role.id}
                       </CardHeader>
                       <CardContent className="py-4 text-xl flex justify-between">
-                        {role.name}
+                        {role.roleName}
                         <div>
                           <Button
                             className="border-green-500 bg-transparent text-green-500 border-2 mr-1"

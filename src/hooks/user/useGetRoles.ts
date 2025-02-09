@@ -1,9 +1,8 @@
-import { mockRolesList } from "@/mocks/mockRoles"
+import { fetchRoles } from "@/api/role/roles"
 import { useQuery } from "@tanstack/react-query"
 
 const useGetRoles = () => {
-    // to be replaced with real api call
-    return useQuery({queryKey: ['roles'], queryFn: () => mockRolesList})
+    return useQuery({queryKey: ['roles'], queryFn: fetchRoles})
 }
 
 export default useGetRoles
