@@ -16,7 +16,7 @@ export const fetchRoles = async () => {
   try {
     const token = retrieveTokenFromCookie()
     if (!token) throw new Error('Token not found')
-    const response = await roleAPI.get<Role[]>('/')
+    const response = await roleAPI.get<Role[]>('/', { headers: { Authorization: `Bearer ${token}` } })
     console.log('GET all roles', response.data)
     return response.data
   } catch (error) {
@@ -30,11 +30,24 @@ export const deleteRole = async (id: string) => {
   try {
     const token = retrieveTokenFromCookie()
     if (!token) throw new Error('Token not found')
-    const response = await roleAPI.delete(`/${id}`)
+    const response = await roleAPI.delete(`/${id}`, { headers: { Authorization: `Bearer ${token}` } })
     console.log('DELETE role', response.data)
     return response.data
   } catch (error) {
     console.error('GET all roles', error)
+    throw error;
+  }
+}
+
+export const createRole = async (name: string) => {
+  try {
+    const token = retrieveTokenFromCookie()
+    if (!token) throw new Error('Token not found')
+    const response = await roleAPI.post<Role>('/', { roleName: name }, { headers: { Authorization: `Bearer ${token}` } })
+    console.log('Create role', response.data)
+    return response.data
+  } catch (error) {
+    console.error('Create role', error)
     throw error;
   }
 }
