@@ -1,12 +1,12 @@
 import {
-  requestResetPassword,
   RequestResetPasswordForm,
+  resendtRegistrationEmail,
 } from '@/api/users/auth';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
-const ForgotPassword: React.FC = () => {
+const ResendRegistrationEmail: React.FC = () => {
   const [nric, setNRIC] = useState<string>('');
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -19,7 +19,7 @@ const ForgotPassword: React.FC = () => {
     e.currentTarget.value = e.currentTarget.value.toUpperCase();
   };
 
-  const handleRequestResetPassword = async (event: React.FormEvent) => {
+  const handleResendRegistrationEmail = async (event: React.FormEvent) => {
     event.preventDefault();
 
     // Create a new FormData object from the event's target
@@ -28,7 +28,7 @@ const ForgotPassword: React.FC = () => {
     // Convert FormData entries to an object
     const formDataObj = Object.fromEntries(formData.entries());
 
-    const requestResetPasswordFormData: RequestResetPasswordForm = {
+    const resendRegistrationEmailFormData: RequestResetPasswordForm = {
       nric_DateOfBirth: formDataObj.dateOfBirth as string,
       nric: formDataObj.nric as string,
       email: formDataObj.email as string,
@@ -37,14 +37,14 @@ const ForgotPassword: React.FC = () => {
 
     try {
       console.log(
-        'requestResetPasswordFormData: ',
-        requestResetPasswordFormData
+        'resendRegistrationEmailFormData: ',
+        resendRegistrationEmailFormData
       );
-      await requestResetPassword(requestResetPasswordFormData);
-      toast.success('Reset password link have been sent to your email.');
+      await resendtRegistrationEmail(resendRegistrationEmailFormData);
+      toast.success('A new registration link have been sent to your email.');
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
-      toast.error('Invalid Details. Failed to send reset password link');
+      toast.error('Invalid Details. Failed to send registration link');
     }
   };
 
@@ -63,8 +63,10 @@ const ForgotPassword: React.FC = () => {
         <div className="flex justify-center mb-8">
           <img className="h-24 w-48" src="/pear.png" alt="Pear Logo" />
         </div>
-        <h2 className="text-2xl font-bold text-center mb-6">Forgot Password</h2>
-        <form className="space-y-4" onSubmit={handleRequestResetPassword}>
+        <h2 className="text-2xl font-bold text-center mb-6">
+          Resend Registration Email
+        </h2>
+        <form className="space-y-4" onSubmit={handleResendRegistrationEmail}>
           <div className="space-y-2">
             <label
               htmlFor="dob"
@@ -145,7 +147,7 @@ const ForgotPassword: React.FC = () => {
             </div>
           </div>
           <Button className="w-full bg-cyan-500 hover:bg-cyan-600 text-white">
-            Send Reset Password Email
+            Resend Registration Email
           </Button>
         </form>
         <div className="text-center mt-4">
@@ -158,4 +160,4 @@ const ForgotPassword: React.FC = () => {
   );
 };
 
-export default ForgotPassword;
+export default ResendRegistrationEmail;

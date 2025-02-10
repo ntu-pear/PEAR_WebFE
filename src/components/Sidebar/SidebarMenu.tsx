@@ -138,7 +138,7 @@ const adminMenu: MenuSection[] = [
         path: '/admin/manage-accounts',
       },
       {
-        title: 'Add Patients',
+        title: 'Register Account',
         icon: 'UserRoundPlus',
         path: '/admin/register-account',
       },
@@ -153,9 +153,9 @@ const adminMenu: MenuSection[] = [
     title: 'CENTRES',
     items: [
       {
-        title: 'Manage Activities',
+        title: 'Manage centre',
         icon: 'List',
-        path: '/admin/manage-activities',
+        path: '/admin/manage-centre',
       },
     ],
   },
@@ -200,7 +200,7 @@ const adminMenu: MenuSection[] = [
       {
         title: 'Account Logs',
         icon: 'UserRound',
-        path: '/admin/view-highlights',
+        path: '/admin/account-logs',
       },
       {
         title: 'Manage Approval Requests',
@@ -211,6 +211,127 @@ const adminMenu: MenuSection[] = [
         title: 'Manage Notification Scenarios',
         icon: 'BookText',
         path: '/admin/manage-notification-scenarios',
+      },
+    ],
+  },
+];
+
+const doctorMenu: MenuSection[] = [
+  {
+    title: 'PATIENTS',
+    items: [
+      {
+        title: 'Manage Patients',
+        icon: 'UserRound',
+        path: '/doctor/manage-patients',
+      },
+    ],
+  },
+
+  {
+    title: 'DEMENTIA',
+    items: [
+      {
+        title: 'Manage Dementia',
+        icon: 'BriefcaseMedical',
+        path: '/doctor/manage-dementia',
+      },
+    ],
+  },
+  {
+    title: 'SEARCH',
+    items: [
+      {
+        title: 'Search',
+        icon: 'Search',
+        path: '/doctor/search',
+      },
+    ],
+  },
+];
+
+const gameTherapistMenu: MenuSection[] = [
+  {
+    title: 'PATIENTS',
+    items: [
+      {
+        title: 'Manage Patients',
+        icon: 'UserRound',
+        path: '/game-therapist/manage-patients',
+      },
+    ],
+  },
+
+  {
+    title: 'DEMENTIA',
+    items: [
+      {
+        title: 'Manage Game Dementia',
+        icon: 'List',
+        path: '/game-therapist/manage-game-dementia',
+      },
+      {
+        title: 'View Dementia Game Category',
+        icon: 'List',
+        path: '/game-therapist/view-dementia-game-category',
+      },
+      {
+        title: 'View Game Recommendations',
+        icon: 'List',
+        path: '/game-therapist/view-game-recommendations',
+      },
+    ],
+  },
+  {
+    title: 'GAME',
+    items: [
+      {
+        title: 'Add Game',
+        icon: 'Plus',
+        path: '/game-therapist/add-game',
+      },
+      {
+        title: 'Manage Game',
+        icon: 'Gamepad2',
+        path: '/game-therapist/manage-game',
+      },
+    ],
+  },
+  {
+    title: 'GAME RECORD',
+    items: [
+      {
+        title: 'View Game Record',
+        icon: 'File',
+        path: '/game-therapist/view-game-record',
+      },
+      {
+        title: 'Export Game Record',
+        icon: 'File',
+        path: '/game-therapist/export-game-record',
+      },
+    ],
+  },
+  {
+    title: 'SEARCH',
+    items: [
+      {
+        title: 'Search',
+        icon: 'Search',
+        path: '/game-therapist/search',
+      },
+    ],
+  },
+];
+
+const guardianMenu: MenuSection[] = [
+  {
+    title: 'PATIENTS',
+    items: [
+      {
+        title: 'Patient Information',
+        icon: 'UserRound',
+        path: '/guardian/patient-information',
       },
     ],
   },
@@ -271,12 +392,22 @@ const SidebarMenu: React.FC = () => {
   const [open, setOpen] = useState(false);
   const closeSheet = () => setOpen(false);
   const { currentUser } = useAuth();
-  const menuSections =
-    currentUser?.roleName === 'ADMIN'
-      ? adminMenu
-      : currentUser?.roleName === 'SUPERVISOR'
-      ? supervisorMenu
-      : null;
+  const menuSections = (() => {
+    switch (currentUser?.roleName) {
+      case 'ADMIN':
+        return adminMenu;
+      case 'SUPERVISOR':
+        return supervisorMenu;
+      case 'DOCTOR':
+        return doctorMenu;
+      case 'GAME THERAPIST':
+        return gameTherapistMenu;
+      case 'GUARDIAN':
+        return guardianMenu;
+      default:
+        return null;
+    }
+  })();
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
