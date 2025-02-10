@@ -35,7 +35,7 @@ import TempPage from './pages/TempPage';
 import ResetPassword from './pages/auth/ResetPassword';
 import ResendRegistrationEmail from './pages/auth/ResendRegistrationEmail';
 
-const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false, staleTime: Infinity } } });
+export const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false, staleTime: Infinity } } });
 
 const App: React.FC = () => {
   return (
