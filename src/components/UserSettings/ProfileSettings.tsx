@@ -10,28 +10,16 @@ import {
   DropdownMenuTrigger,
 } from '../ui/dropdown-menu';
 import { Trash2, Upload, UserRound } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useModal } from '@/hooks/useModal';
 import UploadProfilePhotoModal from '../Modal/UploadProfilePhotoModal';
 import ConfirmProfilePhotoModal from '../Modal/ConfirmProfilePhotoModal';
 import DeleteProfilePhotoModal from '../Modal/DeleteProfilePhotoModel';
-import { fetchUserProfilePhoto } from '@/api/users/user';
+import { useUserProfile } from '@/hooks/useUserProfile';
 
 const ProfileSettings: React.FC = () => {
   const { activeModal, openModal } = useModal();
-  const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
-
-  const handleFetchProfilePhoto = async () => {
-    const photoURL = await fetchUserProfilePhoto();
-    setProfilePhoto(photoURL);
-  };
-
-  const handleFetchProfileData = async () => {};
-
-  const refreshProfile = () => {
-    handleFetchProfilePhoto();
-    handleFetchProfileData();
-  };
+  const { profilePhoto, refreshProfile } = useUserProfile();
 
   useEffect(() => {
     refreshProfile();
@@ -79,11 +67,7 @@ const ProfileSettings: React.FC = () => {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-48">
                       <DropdownMenuItem
-                        onClick={() =>
-                          openModal('uploadProfilePhoto', {
-                            refreshProfile,
-                          })
-                        }
+                        onClick={() => openModal('uploadProfilePhoto')}
                       >
                         <Upload className="mr-2 h-4 w-4" />
                         Upload Photo

@@ -4,19 +4,17 @@ import { Input } from '../ui/input';
 import { useState } from 'react';
 
 const ProfilePhotoInputModal: React.FC = () => {
-  const { modalRef, activeModal, openModal, closeModal } = useModal();
-  const { refreshProfileData } = activeModal.props as {
-    refreshProfileData: () => void;
-  };
+  const { modalRef, openModal, closeModal } = useModal();
   const [error, setError] = useState('');
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
       // Check if the file is an image type (jpg, jpeg, png)
-      const validTypes = ['image/jpeg', 'image/png'];
+      const validTypes = ['image/jpeg' /*'image/png'*/];
       if (!validTypes.includes(file.type)) {
-        setError('Please upload a JPG, JPEG, or PNG file.');
+        // setError('Please upload a JPG, JPEG, or PNG file.');
+        setError('Please upload a JPG or JPEG file.');
         return;
       }
 
@@ -34,7 +32,6 @@ const ProfilePhotoInputModal: React.FC = () => {
         closeModal();
         openModal('confirmProfilePhoto', {
           tempPhoto: reader.result as string,
-          refreshProfileData,
         });
       };
       reader.readAsDataURL(file);

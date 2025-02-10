@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   DropdownMenu,
@@ -14,13 +14,12 @@ import { useTheme } from '@/components/ThemeProvider';
 // import Sidebar from '@/components/Sidebar';
 import SidebarMenu from '@/components/Sidebar/SidebarMenu';
 import { useAuth } from '@/hooks/useAuth';
-import { fetchUserProfilePhoto } from '@/api/users/user';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
-import { NavbarContext } from '@/hooks/useNavbar';
+
+import { useUserProfile } from '@/hooks/useUserProfile';
 
 const Navbar: React.FC = () => {
   const navigate = useNavigate();
-  const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
 
   const initialNotifications = [
     {
@@ -63,21 +62,10 @@ const Navbar: React.FC = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [notifications, setNotifications] = useState(initialNotifications);
   const { currentUser, logout } = useAuth();
+  const { profilePhoto } = useUserProfile();
 
   const clearNotifications = () => {
     setNotifications([]);
-  };
-
-  const handleFetchProfilePhoto = async () => {
-    const photoURL = await fetchUserProfilePhoto();
-    setProfilePhoto(photoURL);
-  };
-
-  const handleFetchProfileData = async () => {};
-
-  const refreshProfileInNav = () => {
-    handleFetchProfilePhoto();
-    handleFetchProfileData();
   };
 
   const toggleDropdown = () => {
@@ -126,12 +114,8 @@ const Navbar: React.FC = () => {
     }
   })();
 
-  useEffect(() => {
-    refreshProfileInNav();
-  }, []);
-
   return (
-    <NavbarContext.Provider value={{ refreshProfileInNav }}>
+    <>
       <nav className="bg-background border-b">
         <div className="mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-20">
@@ -259,7 +243,7 @@ const Navbar: React.FC = () => {
           </div>
         </div>
       </nav>
-    </NavbarContext.Provider>
+    </>
   );
 };
 

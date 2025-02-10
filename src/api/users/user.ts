@@ -99,3 +99,26 @@ export const fetchUserProfilePhoto = async () => {
     throw error;
   }
 };
+
+export const updateUserProfilePhoto = async (formData: FormData) => {
+  try {
+    const token = retrieveTokenFromCookie();
+    if (!token) throw new Error('No token found.');
+
+    const response = await usersAPI.post(
+      `/upload_profile_pic/?token=${token}`,
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      }
+    );
+
+    console.log('POST update user profile photo', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('POST update user profile photo', error);
+    throw error;
+  }
+};
