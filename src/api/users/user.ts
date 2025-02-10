@@ -85,21 +85,17 @@ export const resendRegistrationEmail = async (
   }
 };
 
-// export const fetchUserProfilePhoto = async () => {
-//   try {
-//     const token = retrieveTokenFromCookie();
-//     if (!token) throw new Error('No token found.');
+export const fetchUserProfilePhoto = async () => {
+  try {
+    const token = retrieveTokenFromCookie();
+    if (!token) throw new Error('No token found.');
 
-//     const response = await usersAPI.get('/profile_pic/', {
-//       headers: {
-//         Authorization: `Bearer ${token}`,
-//       },
-//     });
+    const response = await usersAPI.get(`/profile_pic/?token=${token}`);
 
-//     console.log('GET fetch user profile photo', response.data);
-//     return response.data;
-//   } catch (error) {
-//     console.error('GET fetch user profile photo', error);
-//     throw error;
-//   }
-// };
+    console.log('GET fetch user profile photo', response.data);
+    return response?.data?.image_url;
+  } catch (error) {
+    console.error('GET fetch user profile photo', error);
+    throw error;
+  }
+};

@@ -9,19 +9,21 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '../ui/dropdown-menu';
-import { Trash2, Upload } from 'lucide-react';
+import { Trash2, Upload, UserRound } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useModal } from '@/hooks/useModal';
 import UploadProfilePhotoModal from '../Modal/UploadProfilePhotoModal';
 import ConfirmProfilePhotoModal from '../Modal/ConfirmProfilePhotoModal';
 import DeleteProfilePhotoModal from '../Modal/DeleteProfilePhotoModel';
+import { fetchUserProfilePhoto } from '@/api/users/user';
 
 const ProfileSettings: React.FC = () => {
   const { activeModal, openModal } = useModal();
   const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
 
   const handleFetchProfilePhoto = async () => {
-    setProfilePhoto('https://github.com/shadcn.png');
+    const photoURL = await fetchUserProfilePhoto();
+    setProfilePhoto(photoURL);
   };
 
   const handleFetchProfileData = async () => {};
@@ -60,11 +62,10 @@ const ProfileSettings: React.FC = () => {
                 <p className="text-sm font-medium mb-2">Profile Photo</p>
                 <div className="relative inline-block group">
                   <Avatar className="h-52 w-52">
-                    <AvatarImage
-                      src={profilePhoto || 'https://github.com/shadcn.png'}
-                      alt="Profile"
-                    />
-                    <AvatarFallback>CN</AvatarFallback>
+                    <AvatarImage src={profilePhoto || ''} alt="Profile" />
+                    <AvatarFallback>
+                      <UserRound className="w-48 h-48 text-gray-500" />
+                    </AvatarFallback>
                   </Avatar>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
