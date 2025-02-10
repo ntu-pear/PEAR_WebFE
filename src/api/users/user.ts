@@ -122,3 +122,20 @@ export const updateUserProfilePhoto = async (formData: FormData) => {
     throw error;
   }
 };
+
+export const deleteUserProfilePhoto = async () => {
+  try {
+    const token = retrieveTokenFromCookie();
+    if (!token) throw new Error('No token found.');
+
+    const response = await usersAPI.delete(
+      `/delete_profile_pic/?token=${token}`
+    );
+
+    console.log('DELETE delete user profile photo', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('DELETE delete user profile photo', error);
+    throw error;
+  }
+};

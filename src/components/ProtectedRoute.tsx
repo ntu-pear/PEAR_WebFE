@@ -4,7 +4,6 @@ import Navbar from './Navbar';
 import { fetchUserProfilePhoto } from '@/api/users/user';
 import { useEffect, useState } from 'react';
 import { UserProfileContext } from '@/hooks/useUserProfile';
-import { toast } from 'sonner';
 
 interface ProtectedRouteProps {
   allowedRoles?: string[];
@@ -21,7 +20,8 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ allowedRoles }) => {
       setProfilePhoto(photoURL);
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
-      toast.error('Failed to fetch user profile photo.');
+      setProfilePhoto(null);
+      console.log('Failed to fetch user profile photo.');
     }
   };
 

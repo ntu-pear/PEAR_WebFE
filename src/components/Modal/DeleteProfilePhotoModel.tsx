@@ -1,25 +1,25 @@
 import { Button } from '../ui/button';
 import { toast } from 'sonner';
 import { useModal } from '@/hooks/useModal';
+import { useUserProfile } from '@/hooks/useUserProfile';
+import { deleteUserProfilePhoto } from '@/api/users/user';
 
 const DeleteProfilePhotoModal: React.FC = () => {
-  const { modalRef, activeModal, closeModal } = useModal();
-  const { refreshPhotoData } = activeModal.props as {
-    refreshPhotoData: () => void;
-  };
+  const { modalRef, closeModal } = useModal();
+  const { refreshProfile } = useUserProfile();
 
   const handleDeletePhoto = async (event: React.FormEvent) => {
     event.preventDefault();
-    // if (!photoId || isNaN(Number(photoId))) return;
+
     try {
-      //   await deletePatientAllergy(Number(photoId));
+      await deleteUserProfilePhoto();
+      refreshProfile();
       closeModal();
-      toast.success('Patient Photo deleted successfully.');
-      refreshPhotoData();
+      toast.success('User profile photo deleted successfully.');
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       closeModal();
-      toast.error('Failed to delete patient Photo.');
+      toast.error('Failed to delete user profile photo.');
     }
   };
 

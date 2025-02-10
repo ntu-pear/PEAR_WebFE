@@ -72,17 +72,15 @@ const ProfileSettings: React.FC = () => {
                         <Upload className="mr-2 h-4 w-4" />
                         Upload Photo
                       </DropdownMenuItem>
-                      <DropdownMenuItem
-                        className="text-destructive focus:text-destructive"
-                        onClick={() =>
-                          openModal('deleteProfilePhoto', {
-                            refreshProfile,
-                          })
-                        }
-                      >
-                        <Trash2 className="mr-2 h-4 w-4" />
-                        Remove Photo
-                      </DropdownMenuItem>
+                      {profilePhoto && (
+                        <DropdownMenuItem
+                          className="text-destructive focus:text-destructive"
+                          onClick={() => openModal('deleteProfilePhoto')}
+                        >
+                          <Trash2 className="mr-2 h-4 w-4" />
+                          Remove Photo
+                        </DropdownMenuItem>
+                      )}
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>
