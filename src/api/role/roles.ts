@@ -12,6 +12,12 @@ export interface Role {
   modifiedDate: string
 }
 
+export interface User {
+  id: string
+  fullName: string
+  role: string
+}
+
 export const fetchRoles = async () => {
   try {
     const token = retrieveTokenFromCookie()
@@ -39,15 +45,28 @@ export const deleteRole = async (id: string) => {
   }
 }
 
-export const createRole = async (name: string) => {
+export const createRole = async (roleName: string) => {
   try {
     const token = retrieveTokenFromCookie()
     if (!token) throw new Error('Token not found')
-    const response = await roleAPI.post<Role>('/', { roleName: name }, { headers: { Authorization: `Bearer ${token}` } })
+    const response = await roleAPI.post<Role>('/', { roleName }, { headers: { Authorization: `Bearer ${token}` } })
     console.log('Create role', response.data)
     return response.data
   } catch (error) {
     console.error('Create role', error)
+    throw error;
+  }
+}
+
+export const getUsersFromRole = async (roleName: string) => {
+  try {
+    const token = retrieveTokenFromCookie()
+    if (!token) throw new Error('Token not found')
+    const response = await roleAPI.get<User[]>(`/${roleName}/users`, { headers: { Authorization: `Bearer ${token}` } })
+    console.log('Get users from role', response.data)
+    return response.data
+  } catch (error) {
+    console.error('Get users from role', error)
     throw error;
   }
 }
