@@ -8,7 +8,8 @@ const VITE_GEOCODE_SERVICE_URL: string = import.meta.env
 
 // console.log('Patient Service URL:' + VITE_PATIENT_SERVICE_URL);
 
-const VITE_USER_SERVICE_URL: string = import.meta.env.VITE_USER_SERVICE_URL;
+export const VITE_USER_SERVICE_URL: string = import.meta.env
+  .VITE_USER_SERVICE_URL;
 
 // patient
 export const patientsAPI = axios.create({
@@ -81,10 +82,18 @@ export const loginAPI = axios.create({
   baseURL: `${VITE_USER_SERVICE_URL}/login`,
 });
 
+export const refreshTokenAPI = axios.create({
+  baseURL: `${VITE_USER_SERVICE_URL}/refresh`,
+});
+
 export const getCurrentUserAPI = axios.create({
   baseURL: `${VITE_USER_SERVICE_URL}/current_user`,
 });
 
 export const userAPI = axios.create({
   baseURL: `${VITE_USER_SERVICE_URL}/user`,
+});
+
+export const usersAPI = axios.create({
+  baseURL: `${VITE_USER_SERVICE_URL}/users`,
 });

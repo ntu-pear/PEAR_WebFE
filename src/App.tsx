@@ -34,8 +34,23 @@ import NotFound from './pages/NotFound';
 import TempPage from './pages/TempPage';
 import ResetPassword from './pages/auth/ResetPassword';
 import ResendRegistrationEmail from './pages/auth/ResendRegistrationEmail';
+import UserSettings from './pages/auth/UserSettings';
+import EmailSettings from './components/UserSettings/EmailSettings';
+import PasswordSettings from './components/UserSettings/PasswordSettings';
+import PersonalDataSettings from './components/UserSettings/PersonalDataSettings';
+import ProfileSettings from './components/UserSettings/ProfileSettings';
+import TwoFactorAuthSettings from './components/UserSettings/TwoFactorAuthSettings';
 
 const queryClient = new QueryClient();
+
+const settingsRoutes = [
+  { path: 'profile', element: <ProfileSettings /> },
+  { path: 'email', element: <EmailSettings /> },
+  { path: 'password', element: <PasswordSettings /> },
+  { path: 'two-factor-auth', element: <TwoFactorAuthSettings /> },
+  { path: 'personal-data', element: <PersonalDataSettings /> },
+  { path: '*', element: <Navigate to="profile" replace /> }, // Default redirect
+];
 
 const App: React.FC = () => {
   return (
@@ -89,6 +104,11 @@ const App: React.FC = () => {
                       />
                       <Route path="manage-adhoc" element={<ManageAdhoc />} />
                       <Route path="add-adhoc" element={<AddAdhoc />} />
+                      <Route path="settings/*" element={<UserSettings />}>
+                        {settingsRoutes.map(({ path, element }) => (
+                          <Route key={path} path={path} element={element} />
+                        ))}
+                      </Route>
                     </Route>
 
                     {/* Routes for Admin*/}
@@ -104,6 +124,11 @@ const App: React.FC = () => {
                         path="edit-user-in-role/:id"
                         element={<EditUserInRole />}
                       />
+                      <Route path="settings/*" element={<UserSettings />}>
+                        {settingsRoutes.map(({ path, element }) => (
+                          <Route key={path} path={path} element={element} />
+                        ))}
+                      </Route>
                     </Route>
 
                     {/* Routes for Doctor*/}
@@ -112,6 +137,11 @@ const App: React.FC = () => {
                       element={<ProtectedRoute allowedRoles={['DOCTOR']} />}
                     >
                       <Route path="temp-page" element={<TempPage />} />
+                      <Route path="settings/*" element={<UserSettings />}>
+                        {settingsRoutes.map(({ path, element }) => (
+                          <Route key={path} path={path} element={element} />
+                        ))}
+                      </Route>
                     </Route>
 
                     {/* Routes for Guardian*/}
@@ -120,6 +150,11 @@ const App: React.FC = () => {
                       element={<ProtectedRoute allowedRoles={['GUARDIAN']} />}
                     >
                       <Route path="temp-page" element={<TempPage />} />
+                      <Route path="settings/*" element={<UserSettings />}>
+                        {settingsRoutes.map(({ path, element }) => (
+                          <Route key={path} path={path} element={element} />
+                        ))}
+                      </Route>
                     </Route>
 
                     {/* Routes for Game Therapist*/}
@@ -130,6 +165,11 @@ const App: React.FC = () => {
                       }
                     >
                       <Route path="temp-page" element={<TempPage />} />
+                      <Route path="settings/*" element={<UserSettings />}>
+                        {settingsRoutes.map(({ path, element }) => (
+                          <Route key={path} path={path} element={element} />
+                        ))}
+                      </Route>
                     </Route>
 
                     <Route path="/unauthorized" element={<Unauthorized />} />

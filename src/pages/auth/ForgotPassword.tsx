@@ -1,7 +1,7 @@
 import {
   requestResetPassword,
   RequestResetPasswordForm,
-} from '@/api/users/auth';
+} from '@/api/users/user';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 import { toast } from 'sonner';

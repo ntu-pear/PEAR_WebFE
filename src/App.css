@@ -129,3 +129,8 @@
   color: #666;
 }
 
+/*make all shadcnui components not remove scrollbar*/
+html body[data-scroll-locked] {
+  overflow: visible !important;
+  margin-right: 0 !important;
+}
