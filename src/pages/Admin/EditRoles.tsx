@@ -1,6 +1,6 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import useGetRoles from '@/hooks/user/useGetRoles';
+import useGetRoles from '@/hooks/role/useGetRoles';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router';
 import { useModal } from '@/hooks/useModal';

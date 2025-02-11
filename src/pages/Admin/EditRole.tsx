@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 import { Button } from '@/components/ui/button';
 import { useLocation, useNavigate } from 'react-router';
-import useGetUsersFromRole from '@/hooks/user/useGetUsersFromRole';
+import useGetUsersFromRole from '@/hooks/role/useGetUsersFromRole';
 import { convertToLowerCamelCase } from '@/utils/convertToLowerCamelCase';
 import { UserRole } from '@/mocks/mockRoles';
 

@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { useLocation, useNavigate } from 'react-router';
 import useGetUsers from '@/hooks/user/useGetUsers';
 import { SubmitHandler, useForm } from 'react-hook-form';
-import useEditUsersInRole from '@/hooks/user/useEditUsersInRole';
+import useEditUsersInRole from '@/hooks/role/useEditUsersInRole';
 
 const EditUserInRole: React.FC = () => {
   const navigate = useNavigate()
