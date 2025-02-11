@@ -10,7 +10,6 @@ import {
   DropdownMenuTrigger,
 } from '../ui/dropdown-menu';
 import { Trash2, Upload, UserRound } from 'lucide-react';
-import { useEffect } from 'react';
 import { useModal } from '@/hooks/useModal';
 import UploadProfilePhotoModal from '../Modal/UploadProfilePhotoModal';
 import ConfirmProfilePhotoModal from '../Modal/ConfirmProfilePhotoModal';
@@ -19,11 +18,7 @@ import { useUserProfile } from '@/hooks/useUserProfile';
 
 const ProfileSettings: React.FC = () => {
   const { activeModal, openModal } = useModal();
-  const { profilePhoto, refreshProfile } = useUserProfile();
-
-  useEffect(() => {
-    refreshProfile();
-  }, []);
+  const { profilePhoto } = useUserProfile();
 
   return (
     <>

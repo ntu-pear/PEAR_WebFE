@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { userAPI, usersAPI } from '../apiConfig';
-import { retrieveTokenFromCookie } from './auth';
+import { retrieveAccessTokenFromCookie } from './auth';
 
 export interface RequestResetPasswordForm {
   nric_DateOfBirth: string;
@@ -87,7 +87,7 @@ export const resendRegistrationEmail = async (
 
 export const fetchUserProfilePhoto = async () => {
   try {
-    const token = retrieveTokenFromCookie();
+    const token = retrieveAccessTokenFromCookie();
     if (!token) throw new Error('No token found.');
 
     const response = await usersAPI.get(`/profile_pic/?token=${token}`);
@@ -102,7 +102,7 @@ export const fetchUserProfilePhoto = async () => {
 
 export const updateUserProfilePhoto = async (formData: FormData) => {
   try {
-    const token = retrieveTokenFromCookie();
+    const token = retrieveAccessTokenFromCookie();
     if (!token) throw new Error('No token found.');
 
     const response = await usersAPI.post(
@@ -125,7 +125,7 @@ export const updateUserProfilePhoto = async (formData: FormData) => {
 
 export const deleteUserProfilePhoto = async () => {
   try {
-    const token = retrieveTokenFromCookie();
+    const token = retrieveAccessTokenFromCookie();
     if (!token) throw new Error('No token found.');
 
     const response = await usersAPI.delete(

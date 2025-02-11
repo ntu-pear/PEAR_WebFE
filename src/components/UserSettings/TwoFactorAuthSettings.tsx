@@ -2,8 +2,8 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Switch } from '../ui/switch';
 import { useModal } from '@/hooks/useModal';
-import VerifyEmailModal from '../Modal/VerifyEmailModal';
 import { useState } from 'react';
+import Enable2FAModal from '../Modal/Enable2FAModal';
 
 const TwoFactorAuthSettings: React.FC = () => {
   const { activeModal, openModal } = useModal();
@@ -12,7 +12,7 @@ const TwoFactorAuthSettings: React.FC = () => {
   const handleSwitchChange = (checked: boolean) => {
     setIsSwitchOn(checked);
     if (checked) {
-      openModal('verifyEmail');
+      openModal('enable2FA');
     }
   };
 
@@ -53,8 +53,8 @@ const TwoFactorAuthSettings: React.FC = () => {
           </Card>
         </CardContent>
       </Card>
-      {activeModal.name === 'verifyEmail' && (
-        <VerifyEmailModal onCancelClick={handleCancelClick} />
+      {activeModal.name === 'enable2FA' && (
+        <Enable2FAModal onCancelClick={handleCancelClick} />
       )}
     </>
   );

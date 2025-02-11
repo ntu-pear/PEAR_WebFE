@@ -6,9 +6,7 @@ interface VerifyEmailModalProps {
   onCancelClick: () => void;
 }
 
-const VerifyEmailModal: React.FC<VerifyEmailModalProps> = ({
-  onCancelClick,
-}) => {
+const Enable2FAModal: React.FC<VerifyEmailModalProps> = ({ onCancelClick }) => {
   const { modalRef, closeModal, setOutsideClickCallback } = useModal();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -36,8 +34,8 @@ const VerifyEmailModal: React.FC<VerifyEmailModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-      <div ref={modalRef} className="bg-background p-8 rounded-md w-[400px]">
-        <h3 className="text-lg font-medium mb-5">Verify Email</h3>
+      <div ref={modalRef} className="bg-background p-8 rounded-md w-[350px]">
+        <h3 className="text-lg font-medium mb-5">Enable 2FA</h3>
         <form
           onSubmit={handleEnableEmail2FA}
           className="grid grid-cols-2 gap-4"
@@ -71,4 +69,4 @@ const VerifyEmailModal: React.FC<VerifyEmailModalProps> = ({
   );
 };
 
-export default VerifyEmailModal;
+export default Enable2FAModal;

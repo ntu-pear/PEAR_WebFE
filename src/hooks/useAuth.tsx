@@ -1,7 +1,7 @@
 import {
   CurrentUser,
   getCurrentUser,
-  retrieveTokenFromCookie,
+  retrieveAccessTokenFromCookie,
   sendLogin,
   sendLogout,
 } from '@/api/users/auth';
@@ -65,14 +65,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     setIsLoading(false);
   };
 
-  const fetchUserOnRefresh = async () => {
+  const fetchUser = async () => {
     try {
-      const token = retrieveTokenFromCookie();
-      if (!token) {
-        console.log('No token found. Skipping fetch.');
-        return;
-      }
-
+      setIsLoading(true);
       const user = await getCurrentUser();
       if (user?.roleName === 'CAREGIVER') {
         throw new Error('Caregiver is only available on mobile application.');
@@ -84,12 +79,17 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       console.error('Failed to fetch user on refresh:', error);
       setCurrentUser(null);
       navigate('/login', { replace: true });
+    } finally {
+      setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchUserOnRefresh().finally(() => setIsLoading(false));
-  }, []);
+    const token = retrieveAccessTokenFromCookie();
+    if (token && !currentUser) {
+      fetchUser();
+    }
+  }, [currentUser]);
 
   return (
     <AuthContext.Provider value={{ currentUser, login, logout, isLoading }}>

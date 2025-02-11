@@ -36,7 +36,9 @@ const PersonalDataSettings: React.FC = () => {
       </CardContent>
       <CardFooter className="flex gap-4 justify-start pt-2 pb-6">
         <Button>Download</Button>
-        <Button variant="destructive">Delete Account</Button>
+        <Button variant="destructive" disabled>
+          Delete Account
+        </Button>
       </CardFooter>
     </Card>
   );

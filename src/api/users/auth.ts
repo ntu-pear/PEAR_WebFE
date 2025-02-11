@@ -1,27 +1,45 @@
-import { loginAPI, getCurrentUserAPI } from '../apiConfig';
+import { loginAPI, getCurrentUserAPI, refreshTokenAPI } from '../apiConfig';
 import Cookies from 'js-cookie';
+import {
+  addAuthInterceptor,
+  addUsersAPIInterceptor,
+  ejectAuthInterceptor,
+  ejectUsersAPIInterceptor,
+} from '../interceptors';
 
 export interface Token {
   access_token: string;
-  token_type: string;
+  refresh_token: string;
 }
 
 export interface CurrentUser {
   userId: string;
   roleName: string;
+  fullName: string;
 }
 
-const TOKEN_COOKIE_NAME = 'token';
-const TOKEN_EXPIRATION_TIME = 1 / 96; // 15 minutes in days
+const ACCESS_TOKEN_COOKIE_NAME = 'access_token';
+const REFRESH_TOKEN_COOKIE_NAME = 'refresh_token';
 
-export const storeTokenInCookie = (token: string) => {
-  Cookies.set(TOKEN_COOKIE_NAME, token, {
-    expires: TOKEN_EXPIRATION_TIME,
-  });
+export const storeTokenInCookie = (
+  access_token: string,
+  refresh_token: string
+) => {
+  Cookies.set(ACCESS_TOKEN_COOKIE_NAME, access_token);
+
+  Cookies.set(REFRESH_TOKEN_COOKIE_NAME, refresh_token);
 };
 
-export const retrieveTokenFromCookie = () => {
-  return Cookies.get(TOKEN_COOKIE_NAME);
+export const updateAccessTokenInCookie = (access_token: string) => {
+  Cookies.set(ACCESS_TOKEN_COOKIE_NAME, access_token);
+};
+
+export const retrieveAccessTokenFromCookie = () => {
+  return Cookies.get(ACCESS_TOKEN_COOKIE_NAME);
+};
+
+export const retrieveRefreshTokenFromCookie = () => {
+  return Cookies.get(REFRESH_TOKEN_COOKIE_NAME);
 };
 
 export const sendLogin = async (formData: FormData): Promise<Token> => {
@@ -35,17 +53,17 @@ export const sendLogin = async (formData: FormData): Promise<Token> => {
       oAuth2FormData.append(field, value);
     }
 
-    const response = await loginAPI.post('', oAuth2FormData, {
+    const response = await loginAPI.post('/', oAuth2FormData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
     });
-    if (!response) throw new Error('Login failed, no token received.');
 
     console.log('POST login data', response.data);
 
-    storeTokenInCookie(response.data.access_token);
-
+    storeTokenInCookie(response.data.access_token, response.data.refresh_token);
+    addAuthInterceptor();
+    addUsersAPIInterceptor();
     return response.data;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
@@ -56,10 +74,10 @@ export const sendLogin = async (formData: FormData): Promise<Token> => {
 
 export const getCurrentUser = async () => {
   try {
-    const token = retrieveTokenFromCookie();
+    const token = retrieveAccessTokenFromCookie();
     if (!token) throw new Error('No token found.');
 
-    const response = await getCurrentUserAPI.get('', {
+    const response = await getCurrentUserAPI.get('/', {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -73,6 +91,25 @@ export const getCurrentUser = async () => {
   }
 };
 
+export const refreshAccessToken = async () => {
+  try {
+    const refresh_token = retrieveRefreshTokenFromCookie();
+    if (!refresh_token) throw new Error('No refresh token found.');
+
+    const response = await refreshTokenAPI.post('/', { refresh_token });
+    updateAccessTokenInCookie(response.data.access_token);
+
+    console.log('POST refresh user access token.', response);
+    return response;
+  } catch (error) {
+    console.error('POST refresh user access token.');
+    throw error;
+  }
+};
+
 export const sendLogout = () => {
-  Cookies.remove(TOKEN_COOKIE_NAME);
+  Cookies.remove(ACCESS_TOKEN_COOKIE_NAME);
+  Cookies.remove(REFRESH_TOKEN_COOKIE_NAME);
+  ejectAuthInterceptor();
+  ejectUsersAPIInterceptor();
 };
