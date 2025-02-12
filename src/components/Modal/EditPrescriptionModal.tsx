@@ -229,7 +229,7 @@ const EditPrescriptionModal: React.FC = () => {
               <Button type="button" variant="secondary" onClick={closeModal}>
                 Cancel
               </Button>
-              <Button type="submit" variant="destructive">Save Changes</Button>
+              <Button type="submit" variant="save">Save Changes</Button>
             </div>
           </form>
         ) : (
