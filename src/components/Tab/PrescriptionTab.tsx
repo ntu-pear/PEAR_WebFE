@@ -49,11 +49,11 @@ const PrescriptionTab: React.FC<TabProps> = ({ id }) => {
     { key: 'drugName', header: 'Drug Name', className: 'truncate-column' },
     { key: 'dosage', header: 'Dosage', className: 'truncate-column' },
     { key: 'frequencyPerDay', header: 'Frequency Per Day' },
-    { key: 'instruction', header: 'Instruction', className: 'truncate-column' },
+    //{ key: 'instruction', header: 'Instruction', className: 'truncate-column' },
     { key: 'startDate', header: 'Start Date' },
     { key: 'endDate', header: 'End Date' },
     { key: 'afterMeal', header: 'After Meal', className: 'truncate-column' },
-    { key: 'remark', header: 'Remark', className: 'truncate-column' },
+    //{ key: 'remark', header: 'Remark', className: 'truncate-column' },
     { key: 'status', header: 'Status', className: 'truncate-column' },
   ];
 
@@ -104,7 +104,7 @@ const PrescriptionTab: React.FC<TabProps> = ({ id }) => {
                       
                     }
                   >
-                    View
+                    More Details
                   </Button>
                   <Button
                     variant="destructive"
