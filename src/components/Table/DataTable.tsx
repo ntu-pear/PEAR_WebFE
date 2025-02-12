@@ -27,6 +27,7 @@ interface DataTableProps<T extends TableRowData> {
   viewMoreBaseLink?: string;
   activeTab?: string;
   hideActionsHeader?: boolean;
+  className?: string;
   renderActions?: (item: T) => React.ReactNode; // New prop to customize actions column
 }
 
@@ -38,6 +39,7 @@ function DataTable<T extends TableRowData>({
   viewMoreBaseLink,
   activeTab,
   hideActionsHeader = false, //default show actions header
+  className = '',
   renderActions, // Accept renderActions function as a prop
 }: DataTableProps<T>) {
   const [currentPage, setCurrentPage] = useState(1);
@@ -74,7 +76,7 @@ function DataTable<T extends TableRowData>({
   return (
     <div>
       <div className="rounded-md border">
-        <Table>
+        <Table className={className}>
           <TableHeader>
             <TableRow>
               {columns.map((column) => (

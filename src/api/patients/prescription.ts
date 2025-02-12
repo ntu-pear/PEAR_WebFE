@@ -7,7 +7,7 @@ import {
   getStatusDescription,
 } from '@/utils/convertToYesNo';
 import { formatDateString } from '@/utils/formatDate';
-import { prescriptionAPI } from '../apiConfig';
+import { patientPrescriptionAPI, prescriptionAPI } from '../apiConfig';
 
 export interface Prescription {
   IsDeleted: string;
@@ -65,6 +65,21 @@ export interface PrescriptionDelete {
   UpdatedById: number;
 }
 
+export interface PrescriptionUpdate {
+  PatientId: number;
+  PrescriptionListId: number;
+  Dosage: string;
+  FrequencyPerDay: number;
+  Instruction: string;
+  StartDate: string;
+  EndDate: string;
+  IsAfterMeal: string;
+  PrescriptionRemarks: string;
+  Status: string;
+  UpdatedDateTime: string;
+  UpdatedById: number;
+}
+
 const convertToPrescriptionTD = (
   prescriptionList: PrescriptionList[],
   prescriptions: Prescription[]
@@ -108,7 +123,7 @@ export const fetchPatientPrescription = async (
     const dlResponse = mockPrescriptionListData;
     console.log('GET all prescription List', dlResponse.data);
 
-    const ddResponse = await prescriptionAPI.get<Prescription[]>(
+    const ddResponse = await patientPrescriptionAPI.get<Prescription[]>(
       `/?patient_id=${patientId}&skip=${skip}&limit=${limit}`
     );
 
@@ -166,6 +181,25 @@ export const deletePatientPrescription = async (
     return response.data;
   } catch (error) {
     console.error('PUT Delete patient prescription', error);
+    throw error;
+  }
+};
+
+export const updatePatientPrescription = async (
+  prescriptionId: number,
+  prescriptionUpdate: PrescriptionUpdate
+): Promise<Prescription> => {
+  try {
+    const response = await prescriptionAPI.put<Prescription>(
+      `/update/${prescriptionId}`,
+      prescriptionUpdate
+    );
+
+    console.log('PUT Update patient prescription', response.data);
+
+    return response.data;
+  } catch (error) {
+    console.error('PUT Update patient prescription', error);
     throw error;
   }
 };

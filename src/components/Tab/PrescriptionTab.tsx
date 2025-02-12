@@ -11,6 +11,7 @@ import { fetchPatientPrescription } from '@/api/patients/prescription';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import DeletePrescriptionModal from '../Modal/DeletePrescriptionModal';
+import EditPrescriptionModal from '../Modal/EditPrescriptionModal';
 
 const PrescriptionTab: React.FC<TabProps> = ({ id }) => {
   const { activeModal, openModal } = useModal();
@@ -45,15 +46,15 @@ const PrescriptionTab: React.FC<TabProps> = ({ id }) => {
   };
 
   const prescriptionColumns = [
-    { key: 'drugName', header: 'Drug Name' },
+    { key: 'drugName', header: 'Drug Name', className: 'truncate-column' },
     { key: 'dosage', header: 'Dosage' },
     { key: 'frequencyPerDay', header: 'Frequency Per Day' },
-    { key: 'instruction', header: 'Instruction' },
+    { key: 'instruction', header: 'Instruction', className: 'truncate-column'},
     { key: 'startDate', header: 'Start Date' },
     { key: 'endDate', header: 'End Date' },
     { key: 'afterMeal', header: 'After Meal' },
-    { key: 'remark', header: 'Remark' },
-    { key: 'status', header: 'Status' },
+    //{ key: 'remark', header: 'Remark', className: 'truncate-column' },
+    { key: 'status', header: 'Status', className: 'truncate-column' },
   ];
 
   return (
@@ -86,8 +87,25 @@ const PrescriptionTab: React.FC<TabProps> = ({ id }) => {
               data={prescription}
               columns={prescriptionColumns}
               viewMore={false}
-              renderActions={(item) => (
-                <div className="flex space-x-2">
+              className='table-fixed'
+              renderActions={(item) => (                
+                <div className="flex space-x-2 flex-col">
+                  <Button 
+                    variant="default"
+                    size="sm"
+                    className="mt-3"
+                    onClick={() => {
+                      openModal('editPrescription', {
+                        prescriptionId: String(item.id),
+                        submitterId: '1',
+                        refreshPrescriptionData,
+                      })
+                    }
+                      
+                    }
+                  >
+                    More Details
+                  </Button>
                   <Button
                     variant="destructive"
                     size="sm"
@@ -110,6 +128,7 @@ const PrescriptionTab: React.FC<TabProps> = ({ id }) => {
       </TabsContent>
       {activeModal.name === 'addPrescription' && <AddPrescriptionModal />}
       {activeModal.name === 'deletePrescription' && <DeletePrescriptionModal />}
+      {activeModal.name === 'editPrescription' && <EditPrescriptionModal />}
     </>
   );
 };

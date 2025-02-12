@@ -68,6 +68,10 @@ export const prescriptionAPI = axios.create({
   baseURL: `${VITE_PATIENT_SERVICE_URL}/Prescription`,
 });
 
+export const patientPrescriptionAPI = axios.create({
+  baseURL: `${VITE_PATIENT_SERVICE_URL}/Prescription/PatientPrescription`,
+});
+
 export const guardianAPI = axios.create({
   baseURL: `${VITE_PATIENT_SERVICE_URL}/Guardian`,
 });
