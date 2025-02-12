@@ -3,6 +3,7 @@ import Cookies from 'js-cookie';
 import {
   addAuthInterceptor,
   addUsersAPIInterceptor,
+  clearAuthHeaders,
   ejectAuthInterceptor,
   ejectUsersAPIInterceptor,
 } from '../interceptors';
@@ -112,4 +113,5 @@ export const sendLogout = () => {
   Cookies.remove(REFRESH_TOKEN_COOKIE_NAME);
   ejectAuthInterceptor();
   ejectUsersAPIInterceptor();
+  clearAuthHeaders();
 };
