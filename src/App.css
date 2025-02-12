@@ -144,3 +144,9 @@
   width: 100%;
   table-layout: fixed;
 }
+
+/*make all shadcnui components not remove scrollbar*/
+html body[data-scroll-locked] {
+  overflow: visible !important;
+  margin-right: 0 !important;
+}

@@ -9,6 +9,8 @@ COPY package-lock.json .
 
 RUN npm install
 
+RUN npm audit fix
+
 COPY . .
 
 RUN npm run build

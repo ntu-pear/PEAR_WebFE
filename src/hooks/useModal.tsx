@@ -17,13 +17,16 @@ interface ModalContextType {
   activeModal: ActiveModalType;
   openModal: (modalName: string, modalProps?: Record<string, unknown>) => void;
   closeModal: () => void;
+  setOutsideClickCallback: (callback: (() => void) | null) => void;
+}
+
+interface ModalProviderProps {
+  children: ReactNode;
 }
 
 const ModalContext = createContext<ModalContextType | undefined>(undefined);
 
-export const ModalProvider: React.FC<{ children: ReactNode }> = ({
-  children,
-}) => {
+export const ModalProvider: React.FC<ModalProviderProps> = ({ children }) => {
   const [activeModal, setActiveModal] = useState<ActiveModalType>({
     name: null,
     props: {},
@@ -31,6 +34,13 @@ export const ModalProvider: React.FC<{ children: ReactNode }> = ({
 
   // Modal ref to detect outside clicks
   const modalRef = useRef<HTMLDivElement | null>(null);
+
+  const outsideClickCallbackRef = useRef<(() => void) | null>(null);
+
+  const setOutsideClickCallback = (callback: (() => void) | null) => {
+    outsideClickCallbackRef.current = callback;
+  };
+
   const openModal = (
     modalName: string,
     modalProps?: Record<string, unknown>
@@ -48,6 +58,9 @@ export const ModalProvider: React.FC<{ children: ReactNode }> = ({
         modalRef.current &&
         !modalRef.current.contains(event.target as Node)
       ) {
+        if (outsideClickCallbackRef.current) {
+          outsideClickCallbackRef.current();
+        }
         closeModal();
       }
     };
@@ -65,7 +78,13 @@ export const ModalProvider: React.FC<{ children: ReactNode }> = ({
 
   return (
     <ModalContext.Provider
-      value={{ modalRef, activeModal, openModal, closeModal }}
+      value={{
+        modalRef,
+        activeModal,
+        openModal,
+        closeModal,
+        setOutsideClickCallback,
+      }}
     >
       {children}
     </ModalContext.Provider>
