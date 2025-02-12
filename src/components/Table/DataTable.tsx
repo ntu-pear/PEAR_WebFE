@@ -39,7 +39,7 @@ function DataTable<T extends TableRowData>({
   viewMoreBaseLink,
   activeTab,
   hideActionsHeader = false, //default show actions header
-  className,
+  className = '',
   renderActions, // Accept renderActions function as a prop
 }: DataTableProps<T>) {
   const [currentPage, setCurrentPage] = useState(1);
