@@ -14,8 +14,8 @@ export interface Role {
 
 export interface User {
   id: string
-  fullName: string
-  role: string
+  FullName: string
+  Role: string
 }
 
 export const fetchRoles = async () => {

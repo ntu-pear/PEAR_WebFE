@@ -54,7 +54,7 @@ const EditRole: React.FC = () => {
                   <ul className="p-4">
                     {data?.map((user) => (
                       <li key={user.id} className="text-xl">
-                        {user.fullName}
+                        {user.FullName}
                       </li>
                     ))}
                   </ul>
