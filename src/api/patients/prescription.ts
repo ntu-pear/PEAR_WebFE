@@ -7,7 +7,7 @@ import {
   getStatusDescription,
 } from '@/utils/convertToYesNo';
 import { formatDateString } from '@/utils/formatDate';
-import { prescriptionAPI } from '../apiConfig';
+import { patientPrescriptionAPI, prescriptionAPI } from '../apiConfig';
 
 export interface Prescription {
   IsDeleted: string;
@@ -123,7 +123,7 @@ export const fetchPatientPrescription = async (
     const dlResponse = mockPrescriptionListData;
     console.log('GET all prescription List', dlResponse.data);
 
-    const ddResponse = await prescriptionAPI.get<Prescription[]>(
+    const ddResponse = await patientPrescriptionAPI.get<Prescription[]>(
       `/?patient_id=${patientId}&skip=${skip}&limit=${limit}`
     );
 
