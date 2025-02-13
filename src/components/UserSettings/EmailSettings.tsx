@@ -2,8 +2,21 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
+import { getUserDetails, UserEmail } from '@/api/users/user';
+import { useEffect, useState } from 'react';
 
 const EmailSettings: React.FC = () => {
+  const [UserEmail, setUserEmail] = useState<UserEmail | null>(null);
+
+  const fetchUserEmail = async () => {
+    const data: UserEmail = await getUserDetails();
+    setUserEmail(data);
+  };
+
+  useEffect(() => {
+    fetchUserEmail();
+  }, []);
+
   return (
     <Card>
       <CardHeader className="border-b">
@@ -16,7 +29,13 @@ const EmailSettings: React.FC = () => {
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
                 <div className="flex gap-6 w-full">
-                  <Input id="email" type="email" />
+                  <Input
+                    id="email"
+                    type="email"
+                    value={UserEmail?.email || ''}
+                    className="bg-gray-100"
+                    readOnly
+                  />
                   <Button
                     type="submit"
                     className="invisible pointer-events-none"

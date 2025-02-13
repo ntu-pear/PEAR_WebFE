@@ -14,6 +14,47 @@ export interface ResetPasswordForm {
   confirmPassword: string;
 }
 
+export interface UserDetails {
+  id: string;
+  preferredName: string | null;
+  nric_FullName: string;
+  nric: string;
+  nric_Address: string;
+  nric_DateOfBirth: string;
+  nric_Gender: string;
+  roleName: string;
+  contactNo: string | null;
+  allowNotification: boolean;
+  profilePicture: string | null;
+  lockoutReason: string | null;
+  status: string;
+  email: string;
+  emailConfirmed: boolean;
+  verified: boolean;
+  active: boolean;
+  twoFactorEnabled: boolean;
+  createdById: string;
+  createdDate: string;
+  modifiedById: string;
+  modifiedDate: string;
+}
+
+export interface UserProfile {
+  nric_FullName: string;
+  preferredName: string | null;
+  contactNo: string | null;
+}
+
+export interface UserProfileForm {
+  preferredName: string | null;
+  contactNo: string;
+}
+
+export interface UserEmail {
+  email: string;
+  emailConfirmed: boolean;
+}
+
 export const requestResetPassword = async (
   requestResetPasswordForm: RequestResetPasswordForm
 ) => {
@@ -81,6 +122,48 @@ export const resendRegistrationEmail = async (
     return response.data;
   } catch (error) {
     console.error('POST resend registration email', error);
+    throw error;
+  }
+};
+
+export const getUserDetails = async (): Promise<UserDetails> => {
+  try {
+    const token = retrieveAccessTokenFromCookie();
+    if (!token) throw new Error('No token found.');
+
+    const response = await userAPI.get<UserDetails>(`/get_user/`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    console.log('GET get user', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('GET get user', error);
+    throw error;
+  }
+};
+
+export const updateUserProfile = async (userProfileForm: UserProfileForm) => {
+  try {
+    const token = retrieveAccessTokenFromCookie();
+    if (!token) throw new Error('No token found.');
+
+    const response = await userAPI.put<UserDetails>(
+      `/update_user/`,
+      userProfileForm,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    console.log('PUT update user profile', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('PUT update user profile', error);
     throw error;
   }
 };

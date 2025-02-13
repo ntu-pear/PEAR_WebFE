@@ -62,7 +62,7 @@ const Navbar: React.FC = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [notifications, setNotifications] = useState(initialNotifications);
   const { currentUser, logout } = useAuth();
-  const { profilePhoto } = useUserProfile();
+  const { profilePhoto, userDetails } = useUserProfile();
 
   const clearNotifications = () => {
     setNotifications([]);
@@ -227,7 +227,9 @@ const Navbar: React.FC = () => {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                  <DropdownMenuLabel>
+                    {userDetails?.preferredName || userDetails?.nric_FullName}
+                  </DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleUserSettings}>
                     Settings

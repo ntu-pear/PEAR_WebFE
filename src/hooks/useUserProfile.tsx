@@ -1,8 +1,11 @@
+import { UserDetails } from '@/api/users/user';
 import { createContext, useContext } from 'react';
 
 interface UserProfileContextType {
   profilePhoto: string | null;
-  refreshProfile: () => void;
+  userDetails: UserDetails | null;
+  refreshProfilePhoto: () => void;
+  refreshUserDetails: () => void;
 }
 
 export const UserProfileContext = createContext<

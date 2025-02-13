@@ -436,8 +436,8 @@ const EditPatientInfoModal: React.FC = () => {
                   pattern="^[89]\d{7}$"
                   title="Hand Phone Number must start with 8 or 9, and be 8 digits long."
                   value={patient?.handphoneNo || ''}
-                  min={8}
-                  max={8}
+                  minLength={8}
+                  maxLength={8}
                   onChange={(e) => handleChange(e)}
                   className="mt-1 block w-full p-2 border rounded-md text-gray-900"
                 />
@@ -451,8 +451,8 @@ const EditPatientInfoModal: React.FC = () => {
                   pattern="^[6]\d{7}$"
                   title="Home Number must start with 6,  and be 8 digits long"
                   value={patient?.homeNo || ''}
-                  min={8}
-                  max={8}
+                  minLength={8}
+                  maxLength={8}
                   onChange={(e) => handleChange(e)}
                   className="mt-1 block w-full p-2 border rounded-md text-gray-900"
                 />
