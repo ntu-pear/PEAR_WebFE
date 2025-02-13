@@ -121,8 +121,8 @@ const ProfileSettings: React.FC = () => {
                         id="contactNo"
                         name="contactNo"
                         type="tel"
-                        pattern="^[89]\d{7}$"
-                        title="Contact Number must start with 8 or 9, and be 8 digits long."
+                        pattern="^[689]\d{7}$"
+                        title="Contact Number must start with 6, 8 or 9, and be 8 digits long."
                         minLength={8}
                         maxLength={8}
                         value={userProfile?.contactNo || ''}
