@@ -1,4 +1,7 @@
-import { PrescriptionList } from '@/api/patients/prescription';
+import {
+  PrescriptionList,
+  PrescriptionTDServer,
+} from '@/api/patients/prescription';
 import { VitalCheckTD } from '@/api/patients/vital';
 import { TableRowData } from '@/components/Table/DataTable';
 
@@ -109,19 +112,6 @@ export interface Routine extends TableRowData {
   routineIssue: string;
   routineTimeSlots: string;
   includeInSchedule: string;
-}
-
-export interface PrescriptionTD extends TableRowData {
-  drugName: string;
-  dosage: string;
-  frequencyPerDay: number;
-  instruction: string;
-  startDate: string;
-  endDate: string;
-  afterMeal: string;
-  remark: string;
-  //chronic: string;
-  status: string;
 }
 
 export interface GuardianTD extends TableRowData {
@@ -641,21 +631,28 @@ export const mockPrescriptionListData = {
   data: mockPrescriptionList,
 };
 
-export const mockPrescription: PrescriptionTD[] = [
-  {
-    id: 1,
-    drugName: 'ANTIHISTAMINES',
-    dosage: '2',
-    frequencyPerDay: 1,
-    instruction: '2 pills 1 times per day, consume after meal',
-    startDate: '6 AUG 2024',
-    endDate: '21 AUG 2024',
-    afterMeal: 'YES',
-    remark: '1',
-    status: 'NON-CHRONIC',
+export const mockPrescription: PrescriptionTDServer = {
+  prescriptions: [
+    {
+      id: 1,
+      drugName: 'ANTIHISTAMINES',
+      dosage: '2',
+      frequencyPerDay: 1,
+      instruction: '2 pills 1 times per day, consume after meal',
+      startDate: '6 AUG 2024',
+      endDate: '21 AUG 2024',
+      afterMeal: 'YES',
+      remark: '1',
+      status: 'NON-CHRONIC',
+    },
+  ],
+  pagination: {
+    pageNo: 0,
+    pageSize: 10,
+    totalRecords: 1,
+    totalPages: 1,
   },
-];
-
+};
 export const mockGuardian: GuardianTD[] = [
   {
     id: 1,
