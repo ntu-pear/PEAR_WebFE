@@ -1,13 +1,11 @@
-import {
-  mockPrescriptionListData,
-  PrescriptionTD,
-} from '@/mocks/mockPatientDetails';
+import { mockPrescriptionListData } from '@/mocks/mockPatientDetails';
 import {
   convertIsAfterMeal,
   getStatusDescription,
 } from '@/utils/convertToYesNo';
 import { formatDateString } from '@/utils/formatDate';
 import { patientPrescriptionAPI, prescriptionAPI } from '../apiConfig';
+import { TableRowData } from '@/components/Table/DataTable';
 
 export interface Prescription {
   IsDeleted: string;
@@ -34,6 +32,42 @@ export interface PrescriptionList {
   CreatedDateTime: string;
   UpdatedDateTime: string;
   Value: string;
+}
+
+// prescriptions response body from api
+export interface PrescriptionViewList {
+  data: Prescription[];
+  pageNo: number;
+  pageSize: number;
+  totalRecords: number;
+  totalPages: number;
+}
+
+// prescription response body from api
+export interface PrescriptionView {
+  data: Prescription;
+}
+
+export interface PrescriptionTD extends TableRowData {
+  drugName: string;
+  dosage: string;
+  frequencyPerDay: number;
+  instruction: string;
+  startDate: string;
+  endDate: string;
+  afterMeal: string;
+  remark: string;
+  status: string;
+}
+
+export interface PrescriptionTDServer {
+  prescriptions: PrescriptionTD[];
+  pagination: {
+    pageNo: number;
+    pageSize: number;
+    totalRecords: number;
+    totalPages: number;
+  };
 }
 
 export interface PrescriptionFormData {
@@ -80,21 +114,31 @@ export interface PrescriptionUpdate {
   UpdatedById: number;
 }
 
-const convertToPrescriptionTD = (
+const convertToPrescriptionTDServer = (
   prescriptionList: PrescriptionList[],
-  prescriptions: Prescription[]
-): PrescriptionTD[] => {
+  prescriptionViewList: PrescriptionViewList
+): PrescriptionTDServer => {
   if (!Array.isArray(prescriptionList)) {
     console.error('prescriptionList is not an array', prescriptionList);
-    return [];
   }
 
-  if (!Array.isArray(prescriptions)) {
-    console.error('prescriptions is not an array', prescriptions);
-    return [];
+  if (!Array.isArray(prescriptionViewList.data)) {
+    console.error(
+      'prescriptionViewList.data is not an array',
+      prescriptionViewList.data
+    );
+    return {
+      prescriptions: [],
+      pagination: {
+        pageNo: 0,
+        pageSize: 0,
+        totalRecords: 0,
+        totalPages: 0,
+      },
+    };
   }
 
-  return prescriptions
+  const prescriptionsTransformed = prescriptionViewList.data
     .filter((p) => p.IsDeleted === '0')
     .sort((a, b) => b.Id - a.Id) // Descending order
     .map((p) => ({
@@ -112,24 +156,37 @@ const convertToPrescriptionTD = (
       remark: p.PrescriptionRemarks,
       status: getStatusDescription(p.Status)?.toUpperCase(),
     }));
+
+  const updatedTD = {
+    prescriptions: prescriptionsTransformed,
+    pagination: {
+      pageNo: prescriptionViewList.pageNo,
+      pageSize: prescriptionViewList.pageSize,
+      totalRecords: prescriptionViewList.totalRecords,
+      totalPages: prescriptionViewList.totalPages,
+    },
+  };
+
+  console.log('convertToPrescriptionTD: ', updatedTD);
+  return updatedTD;
 };
 
 export const fetchPatientPrescription = async (
   patientId: number,
-  skip: number = 0,
-  limit: number = 100
-): Promise<PrescriptionTD[]> => {
+  pageNo: number = 0,
+  pageSize: number = 10
+): Promise<PrescriptionTDServer> => {
   try {
     const dlResponse = mockPrescriptionListData;
     console.log('GET all prescription List', dlResponse.data);
 
-    const ddResponse = await patientPrescriptionAPI.get<Prescription[]>(
-      `/?patient_id=${patientId}&skip=${skip}&limit=${limit}`
+    const ddResponse = await patientPrescriptionAPI.get<PrescriptionViewList>(
+      `/?patient_id=${patientId}&pageNo=${pageNo}&limit=${pageSize}`
     );
 
     console.log('GET all patient prescriptions', ddResponse.data);
 
-    return convertToPrescriptionTD(dlResponse.data, ddResponse.data);
+    return convertToPrescriptionTDServer(dlResponse.data, ddResponse.data);
   } catch (error) {
     console.error('GET all prescription List/ patient prescriptions', error);
     throw error;
@@ -138,9 +195,9 @@ export const fetchPatientPrescription = async (
 
 export const fetchPrescriptionById = async (
   prescriptionId: number
-): Promise<Prescription> => {
+): Promise<PrescriptionView> => {
   try {
-    const response = await prescriptionAPI.get<Prescription>(
+    const response = await prescriptionAPI.get<PrescriptionView>(
       `/${prescriptionId}`
     );
     console.log('GET prescription by prescriptionId', response.data);
@@ -153,9 +210,12 @@ export const fetchPrescriptionById = async (
 
 export const addPatientPrescription = async (
   formData: PrescriptionFormData
-): Promise<Prescription> => {
+): Promise<PrescriptionView> => {
   try {
-    const response = await prescriptionAPI.post<Prescription>(`/add`, formData);
+    const response = await prescriptionAPI.post<PrescriptionView>(
+      `/add`,
+      formData
+    );
 
     console.log('ADD patient prescription', response.data);
 
@@ -169,9 +229,9 @@ export const addPatientPrescription = async (
 export const deletePatientPrescription = async (
   prescriptionId: number,
   prescriptionDelete: PrescriptionDelete
-): Promise<Prescription> => {
+): Promise<PrescriptionView> => {
   try {
-    const response = await prescriptionAPI.put<Prescription>(
+    const response = await prescriptionAPI.put<PrescriptionView>(
       `/delete/${prescriptionId}`,
       prescriptionDelete
     );
@@ -188,9 +248,9 @@ export const deletePatientPrescription = async (
 export const updatePatientPrescription = async (
   prescriptionId: number,
   prescriptionUpdate: PrescriptionUpdate
-): Promise<Prescription> => {
+): Promise<PrescriptionView> => {
   try {
-    const response = await prescriptionAPI.put<Prescription>(
+    const response = await prescriptionAPI.put<PrescriptionView>(
       `/update/${prescriptionId}`,
       prescriptionUpdate
     );

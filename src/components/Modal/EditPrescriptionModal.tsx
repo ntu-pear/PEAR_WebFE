@@ -22,9 +22,11 @@ const EditPrescriptionModal: React.FC = () => {
     };
 
   const [prescription, setPrescription] = useState<Prescription | null>(null);
-  const [prescriptionList, setPrescriptionList] = useState<PrescriptionList[]>([]);
+  const [prescriptionList, setPrescriptionList] = useState<PrescriptionList[]>(
+    []
+  );
   const [startDate, setStartDate] = useState('');
-  
+
   useEffect(() => {
     const handleFetchPrescriptionList = async () => {
       try {
@@ -38,8 +40,8 @@ const EditPrescriptionModal: React.FC = () => {
       if (!prescriptionId || isNaN(Number(prescriptionId))) return;
       try {
         const response = await fetchPrescriptionById(Number(prescriptionId));
-        setPrescription(response);
-        setStartDate(response.StartDate);
+        setPrescription(response.data);
+        setStartDate(response.data.StartDate);
       } catch (error) {
         toast.error('Failed to fetch prescription details');
       }
@@ -51,7 +53,8 @@ const EditPrescriptionModal: React.FC = () => {
 
   const handleUpdatePrescription = async (event: React.FormEvent) => {
     event.preventDefault();
-    if (!prescription || !prescriptionId || isNaN(Number(prescriptionId))) return;
+    if (!prescription || !prescriptionId || isNaN(Number(prescriptionId)))
+      return;
 
     try {
       const updatedPrescription: PrescriptionUpdate = {
@@ -71,7 +74,10 @@ const EditPrescriptionModal: React.FC = () => {
 
       console.log(updatedPrescription);
 
-      await updatePatientPrescription(Number(prescriptionId), updatedPrescription);
+      await updatePatientPrescription(
+        Number(prescriptionId),
+        updatedPrescription
+      );
       toast.success('Prescription updated successfully.');
       closeModal();
       refreshPrescriptionData();
@@ -85,7 +91,10 @@ const EditPrescriptionModal: React.FC = () => {
       <div ref={modalRef} className="bg-background p-8 rounded-md w-[600px]">
         <h3 className="text-lg font-medium mb-5">Medical Prescription</h3>
         {prescription ? (
-          <form onSubmit={handleUpdatePrescription} className="grid grid-cols-2 gap-4">
+          <form
+            onSubmit={handleUpdatePrescription}
+            className="grid grid-cols-2 gap-4"
+          >
             <div>
               <label className="block text-sm font-medium">
                 Prescription<span className="text-red-600">*</span>
@@ -94,7 +103,12 @@ const EditPrescriptionModal: React.FC = () => {
                 name="PrescriptionListId"
                 className="mt-1 block w-full p-2 border rounded-md text-gray-900"
                 value={prescription.PrescriptionListId}
-                onChange={(e) => setPrescription({ ...prescription, PrescriptionListId: Number(e.target.value) })}
+                onChange={(e) =>
+                  setPrescription({
+                    ...prescription,
+                    PrescriptionListId: Number(e.target.value),
+                  })
+                }
                 required
               >
                 {prescriptionList.map((pl) => (
@@ -113,7 +127,12 @@ const EditPrescriptionModal: React.FC = () => {
                 name="IsAfterMeal"
                 className="mt-1 block w-full p-2 border rounded-md text-gray-900"
                 value={prescription.IsAfterMeal}
-                onChange={(e) => setPrescription({ ...prescription, IsAfterMeal: e.target.value })}
+                onChange={(e) =>
+                  setPrescription({
+                    ...prescription,
+                    IsAfterMeal: e.target.value,
+                  })
+                }
                 required
               >
                 <option value="">Please select a option</option>
@@ -132,7 +151,9 @@ const EditPrescriptionModal: React.FC = () => {
                 name="Dosage"
                 className="mt-1 block w-full p-2 border rounded-md text-gray-900"
                 value={prescription.Dosage}
-                onChange={(e) => setPrescription({ ...prescription, Dosage: e.target.value })}
+                onChange={(e) =>
+                  setPrescription({ ...prescription, Dosage: e.target.value })
+                }
                 required
               />
             </div>
@@ -146,7 +167,12 @@ const EditPrescriptionModal: React.FC = () => {
                 name="FrequencyPerDay"
                 className="mt-1 block w-full p-2 border rounded-md text-gray-900"
                 value={prescription.FrequencyPerDay}
-                onChange={(e) => setPrescription({ ...prescription, FrequencyPerDay: Number(e.target.value) })}
+                onChange={(e) =>
+                  setPrescription({
+                    ...prescription,
+                    FrequencyPerDay: Number(e.target.value),
+                  })
+                }
                 required
               />
             </div>
@@ -159,7 +185,9 @@ const EditPrescriptionModal: React.FC = () => {
                 name="Status"
                 className="mt-1 block w-full p-2 border rounded-md text-gray-900"
                 value={prescription.Status}
-                onChange={(e) => setPrescription({ ...prescription, Status: e.target.value })}
+                onChange={(e) =>
+                  setPrescription({ ...prescription, Status: e.target.value })
+                }
                 required
               >
                 <option value="">Please select a option</option>
@@ -176,7 +204,12 @@ const EditPrescriptionModal: React.FC = () => {
                 name="Instruction"
                 className="mt-1 block w-full p-2 border rounded-md text-gray-900"
                 value={prescription.Instruction}
-                onChange={(e) => setPrescription({ ...prescription, Instruction: e.target.value })}
+                onChange={(e) =>
+                  setPrescription({
+                    ...prescription,
+                    Instruction: e.target.value,
+                  })
+                }
                 maxLength={255}
                 required
               />
@@ -205,7 +238,12 @@ const EditPrescriptionModal: React.FC = () => {
                   name="EndDate"
                   className="mt-1 block w-full p-2 border rounded-md text-gray-900"
                   defaultValue={prescription.EndDate.substring(0, 10)}
-                  onChange={(e) => setPrescription({ ...prescription, EndDate: e.target.value })}
+                  onChange={(e) =>
+                    setPrescription({
+                      ...prescription,
+                      EndDate: e.target.value,
+                    })
+                  }
                   min={startDate}
                   required
                 />
@@ -220,7 +258,12 @@ const EditPrescriptionModal: React.FC = () => {
                 name="PrescriptionRemarks"
                 className="mt-1 block w-full p-2 border rounded-md text-gray-900"
                 value={prescription.PrescriptionRemarks}
-                onChange={(e) => setPrescription({ ...prescription, PrescriptionRemarks: e.target.value })}
+                onChange={(e) =>
+                  setPrescription({
+                    ...prescription,
+                    PrescriptionRemarks: e.target.value,
+                  })
+                }
                 maxLength={255}
               />
             </div>
@@ -229,7 +272,9 @@ const EditPrescriptionModal: React.FC = () => {
               <Button type="button" variant="secondary" onClick={closeModal}>
                 Cancel
               </Button>
-              <Button type="submit" variant="save">Save Changes</Button>
+              <Button type="submit" variant="save">
+                Save Changes
+              </Button>
             </div>
           </form>
         ) : (
