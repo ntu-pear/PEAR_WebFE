@@ -16,7 +16,7 @@ import SidebarMenu from '@/components/Sidebar/SidebarMenu';
 import { useAuth } from '@/hooks/useAuth';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 
-import { useUserProfile } from '@/hooks/useUserProfile';
+import { useUserProfile } from '@/hooks/user/useUserProfile';
 
 const Navbar: React.FC = () => {
   const navigate = useNavigate();
@@ -62,7 +62,7 @@ const Navbar: React.FC = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [notifications, setNotifications] = useState(initialNotifications);
   const { currentUser, logout } = useAuth();
-  const { profilePhoto } = useUserProfile();
+  const { profilePhoto, userDetails } = useUserProfile();
 
   const clearNotifications = () => {
     setNotifications([]);
@@ -227,7 +227,9 @@ const Navbar: React.FC = () => {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                  <DropdownMenuLabel>
+                    {userDetails?.preferredName || userDetails?.nric_FullName}
+                  </DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleUserSettings}>
                     Settings

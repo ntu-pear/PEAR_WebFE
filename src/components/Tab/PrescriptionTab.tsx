@@ -2,12 +2,14 @@ import { PlusCircle } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { TabsContent } from '../ui/tabs';
-import DataTable from '../Table/DataTable';
-import { mockPrescription, PrescriptionTD } from '@/mocks/mockPatientDetails';
+import { DataTableServer } from '../Table/DataTable';
 import TabProps from './types';
 import { useModal } from '@/hooks/useModal';
 import AddPrescriptionModal from '../Modal/AddPrescriptionModal';
-import { fetchPatientPrescription } from '@/api/patients/prescription';
+import {
+  fetchPatientPrescription,
+  PrescriptionTDServer,
+} from '@/api/patients/prescription';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import DeletePrescriptionModal from '../Modal/DeletePrescriptionModal';
@@ -15,17 +17,22 @@ import EditPrescriptionModal from '../Modal/EditPrescriptionModal';
 
 const PrescriptionTab: React.FC<TabProps> = ({ id }) => {
   const { activeModal, openModal } = useModal();
-  const [prescription, setPrescription] = useState<PrescriptionTD[]>([]);
+  const [prescription, setPrescription] = useState<PrescriptionTDServer>({
+    prescriptions: [],
+    pagination: {
+      pageNo: 0,
+      pageSize: 0,
+      totalRecords: 0,
+      totalPages: 0,
+    },
+  });
 
-  const handleFetchPrescription = async () => {
+  const handleFetchPrescription = async (pageNo: number) => {
     if (!id || isNaN(Number(id))) return;
 
     try {
-      const fetchedPrescription: PrescriptionTD[] =
-        import.meta.env.MODE === 'development' ||
-        import.meta.env.MODE === 'production'
-          ? await fetchPatientPrescription(Number(id))
-          : mockPrescription;
+      const fetchedPrescription: PrescriptionTDServer =
+        await fetchPatientPrescription(Number(id), pageNo);
 
       setPrescription(fetchedPrescription);
 
@@ -37,19 +44,18 @@ const PrescriptionTab: React.FC<TabProps> = ({ id }) => {
 
   useEffect(() => {
     console.log('patientId', id);
-
-    handleFetchPrescription();
+    refreshPrescriptionData();
   }, []);
 
   const refreshPrescriptionData = () => {
-    handleFetchPrescription();
+    handleFetchPrescription(prescription.pagination.pageNo || 0);
   };
 
   const prescriptionColumns = [
     { key: 'drugName', header: 'Drug Name', className: 'truncate-column' },
     { key: 'dosage', header: 'Dosage' },
     { key: 'frequencyPerDay', header: 'Frequency Per Day' },
-    { key: 'instruction', header: 'Instruction', className: 'truncate-column'},
+    { key: 'instruction', header: 'Instruction', className: 'truncate-column' },
     { key: 'startDate', header: 'Start Date' },
     { key: 'endDate', header: 'End Date' },
     { key: 'afterMeal', header: 'After Meal' },
@@ -83,14 +89,16 @@ const PrescriptionTab: React.FC<TabProps> = ({ id }) => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <DataTable
-              data={prescription}
+            <DataTableServer
+              data={prescription.prescriptions}
+              pagination={prescription.pagination}
+              fetchData={handleFetchPrescription}
               columns={prescriptionColumns}
               viewMore={false}
-              className='table-fixed'
-              renderActions={(item) => (                
+              className="table-fixed"
+              renderActions={(item) => (
                 <div className="flex space-x-2 flex-col">
-                  <Button 
+                  <Button
                     variant="default"
                     size="sm"
                     className="mt-3"
@@ -99,10 +107,8 @@ const PrescriptionTab: React.FC<TabProps> = ({ id }) => {
                         prescriptionId: String(item.id),
                         submitterId: '1',
                         refreshPrescriptionData,
-                      })
-                    }
-                      
-                    }
+                      });
+                    }}
                   >
                     More Details
                   </Button>

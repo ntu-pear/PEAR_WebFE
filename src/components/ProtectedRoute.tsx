@@ -1,9 +1,13 @@
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import Navbar from './Navbar';
-import { fetchUserProfilePhoto } from '@/api/users/user';
+import {
+  fetchUserProfilePhoto,
+  getUserDetails,
+  UserDetails,
+} from '@/api/users/user';
 import { useEffect, useState } from 'react';
-import { UserProfileContext } from '@/hooks/useUserProfile';
+import { UserProfileContext } from '@/hooks/user/useUserProfile';
 import { Spinner } from './ui/spinner';
 
 interface ProtectedRouteProps {
@@ -14,10 +18,9 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ allowedRoles }) => {
   const { currentUser, isLoading } = useAuth();
   const location = useLocation();
   const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
-  const [isProfileLoading, setIsProfileLoading] = useState(true);
+  const [userDetails, setUserDetails] = useState<UserDetails | null>(null);
 
-  const handleFetchProfilePhoto = async () => {
-    setIsProfileLoading(true);
+  const refreshProfilePhoto = async () => {
     try {
       const photoURL = await fetchUserProfilePhoto();
       setProfilePhoto(photoURL);
@@ -26,20 +29,27 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ allowedRoles }) => {
       setProfilePhoto(null);
       console.log('Failed to fetch user profile photo.');
     }
-    setIsProfileLoading(false);
   };
 
-  const refreshProfile = async () => {
-    handleFetchProfilePhoto();
+  const refreshUserDetails = async () => {
+    try {
+      const UserDetails = await getUserDetails();
+      setUserDetails(UserDetails);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (error) {
+      setUserDetails(null);
+      console.log('Failed to fetch user profile details.');
+    }
   };
 
   useEffect(() => {
     if (currentUser) {
-      refreshProfile(); // Fetch the profile when the user is available
+      refreshProfilePhoto();
+      refreshUserDetails(); // Fetch the profile when the user is available
     }
   }, [currentUser]);
 
-  if (isLoading || isProfileLoading) {
+  if (isLoading) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Spinner size="lg" />
@@ -57,7 +67,14 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ allowedRoles }) => {
   }
 
   return (
-    <UserProfileContext.Provider value={{ profilePhoto, refreshProfile }}>
+    <UserProfileContext.Provider
+      value={{
+        profilePhoto,
+        userDetails,
+        refreshProfilePhoto,
+        refreshUserDetails,
+      }}
+    >
       <Navbar />
       <Outlet />
     </UserProfileContext.Provider>

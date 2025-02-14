@@ -1,9 +1,9 @@
-import { VitalCheckTD } from '@/mocks/mockPatientDetails';
 import { vitalAPI } from '../apiConfig';
 import { formatDateString, formatTimeString } from '@/utils/formatDate';
 import { convertToYesNo } from '@/utils/convertToYesNo';
+import { TableRowData } from '@/components/Table/DataTable';
 
-export interface VitalCheck {
+export interface VitalCheckBase {
   IsDeleted: string;
   PatientId: number;
   IsAfterMeal: string;
@@ -23,6 +23,47 @@ export interface VitalCheck {
   UpdatedById: number;
 }
 
+// vital response body format from api
+export interface ViewVitalCheckList {
+  data: VitalCheckBase[];
+  pageNo: number;
+  pageSize: number;
+  totalRecords: number;
+  totalPages: number;
+}
+
+export interface ViewVitalCheck {
+  data: VitalCheckBase;
+}
+
+// vital table data base
+export interface VitalCheckTD extends TableRowData {
+  patientId: number;
+  date: string;
+  time: string;
+  temperature: number;
+  weight: number;
+  height: number;
+  systolicBP: number;
+  diastolicBP: number;
+  heartRate: number;
+  spO2: number;
+  bloodSugarLevel: number;
+  afterMeal: string;
+  remark: string;
+}
+
+// vital table data with server pagination
+export interface VitalCheckTDServer {
+  vitals: VitalCheckTD[];
+  pagination: {
+    pageNo: number;
+    pageSize: number;
+    totalRecords: number;
+    totalPages: number;
+  };
+}
+
 export interface VitalFormData {
   PatientId?: number;
   IsAfterMeal: string;
@@ -39,13 +80,22 @@ export interface VitalFormData {
   UpdatedById?: number;
 }
 
-const convertToVitalTD = (vitals: VitalCheck[]): VitalCheckTD[] => {
-  if (!Array.isArray(vitals)) {
-    console.error('vitals is not asn array', vitals);
-    return []; // Return an empty array if vitals is not an array
+const convertToVitalTDServer = (
+  viewVitalCheck: ViewVitalCheckList
+): VitalCheckTDServer => {
+  if (!Array.isArray(viewVitalCheck.data)) {
+    console.error('viewVitalCheck is not an array', viewVitalCheck.data);
+    return {
+      vitals: [],
+      pagination: {
+        pageNo: 0,
+        pageSize: 0,
+        totalRecords: 0,
+        totalPages: 0,
+      },
+    };
   }
-
-  return vitals
+  const vitalsTransformed = viewVitalCheck.data
     .filter((v) => v.IsDeleted === '0')
     .map((v) => ({
       id: v.Id,
@@ -63,19 +113,33 @@ const convertToVitalTD = (vitals: VitalCheck[]): VitalCheckTD[] => {
       afterMeal: convertToYesNo(v.IsAfterMeal)?.toUpperCase(),
       remark: v.VitalRemarks || '',
     }));
+
+  const UpdatedTD = {
+    vitals: vitalsTransformed,
+    pagination: {
+      pageNo: viewVitalCheck.pageNo,
+      pageSize: viewVitalCheck.pageSize,
+      totalRecords: viewVitalCheck.totalRecords,
+      totalPages: viewVitalCheck.totalPages,
+    },
+  };
+
+  console.log('convertToVitalTDServer: ', UpdatedTD);
+
+  return UpdatedTD;
 };
 
 export const fetchVitals = async (
   id: number,
-  skip: number = 0,
-  limit: number = 10
-): Promise<VitalCheckTD[]> => {
+  pageNo: number = 0,
+  pageSize: number = 10
+): Promise<VitalCheckTDServer> => {
   try {
-    const response = await vitalAPI.get<VitalCheck[]>(
-      `/list?patient_id=${id}&skip=${skip}&limit=${limit}`
+    const response = await vitalAPI.get<ViewVitalCheckList>(
+      `/list?patient_id=${id}&pageNo=${pageNo}&pageSize=${pageSize}`
     );
     console.log('GET all Vitals for a patient', response.data);
-    return convertToVitalTD(response.data);
+    return convertToVitalTDServer(response.data);
   } catch (error) {
     console.error('GET all Vitals for a patient', error);
     throw error;
@@ -84,9 +148,9 @@ export const fetchVitals = async (
 
 export const addVital = async (
   formData: VitalFormData
-): Promise<VitalCheck> => {
+): Promise<ViewVitalCheck> => {
   try {
-    const response = await vitalAPI.post<VitalCheck>(`/add`, formData);
+    const response = await vitalAPI.post<ViewVitalCheck>(`/add`, formData);
     console.log('POST Add Vital for a patient', response.data);
     return response.data;
   } catch (error) {
@@ -98,9 +162,9 @@ export const addVital = async (
 export const updateVital = async (
   vitalId: number,
   formData: VitalFormData
-): Promise<VitalCheck> => {
+): Promise<ViewVitalCheck> => {
   try {
-    const response = await vitalAPI.put<VitalCheck>(
+    const response = await vitalAPI.put<ViewVitalCheck>(
       `/update/${vitalId}`,
       formData
     );
@@ -112,9 +176,9 @@ export const updateVital = async (
   }
 };
 
-export const deleteVital = async (vitalId: number): Promise<VitalCheck> => {
+export const deleteVital = async (vitalId: number): Promise<ViewVitalCheck> => {
   try {
-    const response = await vitalAPI.put<VitalCheck>(`/delete`, {
+    const response = await vitalAPI.put<ViewVitalCheck>(`/delete`, {
       Id: vitalId,
     });
     console.log('PUT Delete Vital for a patient', response.data);

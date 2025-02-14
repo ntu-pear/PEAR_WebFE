@@ -7,7 +7,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { PlusCircle } from 'lucide-react';
-import DataTable from '@/components/Table/DataTable';
+import { DataTableClient } from '@/components/Table/DataTable';
 import { mockActivitiesList /*ActivitiesData*/ } from '@/mocks/mockActivities';
 import { Button } from '@/components/ui/button';
 import Searchbar from '@/components/Searchbar';
@@ -116,7 +116,7 @@ const ManageActivities: React.FC = () => {
               <CardDescription>Manage activities for patients</CardDescription>
             </CardHeader>
             <CardContent className='className="overflow-x-auto"'>
-              <DataTable
+              <DataTableClient
                 data={mockActivitiesList}
                 columns={columns}
                 viewMore={false}

@@ -5,13 +5,13 @@ import { AvatarImage } from '@radix-ui/react-avatar';
 import { Loader2, UserRound } from 'lucide-react';
 import { updateUserProfilePhoto } from '@/api/users/user';
 import { toast } from 'sonner';
-import { useUserProfile } from '@/hooks/useUserProfile';
+import { useUserProfile } from '@/hooks/user/useUserProfile';
 import { useState } from 'react';
 import { Progress } from '../ui/progress';
 
 const ConfirmProfilePhotoModal: React.FC = () => {
   const { modalRef, activeModal, closeModal } = useModal();
-  const { refreshProfile } = useUserProfile();
+  const { refreshProfilePhoto } = useUserProfile();
   const { tempPhoto } = activeModal.props as {
     tempPhoto?: string;
   };
@@ -70,7 +70,7 @@ const ConfirmProfilePhotoModal: React.FC = () => {
       }, 200);
 
       await updateUserProfilePhoto(formData);
-      refreshProfile();
+      refreshProfilePhoto();
 
       clearInterval(uploadSimulation);
       setUploadProgress(100);

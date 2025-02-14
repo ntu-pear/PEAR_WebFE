@@ -7,7 +7,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import Searchbar from '@/components/Searchbar';
-import DataTable from '@/components/Table/DataTable';
+import { DataTableClient } from '@/components/Table/DataTable';
 import { mockAdhocActivityList } from '@/mocks/mockAdhocActivity';
 import { Button } from '@/components/ui/button';
 
@@ -38,7 +38,7 @@ const ManageAdhoc: React.FC = () => {
               </CardDescription>
             </CardHeader>
             <CardContent className="overflow-x-auto">
-              <DataTable
+              <DataTableClient
                 data={mockAdhocActivityList}
                 columns={columns}
                 viewMore={false}

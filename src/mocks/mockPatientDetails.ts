@@ -1,4 +1,8 @@
-import { PrescriptionList } from '@/api/patients/prescription';
+import {
+  PrescriptionList,
+  PrescriptionTDServer,
+} from '@/api/patients/prescription';
+import { VitalCheckTD } from '@/api/patients/vital';
 import { TableRowData } from '@/components/Table/DataTable';
 
 export interface ProfilePhotoAndName {
@@ -22,6 +26,7 @@ export interface PatientInformation extends TableRowData {
   underRespiteCare: string;
   startDate: string;
   endDate: string;
+  profilePicture: string;
 }
 
 export interface PreferredLanguage {
@@ -84,22 +89,6 @@ export interface AllergyTD extends TableRowData {
   notes: string;
 }
 
-export interface VitalCheckTD extends TableRowData {
-  patientId: number;
-  date: string;
-  time: string;
-  temperature: number;
-  weight: number;
-  height: number;
-  systolicBP: number;
-  diastolicBP: number;
-  heartRate: number;
-  spO2: number;
-  bloodSugarLevel: number;
-  afterMeal: string;
-  remark: string;
-}
-
 export interface PersonalPreference extends TableRowData {
   dateCreated: string;
   authorName: string;
@@ -123,19 +112,6 @@ export interface Routine extends TableRowData {
   routineIssue: string;
   routineTimeSlots: string;
   includeInSchedule: string;
-}
-
-export interface PrescriptionTD extends TableRowData {
-  drugName: string;
-  dosage: string;
-  frequencyPerDay: number;
-  instruction: string;
-  startDate: string;
-  endDate: string;
-  afterMeal: string;
-  remark: string;
-  //chronic: string;
-  status: string;
 }
 
 export interface GuardianTD extends TableRowData {
@@ -180,6 +156,7 @@ export const mockPatientInformation: PatientInformation = {
   underRespiteCare: 'NO',
   startDate: '15 JUL 2024',
   endDate: '30 AUG 2024',
+  profilePicture: '',
 };
 
 export const mockMaskedNRIC = 'SXXXX123A';
@@ -654,21 +631,28 @@ export const mockPrescriptionListData = {
   data: mockPrescriptionList,
 };
 
-export const mockPrescription: PrescriptionTD[] = [
-  {
-    id: 1,
-    drugName: 'ANTIHISTAMINES',
-    dosage: '2',
-    frequencyPerDay: 1,
-    instruction: '2 pills 1 times per day, consume after meal',
-    startDate: '6 AUG 2024',
-    endDate: '21 AUG 2024',
-    afterMeal: 'YES',
-    remark: '1',
-    status: 'NON-CHRONIC',
+export const mockPrescription: PrescriptionTDServer = {
+  prescriptions: [
+    {
+      id: 1,
+      drugName: 'ANTIHISTAMINES',
+      dosage: '2',
+      frequencyPerDay: 1,
+      instruction: '2 pills 1 times per day, consume after meal',
+      startDate: '6 AUG 2024',
+      endDate: '21 AUG 2024',
+      afterMeal: 'YES',
+      remark: '1',
+      status: 'NON-CHRONIC',
+    },
+  ],
+  pagination: {
+    pageNo: 0,
+    pageSize: 10,
+    totalRecords: 1,
+    totalPages: 1,
   },
-];
-
+};
 export const mockGuardian: GuardianTD[] = [
   {
     id: 1,

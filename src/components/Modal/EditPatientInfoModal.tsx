@@ -224,10 +224,9 @@ const EditPatientInfoModal: React.FC = () => {
       isEditingPermanentAddr && newPermAddress.newAddress
         ? newPermAddress.newAddress
         : patient?.address;
-    const updatedTempAddr =
-      isEditingTemporaryAddr && newTempAddress.newAddress
-        ? newTempAddress.newAddress
-        : patient?.tempAddress;
+    const updatedTempAddr = isEditingTemporaryAddr
+      ? newTempAddress.newAddress
+      : patient?.tempAddress;
 
     const editedPatient: PatientBase = {
       ...patient,
@@ -286,8 +285,8 @@ const EditPatientInfoModal: React.FC = () => {
     if (isEditingPermanentAddr && !newPermAddress.newAddress) {
       return false;
     }
-    if (isEditingTemporaryAddr && !newTempAddress.newAddress) {
-      return false;
+    if (isEditingTemporaryAddr && newTempAddress.newAddress === '') {
+      return true;
     }
     return true;
   };
@@ -436,8 +435,8 @@ const EditPatientInfoModal: React.FC = () => {
                   pattern="^[89]\d{7}$"
                   title="Hand Phone Number must start with 8 or 9, and be 8 digits long."
                   value={patient?.handphoneNo || ''}
-                  min={8}
-                  max={8}
+                  minLength={8}
+                  maxLength={8}
                   onChange={(e) => handleChange(e)}
                   className="mt-1 block w-full p-2 border rounded-md text-gray-900"
                 />
@@ -451,8 +450,8 @@ const EditPatientInfoModal: React.FC = () => {
                   pattern="^[6]\d{7}$"
                   title="Home Number must start with 6,  and be 8 digits long"
                   value={patient?.homeNo || ''}
-                  min={8}
-                  max={8}
+                  minLength={8}
+                  maxLength={8}
                   onChange={(e) => handleChange(e)}
                   className="mt-1 block w-full p-2 border rounded-md text-gray-900"
                 />
