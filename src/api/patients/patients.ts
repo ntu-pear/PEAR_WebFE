@@ -51,7 +51,7 @@ export interface ViewPatient {
   data: PatientBase;
 }
 
-// patient table data base without pagnination
+// patient table data base
 export interface PatientTableData extends TableRowData {
   name: string;
   preferredName: string;
@@ -75,7 +75,7 @@ export interface PatientTableDataServer {
   };
 }
 
-const convertToPatientTD = (
+const convertToPatientTDServer = (
   patientPagination: ViewPatientList
 ): PatientTableDataServer => {
   if (!Array.isArray(patientPagination.data)) {
@@ -106,17 +106,7 @@ const convertToPatientTD = (
       image: p.profilePicture,
     }));
 
-  console.log({
-    patients: patientsTransformed,
-    pagination: {
-      pageNo: patientPagination.pageNo,
-      pageSize: patientPagination.pageSize,
-      totalRecords: patientPagination.totalRecords,
-      totalPages: patientPagination.totalPages,
-    },
-  });
-
-  return {
+  const UpdatedTD = {
     patients: patientsTransformed,
     pagination: {
       pageNo: patientPagination.pageNo,
@@ -125,6 +115,9 @@ const convertToPatientTD = (
       totalPages: patientPagination.totalPages,
     },
   };
+  console.log('convertToPatientTDServer: ', UpdatedTD);
+
+  return UpdatedTD;
 };
 
 const toUpperCasePatient = (patient: PatientBase): PatientBase => {
@@ -171,7 +164,7 @@ export const fetchAllPatientTD = async (
       `?mask=true&pageNo=${pageNo}&pageSize=${pageSize}`
     );
     console.log('GET all Patients', response.data);
-    return convertToPatientTD(response.data);
+    return convertToPatientTDServer(response.data);
   } catch (error) {
     console.error('GET all Patients', error);
     throw error;

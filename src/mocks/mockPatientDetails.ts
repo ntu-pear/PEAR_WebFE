@@ -1,4 +1,5 @@
 import { PrescriptionList } from '@/api/patients/prescription';
+import { VitalCheckTD } from '@/api/patients/vital';
 import { TableRowData } from '@/components/Table/DataTable';
 
 export interface ProfilePhotoAndName {
@@ -83,22 +84,6 @@ export interface AllergyTD extends TableRowData {
   allergicTo: string;
   reaction: string;
   notes: string;
-}
-
-export interface VitalCheckTD extends TableRowData {
-  patientId: number;
-  date: string;
-  time: string;
-  temperature: number;
-  weight: number;
-  height: number;
-  systolicBP: number;
-  diastolicBP: number;
-  heartRate: number;
-  spO2: number;
-  bloodSugarLevel: number;
-  afterMeal: string;
-  remark: string;
 }
 
 export interface PersonalPreference extends TableRowData {
