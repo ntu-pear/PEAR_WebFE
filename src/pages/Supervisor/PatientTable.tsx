@@ -20,20 +20,32 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
 import Searchbar from '@/components/Searchbar';
-import DataTable from '@/components/Table/DataTable';
+import { DataTableServer } from '@/components/Table/DataTable';
 
 import {
-  PatientTableData,
   mockCaregiverID,
   mockPatientTDList,
 } from '@/mocks/mockPatientTableData';
 
 import useDebounce from '@/hooks/useDebounce';
 import AvatarModalWrapper from '@/components/AvatarModalWrapper';
-import { fetchAllPatientTD } from '@/api/patients/patients';
+import {
+  fetchAllPatientTD,
+  PatientTableData,
+  PatientTableDataServer,
+} from '@/api/patients/patients';
 
 const PatientTable: React.FC = () => {
-  const [patientTDList, setPatientTDList] = useState<PatientTableData[]>([]);
+  const [patientTDServer, setPatientTDServer] =
+    useState<PatientTableDataServer>({
+      patients: [],
+      pagination: {
+        pageNo: 0,
+        pageSize: 0,
+        totalRecords: 0,
+        totalPages: 0,
+      },
+    });
   const [activeStatus, setActiveStatus] = useState('All');
   const [searchItem, setSearchItem] = useState('');
   const [tabValue, setTabValue] = useState('all');
@@ -57,15 +69,15 @@ const PatientTable: React.FC = () => {
     });
   };
 
-  const handleFilter = async () => {
+  const handleFilter = async (pageNo: number) => {
     try {
-      const fetchedPatientTDList: PatientTableData[] =
+      const fetchedPatientTDServer: PatientTableDataServer =
         import.meta.env.MODE === 'development' ||
         import.meta.env.MODE === 'production'
-          ? await fetchAllPatientTD()
+          ? await fetchAllPatientTD(pageNo)
           : mockPatientTDList;
 
-      let filteredPatientTDList = fetchedPatientTDList.filter(
+      let filteredPatientTDList = fetchedPatientTDServer.patients.filter(
         (ptd: PatientTableData) =>
           ptd.name.toLowerCase().includes(searchItem.toLowerCase())
       );
@@ -84,14 +96,17 @@ const PatientTable: React.FC = () => {
 
       const sortedPatientTDList = sortByName(filteredPatientTDList, 'asc');
 
-      setPatientTDList(sortedPatientTDList);
+      setPatientTDServer({
+        patients: sortedPatientTDList,
+        pagination: fetchedPatientTDServer.pagination,
+      });
     } catch (error) {
       console.error('Error fetching patients:', error);
     }
   };
 
   useEffect(() => {
-    handleFilter();
+    handleFilter(patientTDServer.pagination.pageNo || 0);
   }, [debouncedActiveStatus, debouncedSearch, debounceTabValue]);
 
   const columns = [
@@ -202,12 +217,14 @@ const PatientTable: React.FC = () => {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <DataTable
-                    data={patientTDList}
+                  <DataTableServer
+                    data={patientTDServer.patients}
+                    pagination={patientTDServer.pagination}
                     columns={columns}
                     viewMore={true}
                     viewMoreBaseLink={'/supervisor/view-patient'}
                     activeTab={'information'}
+                    fetchData={handleFilter}
                   />
                 </CardContent>
               </Card>
@@ -221,12 +238,14 @@ const PatientTable: React.FC = () => {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <DataTable
-                    data={patientTDList}
+                  <DataTableServer
+                    data={patientTDServer.patients}
+                    pagination={patientTDServer.pagination}
                     columns={columns}
                     viewMore={true}
                     viewMoreBaseLink={'/supervisor/view-patient'}
                     activeTab={'information'}
+                    fetchData={handleFilter}
                   />
                 </CardContent>
               </Card>

@@ -1,7 +1,7 @@
 import { Button } from '../ui/button';
 import { toast } from 'sonner';
 import { useModal } from '@/hooks/useModal';
-import { useUserProfile } from '@/hooks/useUserProfile';
+import { useUserProfile } from '@/hooks/user/useUserProfile';
 import { deleteUserProfilePhoto } from '@/api/users/user';
 
 const DeleteProfilePhotoModal: React.FC = () => {

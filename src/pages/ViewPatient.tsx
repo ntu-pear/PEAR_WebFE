@@ -1,13 +1,11 @@
-import { fetchProfilePhotoAndName } from '@/api/patients/patients';
+import { fetchPatientInfo, fetchPatientNRIC } from '@/api/patients/patients';
 import React, { Suspense, useEffect, useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
-import {
-  mockProfilePhotoAndName,
-  ProfilePhotoAndName,
-} from '@/mocks/mockPatientDetails';
+import { PatientInformation } from '@/mocks/mockPatientDetails';
+import { toast } from 'sonner';
 
 const AllergyTab = React.lazy(() => import('@/components/Tab/AllergyTab'));
 const GuardianTab = React.lazy(() => import('@/components/Tab/GuardianTab'));
@@ -41,21 +39,49 @@ const ViewPatient: React.FC = () => {
   const location = useLocation();
   const activeTab =
     new URLSearchParams(location.search).get('tab') || 'information';
-  const [profilePhotoAndName, setProfilePhotoAndName] =
-    useState<ProfilePhotoAndName | null>(null);
+  const [patientInfo, setPatientInfo] = useState<PatientInformation | null>(
+    null
+  );
+  const [nricData, setNricData] = useState<{ nric: string; isMasked: boolean }>(
+    {
+      nric: '',
+      isMasked: true,
+    }
+  );
 
-  const handleFetchPhotoAndName = async () => {
+  const handleNRICToggle = async () => {
     if (!id || isNaN(Number(id))) return;
     try {
-      const fetchedData: ProfilePhotoAndName =
-        import.meta.env.MODE === 'development' ||
-        import.meta.env.MODE === 'production'
-          ? await fetchProfilePhotoAndName(Number(id))
-          : mockProfilePhotoAndName;
-      // console.log(fetchedData);
-      setProfilePhotoAndName(fetchedData);
+      const updatedNric: string = await fetchPatientNRIC(
+        Number(id),
+        !nricData.isMasked
+      );
+
+      setNricData({
+        nric: updatedNric,
+        isMasked: !nricData.isMasked,
+      });
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
-      console.error('Error fetching patient:', error);
+      toast.error('Failed to fetch patient NRIC');
+    }
+  };
+
+  const refreshPatientData = async () => {
+    if (!id || isNaN(Number(id))) return;
+    try {
+      const fetchedPatientInfo: PatientInformation = await fetchPatientInfo(
+        Number(id)
+      );
+
+      setPatientInfo(fetchedPatientInfo);
+      setNricData({
+        nric: fetchedPatientInfo.nric,
+        isMasked: true,
+      });
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (error) {
+      toast.error('Failed to fetch patient information');
     }
   };
 
@@ -68,7 +94,7 @@ const ViewPatient: React.FC = () => {
   };
 
   useEffect(() => {
-    handleFetchPhotoAndName();
+    refreshPatientData();
   }, []);
 
   return (
@@ -77,12 +103,12 @@ const ViewPatient: React.FC = () => {
         <div className="flex items-center space-x-6 mb-8 sm:pl-14">
           <Avatar className="h-36 w-36">
             <AvatarImage
-              src={profilePhotoAndName?.profilePicture}
-              alt={profilePhotoAndName?.name}
+              src={patientInfo?.profilePicture}
+              alt={patientInfo?.name}
             />
             <AvatarFallback>
               <p className="text-5xl">
-                {profilePhotoAndName?.name
+                {patientInfo?.name
                   .split(' ')
                   .map((n) => n[0])
                   .join('')}
@@ -90,10 +116,8 @@ const ViewPatient: React.FC = () => {
             </AvatarFallback>
           </Avatar>
           <div>
-            <h1 className="text-2xl font-bold">{profilePhotoAndName?.name}</h1>
-            <p className="text-gray-600">
-              {profilePhotoAndName?.preferredName}
-            </p>
+            <h1 className="text-2xl font-bold">{patientInfo?.name}</h1>
+            <p className="text-gray-600">{patientInfo?.preferredName}</p>
           </div>
         </div>
 
@@ -126,7 +150,13 @@ const ViewPatient: React.FC = () => {
           <Suspense fallback={<div>Loading...</div>}>
             {activeTab === 'information' && (
               <TabsContent value="information">
-                <PatientInfoTab id={id} />
+                <PatientInfoTab
+                  id={id}
+                  patientInfo={patientInfo}
+                  nricData={nricData}
+                  handleNRICToggle={handleNRICToggle}
+                  refreshPatientData={refreshPatientData}
+                />
               </TabsContent>
             )}
             {activeTab === 'allergy' && (

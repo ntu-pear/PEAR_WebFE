@@ -6,7 +6,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import DataTable from '@/components/Table/DataTable';
+import { DataTableClient } from '@/components/Table/DataTable';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   mockPatientMedicationList,
@@ -100,7 +100,7 @@ const ViewMedicationSchedule: React.FC = () => {
               </CardDescription>
             </CardHeader>
             <CardContent className="overflow-x-auto">
-              <DataTable
+              <DataTableClient
                 data={filteredData}
                 columns={columns}
                 viewMore={false}

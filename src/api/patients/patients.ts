@@ -1,12 +1,11 @@
-import { PatientTableData } from '@/mocks/mockPatientTableData';
 import { patientsAPI } from '../apiConfig';
 import { formatDateString } from '@/utils/formatDate';
 import {
   PatientInformation,
-  ProfilePhotoAndName,
   mockPreferredLanguageList,
 } from '@/mocks/mockPatientDetails';
 import { convertToYesNo } from '@/utils/convertToYesNo';
+import { TableRowData } from '@/components/Table/DataTable';
 
 export interface PatientBase {
   name: string;
@@ -40,13 +39,59 @@ export interface PatientBase {
   modifiedById: number;
 }
 
-const convertToPatientTD = (patients: PatientBase[]): PatientTableData[] => {
-  if (!Array.isArray(patients)) {
-    console.error('patients is not an array', patients);
-    return []; // Return an empty array if patients is not an array
+export interface ViewPatientList {
+  data: PatientBase[];
+  pageNo: number;
+  pageSize: number;
+  totalRecords: number;
+  totalPages: number;
+}
+
+export interface ViewPatient {
+  data: PatientBase;
+}
+
+// patient table data base without pagnination
+export interface PatientTableData extends TableRowData {
+  name: string;
+  preferredName: string;
+  nric: string;
+  status: string;
+  startDate: string;
+  endDate: string;
+  inactiveDate: string;
+  supervisorId: number;
+  image?: string;
+}
+
+// patient table data server pagination
+export interface PatientTableDataServer {
+  patients: PatientTableData[];
+  pagination: {
+    pageNo: number;
+    pageSize: number;
+    totalRecords: number;
+    totalPages: number;
+  };
+}
+
+const convertToPatientTD = (
+  patientPagination: ViewPatientList
+): PatientTableDataServer => {
+  if (!Array.isArray(patientPagination.data)) {
+    console.error('patients is not an array', patientPagination.data);
+    return {
+      patients: [],
+      pagination: {
+        pageNo: 0,
+        pageSize: 0,
+        totalRecords: 0,
+        totalPages: 0,
+      },
+    }; // Return default pagination values
   }
 
-  return patients
+  const patientsTransformed = patientPagination.data
     .filter((p) => !p.isDeleted)
     .map((p) => ({
       id: p.id,
@@ -60,6 +105,26 @@ const convertToPatientTD = (patients: PatientBase[]): PatientTableData[] => {
       supervisorId: 2,
       image: p.profilePicture,
     }));
+
+  console.log({
+    patients: patientsTransformed,
+    pagination: {
+      pageNo: patientPagination.pageNo,
+      pageSize: patientPagination.pageSize,
+      totalRecords: patientPagination.totalRecords,
+      totalPages: patientPagination.totalPages,
+    },
+  });
+
+  return {
+    patients: patientsTransformed,
+    pagination: {
+      pageNo: patientPagination.pageNo,
+      pageSize: patientPagination.pageSize,
+      totalRecords: patientPagination.totalRecords,
+      totalPages: patientPagination.totalPages,
+    },
+  };
 };
 
 const toUpperCasePatient = (patient: PatientBase): PatientBase => {
@@ -98,12 +163,12 @@ const toUpperCasePatient = (patient: PatientBase): PatientBase => {
 
 //Get All Patients with skip and limit
 export const fetchAllPatientTD = async (
-  skip: number = 0,
-  limit: number = 10
-): Promise<PatientTableData[]> => {
+  pageNo: number = 0,
+  pageSize: number = 10
+): Promise<PatientTableDataServer> => {
   try {
-    const response = await patientsAPI.get<PatientBase[]>(
-      `/?skip=${skip}&limit=${limit}`
+    const response = await patientsAPI.get<ViewPatientList>(
+      `?mask=true&pageNo=${pageNo}&pageSize=${pageSize}`
     );
     console.log('GET all Patients', response.data);
     return convertToPatientTD(response.data);
@@ -119,31 +184,13 @@ export const fetchPatientById = async (
   isNRICMasked: boolean = false
 ): Promise<PatientBase> => {
   try {
-    const response = await patientsAPI.get<PatientBase>(
+    const response = await patientsAPI.get<ViewPatient>(
       `/${id}?mask=${isNRICMasked}`
     );
-    console.log('GET Patient', response.data);
-    return toUpperCasePatient(response.data);
+    console.log('GET Patient', response.data.data);
+    return toUpperCasePatient(response.data.data);
   } catch (error) {
     console.error('GET Patient', error);
-    throw error;
-  }
-};
-
-export const fetchProfilePhotoAndName = async (
-  id: number
-): Promise<ProfilePhotoAndName> => {
-  try {
-    const response = await patientsAPI.get<PatientBase>(`/${id}`);
-    const patient = response.data;
-    console.log('GET Profile Photo and Name', patient);
-    return {
-      profilePicture: patient.profilePicture || '',
-      name: patient.name?.toUpperCase(),
-      preferredName: patient.preferredName?.toUpperCase() || '',
-    };
-  } catch (error) {
-    console.error('GET Profile Photo and Name', error);
     throw error;
   }
 };
@@ -153,8 +200,8 @@ export const fetchPatientInfo = async (
   id: number
 ): Promise<PatientInformation> => {
   try {
-    const response = await patientsAPI.get<PatientBase>(`/${id}`);
-    const p = response.data;
+    const response = await patientsAPI.get<ViewPatient>(`/${id}`);
+    const p = response.data.data;
     console.log('GET Patient Info', p);
     return {
       id: id,
@@ -181,6 +228,7 @@ export const fetchPatientInfo = async (
       startDate: p.startDate ? formatDateString(p.startDate) : '',
       endDate: p.endDate ? formatDateString(p.endDate) : '',
       inactiveDate: p.inActiveDate ? formatDateString(p.inActiveDate) : '-',
+      profilePicture: p.profilePicture || '',
     };
   } catch (error) {
     console.error('GET Patient Info', error);
@@ -193,10 +241,10 @@ export const fetchPatientNRIC = async (
   id: number,
   isNRICMasked: boolean
 ): Promise<string> => {
-  const response = await patientsAPI.get<PatientBase>(
+  const response = await patientsAPI.get<ViewPatient>(
     `/${id}?mask=${isNRICMasked}`
   );
-  const nric = response.data?.nric;
+  const nric = response.data?.data?.nric;
   console.log('GET Patient NRIC', nric);
 
   return nric?.toUpperCase();
@@ -205,10 +253,13 @@ export const fetchPatientNRIC = async (
 export const updatePatient = async (
   id: number,
   patient: PatientBase
-): Promise<PatientBase> => {
+): Promise<ViewPatient> => {
   try {
-    const response = await patientsAPI.put<PatientBase>(`/${id}`, patient);
-    console.log('PUT update Patient Info', response.data);
+    const response = await patientsAPI.put<ViewPatient>(
+      `/update/${id}`,
+      patient
+    );
+    console.log('PUT update Patient Info', response.data.data);
     return response.data;
   } catch (error) {
     console.error('PUT update Patient Info', error);

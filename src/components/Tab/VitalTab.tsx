@@ -2,7 +2,7 @@ import { PlusCircle } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { TabsContent } from '../ui/tabs';
-import DataTable from '../Table/DataTable';
+import { DataTableClient } from '../Table/DataTable';
 import { mockVitalCheck, VitalCheckTD } from '@/mocks/mockPatientDetails';
 import TabProps from './types';
 import { useEffect, useState } from 'react';
@@ -83,7 +83,7 @@ const VitalTab: React.FC<TabProps> = ({ id }) => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <DataTable
+            <DataTableClient
               data={vitalCheck}
               columns={vitalCheckColumns}
               viewMore={false}

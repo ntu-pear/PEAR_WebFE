@@ -3,25 +3,21 @@ import { EyeIcon, EyeOffIcon, FilePenLine, PlusCircle } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { TabsContent } from '../ui/tabs';
-import DataTable from '../Table/DataTable';
+import { DataTableClient } from '../Table/DataTable';
 import {
   DiagnosedDementiaTD,
   DoctorNoteTD,
   MobilityAidTD,
   mockDiagnosedDementiaList,
   mockDoctorNotes,
-  mockMaskedNRIC,
   mockMediclaDetails,
   mockMobilityAidsTD,
-  mockPatientInformation,
   mockSocialHistoryTD,
   mockStaffAllocation,
-  mockUnmaskedNRIC,
   PatientInformation,
   SocialHistoryTD,
 } from '@/mocks/mockPatientDetails';
 import TabProps from './types';
-import { fetchPatientInfo, fetchPatientNRIC } from '@/api/patients/patients';
 import { useModal } from '@/hooks/useModal';
 import EditPatientInfoModal from '../Modal/EditPatientInfoModal';
 import AddMedicalHistoryModal from '../Modal/AddMedicalHistoryModal';
@@ -34,14 +30,23 @@ import { fetchMobilityAids } from '@/api/patients/mobility';
 import { fetchSocialHistory } from '@/api/patients/socialHistory';
 import { fetchDiagnosedDementia } from '@/api/patients/diagnosedDementia';
 
-const PatientInfoTab: React.FC<TabProps> = ({ id }) => {
-  const [nricData, setNricData] = useState({
-    nric: '',
-    isMasked: true,
-  });
-  const [patientInfo, setPatientInfo] = useState<PatientInformation | null>(
-    null
-  );
+interface PatientInfoTabProps extends TabProps {
+  patientInfo: PatientInformation | null;
+  nricData: {
+    nric: string;
+    isMasked: boolean;
+  };
+  handleNRICToggle: () => Promise<void>;
+  refreshPatientData: () => void;
+}
+
+const PatientInfoTab: React.FC<PatientInfoTabProps> = ({
+  id,
+  patientInfo,
+  nricData,
+  handleNRICToggle,
+  refreshPatientData,
+}) => {
   const [diagnosedDementia, setDiagnosedDementia] = useState<
     DiagnosedDementiaTD[]
   >([]);
@@ -51,46 +56,6 @@ const PatientInfoTab: React.FC<TabProps> = ({ id }) => {
     null
   );
   const { activeModal, openModal } = useModal();
-
-  const handleNRICToggle = async () => {
-    if (!id || isNaN(Number(id))) return;
-    try {
-      const updatedNric: string =
-        import.meta.env.MODE === 'development' ||
-        import.meta.env.MODE === 'production'
-          ? await fetchPatientNRIC(Number(id), !nricData.isMasked)
-          : nricData.isMasked
-          ? mockUnmaskedNRIC
-          : mockMaskedNRIC;
-      setNricData({
-        nric: updatedNric,
-        isMasked: !nricData.isMasked,
-      });
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (error) {
-      toast.error('Failed to fetch patient NRIC');
-    }
-  };
-
-  const handleFetchPatientInfo = async () => {
-    if (!id || isNaN(Number(id))) return;
-    try {
-      const fetchedPatientInfo: PatientInformation =
-        import.meta.env.MODE === 'development' ||
-        import.meta.env.MODE === 'production'
-          ? await fetchPatientInfo(Number(id))
-          : mockPatientInformation;
-
-      setPatientInfo(fetchedPatientInfo);
-      setNricData({
-        nric: fetchedPatientInfo.nric,
-        isMasked: true,
-      });
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (error) {
-      toast.error('Failed to fetch patient information');
-    }
-  };
 
   const handleFetchDiagnosedDementia = async () => {
     if (!id || isNaN(Number(id))) return;
@@ -157,16 +122,11 @@ const PatientInfoTab: React.FC<TabProps> = ({ id }) => {
 
   useEffect(() => {
     console.log('patientId', id);
-    handleFetchPatientInfo();
     handleFetchDiagnosedDementia();
     handleFetchMobilityAids();
     handleFetchDoctorNotes();
     handleFetchSocialHistory();
   }, []);
-
-  const refreshPatientData = () => {
-    handleFetchPatientInfo();
-  };
 
   const refreshMobilityData = () => {
     handleFetchMobilityAids();
@@ -334,7 +294,7 @@ const PatientInfoTab: React.FC<TabProps> = ({ id }) => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <DataTable
+              <DataTableClient
                 data={diagnosedDementia}
                 columns={dementiaColumns}
                 viewMore={false}
@@ -361,7 +321,7 @@ const PatientInfoTab: React.FC<TabProps> = ({ id }) => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <DataTable
+            <DataTableClient
               data={mockMediclaDetails}
               columns={mediclaDetailsColumns}
               viewMore={false}
@@ -392,7 +352,7 @@ const PatientInfoTab: React.FC<TabProps> = ({ id }) => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <DataTable
+            <DataTableClient
               data={mobilityAids}
               columns={mobilityAidsColumns}
               viewMore={false}
@@ -407,7 +367,7 @@ const PatientInfoTab: React.FC<TabProps> = ({ id }) => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <DataTable
+            <DataTableClient
               data={doctorNotes}
               columns={doctorNotesColumns}
               viewMore={false}
@@ -434,7 +394,7 @@ const PatientInfoTab: React.FC<TabProps> = ({ id }) => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <DataTable
+              <DataTableClient
                 data={mockStaffAllocation}
                 columns={staffAllocationColumns}
                 viewMore={false}

@@ -7,7 +7,7 @@ import {
   UserDetails,
 } from '@/api/users/user';
 import { useEffect, useState } from 'react';
-import { UserProfileContext } from '@/hooks/useUserProfile';
+import { UserProfileContext } from '@/hooks/user/useUserProfile';
 import { Spinner } from './ui/spinner';
 
 interface ProtectedRouteProps {

@@ -13,7 +13,7 @@ import { useModal } from '@/hooks/useModal';
 import UploadProfilePhotoModal from '../Modal/UploadProfilePhotoModal';
 import ConfirmProfilePhotoModal from '../Modal/ConfirmProfilePhotoModal';
 import DeleteProfilePhotoModal from '../Modal/DeleteProfilePhotoModal';
-import { useUserProfile } from '@/hooks/useUserProfile';
+import { useUserProfile } from '@/hooks/user/useUserProfile';
 import {
   updateUserProfile,
   UserProfile,

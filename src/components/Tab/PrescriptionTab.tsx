@@ -2,7 +2,7 @@ import { PlusCircle } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { TabsContent } from '../ui/tabs';
-import DataTable from '../Table/DataTable';
+import { DataTableClient } from '../Table/DataTable';
 import { mockPrescription, PrescriptionTD } from '@/mocks/mockPatientDetails';
 import TabProps from './types';
 import { useModal } from '@/hooks/useModal';
@@ -49,7 +49,7 @@ const PrescriptionTab: React.FC<TabProps> = ({ id }) => {
     { key: 'drugName', header: 'Drug Name', className: 'truncate-column' },
     { key: 'dosage', header: 'Dosage' },
     { key: 'frequencyPerDay', header: 'Frequency Per Day' },
-    { key: 'instruction', header: 'Instruction', className: 'truncate-column'},
+    { key: 'instruction', header: 'Instruction', className: 'truncate-column' },
     { key: 'startDate', header: 'Start Date' },
     { key: 'endDate', header: 'End Date' },
     { key: 'afterMeal', header: 'After Meal' },
@@ -83,14 +83,14 @@ const PrescriptionTab: React.FC<TabProps> = ({ id }) => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <DataTable
+            <DataTableClient
               data={prescription}
               columns={prescriptionColumns}
               viewMore={false}
-              className='table-fixed'
-              renderActions={(item) => (                
+              className="table-fixed"
+              renderActions={(item) => (
                 <div className="flex space-x-2 flex-col">
-                  <Button 
+                  <Button
                     variant="default"
                     size="sm"
                     className="mt-3"
@@ -99,10 +99,8 @@ const PrescriptionTab: React.FC<TabProps> = ({ id }) => {
                         prescriptionId: String(item.id),
                         submitterId: '1',
                         refreshPrescriptionData,
-                      })
-                    }
-                      
-                    }
+                      });
+                    }}
                   >
                     More Details
                   </Button>

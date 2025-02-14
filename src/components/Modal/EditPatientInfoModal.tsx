@@ -224,10 +224,9 @@ const EditPatientInfoModal: React.FC = () => {
       isEditingPermanentAddr && newPermAddress.newAddress
         ? newPermAddress.newAddress
         : patient?.address;
-    const updatedTempAddr =
-      isEditingTemporaryAddr && newTempAddress.newAddress
-        ? newTempAddress.newAddress
-        : patient?.tempAddress;
+    const updatedTempAddr = isEditingTemporaryAddr
+      ? newTempAddress.newAddress
+      : patient?.tempAddress;
 
     const editedPatient: PatientBase = {
       ...patient,
@@ -286,8 +285,8 @@ const EditPatientInfoModal: React.FC = () => {
     if (isEditingPermanentAddr && !newPermAddress.newAddress) {
       return false;
     }
-    if (isEditingTemporaryAddr && !newTempAddress.newAddress) {
-      return false;
+    if (isEditingTemporaryAddr && newTempAddress.newAddress === '') {
+      return true;
     }
     return true;
   };

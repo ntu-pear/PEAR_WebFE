@@ -16,7 +16,7 @@ import SidebarMenu from '@/components/Sidebar/SidebarMenu';
 import { useAuth } from '@/hooks/useAuth';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 
-import { useUserProfile } from '@/hooks/useUserProfile';
+import { useUserProfile } from '@/hooks/user/useUserProfile';
 
 const Navbar: React.FC = () => {
   const navigate = useNavigate();

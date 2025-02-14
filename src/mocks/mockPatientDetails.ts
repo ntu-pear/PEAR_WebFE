@@ -22,6 +22,7 @@ export interface PatientInformation extends TableRowData {
   underRespiteCare: string;
   startDate: string;
   endDate: string;
+  profilePicture: string;
 }
 
 export interface PreferredLanguage {
@@ -180,6 +181,7 @@ export const mockPatientInformation: PatientInformation = {
   underRespiteCare: 'NO',
   startDate: '15 JUL 2024',
   endDate: '30 AUG 2024',
+  profilePicture: '',
 };
 
 export const mockMaskedNRIC = 'SXXXX123A';

@@ -17,7 +17,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import DataTable from '@/components/Table/DataTable';
+import { DataTableClient } from '@/components/Table/DataTable';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import Searchbar from '@/components/Searchbar';
 import {
@@ -173,7 +173,7 @@ const ManageMedication: React.FC = () => {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="overflow-x-auto">
-                  <DataTable
+                  <DataTableClient
                     data={mockPatientMedicationList}
                     columns={columns}
                     viewMore={false}

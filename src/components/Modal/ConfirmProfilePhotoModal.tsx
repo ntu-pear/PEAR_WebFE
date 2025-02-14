@@ -5,7 +5,7 @@ import { AvatarImage } from '@radix-ui/react-avatar';
 import { Loader2, UserRound } from 'lucide-react';
 import { updateUserProfilePhoto } from '@/api/users/user';
 import { toast } from 'sonner';
-import { useUserProfile } from '@/hooks/useUserProfile';
+import { useUserProfile } from '@/hooks/user/useUserProfile';
 import { useState } from 'react';
 import { Progress } from '../ui/progress';
 

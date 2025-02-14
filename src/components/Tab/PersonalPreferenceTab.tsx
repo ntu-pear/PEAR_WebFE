@@ -2,7 +2,7 @@ import { PlusCircle } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { TabsContent } from '../ui/tabs';
-import DataTable from '../Table/DataTable';
+import { DataTableClient } from '../Table/DataTable';
 import {
   mockDislike,
   mockHabit,
@@ -45,7 +45,7 @@ const PersonalPreferenceTab: React.FC<TabProps> = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <DataTable
+            <DataTableClient
               data={mockLike}
               columns={personalPreferenceColumns}
               viewMore={false}
@@ -69,7 +69,7 @@ const PersonalPreferenceTab: React.FC<TabProps> = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <DataTable
+            <DataTableClient
               data={mockDislike}
               columns={personalPreferenceColumns}
               viewMore={false}
@@ -93,7 +93,7 @@ const PersonalPreferenceTab: React.FC<TabProps> = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <DataTable
+            <DataTableClient
               data={mockHobby}
               columns={personalPreferenceColumns}
               viewMore={false}
@@ -117,7 +117,7 @@ const PersonalPreferenceTab: React.FC<TabProps> = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <DataTable
+            <DataTableClient
               data={mockHabit}
               columns={personalPreferenceColumns}
               viewMore={false}
