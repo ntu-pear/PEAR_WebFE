@@ -8,7 +8,7 @@ import {
 
 import { Button } from '@/components/ui/button';
 import { useLocation, useNavigate } from 'react-router';
-import useGetUsers from '@/hooks/user/useGetUsers';
+import useGetUsers from '@/hooks/admin/useGetUsers';
 import { SubmitHandler, useForm } from 'react-hook-form';
 import useEditUsersInRole from '@/hooks/role/useEditUsersInRole';
 
@@ -18,6 +18,7 @@ const EditUserInRole: React.FC = () => {
   const { data } = useGetUsers()
   const { register, handleSubmit } = useForm()
   const { mutate } = useEditUsersInRole()
+
 
   const onSubmit: SubmitHandler<{ [key: string]: boolean }> = (data) =>
     mutate({ roleId: role.id, userIds: Object.keys(data).filter((key) => data[key]) })
@@ -42,7 +43,7 @@ const EditUserInRole: React.FC = () => {
                             {...register(user.id as string)}
                             className='mr-2 mb-2'
                           />
-                          {user.name}
+                          {user.nric_FullName}
                         </li>
                       ))}
                     </ul>
