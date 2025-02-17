@@ -41,3 +41,16 @@ export const fetchUsers = async () => {
     throw error;
   }
 };
+
+export const updateUsersRole = async (role: string, users_Id: string[]) => {
+  try {
+    const token = retrieveTokenFromCookie()
+    if (!token) throw new Error('Token not found')
+    const response = await adminAPI.put<User>('/', { users_Id, role }, { headers: { Authorization: `Bearer ${token}` } })
+    console.log('Update users role', response.data)
+    return response.data
+  } catch (error) {
+    console.error('Update users role', error)
+    throw error;
+  }
+}

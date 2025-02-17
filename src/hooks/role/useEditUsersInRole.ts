@@ -1,8 +1,10 @@
+import { updateUsersRole } from "@/api/admin/user"
 import { useMutation } from "@tanstack/react-query"
 import { useNavigate } from "react-router"
+import { toast } from "sonner"
 
 type Variables = {
-  roleId: string
+  roleName: string
   userIds: string[]
 }
 
@@ -11,11 +13,12 @@ const useEditUsersInRole = () => {
 
   // to be replaced with real api call
   return useMutation({
-    mutationFn: (variables: Variables) => {
-      console.log(variables)
-      return Promise.resolve(variables)
+    mutationFn: (variables: Variables) => updateUsersRole(variables.roleName, variables.userIds),
+    onSuccess: () => {
+      navigate(-1)
+      toast.success('Users role updated')
     },
-    onSuccess: () => navigate(-1)
+    onError: () => toast.error('Failed to update users role')
   })
 }
 

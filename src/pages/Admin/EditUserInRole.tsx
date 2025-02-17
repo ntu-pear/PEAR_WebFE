@@ -11,17 +11,25 @@ import { useLocation, useNavigate } from 'react-router';
 import useGetUsers from '@/hooks/admin/useGetUsers';
 import { SubmitHandler, useForm } from 'react-hook-form';
 import useEditUsersInRole from '@/hooks/role/useEditUsersInRole';
+import useGetUsersFromRole from '@/hooks/role/useGetUsersFromRole';
+import { Role } from '@/api/role/roles';
+
+type Inputs = {
+  [key: string]: boolean;
+}
 
 const EditUserInRole: React.FC = () => {
   const navigate = useNavigate()
-  const { state: { role } } = useLocation()
-  const { data } = useGetUsers()
-  const { register, handleSubmit } = useForm()
+  const { state: { role } }: { state: { role: Role } } = useLocation()
+  const users = useGetUsers()
+  const usersInRole = useGetUsersFromRole(role.roleName)
+  const { register, handleSubmit } = useForm<Inputs>({
+    defaultValues: usersInRole.data?.reduce((acc, user) => ({ ...acc, [user.id]: true }), {})
+  })
   const { mutate } = useEditUsersInRole()
 
-
-  const onSubmit: SubmitHandler<{ [key: string]: boolean }> = (data) =>
-    mutate({ roleId: role.id, userIds: Object.keys(data).filter((key) => data[key]) })
+  const onSubmit: SubmitHandler<Inputs> = (data) =>
+    mutate({ roleName: role.roleName, userIds: Object.keys(data).filter((key) => data[key]) })
 
   return (
     <div className="flex min-h-screen w-full flex-col container mx-auto px-0 sm:px-4">
@@ -36,11 +44,11 @@ const EditUserInRole: React.FC = () => {
                 <CardContent className='p-0'>
                   <form onSubmit={handleSubmit(onSubmit)}>
                     <ul className='p-4'>
-                      {data?.map((user) => (
+                      {users.data?.map((user) => (
                         <li key={user.id} className='text-sm'>
                           <input
                             type='checkbox'
-                            {...register(user.id as string)}
+                            {...register(user.id)}
                             className='mr-2 mb-2'
                           />
                           {user.nric_FullName}
