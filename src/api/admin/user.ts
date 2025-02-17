@@ -1,6 +1,6 @@
 import { toast } from "sonner";
 import { adminAPI } from "../apiConfig";
-import { retrieveTokenFromCookie } from "../users/auth";
+import { retrieveAccessTokenFromCookie } from "../users/auth";
 
 export interface User {
   id: string
@@ -30,7 +30,7 @@ export interface User {
 
 export const fetchUsers = async () => {
   try {
-    const token = retrieveTokenFromCookie()
+    const token = retrieveAccessTokenFromCookie()
     if (!token) throw new Error('Token not found')
     const response = await adminAPI.get<User[]>('/', { headers: { Authorization: `Bearer ${token}` } })
     console.log('GET all users', response.data)
@@ -44,9 +44,9 @@ export const fetchUsers = async () => {
 
 export const updateUsersRole = async (role: string, users_Id: string[]) => {
   try {
-    const token = retrieveTokenFromCookie()
+    const token = retrieveAccessTokenFromCookie()
     if (!token) throw new Error('Token not found')
-    const response = await adminAPI.put('/reset_and_update_users_role/', { users_Id, role }, { headers: { Authorization: `Bearer ${token}` } })
+    const response = await adminAPI.put('/reset_and_update_users_role', { users_Id, role }, { headers: { Authorization: `Bearer ${token}` } })
     console.log('Update users role', response.data)
     return response.data
   } catch (error) {

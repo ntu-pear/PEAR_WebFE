@@ -1,6 +1,6 @@
 import { toast } from "sonner";
 import { roleAPI } from "../apiConfig";
-import { retrieveTokenFromCookie } from "../users/auth";
+import { retrieveAccessTokenFromCookie } from "../users/auth";
 
 export interface Role {
   roleName: string;
@@ -20,7 +20,7 @@ export interface User {
 
 export const fetchRoles = async () => {
   try {
-    const token = retrieveTokenFromCookie()
+    const token = retrieveAccessTokenFromCookie()
     if (!token) throw new Error('Token not found')
     const response = await roleAPI.get<Role[]>('/', { headers: { Authorization: `Bearer ${token}` } })
     console.log('GET all roles', response.data)
@@ -34,7 +34,7 @@ export const fetchRoles = async () => {
 
 export const deleteRole = async (id: string) => {
   try {
-    const token = retrieveTokenFromCookie()
+    const token = retrieveAccessTokenFromCookie()
     if (!token) throw new Error('Token not found')
     const response = await roleAPI.delete(`/${id}`, { headers: { Authorization: `Bearer ${token}` } })
     console.log('DELETE role', response.data)
@@ -47,7 +47,7 @@ export const deleteRole = async (id: string) => {
 
 export const createRole = async (roleName: string) => {
   try {
-    const token = retrieveTokenFromCookie()
+    const token = retrieveAccessTokenFromCookie()
     if (!token) throw new Error('Token not found')
     const response = await roleAPI.post<Role>('/', { roleName }, { headers: { Authorization: `Bearer ${token}` } })
     console.log('Create role', response.data)
@@ -60,7 +60,7 @@ export const createRole = async (roleName: string) => {
 
 export const getUsersFromRole = async (roleName: string) => {
   try {
-    const token = retrieveTokenFromCookie()
+    const token = retrieveAccessTokenFromCookie()
     if (!token) throw new Error('Token not found')
     const response = await roleAPI.get<User[]>(`/${roleName}/users`, { headers: { Authorization: `Bearer ${token}` } })
     console.log('Get users from role', response.data)
