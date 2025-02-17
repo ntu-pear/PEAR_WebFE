@@ -136,6 +136,7 @@ const AddPrescriptionModal: React.FC = () => {
               type="text"
               name="Dosage"
               className="mt-1 block w-full p-2 border rounded-md text-gray-900"
+              maxLength={255}
               required
             />
           </div>
@@ -148,6 +149,7 @@ const AddPrescriptionModal: React.FC = () => {
               type="number"
               name="FrequencyPerDay"
               className="mt-1 block w-full p-2 border rounded-md text-gray-900"
+              min="0"
               required
             />
           </div>
@@ -174,6 +176,7 @@ const AddPrescriptionModal: React.FC = () => {
             <textarea
               name="Instruction"
               className="mt-1 block w-full p-2 border rounded-md text-gray-900"
+              maxLength={255}
               required
             />
           </div>
@@ -212,6 +215,7 @@ const AddPrescriptionModal: React.FC = () => {
             <textarea
               name="PrescriptionRemarks"
               className="mt-1 block w-full p-2 border rounded-md text-gray-900"
+              maxLength={255}
               required
             />
           </div>
