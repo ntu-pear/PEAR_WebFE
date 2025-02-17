@@ -53,7 +53,7 @@ const PrescriptionTab: React.FC<TabProps> = ({ id }) => {
 
   const prescriptionColumns = [
     { key: 'drugName', header: 'Drug Name', className: 'truncate-column' },
-    { key: 'dosage', header: 'Dosage' },
+    { key: 'dosage', header: 'Dosage', className: 'truncate-column' },
     { key: 'frequencyPerDay', header: 'Frequency Per Day' },
     { key: 'instruction', header: 'Instruction', className: 'truncate-column' },
     { key: 'startDate', header: 'Start Date' },
