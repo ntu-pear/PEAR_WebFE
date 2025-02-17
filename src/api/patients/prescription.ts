@@ -181,7 +181,7 @@ export const fetchPatientPrescription = async (
     console.log('GET all prescription List', dlResponse.data);
 
     const ddResponse = await patientPrescriptionAPI.get<PrescriptionViewList>(
-      `/?patient_id=${patientId}&pageNo=${pageNo}&limit=${pageSize}`
+      `/?patient_id=${patientId}&pageNo=${pageNo}&pageSize=${pageSize}`
     );
 
     console.log('GET all patient prescriptions', ddResponse.data);
