@@ -28,8 +28,9 @@ const EditUserInRole: React.FC = () => {
   })
   const { mutate } = useEditUsersInRole()
 
-  const onSubmit: SubmitHandler<Inputs> = (data) =>
+  const onSubmit: SubmitHandler<Inputs> = (data) => {
     mutate({ roleName: role.roleName, userIds: Object.keys(data).filter((key) => data[key]) })
+  }
 
   return (
     <div className="flex min-h-screen w-full flex-col container mx-auto px-0 sm:px-4">
@@ -56,13 +57,16 @@ const EditUserInRole: React.FC = () => {
                       ))}
                     </ul>
                     <div className='px-4 py-2 bg-slate-200 border-t-2 border-slate-300'>
-                      <Button
-                        className='bg-blue-500 mr-1'
-                        type='submit'
-                      >
+                      <Button className='bg-blue-500 mr-1'>
                         Update
                       </Button>
-                      <Button className='bg-red-500 w-20' onClick={() => navigate(-1)}>Back</Button>
+                      <Button
+                        type='button'
+                        className='bg-red-500 w-20'
+                        onClick={() => navigate(-1)}
+                      >
+                        Back
+                      </Button>
                     </div>
                   </form>
                 </CardContent>
