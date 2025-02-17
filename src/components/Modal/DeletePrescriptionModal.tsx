@@ -24,7 +24,7 @@ const DeletePrescriptionModal: React.FC = () => {
     if (!prescriptionId || isNaN(Number(prescriptionId))) return;
 
     const response = await fetchPrescriptionById(Number(prescriptionId));
-    setPrescription(response);
+    setPrescription(response.data);
   };
 
   const handleDeletePrescription = async (event: React.FormEvent) => {

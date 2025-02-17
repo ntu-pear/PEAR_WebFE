@@ -1,4 +1,4 @@
-import { resetPassword, ResetPasswordForm } from '@/api/users/auth';
+import { resetPassword, ResetPasswordForm } from '@/api/users/user';
 import { Button } from '@/components/ui/button';
 import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';

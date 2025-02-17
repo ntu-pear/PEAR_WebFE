@@ -2,11 +2,10 @@ import { PlusCircle } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { TabsContent } from '../ui/tabs';
-import DataTable from '../Table/DataTable';
-import { mockVitalCheck, VitalCheckTD } from '@/mocks/mockPatientDetails';
+import { DataTableServer } from '../Table/DataTable';
 import TabProps from './types';
 import { useEffect, useState } from 'react';
-import { fetchVitals } from '@/api/patients/vital';
+import { fetchVitals, VitalCheckTDServer } from '@/api/patients/vital';
 import AddVitalModal from '../Modal/AddVitalModal';
 import { useModal } from '@/hooks/useModal';
 import DeleteVitalModal from '../Modal/DeleteVitalModal';
@@ -14,17 +13,24 @@ import { toast } from 'sonner';
 import EditVitalModal from '../Modal/EditVitalModal';
 
 const VitalTab: React.FC<TabProps> = ({ id }) => {
-  const [vitalCheck, setVitalCheck] = useState<VitalCheckTD[]>([]);
+  const [vitalCheck, setVitalCheck] = useState<VitalCheckTDServer>({
+    vitals: [],
+    pagination: {
+      pageNo: 0,
+      pageSize: 0,
+      totalRecords: 0,
+      totalPages: 0,
+    },
+  });
   const { activeModal, openModal } = useModal();
 
-  const handleFetchVitalCheck = async () => {
+  const handleFetchVitalCheck = async (pageNo: number) => {
     if (!id || isNaN(Number(id))) return;
     try {
-      const fetchedVitalCheck: VitalCheckTD[] =
-        import.meta.env.MODE === 'development' ||
-        import.meta.env.MODE === 'production'
-          ? await fetchVitals(Number(id))
-          : mockVitalCheck;
+      const fetchedVitalCheck: VitalCheckTDServer = await fetchVitals(
+        Number(id),
+        pageNo
+      );
 
       setVitalCheck(fetchedVitalCheck);
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -35,11 +41,11 @@ const VitalTab: React.FC<TabProps> = ({ id }) => {
 
   useEffect(() => {
     console.log('patientId', id);
-    handleFetchVitalCheck();
+    refreshVitalData();
   }, []);
 
   const refreshVitalData = () => {
-    handleFetchVitalCheck();
+    handleFetchVitalCheck(vitalCheck.pagination.pageNo || 0);
   };
 
   const vitalCheckColumns = [
@@ -83,8 +89,10 @@ const VitalTab: React.FC<TabProps> = ({ id }) => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <DataTable
-              data={vitalCheck}
+            <DataTableServer
+              data={vitalCheck.vitals}
+              pagination={vitalCheck.pagination}
+              fetchData={handleFetchVitalCheck}
               columns={vitalCheckColumns}
               viewMore={false}
               renderActions={(item) => (
