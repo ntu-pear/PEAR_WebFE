@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useForm, SubmitHandler } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router';
-import useCreateRole from '@/hooks/user/useCreateRole';
+import useCreateRole from '@/hooks/role/useCreateRole';
 
 type RoleForm = {
   name: string;

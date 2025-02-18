@@ -41,7 +41,7 @@ import PersonalDataSettings from './components/UserSettings/PersonalDataSettings
 import ProfileSettings from './components/UserSettings/ProfileSettings';
 import TwoFactorAuthSettings from './components/UserSettings/TwoFactorAuthSettings';
 
-const queryClient = new QueryClient();
+export const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false, staleTime: Infinity } } });
 
 const settingsRoutes = [
   { path: 'profile', element: <ProfileSettings /> },

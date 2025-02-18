@@ -3,18 +3,15 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 import { Button } from '@/components/ui/button';
 import { useLocation, useNavigate } from 'react-router';
-import useGetUsersFromRole from '@/hooks/user/useGetUsersFromRole';
-import { convertToLowerCamelCase } from '@/utils/convertToLowerCamelCase';
-import { UserRole } from '@/mocks/mockRoles';
+import useGetUsersFromRole from '@/hooks/role/useGetUsersFromRole';
+import { Role } from '@/api/role/roles';
 
 const EditRole: React.FC = () => {
   const navigate = useNavigate();
   const {
     state: { role },
-  } = useLocation();
-  const { data } = useGetUsersFromRole(
-    convertToLowerCamelCase(role.name) as UserRole
-  );
+  }: { state: { role: Role } } = useLocation();
+  const { data } = useGetUsersFromRole(role.roleName);
 
   return (
     <div className="flex min-h-screen w-full flex-col container mx-auto px-0 sm:px-4">
@@ -39,7 +36,7 @@ const EditRole: React.FC = () => {
                 <input
                   type="text"
                   className="border border-gray-300 rounded-md px-3 w-5/6 bg-slate-200 h-full"
-                  value={role.name}
+                  value={role.roleName}
                   readOnly
                 />
               </div>
@@ -56,8 +53,8 @@ const EditRole: React.FC = () => {
                 <CardContent className="p-0">
                   <ul className="p-4">
                     {data?.map((user) => (
-                      <li key={user} className="text-xl">
-                        {user}
+                      <li key={user.id} className="text-xl">
+                        {user.FullName}
                       </li>
                     ))}
                   </ul>

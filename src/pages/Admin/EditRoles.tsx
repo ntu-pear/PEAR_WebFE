@@ -1,6 +1,6 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import useGetRoles from '@/hooks/user/useGetRoles';
+import useGetRoles from '@/hooks/role/useGetRoles';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router';
 import { useModal } from '@/hooks/useModal';
@@ -34,7 +34,7 @@ const EditRoles: React.FC = () => {
                         Role ID: {role.id}
                       </CardHeader>
                       <CardContent className="py-4 text-xl flex justify-between">
-                        {role.name}
+                        {role.roleName}
                         <div>
                           <Button
                             className="border-green-500 bg-transparent text-green-500 border-2 mr-1"
