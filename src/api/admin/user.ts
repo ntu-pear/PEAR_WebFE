@@ -46,7 +46,7 @@ export const updateUsersRole = async (role: string, users_Id: string[]) => {
   try {
     const token = retrieveAccessTokenFromCookie()
     if (!token) throw new Error('Token not found')
-    const response = await adminAPI.put('/reset_and_update_users_role', { users_Id, role }, { headers: { Authorization: `Bearer ${token}` } })
+    const response = await adminAPI.put('/reset_and_update_users_role/', { users_Id, role }, { headers: { Authorization: `Bearer ${token}` } })
     console.log('Update users role', response.data)
     return response.data
   } catch (error) {
