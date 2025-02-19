@@ -3,6 +3,7 @@ import {
   getCurrentUserAPI,
   refreshTokenAPI,
   logoutAPI,
+  verifyOTP,
 } from '../apiConfig';
 import Cookies from 'js-cookie';
 import {
@@ -16,6 +17,11 @@ import {
 export interface Token {
   access_token: string;
   refresh_token: string;
+}
+
+export interface Require2FA {
+  email: string;
+  msg: string;
 }
 
 export interface CurrentUser {
@@ -48,7 +54,9 @@ export const retrieveRefreshTokenFromCookie = () => {
   return Cookies.get(REFRESH_TOKEN_COOKIE_NAME);
 };
 
-export const sendLogin = async (formData: FormData): Promise<Token> => {
+export const sendLogin = async (
+  formData: FormData
+): Promise<Token | Require2FA> => {
   try {
     const oAuth2FormData = new FormData();
 
@@ -74,6 +82,26 @@ export const sendLogin = async (formData: FormData): Promise<Token> => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     console.error('POST login data', error);
+    throw error;
+  }
+};
+
+export const sendLogin2FA = async (
+  user_email: string,
+  code: string
+): Promise<Token> => {
+  try {
+    const response = await verifyOTP.get(
+      `/?user_email=${user_email}&code=${code}`
+    );
+
+    console.log('GET login 2FA data', response.data);
+
+    storeTokenInCookie(response.data.access_token, response.data.refresh_token);
+    return response.data;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } catch (error: any) {
+    console.error('GET login data', error);
     throw error;
   }
 };

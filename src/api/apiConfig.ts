@@ -86,6 +86,14 @@ export const loginAPI = axios.create({
   baseURL: `${VITE_USER_SERVICE_URL}/login`,
 });
 
+export const verifyOTP = axios.create({
+  baseURL: `${VITE_USER_SERVICE_URL}/verify-otp`,
+});
+
+export const requestOTP = axios.create({
+  baseURL: `${VITE_USER_SERVICE_URL}/request-otp`,
+});
+
 export const logoutAPI = axios.create({
   baseURL: `${VITE_USER_SERVICE_URL}/logout`,
 });

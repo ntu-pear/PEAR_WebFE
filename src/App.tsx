@@ -41,6 +41,7 @@ import PersonalDataSettings from './components/UserSettings/PersonalDataSettings
 import ProfileSettings from './components/UserSettings/ProfileSettings';
 import TwoFactorAuthSettings from './components/UserSettings/TwoFactorAuthSettings';
 import ConfirmNewEmail from './pages/auth/ConfirmNewEmail';
+import Login2FA from './pages/auth/Login2FA';
 
 export const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: false, staleTime: Infinity } },
@@ -66,6 +67,8 @@ const App: React.FC = () => {
                 <main>
                   <Routes>
                     <Route path="/login" element={<Login />} />
+                    <Route path="/login-2fa" element={<Login2FA />} />
+
                     <Route
                       path="/forgot-password"
                       element={<ForgotPassword />}
