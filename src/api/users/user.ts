@@ -86,14 +86,9 @@ export const resetPassword = async (
   token: string
 ) => {
   try {
-    const response = await userAPI.post(
-      `/reset_user_password/`,
-      resetPasswordForm,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
+    const response = await userAPI.put(
+      `/reset_user_password/${token}`,
+      resetPasswordForm
     );
     console.log('POST reset password', response.data);
     return response.data;
