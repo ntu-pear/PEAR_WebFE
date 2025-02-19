@@ -55,6 +55,12 @@ export interface UserEmail {
   emailConfirmed: boolean;
 }
 
+export interface UserPasswordForm {
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+}
+
 export const requestResetPassword = async (
   requestResetPasswordForm: RequestResetPasswordForm
 ) => {
@@ -122,6 +128,23 @@ export const resendRegistrationEmail = async (
     return response.data;
   } catch (error) {
     console.error('POST resend registration email', error);
+    throw error;
+  }
+};
+
+export const changePassword = async (formData: UserPasswordForm) => {
+  try {
+    const token = retrieveAccessTokenFromCookie();
+    if (!token) throw new Error('No token found.');
+    const response = await userAPI.put(`/change_password/`, formData, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    console.log('PUT change password', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('PUT change password', error);
     throw error;
   }
 };
