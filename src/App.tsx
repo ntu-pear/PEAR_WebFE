@@ -40,8 +40,11 @@ import PasswordSettings from './components/UserSettings/PasswordSettings';
 import PersonalDataSettings from './components/UserSettings/PersonalDataSettings';
 import ProfileSettings from './components/UserSettings/ProfileSettings';
 import TwoFactorAuthSettings from './components/UserSettings/TwoFactorAuthSettings';
+import ConfirmNewEmail from './pages/auth/ConfirmNewEmail';
 
-export const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false, staleTime: Infinity } } });
+export const queryClient = new QueryClient({
+  defaultOptions: { queries: { retry: false, staleTime: Infinity } },
+});
 
 const settingsRoutes = [
   { path: 'profile', element: <ProfileSettings /> },
@@ -74,6 +77,10 @@ const App: React.FC = () => {
                     <Route
                       path="/resend-registration-email"
                       element={<ResendRegistrationEmail />}
+                    />
+                    <Route
+                      path="/confirm-email/:token"
+                      element={<ConfirmNewEmail />}
                     />
 
                     {/* Routes for Supervisor */}

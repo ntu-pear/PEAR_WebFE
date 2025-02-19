@@ -84,7 +84,9 @@ const PasswordSettings: React.FC = () => {
             <div className="flex flex-col md:flex-row justify-between items-start gap-24">
               <div className="w-full md:w-1/2 space-y-6">
                 <div className="space-y-2">
-                  <Label htmlFor="currentPassword">Current Password</Label>
+                  <Label htmlFor="currentPassword">
+                    Current Password <span className="text-red-600"> *</span>
+                  </Label>
                   <input
                     id="currentPassword"
                     name="currentPassword"
@@ -95,7 +97,9 @@ const PasswordSettings: React.FC = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="newPassword">New Password</Label>
+                  <Label htmlFor="newPassword">
+                    New Password <span className="text-red-600"> *</span>
+                  </Label>
                   <input
                     id="newPassword"
                     name="newPassword"
@@ -108,7 +112,10 @@ const PasswordSettings: React.FC = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="confirmPassword">Confirm New Password</Label>
+                  <Label htmlFor="confirmPassword">
+                    Confirm New Password{' '}
+                    <span className="text-red-600"> *</span>
+                  </Label>
                   <input
                     id="confirmPassword"
                     name="confirmPassword"

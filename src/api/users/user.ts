@@ -50,6 +50,10 @@ export interface UserProfileForm {
   contactNo: string;
 }
 
+export interface UserNewEmail {
+  email: string;
+}
+
 export interface UserEmail {
   email: string;
   emailConfirmed: boolean;
@@ -129,6 +133,67 @@ export const resendRegistrationEmail = async (
   } catch (error) {
     console.error('POST resend registration email', error);
     throw error;
+  }
+};
+
+export const sendNewEmailConfirmation = async (formData: UserNewEmail) => {
+  try {
+    const token = retrieveAccessTokenFromCookie();
+    if (!token) throw new Error('No token found.');
+
+    const response = await userAPI.put<UserDetails>(`/update_user/`, formData, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    console.log('PUT send new email confirimation', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('PUT send new email confirimation', error);
+    if (axios.isAxiosError(error)) {
+      // Extract error response if available
+      const status = error.response?.status;
+      const message = error.response?.data?.message || 'Something went wrong.';
+
+      if (status === 401) {
+        throw 'Invalid or expired token.';
+      } else if (status === 404) {
+        throw `Email not found.`;
+      } else if (status === 400) {
+        throw `${message}`;
+      } else {
+        throw 'Internal Server error. Please try again later.';
+      }
+    } else {
+      throw 'Network error. Please check your connection.';
+    }
+  }
+};
+
+export const confirmNewEmail = async (token: string) => {
+  try {
+    const response = await userAPI.put(`/confirm_email/${token}`);
+    console.log('PUT confirm new email', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('PUT confirm new email', error);
+
+    if (axios.isAxiosError(error)) {
+      // Extract error response if available
+      const status = error.response?.status;
+      const message = error.response?.data?.message || 'Something went wrong.';
+
+      if (status === 401) {
+        throw 'Invalid or expired token.';
+      } else if (status === 400 || status === 404) {
+        throw `${message}`;
+      } else {
+        throw 'Internal Server error. Please try again later.';
+      }
+    } else {
+      throw 'Network error. Please check your connection.';
+    }
   }
 };
 
