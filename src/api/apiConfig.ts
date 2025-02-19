@@ -86,6 +86,10 @@ export const loginAPI = axios.create({
   baseURL: `${VITE_USER_SERVICE_URL}/login`,
 });
 
+export const logoutAPI = axios.create({
+  baseURL: `${VITE_USER_SERVICE_URL}/logout`,
+});
+
 export const refreshTokenAPI = axios.create({
   baseURL: `${VITE_USER_SERVICE_URL}/refresh`,
 });
@@ -100,11 +104,11 @@ export const userAPI = axios.create({
 
 export const roleAPI = axios.create({
   baseURL: `${VITE_USER_SERVICE_URL}/roles`,
-})
+});
 
 export const adminAPI = axios.create({
   baseURL: `${VITE_USER_SERVICE_URL}/admin`,
-})
+});
 export const usersAPI = axios.create({
   baseURL: `${VITE_USER_SERVICE_URL}/users`,
 });

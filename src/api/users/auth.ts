@@ -1,4 +1,9 @@
-import { loginAPI, getCurrentUserAPI, refreshTokenAPI } from '../apiConfig';
+import {
+  loginAPI,
+  getCurrentUserAPI,
+  refreshTokenAPI,
+  logoutAPI,
+} from '../apiConfig';
 import Cookies from 'js-cookie';
 import {
   addAuthInterceptor,
@@ -108,10 +113,27 @@ export const refreshAccessToken = async () => {
   }
 };
 
-export const sendLogout = () => {
-  Cookies.remove(ACCESS_TOKEN_COOKIE_NAME);
-  Cookies.remove(REFRESH_TOKEN_COOKIE_NAME);
-  ejectAuthInterceptor();
-  ejectUsersAPIInterceptor();
-  clearAuthHeaders();
+export const sendLogout = async () => {
+  try {
+    const token = retrieveAccessTokenFromCookie();
+    if (!token) throw new Error('No token found.');
+
+    Cookies.remove(ACCESS_TOKEN_COOKIE_NAME);
+    Cookies.remove(REFRESH_TOKEN_COOKIE_NAME);
+    ejectAuthInterceptor();
+    ejectUsersAPIInterceptor();
+    clearAuthHeaders();
+
+    const response = await logoutAPI.delete(`/`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    console.log('Delete user logout', response);
+    return response;
+  } catch (error) {
+    console.error('Delete user logout.');
+    throw error;
+  }
 };

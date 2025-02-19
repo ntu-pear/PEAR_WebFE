@@ -60,7 +60,7 @@ export const addAuthInterceptor = () => {
           originalRequest.headers['Authorization'] = `Bearer ${access_token}`;
           return getCurrentUserAPI(originalRequest); // Retry the original request with the new access token.
         } catch (refreshError) {
-          sendLogout();
+          await sendLogout();
           return Promise.reject(refreshError);
         } finally {
           isRefreshing = false; // Reset the refreshing flag after the process.
@@ -130,7 +130,7 @@ export const addUsersAPIInterceptor = () => {
 
           return usersAPI(originalRequest); // Retry the original request with the new access token.
         } catch (refreshError) {
-          sendLogout();
+          await sendLogout();
           return Promise.reject(refreshError);
         } finally {
           isRefreshing = false; // Reset the refreshing flag after the process.
