@@ -23,9 +23,14 @@ export interface User {
   lockoutEnabled: boolean
   lockoutReason: string | null
   createdById: string
-  createdDate: Date
+  createdDate: string
   modifiedById: string
-  modifiedDate: Date
+  modifiedDate: string
+}
+
+
+export interface AccountTableDataServer {
+  Items: User[];
 }
 
 export const fetchUsers = async () => {

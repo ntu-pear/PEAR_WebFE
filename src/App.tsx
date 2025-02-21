@@ -40,6 +40,7 @@ import PasswordSettings from './components/UserSettings/PasswordSettings';
 import PersonalDataSettings from './components/UserSettings/PersonalDataSettings';
 import ProfileSettings from './components/UserSettings/ProfileSettings';
 import TwoFactorAuthSettings from './components/UserSettings/TwoFactorAuthSettings';
+import AccountTable from './pages/Admin/AccountTable';
 
 export const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false, staleTime: Infinity } } });
 
@@ -117,7 +118,7 @@ const App: React.FC = () => {
                       element={<ProtectedRoute allowedRoles={['ADMIN']} />}
                     >
                       <Route path="temp-page" element={<TempPage />} />
-                      <Route path="manage-accounts" element={<TempPage />} />
+                      <Route path="manage-accounts" element={<AccountTable />} />
                       <Route path="edit-roles" element={<EditRoles />} />
                       <Route path="create-role" element={<CreateRole />} />
                       <Route path="edit-role/:id" element={<EditRole />} />
