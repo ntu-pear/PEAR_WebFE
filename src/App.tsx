@@ -117,6 +117,7 @@ const App: React.FC = () => {
                       element={<ProtectedRoute allowedRoles={['ADMIN']} />}
                     >
                       <Route path="temp-page" element={<TempPage />} />
+                      <Route path="manage-accounts" element={<TempPage />} />
                       <Route path="edit-roles" element={<EditRoles />} />
                       <Route path="create-role" element={<CreateRole />} />
                       <Route path="edit-role/:id" element={<EditRole />} />
