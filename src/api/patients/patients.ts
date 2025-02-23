@@ -35,8 +35,8 @@ export interface PatientBase {
   id: number;
   createdDate: string;
   modifiedDate: string;
-  createdById: number;
-  modifiedById: number;
+  CreatedById: string;
+  ModifiedById: string;
 }
 
 export interface ViewPatientList {
@@ -149,8 +149,8 @@ const toUpperCasePatient = (patient: PatientBase): PatientBase => {
     id: patient.id,
     createdDate: patient.createdDate,
     modifiedDate: patient.modifiedDate,
-    createdById: patient.createdById,
-    modifiedById: patient.modifiedById,
+    CreatedById: patient.CreatedById,
+    ModifiedById: patient.ModifiedById,
   };
 };
 

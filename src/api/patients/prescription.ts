@@ -22,8 +22,8 @@ export interface Prescription {
   Id: number;
   CreatedDateTime: string;
   UpdatedDateTime: string;
-  CreatedById: number;
-  UpdatedById: number;
+  CreatedById: string;
+  ModifiedById: string;
 }
 
 export interface PrescriptionList {
@@ -81,8 +81,8 @@ export interface PrescriptionFormData {
   IsAfterMeal: string;
   PrescriptionRemarks: string;
   Status: string;
-  CreatedById: number;
-  UpdatedById: number;
+  CreatedById: string;
+  ModifiedById: string;
   CreatedDateTime: string;
   UpdatedDateTime: string;
 }
@@ -96,7 +96,7 @@ export interface PrescriptionDelete {
   StartDate: string;
   PrescriptionRemarks: string;
   UpdatedDateTime: string;
-  UpdatedById: number;
+  ModifiedById: string;
 }
 
 export interface PrescriptionUpdate {
@@ -111,7 +111,7 @@ export interface PrescriptionUpdate {
   PrescriptionRemarks: string;
   Status: string;
   UpdatedDateTime: string;
-  UpdatedById: number;
+  ModifiedById: string;
 }
 
 const convertToPrescriptionTDServer = (

@@ -15,8 +15,8 @@ export interface SocialHistory {
   id: number;
   createdDate: string;
   modifiedDate: string;
-  createdById: number;
-  modifiedById: number;
+  CreatedById: string;
+  ModifiedById: string;
 }
 
 export const convertToSocialHistoryTD = (

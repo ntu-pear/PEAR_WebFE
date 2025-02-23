@@ -5,13 +5,13 @@ import { doctorNoteAPI } from '../apiConfig';
 export interface DoctorNote {
   isDeleted: string;
   patientId: number;
-  doctorId: number;
+  doctorId: number | string;
   doctorRemarks: string;
   id: number;
   createdDate: string;
   modifiedDate: string;
-  createdById: number;
-  modifiedById: number;
+  CreatedById: string;
+  ModifiedById: string;
 }
 
 export const convertToDoctorNotesTD = (

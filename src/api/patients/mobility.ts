@@ -7,8 +7,8 @@ export interface MobilityList {
   IsDeleted: number;
   CreatedDateTime: string;
   ModifiedDateTime: string;
-  CreatedById: number;
-  ModifiedById: number;
+  CreatedById: string;
+  ModifiedById: string;
   Value: string;
 }
 
@@ -21,8 +21,8 @@ export interface MobilityAid {
   IsDeleted: number;
   CreatedDateTime: string;
   ModifiedDateTime: string;
-  CreatedById: number;
-  ModifiedById: number;
+  CreatedById: string;
+  ModifiedById: string;
 }
 
 export interface AddMobilityAid {
@@ -30,8 +30,8 @@ export interface AddMobilityAid {
   MobilityListId: number;
   MobilityRemarks: string;
   IsRecovered: boolean;
-  CreatedById: number;
-  ModifiedById: number;
+  CreatedById: string;
+  ModifiedById: string;
 }
 
 export const fetchMobilityList = async (): Promise<MobilityList[]> => {

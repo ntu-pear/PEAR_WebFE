@@ -9,8 +9,8 @@ export interface DiagnosedDementia {
   id: number;
   CreatedDate: string;
   ModifiedDate: string;
-  CreatedById: number;
-  ModifiedById: number;
+  CreatedById: string;
+  ModifiedById: string;
 }
 
 export interface DementiaList {

@@ -6,6 +6,7 @@ import {
   deletePatientAllergyAPI,
   patientAllergyAPI,
 } from '../apiConfig';
+import { retrieveAccessTokenFromCookie } from '../users/auth';
 
 export interface Allergy {
   AllergyRemarks: string;
@@ -16,8 +17,8 @@ export interface Allergy {
   AllergyReactionTypeValue: string;
   CreatedDateTime: string;
   UpdatedDateTime: string;
-  createdById: number;
-  modifiedById: number;
+  CreatedById: string;
+  ModifiedById: string;
 }
 
 export interface AllergyFormData {
@@ -42,8 +43,8 @@ export interface AllergyReactionType {
   AllergyReactionTypeID: number;
   CreatedDateTime: string;
   UpdatedDateTime: string;
-  createdById: number;
-  modifiedById: number;
+  CreatedById: string;
+  ModifiedById: string;
 }
 
 export interface AllergyAddFormData {
@@ -52,8 +53,8 @@ export interface AllergyAddFormData {
   PatientID?: number;
   AllergyTypeID: number;
   AllergyReactionTypeID: number;
-  createdById?: number;
-  modifiedById?: number;
+  CreatedById?: string;
+  ModifiedById?: string;
 }
 
 export interface AllergyUpdateFormData {
@@ -62,8 +63,8 @@ export interface AllergyUpdateFormData {
   PatientID?: number;
   AllergyTypeID: number;
   AllergyReactionTypeID: number;
-  createdById?: number;
-  modifiedById?: number;
+  CreatedById?: string;
+  ModifiedById?: string;
 }
 
 export const convertToAllergyTD = (allergies: Allergy[]): AllergyTD[] => {
@@ -86,8 +87,18 @@ export const convertToAllergyTD = (allergies: Allergy[]): AllergyTD[] => {
 export const fetchPatientAllergy = async (
   patient_id: number
 ): Promise<AllergyTD[]> => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error('No token found.');
+
   try {
-    const response = await patientAllergyAPI.get<Allergy[]>(`/${patient_id}`);
+    const response = await patientAllergyAPI.get<Allergy[]>(
+      `/${patient_id}?require_auth=true`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
     console.log('GET Patient Allergy', response.data);
     return convertToAllergyTD(response.data);
   } catch (error) {
@@ -97,8 +108,15 @@ export const fetchPatientAllergy = async (
 };
 
 export const fetchAllAllergyTypes = async (): Promise<AllergyType[]> => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error('No token found.');
+
   try {
-    const response = await allergyTypeAPI.get<AllergyType[]>('');
+    const response = await allergyTypeAPI.get<AllergyType[]>('', {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
     console.log('GET all Allergy Reaction Types', response.data);
     return response.data?.sort((a, b) => a.Value.localeCompare(b.Value));
   } catch (error) {
@@ -110,9 +128,17 @@ export const fetchAllAllergyTypes = async (): Promise<AllergyType[]> => {
 export const fetchAllAllergyReactionTypes = async (): Promise<
   AllergyReactionType[]
 > => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error('No token found.');
+
   try {
     const response = await allergyReactionTypeAPI.get<AllergyReactionType[]>(
-      ''
+      '',
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
     );
     console.log('GET all Allergy Reaction Types', response.data);
     return response.data?.sort((a, b) => a.Value.localeCompare(b.Value));
@@ -125,8 +151,15 @@ export const fetchAllAllergyReactionTypes = async (): Promise<
 export const addPatientAllergy = async (
   formData: AllergyAddFormData
 ): Promise<Allergy> => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error('No token found.');
+
   try {
-    const response = await createPatientAllergyAPI.post<Allergy>('', formData);
+    const response = await createPatientAllergyAPI.post<Allergy>('', formData, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
     console.log('POST add patient allergy', response.data);
     return response.data;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -143,9 +176,17 @@ export const addPatientAllergy = async (
 export const deletePatientAllergy = async (
   patient_allergy_id: number
 ): Promise<Allergy> => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error('No token found.');
+
   try {
     const response = await deletePatientAllergyAPI.delete<Allergy>(
-      `/${patient_allergy_id}`
+      `/${patient_allergy_id}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
     );
     console.log('DELETE delete patient allergy', response.data);
     return response.data;

@@ -19,8 +19,8 @@ export interface VitalCheckBase {
   Id: number;
   CreatedDateTime: string;
   UpdatedDateTime: string;
-  CreatedById: number;
-  UpdatedById: number;
+  CreatedById: string;
+  ModifiedById: string;
 }
 
 // vital response body format from api
@@ -76,8 +76,8 @@ export interface VitalFormData {
   Height: number;
   Weight: number;
   VitalRemarks?: string;
-  CreatedById?: number;
-  UpdatedById?: number;
+  CreatedById?: string;
+  ModifiedById?: string;
 }
 
 const convertToVitalTDServer = (
