@@ -29,6 +29,8 @@ import CreateRole from './pages/Admin/CreateRole';
 import EditRole from './pages/Admin/EditRole';
 import EditUserInRole from './pages/Admin/EditUserInRole';
 
+import AccountLogs from './pages/logger/AccountLogs';
+
 import Unauthorized from './pages/Unauthorized';
 import NotFound from './pages/NotFound';
 import TempPage from './pages/TempPage';
@@ -120,6 +122,7 @@ const App: React.FC = () => {
                       <Route path="edit-roles" element={<EditRoles />} />
                       <Route path="create-role" element={<CreateRole />} />
                       <Route path="edit-role/:id" element={<EditRole />} />
+                      <Route path="account-logs/" element={<AccountLogs />} />
                       <Route
                         path="edit-user-in-role/:id"
                         element={<EditUserInRole />}
