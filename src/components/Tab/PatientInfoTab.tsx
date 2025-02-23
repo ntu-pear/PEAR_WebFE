@@ -3,13 +3,11 @@ import { EyeIcon, EyeOffIcon, FilePenLine, PlusCircle } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { TabsContent } from '../ui/tabs';
-import { DataTableClient } from '../Table/DataTable';
+import { DataTableClient, DataTableServer } from '../Table/DataTable';
 import {
   DiagnosedDementiaTD,
-  DoctorNoteTD,
   MobilityAidTD,
   mockDiagnosedDementiaList,
-  mockDoctorNotes,
   mockMediclaDetails,
   mockMobilityAidsTD,
   mockSocialHistoryTD,
@@ -25,7 +23,10 @@ import AddMobilityAidModal from '../Modal/AddMobilityAidModal';
 import EditStaffAllocationModal from '../Modal/EditStaffAllocationModal';
 import EditSocialHistoryModal from '../Modal/EditSocialHistoryModal';
 import { toast } from 'sonner';
-import { fetchDoctorNotes } from '@/api/patients/doctorNote';
+import {
+  DoctorNoteTDServer,
+  fetchDoctorNotes,
+} from '@/api/patients/doctorNote';
 import { fetchMobilityAids } from '@/api/patients/mobility';
 import { fetchSocialHistory } from '@/api/patients/socialHistory';
 import { fetchDiagnosedDementia } from '@/api/patients/diagnosedDementia';
@@ -51,7 +52,15 @@ const PatientInfoTab: React.FC<PatientInfoTabProps> = ({
     DiagnosedDementiaTD[]
   >([]);
   const [mobilityAids, setMobilityAids] = useState<MobilityAidTD[]>([]);
-  const [doctorNotes, setDoctorNotes] = useState<DoctorNoteTD[]>([]);
+  const [doctorNotes, setDoctorNotes] = useState<DoctorNoteTDServer>({
+    doctornotes: [],
+    pagination: {
+      pageNo: 0,
+      pageSize: 0,
+      totalRecords: 0,
+      totalPages: 0,
+    },
+  });
   const [socialHistory, setSocialHistory] = useState<SocialHistoryTD | null>(
     null
   );
@@ -88,14 +97,13 @@ const PatientInfoTab: React.FC<PatientInfoTabProps> = ({
     }
   };
 
-  const handleFetchDoctorNotes = async () => {
+  const handleFetchDoctorNotes = async (pageNo: number) => {
     if (!id || isNaN(Number(id))) return;
     try {
-      const fetchedDoctorNotes: DoctorNoteTD[] =
-        import.meta.env.MODE === 'development' ||
-        import.meta.env.MODE === 'production'
-          ? await fetchDoctorNotes(Number(id))
-          : mockDoctorNotes;
+      const fetchedDoctorNotes: DoctorNoteTDServer = await fetchDoctorNotes(
+        Number(id),
+        pageNo
+      );
 
       setDoctorNotes(fetchedDoctorNotes);
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -124,7 +132,7 @@ const PatientInfoTab: React.FC<PatientInfoTabProps> = ({
     console.log('patientId', id);
     handleFetchDiagnosedDementia();
     handleFetchMobilityAids();
-    handleFetchDoctorNotes();
+    handleFetchDoctorNotes(doctorNotes.pagination.pageNo || 0);
     handleFetchSocialHistory();
   }, []);
 
@@ -367,8 +375,10 @@ const PatientInfoTab: React.FC<PatientInfoTabProps> = ({
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <DataTableClient
-              data={doctorNotes}
+            <DataTableServer
+              data={doctorNotes.doctornotes}
+              pagination={doctorNotes.pagination}
+              fetchData={handleFetchDoctorNotes}
               columns={doctorNotesColumns}
               viewMore={false}
               hideActionsHeader={true}

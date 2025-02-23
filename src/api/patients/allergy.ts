@@ -7,6 +7,7 @@ import {
   patientAllergyAPI,
 } from '../apiConfig';
 import { retrieveAccessTokenFromCookie } from '../users/auth';
+import { AxiosError } from 'axios';
 
 export interface Allergy {
   AllergyRemarks: string;
@@ -102,7 +103,13 @@ export const fetchPatientAllergy = async (
     console.log('GET Patient Allergy', response.data);
     return convertToAllergyTD(response.data);
   } catch (error) {
-    console.error('GET Patient Allergy', error);
+    if (error instanceof AxiosError) {
+      if (error.response && error.response.status === 404) {
+        console.warn('GET all dementia List/ patient assigned dementia', error);
+        return [];
+      }
+    }
+    console.error('GET all dementia List/ patient assigned dementia', error);
     throw error;
   }
 };

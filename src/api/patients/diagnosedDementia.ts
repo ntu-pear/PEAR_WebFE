@@ -1,6 +1,7 @@
 import { DiagnosedDementiaTD } from '@/mocks/mockPatientDetails';
 import { formatDateString } from '@/utils/formatDate';
 import { dementiaList, getPatientAssignedDementia } from '../apiConfig';
+import { AxiosError } from 'axios';
 
 export interface DiagnosedDementia {
   IsDeleted: string;
@@ -61,6 +62,14 @@ export const fetchDiagnosedDementia = async (
 
     return convertToDiagnosedDementiaTD(dlResponse.data, ddResponse.data);
   } catch (error) {
+    if (error instanceof AxiosError) {
+      if (error.response && error.response.status === 404) {
+        console.warn(
+          'Patient assigned dementia not found, returning empty array.'
+        );
+        return [];
+      }
+    }
     console.error('GET all dementia List/ patient assigned dementia', error);
     throw error;
   }

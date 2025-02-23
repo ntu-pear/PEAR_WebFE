@@ -56,12 +56,6 @@ export interface MobilityAidTD extends TableRowData {
   date: string;
 }
 
-export interface DoctorNoteTD extends TableRowData {
-  date: string;
-  doctorName: string;
-  notes: string;
-}
-
 export interface StaffAllocation extends TableRowData {
   staffRole: string;
   staffName: string;
