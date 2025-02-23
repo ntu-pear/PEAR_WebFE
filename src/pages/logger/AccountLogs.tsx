@@ -212,6 +212,24 @@ const AccountLogs: React.FC = () => {
                 </TableBody>
               </Table>
             </div>
+            {/* Pagination */}
+            <div className="flex justify-between items-center mt-4">
+              <Button
+                className="bg-gray-300"
+                disabled={pageNo === 0}
+                onClick={() => pageNo((prev: number) => Math.max(prev - 1, 0))}
+              >
+                Previous
+              </Button>
+              <span className="text-gray-600">Page {pageNo + 1} / {data?.totalPages || 1}</span>
+              <Button
+                className="bg-gray-300"
+                disabled={pageNo >= (data?.totalPages || 1) - 1}
+                onClick={() => pageNo((prev: number) => prev + 1)}
+              >
+                Next
+              </Button>
+            </div>
           </CardContent>
         </Card>
       </div>
