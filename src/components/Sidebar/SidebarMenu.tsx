@@ -102,7 +102,7 @@ const supervisorMenu: MenuSection[] = [
       {
         title: 'View Highlights',
         icon: 'Star',
-        path: '/supevisor/view-highlights',
+        path: '/supervisor/view-highlights',
       },
       {
         title: 'Manage Approval Requests',
@@ -345,14 +345,14 @@ const ExpandableSection: React.FC<{
   const [isOpen, setIsOpen] = useState(true);
 
   return (
-    <Collapsible open={isOpen} onOpenChange={setIsOpen} className="w-full">
+    <Collapsible open={isOpen} onOpenChange={setIsOpen} className='w-full'>
       <CollapsibleTrigger asChild>
-        <Button variant="ghost" className="w-full justify-between text-lg">
-          <span className="font-bold">{title}</span>
+        <Button variant='ghost' className='w-full justify-between text-lg'>
+          <span className='font-bold'>{title}</span>
           {isOpen ? (
-            <ChevronUp className="h-5 w-5" />
+            <ChevronUp className='h-5 w-5' />
           ) : (
-            <ChevronDown className="h-5 w-5" />
+            <ChevronDown className='h-5 w-5' />
           )}
         </Button>
       </CollapsibleTrigger>
@@ -378,9 +378,9 @@ const MenuItem: React.FC<{
   };
 
   return (
-    <Button variant="ghost" className="w-full justify-start text-base" asChild>
-      <a onClick={handleNavigation} className="flex items-center">
-        <IconComponent className="mr-2 h-5 w-5" />
+    <Button variant='ghost' className='w-full justify-start text-base' asChild>
+      <a onClick={handleNavigation} className='flex items-center'>
+        <IconComponent className='mr-2 h-5 w-5' />
         <span>{label}</span>
       </a>
     </Button>
@@ -412,16 +412,16 @@ const SidebarMenu: React.FC = () => {
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
-        <Button variant="outline" size="icon">
-          <Menu className="h-4 w-4" />
+        <Button variant='outline' size='icon'>
+          <Menu className='h-4 w-4' />
         </Button>
       </SheetTrigger>
-      <SheetContent side="left" className="w-[300px] sm:w-[400px] py-4">
-        <div className="flex flex-col h-full">
-          <div className="flex items-center mb-4 px-4">
-            <img className="h-12 w-24" src="/pear.png" alt="Pear Logo" />
+      <SheetContent side='left' className='w-[300px] sm:w-[400px] py-4'>
+        <div className='flex flex-col h-full'>
+          <div className='flex items-center mb-4 px-4'>
+            <img className='h-12 w-24' src='/pear.png' alt='Pear Logo' />
           </div>
-          <div className="flex-grow overflow-y-auto">
+          <div className='flex-grow overflow-y-auto'>
             {menuSections &&
               menuSections.map((section) => (
                 <ExpandableSection key={section.title} title={section.title}>
