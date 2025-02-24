@@ -2,6 +2,7 @@ import {
   PrescriptionList,
   PrescriptionTDServer,
 } from "@/api/patients/prescription";
+import { SocialHistoryTD } from "@/api/patients/socialHistory";
 import { VitalCheckTD } from "@/api/patients/vital";
 import { TableRowData } from "@/components/Table/DataTable";
 
@@ -59,22 +60,6 @@ export interface MobilityAidTD extends TableRowData {
 export interface StaffAllocation extends TableRowData {
   staffRole: string;
   staffName: string;
-}
-
-export interface SocialHistoryTD extends TableRowData {
-  alcoholUse: string;
-  caffeineUse: string;
-  diet: string;
-  drugUse: string;
-  education: string;
-  exercise: string;
-  liveWith: string;
-  occupation: string;
-  pet: string;
-  religion: string;
-  secondhandSmoker: string;
-  sexuallyActive: string;
-  tobaccoUse: string;
 }
 
 export interface AllergyTD extends TableRowData {

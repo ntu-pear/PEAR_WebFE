@@ -10,10 +10,8 @@ import {
   mockDiagnosedDementiaList,
   mockMediclaDetails,
   mockMobilityAidsTD,
-  mockSocialHistoryTD,
   mockStaffAllocation,
   PatientInformation,
-  SocialHistoryTD,
 } from "@/mocks/mockPatientDetails";
 import TabProps from "./types";
 import { useModal } from "@/hooks/useModal";
@@ -28,8 +26,12 @@ import {
   fetchDoctorNotes,
 } from "@/api/patients/doctorNote";
 import { fetchMobilityAids } from "@/api/patients/mobility";
-import { fetchSocialHistory } from "@/api/patients/socialHistory";
+import {
+  fetchSocialHistory,
+  SocialHistoryTD,
+} from "@/api/patients/socialHistory";
 import { fetchDiagnosedDementia } from "@/api/patients/diagnosedDementia";
+import AddSocialHistoryModal from "../Modal/AddSocialHistory";
 
 interface PatientInfoTabProps extends TabProps {
   patientInfo: PatientInformation | null;
@@ -61,6 +63,8 @@ const PatientInfoTab: React.FC<PatientInfoTabProps> = ({
       totalPages: 0,
     },
   });
+  // only true if 404 error for social history, which means patient does not have social history yet.
+  const [hasNoSH, setHasNoSH] = useState(false);
   const [socialHistory, setSocialHistory] = useState<SocialHistoryTD | null>(
     null
   );
@@ -115,16 +119,19 @@ const PatientInfoTab: React.FC<PatientInfoTabProps> = ({
   const handleFetchSocialHistory = async () => {
     if (!id || isNaN(Number(id))) return;
     try {
-      const fetchedSocialHistory: SocialHistoryTD =
-        import.meta.env.MODE === "development" ||
-        import.meta.env.MODE === "production"
-          ? await fetchSocialHistory(Number(id))
-          : mockSocialHistoryTD;
+      const fetchedSocialHistory: SocialHistoryTD = await fetchSocialHistory(
+        Number(id)
+      );
 
       setSocialHistory(fetchedSocialHistory);
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (error) {
-      toast.error("Failed to fetch patient social history");
+      setHasNoSH(false);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+      if (error.response?.status === 404) {
+        setHasNoSH(true);
+      } else {
+        toast.error("Failed to fetch patient social history");
+      }
     }
   };
 
@@ -189,6 +196,7 @@ const PatientInfoTab: React.FC<PatientInfoTabProps> = ({
   ];
 
   const socialHistoryColumns = [
+    { key: "alcoholUse", header: "Alcohol Use" },
     { key: "caffeineUse", header: "Caffeine Use" },
     { key: "diet", header: "Diet" },
     { key: "drugUse", header: "Drug Use" },
@@ -417,16 +425,36 @@ const PatientInfoTab: React.FC<PatientInfoTabProps> = ({
             <CardHeader>
               <CardTitle className="text-lg flex items-center justify-between">
                 <span>Social History</span>
-                <Button
-                  size="sm"
-                  className="h-8 w-24 gap-1"
-                  onClick={() => openModal("editSocialHistory")}
-                >
-                  <FilePenLine className="h-4 w-4" />
-                  <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                    Edit
-                  </span>
-                </Button>
+
+                {hasNoSH ? (
+                  <Button
+                    size="sm"
+                    className="h-8 w-24 gap-1"
+                    onClick={() =>
+                      openModal("addSocialHistory", {
+                        patientId: String(id),
+                        submitterId: "2",
+                        refreshData: handleFetchSocialHistory,
+                      })
+                    }
+                  >
+                    <PlusCircle className="h-4 w-4" />
+                    <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+                      Add
+                    </span>
+                  </Button>
+                ) : (
+                  <Button
+                    size="sm"
+                    className="h-8 w-24 gap-1"
+                    onClick={() => openModal("editSocialHistory")}
+                  >
+                    <FilePenLine className="h-4 w-4" />
+                    <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+                      Edit
+                    </span>
+                  </Button>
+                )}
               </CardTitle>
             </CardHeader>
             <CardContent className="grid gap-4 md:grid-cols-2">
@@ -472,6 +500,7 @@ const PatientInfoTab: React.FC<PatientInfoTabProps> = ({
         <EditStaffAllocationModal />
       )}
 
+      {activeModal.name === "addSocialHistory" && <AddSocialHistoryModal />}
       {activeModal.name === "editSocialHistory" && <EditSocialHistoryModal />}
     </>
   );

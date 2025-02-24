@@ -40,6 +40,30 @@ export const socialHistoryAPI = axios.create({
   baseURL: `${VITE_PATIENT_SERVICE_URL}/SocialHistory`,
 });
 
+export const dietListAPI = axios.create({
+  baseURL: `${VITE_PATIENT_SERVICE_URL}/get_diet_types`,
+});
+
+export const educationListAPI = axios.create({
+  baseURL: `${VITE_PATIENT_SERVICE_URL}/get_education_types`,
+});
+
+export const liveWithListAPI = axios.create({
+  baseURL: `${VITE_PATIENT_SERVICE_URL}/get_livewith_types`,
+});
+
+export const occupationListAPI = axios.create({
+  baseURL: `${VITE_PATIENT_SERVICE_URL}/get_occupation_types`,
+});
+
+export const petListAPI = axios.create({
+  baseURL: `${VITE_PATIENT_SERVICE_URL}/get_pet_types`,
+});
+
+export const religionListAPI = axios.create({
+  baseURL: `${VITE_PATIENT_SERVICE_URL}/get_religion_types`,
+});
+
 export const vitalAPI = axios.create({
   baseURL: `${VITE_PATIENT_SERVICE_URL}/Vital`,
 });
