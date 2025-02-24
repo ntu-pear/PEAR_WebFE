@@ -102,7 +102,7 @@ const supervisorMenu: MenuSection[] = [
       {
         title: "View Highlights",
         icon: "Star",
-        path: "/supevisor/view-highlights",
+        path: "/supervisor/view-highlights",
       },
       {
         title: "Manage Approval Requests",

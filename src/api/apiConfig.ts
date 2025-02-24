@@ -76,6 +76,14 @@ export const guardianAPI = axios.create({
   baseURL: `${VITE_PATIENT_SERVICE_URL}/Guardian`,
 });
 
+export const highlightsAPI = axios.create({
+  baseURL: `${VITE_PATIENT_SERVICE_URL}/get_all_highlights`,
+});
+
+export const highlightTypesAPI = axios.create({
+  baseURL: `${VITE_PATIENT_SERVICE_URL}/get_highlight_types`,
+});
+
 //geocode
 export const geocodeAPI = axios.create({
   baseURL: `${VITE_GEOCODE_SERVICE_URL}/geocode`,

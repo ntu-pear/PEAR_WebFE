@@ -42,6 +42,7 @@ import ProfileSettings from "./components/UserSettings/ProfileSettings";
 import TwoFactorAuthSettings from "./components/UserSettings/TwoFactorAuthSettings";
 import ConfirmNewEmail from "./pages/auth/ConfirmNewEmail";
 import Login2FA from "./pages/auth/Login2FA";
+import HighlightTable from "./pages/Supervisor/HighlightTable";
 
 export const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: false, staleTime: Infinity } },
@@ -114,6 +115,10 @@ const App: React.FC = () => {
                       />
                       <Route path="manage-adhoc" element={<ManageAdhoc />} />
                       <Route path="add-adhoc" element={<AddAdhoc />} />
+                      <Route
+                        path="view-highlights"
+                        element={<HighlightTable />}
+                      />
                       <Route path="settings/*" element={<UserSettings />}>
                         {settingsRoutes.map(({ path, element }) => (
                           <Route key={path} path={path} element={element} />
