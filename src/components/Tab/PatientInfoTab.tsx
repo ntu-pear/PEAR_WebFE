@@ -27,7 +27,7 @@ import {
 } from "@/api/patients/doctorNote";
 import { fetchMobilityAids } from "@/api/patients/mobility";
 import {
-  fetchSocialHistory,
+  fetchSocialHistoryTD,
   SocialHistoryTD,
 } from "@/api/patients/socialHistory";
 import { fetchDiagnosedDementia } from "@/api/patients/diagnosedDementia";
@@ -119,7 +119,7 @@ const PatientInfoTab: React.FC<PatientInfoTabProps> = ({
   const handleFetchSocialHistory = async () => {
     if (!id || isNaN(Number(id))) return;
     try {
-      const fetchedSocialHistory: SocialHistoryTD = await fetchSocialHistory(
+      const fetchedSocialHistory: SocialHistoryTD = await fetchSocialHistoryTD(
         Number(id)
       );
 
@@ -447,7 +447,13 @@ const PatientInfoTab: React.FC<PatientInfoTabProps> = ({
                   <Button
                     size="sm"
                     className="h-8 w-24 gap-1"
-                    onClick={() => openModal("editSocialHistory")}
+                    onClick={() =>
+                      openModal("editSocialHistory", {
+                        patientId: String(id),
+                        submitterId: "2",
+                        refreshData: handleFetchSocialHistory,
+                      })
+                    }
                   >
                     <FilePenLine className="h-4 w-4" />
                     <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">

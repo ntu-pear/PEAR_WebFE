@@ -128,7 +128,7 @@ export const convertToSocialHistoryTD = (
   };
 };
 
-export const fetchSocialHistory = async (
+export const fetchSocialHistoryTD = async (
   patientId: number
 ): Promise<SocialHistoryTD> => {
   try {
@@ -137,6 +137,21 @@ export const fetchSocialHistory = async (
     );
     console.log("GET Patient Social History", response.data);
     return convertToSocialHistoryTD(response.data);
+  } catch (error) {
+    console.error("GET Patient Social History", error);
+    throw error;
+  }
+};
+
+export const fetchSocialHistory = async (
+  patientId: number
+): Promise<SocialHistory> => {
+  try {
+    const response = await socialHistoryAPI.get<SocialHistory>(
+      `?patient_id=${patientId}`
+    );
+    console.log("GET Patient Social History", response.data);
+    return response.data;
   } catch (error) {
     console.error("GET Patient Social History", error);
     throw error;
