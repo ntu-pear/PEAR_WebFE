@@ -1,6 +1,7 @@
 import { MobilityAidTD } from "@/mocks/mockPatientDetails";
 import { formatDateString } from "@/utils/formatDate";
 import { mobilityListAPI, patientMobilityAPI } from "../apiConfig";
+import { AxiosError } from "axios";
 
 export interface MobilityList {
   MobilityListId: number;
@@ -95,6 +96,12 @@ export const fetchMobilityAids = async (
       [mobilityAidsResponse.data].flat()
     );
   } catch (error) {
+    if (error instanceof AxiosError) {
+      if (error.response && error.response.status === 404) {
+        console.warn("GET Patient Mobility Aids.", error);
+        return [];
+      }
+    }
     console.error("GET Patient Mobility Aids", error);
     throw error;
   }
