@@ -173,7 +173,7 @@ const AddSocialHistoryModal: React.FC = () => {
               className="mt-1 block w-full p-2 border rounded-md text-gray-900"
               required
             >
-              <option value="-1">Not to Tell</option>
+              <option value="2">Not to Tell</option>
               <option value="0">No</option>
               <option value="1">Yes</option>
             </select>
@@ -188,7 +188,7 @@ const AddSocialHistoryModal: React.FC = () => {
               className="mt-1 block w-full p-2 border rounded-md text-gray-900"
               required
             >
-              <option value="-1">Not to Tell</option>
+              <option value="2">Not to Tell</option>
               <option value="0">No</option>
               <option value="1">Yes</option>
             </select>
@@ -257,7 +257,7 @@ const AddSocialHistoryModal: React.FC = () => {
               className="mt-1 block w-full p-2 border rounded-md text-gray-900"
               required
             >
-              <option value="-1">Not to Tell</option>
+              <option value="2">Not to Tell</option>
               <option value="0">No</option>
               <option value="1">Yes</option>
             </select>
@@ -309,7 +309,7 @@ const AddSocialHistoryModal: React.FC = () => {
               className="mt-1 block w-full p-2 border rounded-md text-gray-900"
               required
             >
-              <option value="-1">Not to Tell</option>
+              <option value="2">Not to Tell</option>
               <option value="0">No</option>
               <option value="1">Yes</option>
             </select>
@@ -324,7 +324,7 @@ const AddSocialHistoryModal: React.FC = () => {
               className="mt-1 block w-full p-2 border rounded-md text-gray-900"
               required
             >
-              <option value="-1">Not to Tell</option>
+              <option value="2">Not to Tell</option>
               <option value="0">No</option>
               <option value="1">Yes</option>
             </select>
@@ -340,7 +340,7 @@ const AddSocialHistoryModal: React.FC = () => {
               className="mt-1 block w-full p-2 border rounded-md text-gray-900"
               required
             >
-              <option value="-1">Not to Tell</option>
+              <option value="2">Not to Tell</option>
               <option value="0">No</option>
               <option value="1">Yes</option>
             </select>
@@ -375,7 +375,7 @@ const AddSocialHistoryModal: React.FC = () => {
               className="mt-1 block w-full p-2 border rounded-md text-gray-900"
               required
             >
-              <option value="-1">Not to Tell</option>
+              <option value="2">Not to Tell</option>
               <option value="0">No</option>
               <option value="1">Yes</option>
             </select>
