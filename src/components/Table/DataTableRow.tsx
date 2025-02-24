@@ -1,8 +1,8 @@
-import React from 'react';
-import { TableCell, TableRow } from '@/components/ui/table';
-import { Button } from '@/components/ui/button';
-import { TableRowData } from './DataTable';
-import { Link } from 'react-router-dom';
+import React from "react";
+import { TableCell, TableRow } from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { TableRowData } from "./DataTable";
+import { Link } from "react-router-dom";
 
 interface DataTableRowProps<T extends TableRowData> {
   item: T;
@@ -20,7 +20,7 @@ interface DataTableRowProps<T extends TableRowData> {
 
 // Utility function to access nested properties
 const getNestedValue = (obj: any, path: string): any => {
-  return path.split('.').reduce((acc, key) => acc && acc[key], obj);
+  return path.split(".").reduce((acc, key) => acc && acc[key], obj);
 };
 
 function DataTableRow<T extends TableRowData>({
@@ -35,12 +35,12 @@ function DataTableRow<T extends TableRowData>({
       {columns.map((column) => (
         <TableCell
           key={column.key.toString()}
-          className={column.className || ''}
-          style={{ width: column.width ? column.width : 'auto' }}
+          className={column.className || ""}
+          style={{ width: column.width ? column.width : "auto" }}
         >
           {column.render
             ? column.render(getNestedValue(item, column.key.toString()), item) // Use nested value if present
-            : getNestedValue(item, column.key.toString())}{' '}
+            : getNestedValue(item, column.key.toString())}{" "}
           {/* Fallback to the direct value */}
         </TableCell>
       ))}
@@ -52,7 +52,7 @@ function DataTableRow<T extends TableRowData>({
             </Button>
           </Link>
         ) : null}
-        {renderActions ? renderActions(item) : null}{' '}
+        {renderActions ? renderActions(item) : null}{" "}
         {/* Render custom actions */}
       </TableCell>
     </TableRow>

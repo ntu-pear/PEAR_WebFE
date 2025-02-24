@@ -1,11 +1,11 @@
-import { mockPrescriptionListData } from '@/mocks/mockPatientDetails';
+import { mockPrescriptionListData } from "@/mocks/mockPatientDetails";
 import {
   convertIsAfterMeal,
   getStatusDescription,
-} from '@/utils/convertToYesNo';
-import { formatDateString } from '@/utils/formatDate';
-import { patientPrescriptionAPI, prescriptionAPI } from '../apiConfig';
-import { TableRowData } from '@/components/Table/DataTable';
+} from "@/utils/convertToYesNo";
+import { formatDateString } from "@/utils/formatDate";
+import { patientPrescriptionAPI, prescriptionAPI } from "../apiConfig";
+import { TableRowData } from "@/components/Table/DataTable";
 
 export interface Prescription {
   IsDeleted: string;
@@ -119,12 +119,12 @@ const convertToPrescriptionTDServer = (
   prescriptionViewList: PrescriptionViewList
 ): PrescriptionTDServer => {
   if (!Array.isArray(prescriptionList)) {
-    console.error('prescriptionList is not an array', prescriptionList);
+    console.error("prescriptionList is not an array", prescriptionList);
   }
 
   if (!Array.isArray(prescriptionViewList.data)) {
     console.error(
-      'prescriptionViewList.data is not an array',
+      "prescriptionViewList.data is not an array",
       prescriptionViewList.data
     );
     return {
@@ -139,14 +139,14 @@ const convertToPrescriptionTDServer = (
   }
 
   const prescriptionsTransformed = prescriptionViewList.data
-    .filter((p) => p.IsDeleted === '0')
+    .filter((p) => p.IsDeleted === "0")
     .sort((a, b) => b.Id - a.Id) // Descending order
     .map((p) => ({
       id: p.Id,
       drugName:
         prescriptionList
           .find((pl) => pl.Id === p.PrescriptionListId)
-          ?.Value.toUpperCase() || '',
+          ?.Value.toUpperCase() || "",
       dosage: p.Dosage.toUpperCase(),
       frequencyPerDay: p.FrequencyPerDay,
       instruction: p.Instruction,
@@ -167,7 +167,7 @@ const convertToPrescriptionTDServer = (
     },
   };
 
-  console.log('convertToPrescriptionTD: ', updatedTD);
+  console.log("convertToPrescriptionTD: ", updatedTD);
   return updatedTD;
 };
 
@@ -178,17 +178,17 @@ export const fetchPatientPrescription = async (
 ): Promise<PrescriptionTDServer> => {
   try {
     const dlResponse = mockPrescriptionListData;
-    console.log('GET all prescription List', dlResponse.data);
+    console.log("GET all prescription List", dlResponse.data);
 
     const ddResponse = await patientPrescriptionAPI.get<PrescriptionViewList>(
       `/?patient_id=${patientId}&pageNo=${pageNo}&pageSize=${pageSize}`
     );
 
-    console.log('GET all patient prescriptions', ddResponse.data);
+    console.log("GET all patient prescriptions", ddResponse.data);
 
     return convertToPrescriptionTDServer(dlResponse.data, ddResponse.data);
   } catch (error) {
-    console.error('GET all prescription List/ patient prescriptions', error);
+    console.error("GET all prescription List/ patient prescriptions", error);
     throw error;
   }
 };
@@ -200,10 +200,10 @@ export const fetchPrescriptionById = async (
     const response = await prescriptionAPI.get<PrescriptionView>(
       `/${prescriptionId}`
     );
-    console.log('GET prescription by prescriptionId', response.data);
+    console.log("GET prescription by prescriptionId", response.data);
     return response.data;
   } catch (error) {
-    console.error('GET prescription by prescriptionId', error);
+    console.error("GET prescription by prescriptionId", error);
     throw error;
   }
 };
@@ -217,11 +217,11 @@ export const addPatientPrescription = async (
       formData
     );
 
-    console.log('ADD patient prescription', response.data);
+    console.log("ADD patient prescription", response.data);
 
     return response.data;
   } catch (error) {
-    console.error('ADD patient prescription', error);
+    console.error("ADD patient prescription", error);
     throw error;
   }
 };
@@ -236,11 +236,11 @@ export const deletePatientPrescription = async (
       prescriptionDelete
     );
 
-    console.log('PUT Delete patient prescription', response.data);
+    console.log("PUT Delete patient prescription", response.data);
 
     return response.data;
   } catch (error) {
-    console.error('PUT Delete patient prescription', error);
+    console.error("PUT Delete patient prescription", error);
     throw error;
   }
 };
@@ -255,11 +255,11 @@ export const updatePatientPrescription = async (
       prescriptionUpdate
     );
 
-    console.log('PUT Update patient prescription', response.data);
+    console.log("PUT Update patient prescription", response.data);
 
     return response.data;
   } catch (error) {
-    console.error('PUT Update patient prescription', error);
+    console.error("PUT Update patient prescription", error);
     throw error;
   }
 };

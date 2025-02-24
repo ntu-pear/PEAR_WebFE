@@ -1,56 +1,56 @@
-import { Form, DatePicker, message } from 'antd';
-import { mockPatientNameList } from '@/mocks/mockPatientTableData';
-import { Dayjs } from 'dayjs';
-import { RuleObject } from 'antd/es/form';
+import { Form, DatePicker, message } from "antd";
+import { mockPatientNameList } from "@/mocks/mockPatientTableData";
+import { Dayjs } from "dayjs";
+import { RuleObject } from "antd/es/form";
 
 const AddAdhoc: React.FC = () => {
   const activities: string[] = [
-    'Lunch',
-    'Breathing + Vital Check',
-    'Board Games',
-    'Movie Screening',
-    'Brisk Walking',
-    'Mahjong',
-    'Musical Instrument Lesson',
-    'Story Time',
-    'Physiotherapy',
-    'String Beads',
-    'Sewing',
-    'Cup Stacking Game',
-    'Sort Poker Chips',
-    'Origami',
-    'Picture Coloring',
-    'Clip Coupons',
-    'Cutting Pictures',
-    'Watch Television',
-    'Act 1',
-    'Leslie History Routine',
-    'Leslie Geography Routine',
+    "Lunch",
+    "Breathing + Vital Check",
+    "Board Games",
+    "Movie Screening",
+    "Brisk Walking",
+    "Mahjong",
+    "Musical Instrument Lesson",
+    "Story Time",
+    "Physiotherapy",
+    "String Beads",
+    "Sewing",
+    "Cup Stacking Game",
+    "Sort Poker Chips",
+    "Origami",
+    "Picture Coloring",
+    "Clip Coupons",
+    "Cutting Pictures",
+    "Watch Television",
+    "Act 1",
+    "Leslie History Routine",
+    "Leslie Geography Routine",
   ];
 
   const [form] = Form.useForm();
 
   const onFinish = (values: any) => {
-    console.log('Success:', values);
-    message.success('Adhoc activity added successfully!');
+    console.log("Success:", values);
+    message.success("Adhoc activity added successfully!");
   };
 
   const onFinishFailed = (errorInfo: any) => {
-    console.log('Failed:', errorInfo);
-    message.error('Please fill out all required fields correctly.');
+    console.log("Failed:", errorInfo);
+    message.error("Please fill out all required fields correctly.");
   };
 
   const validateEndDate = (
     _: RuleObject,
     value: Dayjs | null
   ): Promise<void> => {
-    const startDate = form.getFieldValue('start_date');
+    const startDate = form.getFieldValue("start_date");
     if (!value || !startDate) {
       return Promise.resolve(); // Don't validate if no value
     }
     if (value.isBefore(startDate)) {
       return Promise.reject(
-        new Error('End date must be after or equal to start date!')
+        new Error("End date must be after or equal to start date!")
       );
     }
     return Promise.resolve();
@@ -102,7 +102,7 @@ const AddAdhoc: React.FC = () => {
                   }
                   name="patient_name"
                   rules={[
-                    { required: true, message: 'Please select a patient!' },
+                    { required: true, message: "Please select a patient!" },
                   ]}
                   className="sm:col-span-8"
                 >
@@ -126,7 +126,7 @@ const AddAdhoc: React.FC = () => {
                   rules={[
                     {
                       required: true,
-                      message: 'Please select an old activity!',
+                      message: "Please select an old activity!",
                     },
                   ]}
                   className="sm:col-span-3"
@@ -151,7 +151,7 @@ const AddAdhoc: React.FC = () => {
                   rules={[
                     {
                       required: true,
-                      message: 'Please select a new activity!',
+                      message: "Please select a new activity!",
                     },
                   ]}
                   className="sm:col-span-4"
@@ -174,7 +174,7 @@ const AddAdhoc: React.FC = () => {
                   }
                   name="start_date"
                   rules={[
-                    { required: true, message: 'Please select a start date!' },
+                    { required: true, message: "Please select a start date!" },
                   ]}
                   className="sm:col-span-3"
                 >
@@ -189,7 +189,7 @@ const AddAdhoc: React.FC = () => {
                   }
                   name="end_date"
                   rules={[
-                    { required: true, message: 'Please select an end date!' },
+                    { required: true, message: "Please select an end date!" },
                     { validator: validateEndDate },
                   ]}
                   className="sm:col-span-3"

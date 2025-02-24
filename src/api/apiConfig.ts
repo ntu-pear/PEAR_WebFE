@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios from "axios";
 
 const VITE_PATIENT_SERVICE_URL: string = import.meta.env
   .VITE_PATIENT_SERVICE_URL;

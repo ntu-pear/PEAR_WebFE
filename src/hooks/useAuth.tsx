@@ -1,4 +1,4 @@
-import { addAuthInterceptor, addUsersAPIInterceptor } from '@/api/interceptors';
+import { addAuthInterceptor, addUsersAPIInterceptor } from "@/api/interceptors";
 import {
   CurrentUser,
   getCurrentUser,
@@ -6,16 +6,16 @@ import {
   sendLogin,
   sendLogin2FA,
   sendLogout,
-} from '@/api/users/auth';
+} from "@/api/users/auth";
 import {
   createContext,
   ReactNode,
   useContext,
   useEffect,
   useState,
-} from 'react';
-import { useNavigate } from 'react-router-dom';
-import { toast } from 'sonner';
+} from "react";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 export interface AuthContextType {
   currentUser: CurrentUser | null;
@@ -41,16 +41,16 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       addAuthInterceptor();
       addUsersAPIInterceptor();
 
-      if ('access_token' in loginResponse) {
+      if ("access_token" in loginResponse) {
         const response = await getCurrentUser();
         setCurrentUser(response);
 
-        if (response?.roleName !== 'CAREGIVER') {
-          toast.success('Login successful.');
+        if (response?.roleName !== "CAREGIVER") {
+          toast.success("Login successful.");
         }
-      } else if ('msg' in loginResponse) {
-        if (loginResponse.msg === '2FA required') {
-          navigate('/login-2fa', { state: { email: formData.get('email') } });
+      } else if ("msg" in loginResponse) {
+        if (loginResponse.msg === "2FA required") {
+          navigate("/login-2fa", { state: { email: formData.get("email") } });
           return;
         }
       }
@@ -59,7 +59,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         toast.error(`Failed to Login. ${error.message}`);
       } else {
         // Fallback error handling for unknown error types
-        toast.error('Failed to Login. An unknown error occurred.');
+        toast.error("Failed to Login. An unknown error occurred.");
       }
     } finally {
       setIsLoading(false);
@@ -77,15 +77,15 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
 
       setCurrentUser(response);
 
-      if (response?.roleName !== 'CAREGIVER') {
-        toast.success('Login successful.');
+      if (response?.roleName !== "CAREGIVER") {
+        toast.success("Login successful.");
       }
     } catch (error) {
       if (error instanceof Error) {
         toast.error(`Failed to Login. ${error.message}`);
       } else {
         // Fallback error handling for unknown error types
-        toast.error('Failed to Login. An unknown error occurred.');
+        toast.error("Failed to Login. An unknown error occurred.");
       }
     } finally {
       setIsLoading(false);
@@ -96,11 +96,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     setCurrentUser(null);
     await sendLogout();
 
-    if (currentUser?.roleName !== 'CAREGIVER') {
-      toast.success('Logout successful.');
+    if (currentUser?.roleName !== "CAREGIVER") {
+      toast.success("Logout successful.");
     }
 
-    navigate('/login', { replace: true });
+    navigate("/login", { replace: true });
     setIsLoading(false);
   };
 
@@ -108,16 +108,16 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     try {
       setIsLoading(true);
       const user = await getCurrentUser();
-      if (user?.roleName === 'CAREGIVER') {
-        throw new Error('Caregiver is only available on mobile application.');
+      if (user?.roleName === "CAREGIVER") {
+        throw new Error("Caregiver is only available on mobile application.");
       }
 
       setCurrentUser(user);
-      console.log('User fetched on refresh:', user);
+      console.log("User fetched on refresh:", user);
     } catch (error) {
-      console.error('Failed to fetch user on refresh:', error);
+      console.error("Failed to fetch user on refresh:", error);
       setCurrentUser(null);
-      navigate('/login', { replace: true });
+      navigate("/login", { replace: true });
     } finally {
       setIsLoading(false);
     }
@@ -142,7 +142,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 };

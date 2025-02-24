@@ -1,6 +1,6 @@
-import { SocialHistoryTD } from '@/mocks/mockPatientDetails';
-import { socialHistoryAPI } from '../apiConfig';
-import { convertToYesNo } from '@/utils/convertToYesNo';
+import { SocialHistoryTD } from "@/mocks/mockPatientDetails";
+import { socialHistoryAPI } from "../apiConfig";
+import { convertToYesNo } from "@/utils/convertToYesNo";
 
 export interface SocialHistory {
   active: string;
@@ -26,14 +26,14 @@ export const convertToSocialHistoryTD = (
     id: socialHistory.id,
     alcoholUse: convertToYesNo(socialHistory.alcoholUse),
     caffeineUse: convertToYesNo(socialHistory.caffeineUse),
-    diet: '',
+    diet: "",
     drugUse: convertToYesNo(socialHistory.drugUse),
-    education: '',
+    education: "",
     exercise: convertToYesNo(socialHistory.exercise),
-    liveWith: '',
-    occupation: '',
-    pet: '',
-    religion: '',
+    liveWith: "",
+    occupation: "",
+    pet: "",
+    religion: "",
     secondhandSmoker: convertToYesNo(socialHistory.secondHandSmoker),
     sexuallyActive: convertToYesNo(socialHistory.sexuallyActive),
     tobaccoUse: convertToYesNo(socialHistory.tobaccoUse),
@@ -47,10 +47,10 @@ export const fetchSocialHistory = async (
     const response = await socialHistoryAPI.get<SocialHistory>(
       `?patient_id=${patientId}`
     );
-    console.log('GET Patient Social History', response.data);
+    console.log("GET Patient Social History", response.data);
     return convertToSocialHistoryTD(response.data);
   } catch (error) {
-    console.error('GET Patient Social History', error);
+    console.error("GET Patient Social History", error);
     throw error;
   }
 };

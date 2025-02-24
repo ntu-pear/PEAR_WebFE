@@ -1,28 +1,28 @@
-import React from 'react';
+import React from "react";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import Searchbar from '@/components/Searchbar';
-import { DataTableClient } from '@/components/Table/DataTable';
-import { mockAdhocActivityList } from '@/mocks/mockAdhocActivity';
-import { Button } from '@/components/ui/button';
+} from "@/components/ui/card";
+import Searchbar from "@/components/Searchbar";
+import { DataTableClient } from "@/components/Table/DataTable";
+import { mockAdhocActivityList } from "@/mocks/mockAdhocActivity";
+import { Button } from "@/components/ui/button";
 
 const ManageAdhoc: React.FC = () => {
   const handleInputChange = () => {};
 
   const columns = [
-    { key: 'updatedTime', header: 'Last Updated' },
-    { key: 'patientId', header: 'Patient Id' },
-    { key: 'startDate', header: 'Start Date' },
-    { key: 'endDate', header: 'End Date' },
-    { key: 'oldActivityTitle', header: 'Old Activity' },
-    { key: 'oldActivityDescription', header: 'Old Activity Description' },
-    { key: 'newActivityTitle', header: 'New Activity' },
-    { key: 'newActivityDescription', header: 'New Activity Description' },
+    { key: "updatedTime", header: "Last Updated" },
+    { key: "patientId", header: "Patient Id" },
+    { key: "startDate", header: "Start Date" },
+    { key: "endDate", header: "End Date" },
+    { key: "oldActivityTitle", header: "Old Activity" },
+    { key: "oldActivityDescription", header: "Old Activity Description" },
+    { key: "newActivityTitle", header: "New Activity" },
+    { key: "newActivityDescription", header: "New Activity Description" },
   ];
 
   return (
@@ -47,14 +47,14 @@ const ManageAdhoc: React.FC = () => {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => console.log('Edit', item)}
+                      onClick={() => console.log("Edit", item)}
                     >
                       Edit
                     </Button>
                     <Button
                       variant="destructive"
                       size="sm"
-                      onClick={() => console.log('Delete', item)}
+                      onClick={() => console.log("Delete", item)}
                     >
                       Delete
                     </Button>

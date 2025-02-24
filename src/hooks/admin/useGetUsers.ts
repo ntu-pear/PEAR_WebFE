@@ -1,8 +1,8 @@
-import { fetchUsers } from "@/api/admin/user"
-import { useQuery } from "@tanstack/react-query"
+import { fetchUsers } from "@/api/admin/user";
+import { useQuery } from "@tanstack/react-query";
 
 const useGetUsers = () => {
-  return useQuery({ queryKey: ['users'], queryFn: fetchUsers })
-}
+  return useQuery({ queryKey: ["users"], queryFn: fetchUsers });
+};
 
-export default useGetUsers
+export default useGetUsers;

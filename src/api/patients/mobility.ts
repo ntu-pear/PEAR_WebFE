@@ -1,6 +1,6 @@
-import { MobilityAidTD } from '@/mocks/mockPatientDetails';
-import { formatDateString } from '@/utils/formatDate';
-import { mobilityListAPI, patientMobilityAPI } from '../apiConfig';
+import { MobilityAidTD } from "@/mocks/mockPatientDetails";
+import { formatDateString } from "@/utils/formatDate";
+import { mobilityListAPI, patientMobilityAPI } from "../apiConfig";
 
 export interface MobilityList {
   MobilityListId: number;
@@ -43,10 +43,10 @@ export const fetchMobilityList = async (): Promise<MobilityList[]> => {
   try {
     const response = await mobilityListAPI.get<MobilityList[]>(``);
 
-    console.log('GET Patient Mobility List', response.data);
+    console.log("GET Patient Mobility List", response.data);
     return response.data;
   } catch (error) {
-    console.error('GET Patient Mobility List', error);
+    console.error("GET Patient Mobility List", error);
     throw error;
   }
 };
@@ -56,11 +56,11 @@ export const convertToMobilityAidTD = (
   mobilityAids: MobilityAid[]
 ): MobilityAidTD[] => {
   if (!Array.isArray(mobilityList)) {
-    console.error('mobilityList is not an array', mobilityList);
+    console.error("mobilityList is not an array", mobilityList);
     return [];
   }
   if (!Array.isArray(mobilityAids)) {
-    console.error('mobilityAids is not an array', mobilityAids);
+    console.error("mobilityAids is not an array", mobilityAids);
     return [];
   }
 
@@ -72,10 +72,10 @@ export const convertToMobilityAidTD = (
       mobilityAids:
         mobilityList
           .find((ml) => ml.MobilityListId === ma.MobilityListId)
-          ?.Value?.toUpperCase() || '',
+          ?.Value?.toUpperCase() || "",
       remark: ma.MobilityRemarks,
-      condition: ma.IsRecovered ? 'FULLY RECOVERED' : 'NOT RECOVERED',
-      date: ma.CreatedDateTime ? formatDateString(ma.CreatedDateTime) : '',
+      condition: ma.IsRecovered ? "FULLY RECOVERED" : "NOT RECOVERED",
+      date: ma.CreatedDateTime ? formatDateString(ma.CreatedDateTime) : "",
     }));
 };
 
@@ -88,14 +88,14 @@ export const fetchMobilityAids = async (
     const mobilityAidsResponse = await patientMobilityAPI.get<MobilityAid[]>(
       `/${patientId}`
     );
-    console.log('GET Patient Mobility Aids', mobilityAidsResponse.data);
+    console.log("GET Patient Mobility Aids", mobilityAidsResponse.data);
 
     return convertToMobilityAidTD(
       mobilityList,
       [mobilityAidsResponse.data].flat()
     );
   } catch (error) {
-    console.error('GET Patient Mobility Aids', error);
+    console.error("GET Patient Mobility Aids", error);
     throw error;
   }
 };
@@ -107,11 +107,11 @@ export const fetchMobilityAidById = async (
     const mobilityAidsResponse = await patientMobilityAPI.get<MobilityAid>(
       `/${mobiilityAidID}`
     );
-    console.log('GET Patient Mobility Aids', mobilityAidsResponse.data);
+    console.log("GET Patient Mobility Aids", mobilityAidsResponse.data);
 
     return mobilityAidsResponse.data;
   } catch (error) {
-    console.error('GET Patient Mobility Aids', error);
+    console.error("GET Patient Mobility Aids", error);
     throw error;
   }
 };
@@ -121,13 +121,13 @@ export const addMobilityAid = async (
 ): Promise<MobilityAid> => {
   try {
     const response = await patientMobilityAPI.post<MobilityAid>(
-      '',
+      "",
       addMobilityAid
     );
-    console.log('GET Patient Mobility Aids', response.data);
+    console.log("GET Patient Mobility Aids", response.data);
     return response.data;
   } catch (error) {
-    console.error('POST add patient mobility aids', error);
+    console.error("POST add patient mobility aids", error);
     throw error;
   }
 };
@@ -141,10 +141,10 @@ export const updateMobilityAid = async (
       `/${mobilityAidID}`,
       updateMobilityAid
     );
-    console.log('PUT update patient Mobility Aids', response.data);
+    console.log("PUT update patient Mobility Aids", response.data);
     return response.data;
   } catch (error) {
-    console.error('PUT update patient mobility aids', error);
+    console.error("PUT update patient mobility aids", error);
     throw error;
   }
 };
@@ -156,10 +156,10 @@ export const deleteMobilityAid = async (
     const response = await patientMobilityAPI.delete<MobilityAid>(
       `/${mobilityAidID}`
     );
-    console.log('DELETE delete patient Mobility Aids', response.data);
+    console.log("DELETE delete patient Mobility Aids", response.data);
     return response.data;
   } catch (error) {
-    console.error('DELETE delete  patient mobility aids', error);
+    console.error("DELETE delete  patient mobility aids", error);
     throw error;
   }
 };

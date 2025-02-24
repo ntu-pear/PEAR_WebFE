@@ -1,7 +1,7 @@
-import { resetPassword, ResetPasswordForm } from '@/api/users/user';
-import { Button } from '@/components/ui/button';
-import { useParams, useNavigate } from 'react-router-dom';
-import { toast } from 'sonner';
+import { resetPassword, ResetPasswordForm } from "@/api/users/user";
+import { Button } from "@/components/ui/button";
+import { useParams, useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 const ForgotPassword: React.FC = () => {
   const { token } = useParams();
@@ -15,11 +15,11 @@ const ForgotPassword: React.FC = () => {
     const confirmPassword = form.confirmNewPassword as HTMLInputElement;
 
     if (newPassword.value !== confirmPassword.value) {
-      confirmPassword.setCustomValidity('Password does not match');
+      confirmPassword.setCustomValidity("Password does not match");
       confirmPassword.reportValidity();
       return;
     } else {
-      confirmPassword.setCustomValidity('');
+      confirmPassword.setCustomValidity("");
     }
 
     const resetPasswordFormData: ResetPasswordForm = {
@@ -29,14 +29,14 @@ const ForgotPassword: React.FC = () => {
 
     try {
       if (!token) {
-        throw 'Token not found in URL';
+        throw "Token not found in URL";
       }
 
-      console.log('resetPasswordFormData: ', resetPasswordFormData);
-      console.log('token: ', token);
+      console.log("resetPasswordFormData: ", resetPasswordFormData);
+      console.log("token: ", token);
       await resetPassword(resetPasswordFormData, token);
-      toast.success('Password reset succesfully.');
-      navigate('/login', { replace: true });
+      toast.success("Password reset succesfully.");
+      navigate("/login", { replace: true });
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       toast.error(`Failed to reset password. ${error}`);
@@ -48,8 +48,8 @@ const ForgotPassword: React.FC = () => {
       className="relative min-h-screen flex items-center justify-center bg-cover bg-center"
       style={{
         backgroundImage: "url('/background.jpg')",
-        backgroundSize: 'cover',
-        width: '100%',
+        backgroundSize: "cover",
+        width: "100%",
       }}
     >
       <div className="absolute inset-0 bg-black opacity-50"></div>
@@ -95,7 +95,7 @@ const ForgotPassword: React.FC = () => {
                 type="password"
                 placeholder="Confirm New Password"
                 className="mt-1 block w-full p-2 border rounded-md text-gray-900"
-                onInput={(e) => e.currentTarget.setCustomValidity('')}
+                onInput={(e) => e.currentTarget.setCustomValidity("")}
                 required
               />
             </div>

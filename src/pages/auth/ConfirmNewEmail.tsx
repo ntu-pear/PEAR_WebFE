@@ -1,7 +1,7 @@
-import { confirmNewEmail } from '@/api/users/user';
-import { Button } from '@/components/ui/button';
-import { useNavigate, useParams } from 'react-router-dom';
-import { toast } from 'sonner';
+import { confirmNewEmail } from "@/api/users/user";
+import { Button } from "@/components/ui/button";
+import { useNavigate, useParams } from "react-router-dom";
+import { toast } from "sonner";
 
 export const ConfirmNewEmail = () => {
   const { token } = useParams();
@@ -11,13 +11,13 @@ export const ConfirmNewEmail = () => {
     event.preventDefault();
     try {
       if (!token) {
-        throw 'Token not found in URL';
+        throw "Token not found in URL";
       }
 
-      console.log('token: ', token);
+      console.log("token: ", token);
       await confirmNewEmail(token);
-      toast.success('New Email updated successfully.');
-      navigate('/login', { replace: true });
+      toast.success("New Email updated successfully.");
+      navigate("/login", { replace: true });
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       toast.error(`Failed to update email. ${error}`);

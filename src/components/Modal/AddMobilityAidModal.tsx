@@ -1,13 +1,13 @@
-import { useModal } from '@/hooks/useModal';
-import { Button } from '../ui/button';
+import { useModal } from "@/hooks/useModal";
+import { Button } from "../ui/button";
 import {
   addMobilityAid,
   AddMobilityAid,
   fetchMobilityList,
   MobilityList,
-} from '@/api/patients/mobility';
-import { toast } from 'sonner';
-import { useState, useEffect } from 'react';
+} from "@/api/patients/mobility";
+import { toast } from "sonner";
+import { useState, useEffect } from "react";
 
 const AddMobilityAidModal: React.FC = () => {
   const { modalRef, activeModal, closeModal } = useModal();
@@ -25,7 +25,7 @@ const AddMobilityAidModal: React.FC = () => {
 
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
-      toast.error('Failed to fetch Mobility List');
+      toast.error("Failed to fetch Mobility List");
     }
   };
 
@@ -42,7 +42,7 @@ const AddMobilityAidModal: React.FC = () => {
       PatientID: parseInt(patientId as string, 10),
       MobilityListId: parseInt(formDataObj.MobilityListId as string, 10),
       MobilityRemarks: formDataObj.MobilityRemarks as string,
-      IsRecovered: formDataObj.IsRecovered === 'true',
+      IsRecovered: formDataObj.IsRecovered === "true",
       CreatedById: submitterId as string,
       ModifiedById: submitterId as string,
     };
@@ -50,12 +50,12 @@ const AddMobilityAidModal: React.FC = () => {
     try {
       await addMobilityAid(allergyFormData);
       closeModal();
-      toast.success('Patient mobility aid Added.');
+      toast.success("Patient mobility aid Added.");
       refreshMobilityData();
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       closeModal();
-      toast.error('Failed to add patient mobility aid.');
+      toast.error("Failed to add patient mobility aid.");
     }
   };
 

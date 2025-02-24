@@ -1,9 +1,9 @@
-import { useEffect, useState } from 'react';
-import { EyeIcon, EyeOffIcon, FilePenLine, PlusCircle } from 'lucide-react';
-import { Button } from '../ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-import { TabsContent } from '../ui/tabs';
-import { DataTableClient, DataTableServer } from '../Table/DataTable';
+import { useEffect, useState } from "react";
+import { EyeIcon, EyeOffIcon, FilePenLine, PlusCircle } from "lucide-react";
+import { Button } from "../ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { TabsContent } from "../ui/tabs";
+import { DataTableClient, DataTableServer } from "../Table/DataTable";
 import {
   DiagnosedDementiaTD,
   MobilityAidTD,
@@ -14,22 +14,22 @@ import {
   mockStaffAllocation,
   PatientInformation,
   SocialHistoryTD,
-} from '@/mocks/mockPatientDetails';
-import TabProps from './types';
-import { useModal } from '@/hooks/useModal';
-import EditPatientInfoModal from '../Modal/EditPatientInfoModal';
-import AddMedicalHistoryModal from '../Modal/AddMedicalHistoryModal';
-import AddMobilityAidModal from '../Modal/AddMobilityAidModal';
-import EditStaffAllocationModal from '../Modal/EditStaffAllocationModal';
-import EditSocialHistoryModal from '../Modal/EditSocialHistoryModal';
-import { toast } from 'sonner';
+} from "@/mocks/mockPatientDetails";
+import TabProps from "./types";
+import { useModal } from "@/hooks/useModal";
+import EditPatientInfoModal from "../Modal/EditPatientInfoModal";
+import AddMedicalHistoryModal from "../Modal/AddMedicalHistoryModal";
+import AddMobilityAidModal from "../Modal/AddMobilityAidModal";
+import EditStaffAllocationModal from "../Modal/EditStaffAllocationModal";
+import EditSocialHistoryModal from "../Modal/EditSocialHistoryModal";
+import { toast } from "sonner";
 import {
   DoctorNoteTDServer,
   fetchDoctorNotes,
-} from '@/api/patients/doctorNote';
-import { fetchMobilityAids } from '@/api/patients/mobility';
-import { fetchSocialHistory } from '@/api/patients/socialHistory';
-import { fetchDiagnosedDementia } from '@/api/patients/diagnosedDementia';
+} from "@/api/patients/doctorNote";
+import { fetchMobilityAids } from "@/api/patients/mobility";
+import { fetchSocialHistory } from "@/api/patients/socialHistory";
+import { fetchDiagnosedDementia } from "@/api/patients/diagnosedDementia";
 
 interface PatientInfoTabProps extends TabProps {
   patientInfo: PatientInformation | null;
@@ -70,14 +70,14 @@ const PatientInfoTab: React.FC<PatientInfoTabProps> = ({
     if (!id || isNaN(Number(id))) return;
     try {
       const fetchedDiagnosedDementia: DiagnosedDementiaTD[] =
-        import.meta.env.MODE === 'development' ||
-        import.meta.env.MODE === 'production'
+        import.meta.env.MODE === "development" ||
+        import.meta.env.MODE === "production"
           ? await fetchDiagnosedDementia(Number(id))
           : mockDiagnosedDementiaList;
       setDiagnosedDementia(fetchedDiagnosedDementia);
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
-      toast.error('Failed to fetch patient diagnosed dementia');
+      toast.error("Failed to fetch patient diagnosed dementia");
     }
   };
 
@@ -85,15 +85,15 @@ const PatientInfoTab: React.FC<PatientInfoTabProps> = ({
     if (!id || isNaN(Number(id))) return;
     try {
       const fetchedMobilityAids: MobilityAidTD[] =
-        import.meta.env.MODE === 'development' ||
-        import.meta.env.MODE === 'production'
+        import.meta.env.MODE === "development" ||
+        import.meta.env.MODE === "production"
           ? await fetchMobilityAids(Number(id))
           : mockMobilityAidsTD;
 
       setMobilityAids(fetchedMobilityAids);
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
-      toast.error('Failed to fetch patient mobility aids');
+      toast.error("Failed to fetch patient mobility aids");
     }
   };
 
@@ -108,7 +108,7 @@ const PatientInfoTab: React.FC<PatientInfoTabProps> = ({
       setDoctorNotes(fetchedDoctorNotes);
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
-      toast.error('Failed to fetch patient doctor notes');
+      toast.error("Failed to fetch patient doctor notes");
     }
   };
 
@@ -116,20 +116,20 @@ const PatientInfoTab: React.FC<PatientInfoTabProps> = ({
     if (!id || isNaN(Number(id))) return;
     try {
       const fetchedSocialHistory: SocialHistoryTD =
-        import.meta.env.MODE === 'development' ||
-        import.meta.env.MODE === 'production'
+        import.meta.env.MODE === "development" ||
+        import.meta.env.MODE === "production"
           ? await fetchSocialHistory(Number(id))
           : mockSocialHistoryTD;
 
       setSocialHistory(fetchedSocialHistory);
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
-      toast.error('Failed to fetch patient social history');
+      toast.error("Failed to fetch patient social history");
     }
   };
 
   useEffect(() => {
-    console.log('patientId', id);
+    console.log("patientId", id);
     handleFetchDiagnosedDementia();
     handleFetchMobilityAids();
     handleFetchDoctorNotes(doctorNotes.pagination.pageNo || 0);
@@ -141,66 +141,66 @@ const PatientInfoTab: React.FC<PatientInfoTabProps> = ({
   };
 
   const patientInformationColumns = [
-    { key: 'name', header: 'Name' },
-    { key: 'nric', header: 'NRIC' },
-    { key: 'dateOfBirth', header: 'Date Of Birth' },
-    { key: 'gender', header: 'Gender' },
-    { key: 'address', header: 'Address' },
-    { key: 'tempAddress', header: 'Temporary Address' },
-    { key: 'homeNo', header: 'Home No' },
-    { key: 'handphoneNo', header: 'Handphone No' },
-    { key: 'preferredName', header: 'Preferred Name' },
-    { key: 'preferredLanguage', header: 'Preferred Language' },
-    { key: 'privacyLevel', header: 'Privacy Level' },
-    { key: 'underRespiteCare', header: 'Under Respite Care' },
-    { key: 'startDate', header: 'Start Date' },
-    { key: 'endDate', header: 'End Date' },
-    { key: 'inactiveDate', header: 'Inactive Date' },
+    { key: "name", header: "Name" },
+    { key: "nric", header: "NRIC" },
+    { key: "dateOfBirth", header: "Date Of Birth" },
+    { key: "gender", header: "Gender" },
+    { key: "address", header: "Address" },
+    { key: "tempAddress", header: "Temporary Address" },
+    { key: "homeNo", header: "Home No" },
+    { key: "handphoneNo", header: "Handphone No" },
+    { key: "preferredName", header: "Preferred Name" },
+    { key: "preferredLanguage", header: "Preferred Language" },
+    { key: "privacyLevel", header: "Privacy Level" },
+    { key: "underRespiteCare", header: "Under Respite Care" },
+    { key: "startDate", header: "Start Date" },
+    { key: "endDate", header: "End Date" },
+    { key: "inactiveDate", header: "Inactive Date" },
   ];
 
   const dementiaColumns = [
-    { key: 'dementiaType', header: 'Dementia Type' },
-    { key: 'dementiaDate', header: 'Dementia Date' },
+    { key: "dementiaType", header: "Dementia Type" },
+    { key: "dementiaDate", header: "Dementia Date" },
   ];
 
   const mediclaDetailsColumns = [
-    { key: 'medicalDetails', header: 'Medical Details' },
-    { key: 'informationSource', header: 'Information Source' },
-    { key: 'medicalEstimatedDate', header: 'Medical Estimated Date' },
-    { key: 'notes', header: 'Notes' },
+    { key: "medicalDetails", header: "Medical Details" },
+    { key: "informationSource", header: "Information Source" },
+    { key: "medicalEstimatedDate", header: "Medical Estimated Date" },
+    { key: "notes", header: "Notes" },
   ];
 
   const mobilityAidsColumns = [
-    { key: 'mobilityAids', header: 'Mobility Aids' },
-    { key: 'remark', header: 'Remark' },
-    { key: 'condition', header: 'Condition' },
-    { key: 'date', header: 'Date' },
+    { key: "mobilityAids", header: "Mobility Aids" },
+    { key: "remark", header: "Remark" },
+    { key: "condition", header: "Condition" },
+    { key: "date", header: "Date" },
   ];
 
   const doctorNotesColumns = [
-    { key: 'date', header: 'Date' },
-    { key: 'doctorName', header: "Doctor's Name" },
-    { key: 'notes', header: 'Notes' },
+    { key: "date", header: "Date" },
+    { key: "doctorName", header: "Doctor's Name" },
+    { key: "notes", header: "Notes" },
   ];
 
   const staffAllocationColumns = [
-    { key: 'staffRole', header: 'Staff Role' },
-    { key: 'staffName', header: 'Staff Name' },
+    { key: "staffRole", header: "Staff Role" },
+    { key: "staffName", header: "Staff Name" },
   ];
 
   const socialHistoryColumns = [
-    { key: 'caffeineUse', header: 'Caffeine Use' },
-    { key: 'diet', header: 'Diet' },
-    { key: 'drugUse', header: 'Drug Use' },
-    { key: 'education', header: 'Education' },
-    { key: 'exercise', header: 'Exercise' },
-    { key: 'liveWith', header: 'Live With' },
-    { key: 'occupation', header: 'Occupation' },
-    { key: 'pet', header: 'Pet' },
-    { key: 'religion', header: 'Religion' },
-    { key: 'secondhandSmoker', header: 'Secondhand Smoker' },
-    { key: 'sexuallyActive', header: 'Sexually Active' },
-    { key: 'tobaccoUse', header: 'Tobacco Use' },
+    { key: "caffeineUse", header: "Caffeine Use" },
+    { key: "diet", header: "Diet" },
+    { key: "drugUse", header: "Drug Use" },
+    { key: "education", header: "Education" },
+    { key: "exercise", header: "Exercise" },
+    { key: "liveWith", header: "Live With" },
+    { key: "occupation", header: "Occupation" },
+    { key: "pet", header: "Pet" },
+    { key: "religion", header: "Religion" },
+    { key: "secondhandSmoker", header: "Secondhand Smoker" },
+    { key: "sexuallyActive", header: "Sexually Active" },
+    { key: "tobaccoUse", header: "Tobacco Use" },
   ];
 
   return (
@@ -215,9 +215,9 @@ const PatientInfoTab: React.FC<PatientInfoTabProps> = ({
                   size="sm"
                   className="h-8 w-24 gap-1"
                   onClick={() =>
-                    openModal('editPatientInfo', {
+                    openModal("editPatientInfo", {
                       patientId: String(id),
-                      submitterId: '2',
+                      submitterId: "2",
                       refreshPatientData,
                     })
                   }
@@ -238,12 +238,12 @@ const PatientInfoTab: React.FC<PatientInfoTabProps> = ({
                     <div key={column.key} className="space-y-1">
                       <p className="text-sm font-medium">{column.header}</p>
                       <div className="text-sm text-muted-foreground flex items-center space-x-2">
-                        {column.key === 'nric'
-                          ? nricData.nric || '-'
+                        {column.key === "nric"
+                          ? nricData.nric || "-"
                           : patientInfo?.[
                               column.key as keyof PatientInformation // else if key is not nric
-                            ] || '-'}
-                        {column.key === 'nric' && (
+                            ] || "-"}
+                        {column.key === "nric" && (
                           <Button
                             size="icon"
                             variant="ghost"
@@ -269,12 +269,12 @@ const PatientInfoTab: React.FC<PatientInfoTabProps> = ({
                     <div key={column.key} className="space-y-1">
                       <p className="text-sm font-medium">{column.header}</p>
                       <div className="text-sm text-muted-foreground flex items-center space-x-2">
-                        {column.key === 'nric'
-                          ? nricData.nric || '-'
+                        {column.key === "nric"
+                          ? nricData.nric || "-"
                           : patientInfo?.[
                               column.key as keyof PatientInformation // else if key is not nric
-                            ] || '-'}
-                        {column.key === 'nric' && (
+                            ] || "-"}
+                        {column.key === "nric" && (
                           <Button
                             size="icon"
                             variant="link"
@@ -319,7 +319,7 @@ const PatientInfoTab: React.FC<PatientInfoTabProps> = ({
               <Button
                 size="sm"
                 className="h-8 w-24 gap-1"
-                onClick={() => openModal('addMedicalHistory')}
+                onClick={() => openModal("addMedicalHistory")}
               >
                 <PlusCircle className="h-4 w-4" />
                 <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
@@ -345,9 +345,9 @@ const PatientInfoTab: React.FC<PatientInfoTabProps> = ({
                 size="sm"
                 className="h-8 w-24 gap-1"
                 onClick={() =>
-                  openModal('addMobilityAids', {
+                  openModal("addMobilityAids", {
                     patientId: String(id),
-                    submitterId: '2',
+                    submitterId: "2",
                     refreshMobilityData,
                   })
                 }
@@ -394,7 +394,7 @@ const PatientInfoTab: React.FC<PatientInfoTabProps> = ({
                 <Button
                   size="sm"
                   className="h-8 w-24 gap-1"
-                  onClick={() => openModal('editStaffAllocation')}
+                  onClick={() => openModal("editStaffAllocation")}
                 >
                   <FilePenLine className="h-4 w-4" />
                   <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
@@ -420,7 +420,7 @@ const PatientInfoTab: React.FC<PatientInfoTabProps> = ({
                 <Button
                   size="sm"
                   className="h-8 w-24 gap-1"
-                  onClick={() => openModal('editSocialHistory')}
+                  onClick={() => openModal("editSocialHistory")}
                 >
                   <FilePenLine className="h-4 w-4" />
                   <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
@@ -439,7 +439,7 @@ const PatientInfoTab: React.FC<PatientInfoTabProps> = ({
                       <p className="text-sm font-medium">{column.header}</p>
                       <p className="text-sm text-muted-foreground">
                         {socialHistory?.[column.key as keyof SocialHistoryTD] ||
-                          '-'}
+                          "-"}
                       </p>
                     </div>
                   ))}
@@ -453,7 +453,7 @@ const PatientInfoTab: React.FC<PatientInfoTabProps> = ({
                       <p className="text-sm font-medium">{column.header}</p>
                       <p className="text-sm text-muted-foreground">
                         {socialHistory?.[column.key as keyof SocialHistoryTD] ||
-                          '-'}
+                          "-"}
                       </p>
                     </div>
                   ))}
@@ -462,17 +462,17 @@ const PatientInfoTab: React.FC<PatientInfoTabProps> = ({
           </Card>
         </div>
       </TabsContent>
-      {activeModal.name === 'editPatientInfo' && <EditPatientInfoModal />}
+      {activeModal.name === "editPatientInfo" && <EditPatientInfoModal />}
 
-      {activeModal.name === 'addMedicalHistory' && <AddMedicalHistoryModal />}
+      {activeModal.name === "addMedicalHistory" && <AddMedicalHistoryModal />}
 
-      {activeModal.name === 'addMobilityAids' && <AddMobilityAidModal />}
+      {activeModal.name === "addMobilityAids" && <AddMobilityAidModal />}
 
-      {activeModal.name === 'editStaffAllocation' && (
+      {activeModal.name === "editStaffAllocation" && (
         <EditStaffAllocationModal />
       )}
 
-      {activeModal.name === 'editSocialHistory' && <EditSocialHistoryModal />}
+      {activeModal.name === "editSocialHistory" && <EditSocialHistoryModal />}
     </>
   );
 };

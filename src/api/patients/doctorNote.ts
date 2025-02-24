@@ -1,6 +1,6 @@
-import { formatDateString } from '@/utils/formatDate';
-import { doctorNoteAPI } from '../apiConfig';
-import { TableRowData } from '@/components/Table/DataTable';
+import { formatDateString } from "@/utils/formatDate";
+import { doctorNoteAPI } from "../apiConfig";
+import { TableRowData } from "@/components/Table/DataTable";
 
 export interface DoctorNote {
   isDeleted: string;
@@ -43,7 +43,7 @@ export const convertToDoctorNotesTD = (
 ): DoctorNoteTDServer => {
   if (!Array.isArray(doctorNoteViewList.data)) {
     console.error(
-      'doctorNoteViewList.data is not an array',
+      "doctorNoteViewList.data is not an array",
       doctorNoteViewList.data
     );
     return {
@@ -58,12 +58,12 @@ export const convertToDoctorNotesTD = (
   }
 
   const doctorNotesTransformed = doctorNoteViewList.data
-    .filter((dn) => dn.isDeleted === '0')
+    .filter((dn) => dn.isDeleted === "0")
     .map((dn) => ({
       id: dn.id,
-      date: dn.createdDate ? formatDateString(dn.createdDate) : '',
+      date: dn.createdDate ? formatDateString(dn.createdDate) : "",
       doctorName: dn.doctorId.toString().toUpperCase(), //temporary use doctorId for now
-      notes: dn.doctorRemarks || '',
+      notes: dn.doctorRemarks || "",
     }));
 
   const updatedTD = {
@@ -76,7 +76,7 @@ export const convertToDoctorNotesTD = (
     },
   };
 
-  console.log('convertToDoctorNotesTD: ', updatedTD);
+  console.log("convertToDoctorNotesTD: ", updatedTD);
   return updatedTD;
 };
 
@@ -89,10 +89,10 @@ export const fetchDoctorNotes = async (
     const response = await doctorNoteAPI.get<DoctorNoteViewList>(
       `GetDoctorNotesByPatient?patient_id=${patientId}&pageNo=${pageNo}&pageSize=${pageSize}`
     );
-    console.log('GET Patient Doctor Notes', response.data);
+    console.log("GET Patient Doctor Notes", response.data);
     return convertToDoctorNotesTD(response.data);
   } catch (error) {
-    console.error('GET Patient Doctor Notes', error);
+    console.error("GET Patient Doctor Notes", error);
     throw error;
   }
 };

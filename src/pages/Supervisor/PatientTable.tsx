@@ -1,14 +1,14 @@
-import React, { useCallback, useEffect, useState } from 'react';
-import { ListFilter, File } from 'lucide-react';
+import React, { useCallback, useEffect, useState } from "react";
+import { ListFilter, File } from "lucide-react";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Button } from '@/components/ui/button';
+} from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,23 +17,23 @@ import {
   DropdownMenuRadioItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Badge } from '@/components/ui/badge';
-import Searchbar from '@/components/Searchbar';
-import { DataTableServer } from '@/components/Table/DataTable';
+} from "@/components/ui/dropdown-menu";
+import { Badge } from "@/components/ui/badge";
+import Searchbar from "@/components/Searchbar";
+import { DataTableServer } from "@/components/Table/DataTable";
 
 import {
   mockCaregiverID,
   mockPatientTDList,
-} from '@/mocks/mockPatientTableData';
+} from "@/mocks/mockPatientTableData";
 
-import useDebounce from '@/hooks/useDebounce';
-import AvatarModalWrapper from '@/components/AvatarModalWrapper';
+import useDebounce from "@/hooks/useDebounce";
+import AvatarModalWrapper from "@/components/AvatarModalWrapper";
 import {
   fetchAllPatientTD,
   PatientTableData,
   PatientTableDataServer,
-} from '@/api/patients/patients';
+} from "@/api/patients/patients";
 
 const PatientTable: React.FC = () => {
   const [patientTDServer, setPatientTDServer] =
@@ -46,9 +46,9 @@ const PatientTable: React.FC = () => {
         totalPages: 0,
       },
     });
-  const [activeStatus, setActiveStatus] = useState('All');
-  const [searchItem, setSearchItem] = useState('');
-  const [tabValue, setTabValue] = useState('all');
+  const [activeStatus, setActiveStatus] = useState("All");
+  const [searchItem, setSearchItem] = useState("");
+  const [tabValue, setTabValue] = useState("all");
   const debouncedActiveStatus = useDebounce(activeStatus, 300);
   const debouncedSearch = useDebounce(searchItem, 300);
   const debounceTabValue = useDebounce(tabValue, 300);
@@ -61,10 +61,10 @@ const PatientTable: React.FC = () => {
     []
   );
 
-  const sortByName = (data: PatientTableData[], direction: 'asc' | 'desc') => {
+  const sortByName = (data: PatientTableData[], direction: "asc" | "desc") => {
     return [...data].sort((a, b) => {
-      if (a.name < b.name) return direction === 'asc' ? -1 : 1;
-      if (a.name > b.name) return direction === 'asc' ? 1 : -1;
+      if (a.name < b.name) return direction === "asc" ? -1 : 1;
+      if (a.name > b.name) return direction === "asc" ? 1 : -1;
       return 0;
     });
   };
@@ -72,8 +72,8 @@ const PatientTable: React.FC = () => {
   const handleFilter = async (pageNo: number) => {
     try {
       const fetchedPatientTDServer: PatientTableDataServer =
-        import.meta.env.MODE === 'development' ||
-        import.meta.env.MODE === 'production'
+        import.meta.env.MODE === "development" ||
+        import.meta.env.MODE === "production"
           ? await fetchAllPatientTD(pageNo)
           : mockPatientTDList;
 
@@ -84,24 +84,24 @@ const PatientTable: React.FC = () => {
 
       filteredPatientTDList = filteredPatientTDList.filter(
         (ptd: PatientTableData) =>
-          activeStatus === 'All' ? true : ptd.status === activeStatus
+          activeStatus === "All" ? true : ptd.status === activeStatus
       );
 
       filteredPatientTDList = filteredPatientTDList.filter(
         (ptd: PatientTableData) =>
-          tabValue === 'my_patients' && mockCaregiverID !== null
+          tabValue === "my_patients" && mockCaregiverID !== null
             ? ptd.supervisorId === mockCaregiverID
             : true
       );
 
-      const sortedPatientTDList = sortByName(filteredPatientTDList, 'asc');
+      const sortedPatientTDList = sortByName(filteredPatientTDList, "asc");
 
       setPatientTDServer({
         patients: sortedPatientTDList,
         pagination: fetchedPatientTDServer.pagination,
       });
     } catch (error) {
-      console.error('Error fetching patients:', error);
+      console.error("Error fetching patients:", error);
     }
   };
 
@@ -111,8 +111,8 @@ const PatientTable: React.FC = () => {
 
   const columns = [
     {
-      key: 'name',
-      header: 'Name',
+      key: "name",
+      header: "Name",
       render: (value: string, patient: PatientTableData) => (
         <div className="flex items-center gap-3">
           <AvatarModalWrapper patient={patient} />
@@ -125,18 +125,18 @@ const PatientTable: React.FC = () => {
         </div>
       ),
     },
-    { key: 'nric', header: 'NRIC' },
+    { key: "nric", header: "NRIC" },
     {
-      key: 'status',
-      header: 'Status',
+      key: "status",
+      header: "Status",
       render: (value: string) => (
         <Badge
           variant={
-            value === 'Active'
-              ? 'default'
-              : value === 'Inactive'
-              ? 'secondary'
-              : 'outline'
+            value === "Active"
+              ? "default"
+              : value === "Inactive"
+                ? "secondary"
+                : "outline"
           }
         >
           {value}
@@ -144,15 +144,15 @@ const PatientTable: React.FC = () => {
       ),
     },
     {
-      key: 'startDate',
-      header: 'Start Date',
-      className: 'hidden md:table-cell',
+      key: "startDate",
+      header: "Start Date",
+      className: "hidden md:table-cell",
     },
-    { key: 'endDate', header: 'End Date', className: 'hidden md:table-cell' },
+    { key: "endDate", header: "End Date", className: "hidden md:table-cell" },
     {
-      key: 'inactiveDate',
-      header: 'Inactive Date',
-      className: 'hidden md:table-cell',
+      key: "inactiveDate",
+      header: "Inactive Date",
+      className: "hidden md:table-cell",
     },
   ];
 
@@ -222,8 +222,8 @@ const PatientTable: React.FC = () => {
                     pagination={patientTDServer.pagination}
                     columns={columns}
                     viewMore={true}
-                    viewMoreBaseLink={'/supervisor/view-patient'}
-                    activeTab={'information'}
+                    viewMoreBaseLink={"/supervisor/view-patient"}
+                    activeTab={"information"}
                     fetchData={handleFilter}
                   />
                 </CardContent>
@@ -243,8 +243,8 @@ const PatientTable: React.FC = () => {
                     pagination={patientTDServer.pagination}
                     columns={columns}
                     viewMore={true}
-                    viewMoreBaseLink={'/supervisor/view-patient'}
-                    activeTab={'information'}
+                    viewMoreBaseLink={"/supervisor/view-patient"}
+                    activeTab={"information"}
                     fetchData={handleFilter}
                   />
                 </CardContent>

@@ -1,9 +1,9 @@
-import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-import { useRef } from 'react';
-import { changePassword } from '@/api/users/user';
-import { toast } from 'sonner';
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { useRef } from "react";
+import { changePassword } from "@/api/users/user";
+import { toast } from "sonner";
 
 const PasswordSettings: React.FC = () => {
   const newPasswordRef = useRef<HTMLInputElement>(null);
@@ -22,7 +22,7 @@ const PasswordSettings: React.FC = () => {
       /^(?=.*[a-z])(?=.*[A-Z])(?=.*[\W_])[A-Za-z\d\W_]{8,}$/;
     if (newPassword && !passwordPattern.test(newPassword)) {
       newPasswordRef.current.setCustomValidity(
-        'New password should have minimum of 8 characters with at least 1 uppercase, 1 lowercase and 1 special character.'
+        "New password should have minimum of 8 characters with at least 1 uppercase, 1 lowercase and 1 special character."
       );
       isValid = false;
     }
@@ -30,7 +30,7 @@ const PasswordSettings: React.FC = () => {
     // Check password match
     if (newPassword && confirmPassword && newPassword !== confirmPassword) {
       confirmPasswordRef.current.setCustomValidity(
-        'New password and confirm new password do not match.'
+        "New password and confirm new password do not match."
       );
       isValid = false;
     }
@@ -48,11 +48,11 @@ const PasswordSettings: React.FC = () => {
         confirmPassword: formDataObj.confirmPassword as string,
       };
 
-      console.log('passwordFormData', passwordFormData);
+      console.log("passwordFormData", passwordFormData);
 
       try {
         await changePassword(passwordFormData);
-        toast.success('User password update successfully');
+        toast.success("User password update successfully");
         form.reset();
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
       } catch (error) {
@@ -66,10 +66,10 @@ const PasswordSettings: React.FC = () => {
   const handlePasswordInputChange = () => {
     // Clear custom validity on input change
     if (newPasswordRef.current) {
-      newPasswordRef.current.setCustomValidity('');
+      newPasswordRef.current.setCustomValidity("");
     }
     if (confirmPasswordRef.current) {
-      confirmPasswordRef.current.setCustomValidity('');
+      confirmPasswordRef.current.setCustomValidity("");
     }
   };
 
@@ -113,7 +113,7 @@ const PasswordSettings: React.FC = () => {
 
                 <div className="space-y-2">
                   <Label htmlFor="confirmPassword">
-                    Confirm New Password{' '}
+                    Confirm New Password{" "}
                     <span className="text-red-600"> *</span>
                   </Label>
                   <input

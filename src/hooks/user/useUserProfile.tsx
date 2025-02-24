@@ -1,5 +1,5 @@
-import { UserDetails } from '@/api/users/user';
-import { createContext, useContext } from 'react';
+import { UserDetails } from "@/api/users/user";
+import { createContext, useContext } from "react";
 
 interface UserProfileContextType {
   profilePhoto: string | null;
@@ -15,7 +15,7 @@ export const UserProfileContext = createContext<
 export const useUserProfile = () => {
   const context = useContext(UserProfileContext);
   if (!context) {
-    throw new Error('useUserProfile must be used within a UserProfileProvider');
+    throw new Error("useUserProfile must be used within a UserProfileProvider");
   }
   return context;
 };

@@ -1,12 +1,12 @@
-import { useModal } from '@/hooks/useModal';
-import { Button } from '../ui/button';
+import { useModal } from "@/hooks/useModal";
+import { Button } from "../ui/button";
 
 const EditSocialHistoryModal: React.FC = () => {
   const { modalRef, closeModal } = useModal();
 
   const handleEditSocialHistory = (event: React.FormEvent) => {
     event.preventDefault();
-    console.log('Patient Social History Updated!');
+    console.log("Patient Social History Updated!");
     closeModal();
   };
 

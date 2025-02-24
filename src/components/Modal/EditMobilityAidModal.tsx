@@ -1,7 +1,7 @@
-import { Button } from '../ui/button';
-import { toast } from 'sonner';
-import { useModal } from '@/hooks/useModal';
-import { useEffect, useState } from 'react';
+import { Button } from "../ui/button";
+import { toast } from "sonner";
+import { useModal } from "@/hooks/useModal";
+import { useEffect, useState } from "react";
 import {
   fetchMobilityAidById,
   fetchMobilityList,
@@ -9,7 +9,7 @@ import {
   MobilityList,
   updateMobilityAid,
   UpdateMobilityAid,
-} from '@/api/patients/mobility';
+} from "@/api/patients/mobility";
 
 const EditMobilityAid: React.FC = () => {
   const [rowData, setRowData] = useState<MobilityAid | null>(null);
@@ -39,18 +39,18 @@ const EditMobilityAid: React.FC = () => {
 
     const MobilityAidFormData: UpdateMobilityAid = {
       MobilityRemarks: formDataObj.MobilityRemarks as string,
-      IsRecovered: formDataObj.IsRecovered === '1' ? true : false,
+      IsRecovered: formDataObj.IsRecovered === "1" ? true : false,
     };
     try {
-      console.log('MobilityAidFormData: ', MobilityAidFormData);
+      console.log("MobilityAidFormData: ", MobilityAidFormData);
       await updateMobilityAid(Number(mobilityAidId), MobilityAidFormData);
       closeModal();
-      toast.success('Patient mobility aid updated successfully.');
+      toast.success("Patient mobility aid updated successfully.");
       refreshData();
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       closeModal();
-      toast.error('Failed to update patient mobility aid.');
+      toast.error("Failed to update patient mobility aid.");
     }
   };
 
@@ -67,7 +67,7 @@ const EditMobilityAid: React.FC = () => {
 
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
-      toast.error('Failed to fetch Mobility Aid');
+      toast.error("Failed to fetch Mobility Aid");
     }
   };
 
@@ -78,7 +78,7 @@ const EditMobilityAid: React.FC = () => {
 
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
-      toast.error('Failed to fetch Mobility List');
+      toast.error("Failed to fetch Mobility List");
     }
   };
 
@@ -99,7 +99,7 @@ const EditMobilityAid: React.FC = () => {
               value={
                 mobilityList.find(
                   (ml) => ml.MobilityListId === rowData?.MobilityListId
-                )?.Value || ''
+                )?.Value || ""
               }
               className="mt-1 block w-full p-2 border rounded-md text-gray-900"
               readOnly
@@ -112,7 +112,7 @@ const EditMobilityAid: React.FC = () => {
               </label>
               <textarea
                 name="MobilityRemarks"
-                value={rowData?.MobilityRemarks || ''}
+                value={rowData?.MobilityRemarks || ""}
                 onChange={handleChange}
                 className="mt-1 block w-full p-2 border rounded-md text-gray-900"
                 required
@@ -124,7 +124,7 @@ const EditMobilityAid: React.FC = () => {
               </label>
               <select
                 name="IsRecovered"
-                value={rowData?.IsRecovered ? '1' : '0'}
+                value={rowData?.IsRecovered ? "1" : "0"}
                 onChange={handleChange}
                 className="mt-1 block w-full p-2 border rounded-md text-gray-900"
                 required
