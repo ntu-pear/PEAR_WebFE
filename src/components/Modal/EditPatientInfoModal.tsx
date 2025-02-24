@@ -241,7 +241,7 @@ const EditPatientInfoModal: React.FC = () => {
         ? convertToUTCISOString(patient.inActiveDate)
         : undefined,
       modifiedDate: getDateTimeNowInUTC(),
-      modifiedById: parseInt(submitterId as string, 10),
+      ModifiedById: submitterId as string,
     };
 
     console.log('editedPatient', editedPatient);

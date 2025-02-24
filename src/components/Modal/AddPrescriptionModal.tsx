@@ -58,8 +58,8 @@ const AddPrescriptionModal: React.FC = () => {
       IsAfterMeal: formDataObj.IsAfterMeal as string,
       PrescriptionRemarks: formDataObj.PrescriptionRemarks as string,
       Status: formDataObj.Status as string,
-      CreatedById: parseInt(submitterId as string, 10),
-      UpdatedById: parseInt(submitterId as string, 10),
+      CreatedById: submitterId as string,
+      ModifiedById: submitterId as string,
       CreatedDateTime: getDateTimeNowInUTC() as string,
       UpdatedDateTime: getDateTimeNowInUTC() as string,
     };

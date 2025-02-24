@@ -63,8 +63,8 @@ const AddAllergyModal: React.FC = () => {
         formDataObj.AllergyReactionTypeID as string,
         10
       ),
-      createdById: parseInt(submitterId as string, 10),
-      modifiedById: parseInt(submitterId as string, 10),
+      CreatedById: submitterId as string,
+      ModifiedById: submitterId as string,
     };
 
     try {

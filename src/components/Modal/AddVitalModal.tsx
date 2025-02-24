@@ -31,8 +31,8 @@ const AddVitalModal: React.FC = () => {
       BloodSugarLevel: parseFloat(formDataObj.BloodSugarLevel as string),
       VitalRemarks: formDataObj.VitalRemarks as string,
       IsAfterMeal: formDataObj.IsAfterMeal as string,
-      CreatedById: parseInt(submitterId as string, 10),
-      UpdatedById: parseInt(submitterId as string, 10),
+      CreatedById: submitterId as string,
+      ModifiedById: submitterId as string,
     };
 
     try {

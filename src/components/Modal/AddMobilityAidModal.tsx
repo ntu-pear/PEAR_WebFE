@@ -43,8 +43,8 @@ const AddMobilityAidModal: React.FC = () => {
       MobilityListId: parseInt(formDataObj.MobilityListId as string, 10),
       MobilityRemarks: formDataObj.MobilityRemarks as string,
       IsRecovered: formDataObj.IsRecovered === 'true',
-      CreatedById: parseInt(submitterId as string, 10),
-      ModifiedById: parseInt(submitterId as string, 10),
+      CreatedById: submitterId as string,
+      ModifiedById: submitterId as string,
     };
 
     try {

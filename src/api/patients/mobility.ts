@@ -34,6 +34,11 @@ export interface AddMobilityAid {
   ModifiedById: string;
 }
 
+export interface UpdateMobilityAid {
+  MobilityRemarks: string;
+  IsRecovered: boolean;
+}
+
 export const fetchMobilityList = async (): Promise<MobilityList[]> => {
   try {
     const response = await mobilityListAPI.get<MobilityList[]>(``);
@@ -95,6 +100,22 @@ export const fetchMobilityAids = async (
   }
 };
 
+export const fetchMobilityAidById = async (
+  mobiilityAidID: number
+): Promise<MobilityAid> => {
+  try {
+    const mobilityAidsResponse = await patientMobilityAPI.get<MobilityAid>(
+      `/${mobiilityAidID}`
+    );
+    console.log('GET Patient Mobility Aids', mobilityAidsResponse.data);
+
+    return mobilityAidsResponse.data;
+  } catch (error) {
+    console.error('GET Patient Mobility Aids', error);
+    throw error;
+  }
+};
+
 export const addMobilityAid = async (
   addMobilityAid: AddMobilityAid
 ): Promise<MobilityAid> => {
@@ -107,6 +128,38 @@ export const addMobilityAid = async (
     return response.data;
   } catch (error) {
     console.error('POST add patient mobility aids', error);
+    throw error;
+  }
+};
+
+export const updateMobilityAid = async (
+  mobilityAidID: number,
+  updateMobilityAid: UpdateMobilityAid
+): Promise<MobilityAid> => {
+  try {
+    const response = await patientMobilityAPI.put<MobilityAid>(
+      `/${mobilityAidID}`,
+      updateMobilityAid
+    );
+    console.log('PUT update patient Mobility Aids', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('PUT update patient mobility aids', error);
+    throw error;
+  }
+};
+
+export const deleteMobilityAid = async (
+  mobilityAidID: number
+): Promise<MobilityAid> => {
+  try {
+    const response = await patientMobilityAPI.delete<MobilityAid>(
+      `/${mobilityAidID}`
+    );
+    console.log('DELETE delete patient Mobility Aids', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('DELETE delete  patient mobility aids', error);
     throw error;
   }
 };

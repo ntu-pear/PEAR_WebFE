@@ -69,7 +69,7 @@ const EditPrescriptionModal: React.FC = () => {
         PrescriptionRemarks: prescription.PrescriptionRemarks,
         Status: prescription.Status,
         UpdatedDateTime: getDateTimeNowInUTC() as string,
-        UpdatedById: parseInt(submitterId, 10),
+        ModifiedById: submitterId as string,
       };
 
       console.log(updatedPrescription);
