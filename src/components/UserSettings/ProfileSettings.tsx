@@ -24,7 +24,8 @@ import { toast } from "sonner";
 
 const ProfileSettings: React.FC = () => {
   const { activeModal, openModal } = useModal();
-  const { profilePhoto, userDetails, refreshUserDetails } = useUserProfile();
+  const { profilePhoto, userDetails, refreshUserDetails, refreshProfilePhoto } =
+    useUserProfile();
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
 
   const handleUpdateUserProfile = async (
@@ -146,17 +147,18 @@ const ProfileSettings: React.FC = () => {
                   </Avatar>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="secondary"
-                        size="sm"
-                        className="absolute bottom-2 left-2"
-                      >
+                      <Button size="sm" className="absolute bottom-2 left-2">
                         Edit
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="start" className="w-48">
                       <DropdownMenuItem
-                        onClick={() => openModal("uploadProfilePhoto")}
+                        onClick={() =>
+                          openModal("uploadProfilePhoto", {
+                            refreshProfile: refreshProfilePhoto,
+                            isUser: true,
+                          })
+                        }
                       >
                         <Upload className="mr-2 h-4 w-4" />
                         Upload Photo
@@ -164,7 +166,12 @@ const ProfileSettings: React.FC = () => {
                       {profilePhoto && (
                         <DropdownMenuItem
                           className="text-destructive focus:text-destructive"
-                          onClick={() => openModal("deleteProfilePhoto")}
+                          onClick={() =>
+                            openModal("deleteProfilePhoto", {
+                              refreshProfile: refreshProfilePhoto,
+                              isUser: true,
+                            })
+                          }
                         >
                           <Trash2 className="mr-2 h-4 w-4" />
                           Remove Photo

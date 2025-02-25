@@ -206,8 +206,8 @@ export const fetchPatientInfo = async (
         p.gender?.toUpperCase() === "F"
           ? "FEMALE"
           : p.gender?.toUpperCase() === "M"
-            ? "MALE"
-            : "",
+          ? "MALE"
+          : "",
       address: p.address?.toUpperCase(),
       tempAddress: p.tempAddress?.toUpperCase() || "-",
       homeNo: p.homeNo || "-",
@@ -258,4 +258,30 @@ export const updatePatient = async (
     console.error("PUT update Patient Info", error);
     throw error;
   }
+};
+
+export const updatePatientProfilePhoto = async (
+  patientId: number,
+  formData: FormData
+): Promise<ViewPatient> => {
+  try {
+    const response = await patientsAPI.put<ViewPatient>(
+      `/update/${patientId}/update_patient_profile_picture`,
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    );
+    console.log("PUT update Patient Profile Photo", response.data.data);
+    return response.data;
+  } catch (error) {
+    console.error("PUT update Patient Profile Photo", error);
+    throw error;
+  }
+};
+
+export const deletePatientProfilePhoto = async (patientId: number) => {
+  console.log(patientId);
 };

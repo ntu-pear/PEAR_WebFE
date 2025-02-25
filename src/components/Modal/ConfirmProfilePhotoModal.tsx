@@ -3,18 +3,21 @@ import { Button } from "../ui/button";
 import { Avatar, AvatarFallback } from "../ui/avatar";
 import { AvatarImage } from "@radix-ui/react-avatar";
 import { Loader2, UserRound } from "lucide-react";
-import { updateUserProfilePhoto } from "@/api/users/user";
 import { toast } from "sonner";
-import { useUserProfile } from "@/hooks/user/useUserProfile";
 import { useState } from "react";
 import { Progress } from "../ui/progress";
+import { updateUserProfilePhoto } from "@/api/users/user";
+import { updatePatientProfilePhoto } from "@/api/patients/patients";
 
 const ConfirmProfilePhotoModal: React.FC = () => {
   const { modalRef, activeModal, closeModal } = useModal();
-  const { refreshProfilePhoto } = useUserProfile();
-  const { tempPhoto } = activeModal.props as {
-    tempPhoto?: string;
-  };
+  const { tempPhoto, refreshProfile, isUser, patientId } =
+    activeModal.props as {
+      tempPhoto?: string;
+      refreshProfile: () => void;
+      isUser: boolean;
+      patientId?: string;
+    };
   const [isLoading, setIsLoading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
 
@@ -60,6 +63,8 @@ const ConfirmProfilePhotoModal: React.FC = () => {
     const file = base64ToFile(tempPhoto, "profile_picture");
     formData.append("file", file);
 
+    const context = isUser ? "user" : "patient";
+
     try {
       // Simulate upload progress
       const uploadSimulation = setInterval(() => {
@@ -69,17 +74,26 @@ const ConfirmProfilePhotoModal: React.FC = () => {
         });
       }, 200);
 
-      await updateUserProfilePhoto(formData);
-      refreshProfilePhoto();
+      if (isUser) {
+        await updateUserProfilePhoto(formData);
+      } else {
+        if (!patientId || isNaN(Number(patientId))) {
+          throw "Invalid patient id.";
+        }
+        await updatePatientProfilePhoto(Number(patientId), formData);
+      }
 
+      refreshProfile();
       clearInterval(uploadSimulation);
       setUploadProgress(100);
       closeModal();
-      toast.success("Update user profile photo successfully");
+      toast.success(`Update ${context} profile photo successfully`);
+
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       closeModal();
-      toast.error("Failed to update user profile photo.");
+
+      toast.error(`Failed to update ${context} profile photo.`);
     } finally {
       setIsLoading(false);
     }
