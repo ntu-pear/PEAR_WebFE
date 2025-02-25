@@ -1,6 +1,6 @@
-import { useModal } from '@/hooks/useModal';
-import { Button } from '../ui/button';
-import { useEffect, useState } from 'react';
+import { useModal } from "@/hooks/useModal";
+import { Button } from "../ui/button";
+import { useEffect, useState } from "react";
 
 interface VerifyEmailModalProps {
   onCancelClick: () => void;
@@ -15,10 +15,10 @@ const Enable2FAModal: React.FC<VerifyEmailModalProps> = ({ onCancelClick }) => {
     setIsSubmitting(true);
 
     try {
-      console.log('User Email 2FA Enabled!');
+      console.log("User Email 2FA Enabled!");
       closeModal();
     } catch (error) {
-      console.error('Failed to enable 2FA:', error);
+      console.error("Failed to enable 2FA:", error);
     } finally {
       setIsSubmitting(false);
     }

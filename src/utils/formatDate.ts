@@ -1,6 +1,6 @@
-import dayjs from 'dayjs';
-import utc from 'dayjs/plugin/utc';
-import timezone from 'dayjs/plugin/timezone';
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
 
 // Extend Day.js with plugins
 dayjs.extend(utc);
@@ -9,8 +9,8 @@ dayjs.extend(timezone);
 export const formatDate = (date: string) => {
   return dayjs
     .utc(date) // Parse the date in UTC
-    .tz('Asia/Singapore') // Convert to Singapore timezone
-    .format('DD MMM YYYY'); // Format as "21 Jan 2025"
+    .tz("Asia/Singapore") // Convert to Singapore timezone
+    .format("DD MMM YYYY"); // Format as "21 Jan 2025"
 };
 
 export const formatDateString = (date: string) => {
@@ -20,8 +20,8 @@ export const formatDateString = (date: string) => {
 export const formatTime = (date: string) => {
   return dayjs
     .utc(date) // Parse the date in UTC
-    .tz('Asia/Singapore') // Convert to Singapore timezone
-    .format('hh:mm A'); // Format as "08:53 PM"
+    .tz("Asia/Singapore") // Convert to Singapore timezone
+    .format("hh:mm A"); // Format as "08:53 PM"
 };
 
 export const formatTimeString = (date: string) => {
@@ -33,9 +33,9 @@ export const getDateTimeNowInUTC = () => {
 };
 
 export const getDateForDatePicker = (isoDateTime: string) => {
-  return dayjs(isoDateTime).format('YYYY-MM-DD');
+  return dayjs(isoDateTime).format("YYYY-MM-DD");
 };
 
 export const convertToUTCISOString = (date: string) => {
-  return dayjs.utc(date, 'YYYY-MM-DD').toISOString();
+  return dayjs.utc(date, "YYYY-MM-DD").toISOString();
 };

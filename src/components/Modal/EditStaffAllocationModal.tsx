@@ -1,11 +1,11 @@
-import { useModal } from '@/hooks/useModal';
-import { Button } from '../ui/button';
+import { useModal } from "@/hooks/useModal";
+import { Button } from "../ui/button";
 
 const EditStaffAllocationModal: React.FC = () => {
   const { modalRef, closeModal } = useModal();
   const handleEditStaffAllocation = (event: React.FormEvent) => {
     event.preventDefault();
-    console.log('Patient Staff Allocation Updated!');
+    console.log("Patient Staff Allocation Updated!");
     closeModal();
   };
 

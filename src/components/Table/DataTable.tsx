@@ -1,13 +1,13 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo } from "react";
 import {
   Table,
   TableBody,
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
-import DataTableRow from './DataTableRow';
-import { Button } from '@/components/ui/button';
+} from "@/components/ui/table";
+import DataTableRow from "./DataTableRow";
+import { Button } from "@/components/ui/button";
 
 export interface TableRowData {
   id: string | number;
@@ -65,7 +65,7 @@ export function DataTableClient<T extends TableRowData>({
   viewMoreBaseLink,
   activeTab,
   hideActionsHeader = false, //default show actions header
-  className = '',
+  className = "",
   renderActions, // Accept renderActions function as a prop
 }: DataTableClientProps<T>) {
   const [currentPage, setCurrentPage] = useState(1);
@@ -108,7 +108,7 @@ export function DataTableClient<T extends TableRowData>({
               {columns.map((column) => (
                 <TableHead
                   key={column.key.toString()}
-                  className={`cursor-pointer ${column.className || ''}`}
+                  className={`cursor-pointer ${column.className || ""}`}
                 >
                   {column.header}
                 </TableHead>
@@ -126,7 +126,7 @@ export function DataTableClient<T extends TableRowData>({
                 columns={columns}
                 viewMore={viewMore}
                 viewMoreLink={`${viewMoreBaseLink}/${item.id}${
-                  activeTab ? `?tab=${activeTab}` : ''
+                  activeTab ? `?tab=${activeTab}` : ""
                 }`}
                 renderActions={renderActions} // Pass the custom renderActions function
               />
@@ -139,11 +139,11 @@ export function DataTableClient<T extends TableRowData>({
       {data.length > 0 && (
         <div className="flex items-center justify-between py-4">
           <div className="text-xs text-muted-foreground">
-            Showing{' '}
+            Showing{" "}
             <strong>
               {(currentPage - 1) * itemsPerPage + 1}-
               {Math.min(currentPage * itemsPerPage, data.length)}
-            </strong>{' '}
+            </strong>{" "}
             of <strong>{data.length}</strong> records
           </div>
           <div className="flex items-center space-x-2">
@@ -178,7 +178,7 @@ export function DataTableServer<T extends TableRowData>({
   viewMoreBaseLink,
   activeTab,
   hideActionsHeader = false, //default show actions header
-  className = '',
+  className = "",
   renderActions, // Accept renderActions function as a prop
   fetchData,
 }: DataTableServerProps<T>) {
@@ -212,7 +212,7 @@ export function DataTableServer<T extends TableRowData>({
               {columns.map((column) => (
                 <TableHead
                   key={column.key.toString()}
-                  className={`cursor-pointer ${column.className || ''}`}
+                  className={`cursor-pointer ${column.className || ""}`}
                 >
                   {column.header}
                 </TableHead>
@@ -230,7 +230,7 @@ export function DataTableServer<T extends TableRowData>({
                 columns={columns}
                 viewMore={viewMore}
                 viewMoreLink={`${viewMoreBaseLink}/${item.id}${
-                  activeTab ? `?tab=${activeTab}` : ''
+                  activeTab ? `?tab=${activeTab}` : ""
                 }`}
                 renderActions={renderActions} // Pass the custom renderActions function
               />
@@ -247,10 +247,10 @@ export function DataTableServer<T extends TableRowData>({
       {data.length > 0 && (
         <div className="flex items-center justify-between py-4">
           <div className="text-xs text-muted-foreground">
-            Showing{' '}
+            Showing{" "}
             <strong>
               {pageNo * pageSize + 1}-{pageNo * pageSize + data.length}
-            </strong>{' '}
+            </strong>{" "}
             of <strong>{totalRecords}</strong> records
           </div>
           <div className="flex items-center space-x-2">

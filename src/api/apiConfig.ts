@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios from "axios";
 
 const VITE_PATIENT_SERVICE_URL: string = import.meta.env
   .VITE_PATIENT_SERVICE_URL;
@@ -38,6 +38,30 @@ export const doctorNoteAPI = axios.create({
 
 export const socialHistoryAPI = axios.create({
   baseURL: `${VITE_PATIENT_SERVICE_URL}/SocialHistory`,
+});
+
+export const dietListAPI = axios.create({
+  baseURL: `${VITE_PATIENT_SERVICE_URL}/get_diet_types`,
+});
+
+export const educationListAPI = axios.create({
+  baseURL: `${VITE_PATIENT_SERVICE_URL}/get_education_types`,
+});
+
+export const liveWithListAPI = axios.create({
+  baseURL: `${VITE_PATIENT_SERVICE_URL}/get_livewith_types`,
+});
+
+export const occupationListAPI = axios.create({
+  baseURL: `${VITE_PATIENT_SERVICE_URL}/get_occupation_types`,
+});
+
+export const petListAPI = axios.create({
+  baseURL: `${VITE_PATIENT_SERVICE_URL}/get_pet_types`,
+});
+
+export const religionListAPI = axios.create({
+  baseURL: `${VITE_PATIENT_SERVICE_URL}/get_religion_types`,
 });
 
 export const vitalAPI = axios.create({
@@ -92,6 +116,18 @@ export const geocodeAPI = axios.create({
 //user
 export const loginAPI = axios.create({
   baseURL: `${VITE_USER_SERVICE_URL}/login`,
+});
+
+export const verifyOTP = axios.create({
+  baseURL: `${VITE_USER_SERVICE_URL}/verify-otp`,
+});
+
+export const requestOTP = axios.create({
+  baseURL: `${VITE_USER_SERVICE_URL}/request-otp`,
+});
+
+export const logoutAPI = axios.create({
+  baseURL: `${VITE_USER_SERVICE_URL}/logout`,
 });
 
 export const refreshTokenAPI = axios.create({

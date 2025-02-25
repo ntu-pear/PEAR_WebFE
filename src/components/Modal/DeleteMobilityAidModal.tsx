@@ -1,27 +1,27 @@
 import { Button } from "../ui/button";
 import { toast } from "sonner";
 import { useModal } from "@/hooks/useModal";
-import { deletePatientAllergy } from "@/api/patients/allergy";
+import { deleteMobilityAid } from "@/api/patients/mobility";
 
-const DeleteAllergyModal: React.FC = () => {
+const DeleteMobilityAidModal: React.FC = () => {
   const { modalRef, activeModal, closeModal } = useModal();
-  const { allergyId, refreshAllergyData } = activeModal.props as {
-    allergyId: string;
-    refreshAllergyData: () => void;
+  const { mobilityAidId, refreshData } = activeModal.props as {
+    mobilityAidId: string;
+    refreshData: () => void;
   };
 
-  const handleDeleteAllergy = async (event: React.FormEvent) => {
+  const handleMobilityAid = async (event: React.FormEvent) => {
     event.preventDefault();
-    if (!allergyId || isNaN(Number(allergyId))) return;
+    if (!mobilityAidId || isNaN(Number(mobilityAidId))) return;
     try {
-      await deletePatientAllergy(Number(allergyId));
+      await deleteMobilityAid(Number(mobilityAidId));
+      refreshData();
       closeModal();
-      toast.success("Patient Allergy deleted successfully.");
-      refreshAllergyData();
+      toast.success("Patient mobility aid deleted successfully.");
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       closeModal();
-      toast.error("Failed to delete patient Allergy.");
+      toast.error("Failed to delete patient mobility aid.");
     }
   };
 
@@ -34,7 +34,7 @@ const DeleteAllergyModal: React.FC = () => {
           </h3>
         </div>
 
-        <form onSubmit={handleDeleteAllergy} className="p-4">
+        <form onSubmit={handleMobilityAid} className="p-4">
           <p className="mb-6 text-gray-600 dark:text-gray-200 text-center">
             Deleting this item is irreversible. Please confirm your action.
           </p>
@@ -52,4 +52,4 @@ const DeleteAllergyModal: React.FC = () => {
   );
 };
 
-export default DeleteAllergyModal;
+export default DeleteMobilityAidModal;

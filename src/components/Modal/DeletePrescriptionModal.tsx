@@ -1,14 +1,14 @@
-import { Button } from '../ui/button';
-import { toast } from 'sonner';
-import { useModal } from '@/hooks/useModal';
+import { Button } from "../ui/button";
+import { toast } from "sonner";
+import { useModal } from "@/hooks/useModal";
 import {
   deletePatientPrescription,
   fetchPrescriptionById,
   Prescription,
   PrescriptionDelete,
-} from '@/api/patients/prescription';
-import { getDateTimeNowInUTC } from '@/utils/formatDate';
-import { useEffect, useState } from 'react';
+} from "@/api/patients/prescription";
+import { getDateTimeNowInUTC } from "@/utils/formatDate";
+import { useEffect, useState } from "react";
 
 const DeletePrescriptionModal: React.FC = () => {
   const { modalRef, activeModal, closeModal } = useModal();
@@ -43,7 +43,7 @@ const DeletePrescriptionModal: React.FC = () => {
         StartDate: prescription.StartDate,
         PrescriptionRemarks: prescription.PrescriptionRemarks,
         UpdatedDateTime: getDateTimeNowInUTC(),
-        UpdatedById: parseInt(submitterId as string, 10),
+        ModifiedById: submitterId as string,
       };
 
       await deletePatientPrescription(
@@ -51,12 +51,12 @@ const DeletePrescriptionModal: React.FC = () => {
         prescriptionDelete
       );
       closeModal();
-      toast.success('Prescription deleted successfully.');
+      toast.success("Prescription deleted successfully.");
       refreshPrescriptionData();
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       closeModal();
-      toast.error('Failed to delete patient prescription.');
+      toast.error("Failed to delete patient prescription.");
     }
   };
 

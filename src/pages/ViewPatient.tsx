@@ -1,36 +1,36 @@
-import { fetchPatientInfo, fetchPatientNRIC } from '@/api/patients/patients';
-import React, { Suspense, useEffect, useState } from 'react';
-import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { fetchPatientInfo, fetchPatientNRIC } from "@/api/patients/patients";
+import React, { Suspense, useEffect, useState } from "react";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
-import { PatientInformation } from '@/mocks/mockPatientDetails';
-import { toast } from 'sonner';
+import { PatientInformation } from "@/mocks/mockPatientDetails";
+import { toast } from "sonner";
 
-const AllergyTab = React.lazy(() => import('@/components/Tab/AllergyTab'));
-const GuardianTab = React.lazy(() => import('@/components/Tab/GuardianTab'));
+const AllergyTab = React.lazy(() => import("@/components/Tab/AllergyTab"));
+const GuardianTab = React.lazy(() => import("@/components/Tab/GuardianTab"));
 const PatientInfoTab = React.lazy(
-  () => import('@/components/Tab/PatientInfoTab')
+  () => import("@/components/Tab/PatientInfoTab")
 );
-const VitalTab = React.lazy(() => import('@/components/Tab/VitalTab'));
+const VitalTab = React.lazy(() => import("@/components/Tab/VitalTab"));
 const PersonalPreferenceTab = React.lazy(
-  () => import('@/components/Tab/PersonalPreferenceTab')
+  () => import("@/components/Tab/PersonalPreferenceTab")
 );
 const PrescriptionTab = React.lazy(
-  () => import('@/components/Tab/PrescriptionTab')
+  () => import("@/components/Tab/PrescriptionTab")
 );
 const ProblemLogTab = React.lazy(
-  () => import('@/components/Tab/ProblemLogTab')
+  () => import("@/components/Tab/ProblemLogTab")
 );
-const RoutineTab = React.lazy(() => import('@/components/Tab/RoutineTab'));
+const RoutineTab = React.lazy(() => import("@/components/Tab/RoutineTab"));
 const PhotoAlbumTab = React.lazy(
-  () => import('@/components/Tab/PhotoAlbumTab')
+  () => import("@/components/Tab/PhotoAlbumTab")
 );
 const ActivityPreferenceTab = React.lazy(
-  () => import('@/components/Tab/ActivityPreferenceTab')
+  () => import("@/components/Tab/ActivityPreferenceTab")
 );
 const ActivityExclusionTab = React.lazy(
-  () => import('@/components/Tab/ActivityExclusionTab')
+  () => import("@/components/Tab/ActivityExclusionTab")
 );
 
 const ViewPatient: React.FC = () => {
@@ -38,13 +38,13 @@ const ViewPatient: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const activeTab =
-    new URLSearchParams(location.search).get('tab') || 'information';
+    new URLSearchParams(location.search).get("tab") || "information";
   const [patientInfo, setPatientInfo] = useState<PatientInformation | null>(
     null
   );
   const [nricData, setNricData] = useState<{ nric: string; isMasked: boolean }>(
     {
-      nric: '',
+      nric: "",
       isMasked: true,
     }
   );
@@ -63,7 +63,7 @@ const ViewPatient: React.FC = () => {
       });
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
-      toast.error('Failed to fetch patient NRIC');
+      toast.error("Failed to fetch patient NRIC");
     }
   };
 
@@ -81,7 +81,7 @@ const ViewPatient: React.FC = () => {
       });
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
-      toast.error('Failed to fetch patient information');
+      toast.error("Failed to fetch patient information");
     }
   };
 
@@ -109,9 +109,9 @@ const ViewPatient: React.FC = () => {
             <AvatarFallback>
               <p className="text-5xl">
                 {patientInfo?.name
-                  .split(' ')
+                  .split(" ")
                   .map((n) => n[0])
-                  .join('')}
+                  .join("")}
               </p>
             </AvatarFallback>
           </Avatar>
@@ -148,7 +148,7 @@ const ViewPatient: React.FC = () => {
           </TabsList>
 
           <Suspense fallback={<div>Loading...</div>}>
-            {activeTab === 'information' && (
+            {activeTab === "information" && (
               <TabsContent value="information">
                 <PatientInfoTab
                   id={id}
@@ -159,52 +159,52 @@ const ViewPatient: React.FC = () => {
                 />
               </TabsContent>
             )}
-            {activeTab === 'allergy' && (
+            {activeTab === "allergy" && (
               <TabsContent value="allergy">
                 <AllergyTab id={id} />
               </TabsContent>
             )}
-            {activeTab === 'vital' && (
+            {activeTab === "vital" && (
               <TabsContent value="vital">
                 <VitalTab id={id} />
               </TabsContent>
             )}
-            {activeTab === 'personal-preference' && (
+            {activeTab === "personal-preference" && (
               <TabsContent value="personal-preference">
                 <PersonalPreferenceTab id={id} />
               </TabsContent>
             )}
-            {activeTab === 'problem-log' && (
+            {activeTab === "problem-log" && (
               <TabsContent value="problem-log">
                 <ProblemLogTab id={id} />
               </TabsContent>
             )}
-            {activeTab === 'activity-preference' && (
+            {activeTab === "activity-preference" && (
               <TabsContent value="activity-preference">
                 <ActivityPreferenceTab id={id} />
               </TabsContent>
             )}
-            {activeTab === 'routine' && (
+            {activeTab === "routine" && (
               <TabsContent value="routine">
                 <RoutineTab id={id} />
               </TabsContent>
             )}
-            {activeTab === 'prescription' && (
+            {activeTab === "prescription" && (
               <TabsContent value="prescription">
                 <PrescriptionTab id={id} />
               </TabsContent>
             )}
-            {activeTab === 'photo-album' && (
+            {activeTab === "photo-album" && (
               <TabsContent value="photo-album">
                 <PhotoAlbumTab id={id} />
               </TabsContent>
             )}
-            {activeTab === 'guardian' && (
+            {activeTab === "guardian" && (
               <TabsContent value="guardian">
                 <GuardianTab id={id} />
               </TabsContent>
             )}
-            {activeTab === 'activity-exclusion' && (
+            {activeTab === "activity-exclusion" && (
               <TabsContent value="activity-exclusion">
                 <ActivityExclusionTab id={id} />
               </TabsContent>

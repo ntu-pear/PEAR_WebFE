@@ -1,10 +1,10 @@
-import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import React from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-import { useForm, SubmitHandler } from 'react-hook-form';
-import { Button } from '@/components/ui/button';
-import { useNavigate } from 'react-router';
-import useCreateRole from '@/hooks/role/useCreateRole';
+import { useForm, SubmitHandler } from "react-hook-form";
+import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router";
+import useCreateRole from "@/hooks/role/useCreateRole";
 
 type RoleForm = {
   name: string;
@@ -36,7 +36,7 @@ const CreateRole: React.FC = () => {
                     <input
                       type="text"
                       className="border border-gray-300 rounded-md p-1"
-                      {...register('name', { required: true })}
+                      {...register("name", { required: true })}
                     />
                     {errors.name && (
                       <p role="alert" className="text-red-600 text-sm">
@@ -50,7 +50,7 @@ const CreateRole: React.FC = () => {
                 </Button>
                 <Button
                   className="bg-red-500"
-                  onClick={() => navigate('/admin/edit-roles')}
+                  onClick={() => navigate("/admin/edit-roles")}
                 >
                   Cancel
                 </Button>

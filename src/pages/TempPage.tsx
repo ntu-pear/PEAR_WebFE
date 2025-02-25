@@ -1,4 +1,4 @@
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from "@/hooks/useAuth";
 
 //temporary page displaying a simple message, for home page of roles not implemented yet.
 const TempPage: React.FC = () => {
@@ -11,7 +11,7 @@ const TempPage: React.FC = () => {
           Current User Role:
         </h1>
         <p className="text-xl text-center text-gray-600">
-          {currentUser?.roleName || 'No Role Assigned'}
+          {currentUser?.roleName || "No Role Assigned"}
         </p>
       </div>
     </div>

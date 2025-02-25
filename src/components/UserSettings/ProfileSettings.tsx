@@ -1,26 +1,26 @@
-import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '../ui/dropdown-menu';
-import { Trash2, Upload, UserRound } from 'lucide-react';
-import { useModal } from '@/hooks/useModal';
-import UploadProfilePhotoModal from '../Modal/UploadProfilePhotoModal';
-import ConfirmProfilePhotoModal from '../Modal/ConfirmProfilePhotoModal';
-import DeleteProfilePhotoModal from '../Modal/DeleteProfilePhotoModal';
-import { useUserProfile } from '@/hooks/user/useUserProfile';
+} from "../ui/dropdown-menu";
+import { Trash2, Upload, UserRound } from "lucide-react";
+import { useModal } from "@/hooks/useModal";
+import UploadProfilePhotoModal from "../Modal/UploadProfilePhotoModal";
+import ConfirmProfilePhotoModal from "../Modal/ConfirmProfilePhotoModal";
+import DeleteProfilePhotoModal from "../Modal/DeleteProfilePhotoModal";
+import { useUserProfile } from "@/hooks/user/useUserProfile";
 import {
   updateUserProfile,
   UserProfile,
   UserProfileForm,
-} from '@/api/users/user';
-import { useEffect, useState } from 'react';
-import { toast } from 'sonner';
+} from "@/api/users/user";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 const ProfileSettings: React.FC = () => {
   const { activeModal, openModal } = useModal();
@@ -44,17 +44,17 @@ const ProfileSettings: React.FC = () => {
     };
 
     try {
-      console.log('userProfileFormData: ', userProfileFormData);
+      console.log("userProfileFormData: ", userProfileFormData);
       await updateUserProfile(userProfileFormData);
-      toast.success('User profile updated successfully.');
+      toast.success("User profile updated successfully.");
       await refreshUserDetails();
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
-      toast.error('Failed to update user profile.');
+      toast.error("Failed to update user profile.");
     }
 
-    console.log('handle update user profile');
-    toast.success('Update user profile successfully');
+    console.log("handle update user profile");
+    toast.success("Update user profile successfully");
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -87,7 +87,7 @@ const ProfileSettings: React.FC = () => {
                     id="nric_FullName"
                     name="nric_FullName"
                     type="text"
-                    value={userProfile?.nric_FullName || ''}
+                    value={userProfile?.nric_FullName || ""}
                     className="block w-full p-2 border rounded-md bg-gray-100 text-gray-900"
                     readOnly
                   />
@@ -99,7 +99,7 @@ const ProfileSettings: React.FC = () => {
                       id="preferredName"
                       name="preferredName"
                       type="text"
-                      value={userProfile?.preferredName || ''}
+                      value={userProfile?.preferredName || ""}
                       onChange={(e) => handleChange(e)}
                       className="block w-full p-2 border rounded-md text-gray-900"
                     />
@@ -125,7 +125,7 @@ const ProfileSettings: React.FC = () => {
                         title="Contact Number must start with 6, 8 or 9, and be 8 digits long."
                         minLength={8}
                         maxLength={8}
-                        value={userProfile?.contactNo || ''}
+                        value={userProfile?.contactNo || ""}
                         onChange={(e) => handleChange(e)}
                         className="block w-full p-2 border rounded-md text-gray-900"
                         required
@@ -139,7 +139,7 @@ const ProfileSettings: React.FC = () => {
                 <p className="text-sm font-medium mb-2">Profile Photo</p>
                 <div className="relative inline-block group">
                   <Avatar className="h-52 w-52">
-                    <AvatarImage src={profilePhoto || ''} alt="Profile" />
+                    <AvatarImage src={profilePhoto || ""} alt="Profile" />
                     <AvatarFallback>
                       <UserRound className="w-48 h-48 text-gray-500" />
                     </AvatarFallback>
@@ -156,7 +156,7 @@ const ProfileSettings: React.FC = () => {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="start" className="w-48">
                       <DropdownMenuItem
-                        onClick={() => openModal('uploadProfilePhoto')}
+                        onClick={() => openModal("uploadProfilePhoto")}
                       >
                         <Upload className="mr-2 h-4 w-4" />
                         Upload Photo
@@ -164,7 +164,7 @@ const ProfileSettings: React.FC = () => {
                       {profilePhoto && (
                         <DropdownMenuItem
                           className="text-destructive focus:text-destructive"
-                          onClick={() => openModal('deleteProfilePhoto')}
+                          onClick={() => openModal("deleteProfilePhoto")}
                         >
                           <Trash2 className="mr-2 h-4 w-4" />
                           Remove Photo
@@ -185,11 +185,11 @@ const ProfileSettings: React.FC = () => {
         </CardContent>
       </Card>
 
-      {activeModal.name === 'uploadProfilePhoto' && <UploadProfilePhotoModal />}
-      {activeModal.name === 'confirmProfilePhoto' && (
+      {activeModal.name === "uploadProfilePhoto" && <UploadProfilePhotoModal />}
+      {activeModal.name === "confirmProfilePhoto" && (
         <ConfirmProfilePhotoModal />
       )}
-      {activeModal.name === 'deleteProfilePhoto' && <DeleteProfilePhotoModal />}
+      {activeModal.name === "deleteProfilePhoto" && <DeleteProfilePhotoModal />}
     </>
   );
 };

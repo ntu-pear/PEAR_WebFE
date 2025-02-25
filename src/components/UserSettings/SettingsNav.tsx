@@ -1,14 +1,14 @@
-import { User, Mail, Lock, File } from 'lucide-react';
-import { useLocation } from 'react-router';
-import { Link } from 'react-router-dom';
-import clsx from 'clsx';
+import { User, Mail, Lock, File } from "lucide-react";
+import { useLocation } from "react-router";
+import { Link } from "react-router-dom";
+import clsx from "clsx";
 
 const navItems = [
-  { name: 'Profile', icon: User, path: '/profile' },
-  { name: 'Email', icon: Mail, path: '/email' },
-  { name: 'Password', icon: Lock, path: '/password' },
-  { name: 'Two-factor Authentication', icon: Lock, path: '/two-factor-auth' },
-  { name: 'Personal Data', icon: File, path: '/personal-data' },
+  { name: "Profile", icon: User, path: "/profile" },
+  { name: "Email", icon: Mail, path: "/email" },
+  { name: "Password", icon: Lock, path: "/password" },
+  { name: "Two-factor Authentication", icon: Lock, path: "/two-factor-auth" },
+  { name: "Personal Data", icon: File, path: "/personal-data" },
 ];
 
 interface SettingsNavProps {
@@ -25,9 +25,9 @@ const SettingsNav: React.FC<SettingsNavProps> = ({ basePath }) => {
           key={i}
           to={`${basePath}${item.path}`}
           className={clsx(
-            'flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm font-medium hover:bg-accent hover:text-accent-foreground',
+            "flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm font-medium hover:bg-accent hover:text-accent-foreground",
             location.pathname === `${basePath}${item.path}` &&
-              'bg-accent text-accent-foreground'
+              "bg-accent text-accent-foreground"
           )}
         >
           <item.icon className="h-4 w-4" />

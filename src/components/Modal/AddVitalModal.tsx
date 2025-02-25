@@ -1,7 +1,7 @@
-import { addVital, VitalFormData } from '@/api/patients/vital';
-import { Button } from '../ui/button';
-import { toast } from 'sonner';
-import { useModal } from '@/hooks/useModal';
+import { addVital, VitalFormData } from "@/api/patients/vital";
+import { Button } from "../ui/button";
+import { toast } from "sonner";
+import { useModal } from "@/hooks/useModal";
 
 const AddVitalModal: React.FC = () => {
   const { modalRef, activeModal, closeModal } = useModal();
@@ -31,20 +31,20 @@ const AddVitalModal: React.FC = () => {
       BloodSugarLevel: parseFloat(formDataObj.BloodSugarLevel as string),
       VitalRemarks: formDataObj.VitalRemarks as string,
       IsAfterMeal: formDataObj.IsAfterMeal as string,
-      CreatedById: parseInt(submitterId as string, 10),
-      UpdatedById: parseInt(submitterId as string, 10),
+      CreatedById: submitterId as string,
+      ModifiedById: submitterId as string,
     };
 
     try {
       // console.log('vitalFormData: ', vitalFormData);
       await addVital(vitalFormData);
       closeModal();
-      toast.success('Vital added successfully.');
+      toast.success("Vital added successfully.");
       refreshVitalData();
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       closeModal();
-      toast.error('Failed to add patient vital.');
+      toast.error("Failed to add patient vital.");
     }
   };
 

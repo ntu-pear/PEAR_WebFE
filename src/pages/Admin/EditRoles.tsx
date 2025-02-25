@@ -1,10 +1,10 @@
-import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import useGetRoles from '@/hooks/role/useGetRoles';
-import { Button } from '@/components/ui/button';
-import { useNavigate } from 'react-router';
-import { useModal } from '@/hooks/useModal';
-import DeleteRoleModal from '@/components/Modal/DeleteRoleModal';
+import React from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import useGetRoles from "@/hooks/role/useGetRoles";
+import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router";
+import { useModal } from "@/hooks/useModal";
+import DeleteRoleModal from "@/components/Modal/DeleteRoleModal";
 
 const EditRoles: React.FC = () => {
   const { data } = useGetRoles();
@@ -22,7 +22,7 @@ const EditRoles: React.FC = () => {
             <CardContent className="flex flex-col align-middle">
               <Button
                 className="bg-sky-600 self-center"
-                onClick={() => navigate('/admin/create-role')}
+                onClick={() => navigate("/admin/create-role")}
               >
                 Create Role
               </Button>
@@ -48,7 +48,7 @@ const EditRoles: React.FC = () => {
                           </Button>
                           <Button
                             className="border-red-500 bg-transparent text-red-500 border-2"
-                            onClick={() => openModal('deleteRole', { role })}
+                            onClick={() => openModal("deleteRole", { role })}
                           >
                             Delete
                           </Button>
@@ -62,7 +62,7 @@ const EditRoles: React.FC = () => {
           </Card>
         </main>
       </div>
-      {activeModal.name === 'deleteRole' && <DeleteRoleModal />}
+      {activeModal.name === "deleteRole" && <DeleteRoleModal />}
     </div>
   );
 };

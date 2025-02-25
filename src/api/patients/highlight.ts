@@ -1,6 +1,6 @@
-import { TableRowData } from '@/components/Table/DataTable';
-import { highlightsAPI, highlightTypesAPI } from '../apiConfig';
-import { mockHighlightTableData } from '@/mocks/mockHighlightTableData';
+import { TableRowData } from "@/components/Table/DataTable";
+import { highlightsAPI, highlightTypesAPI } from "../apiConfig";
+import { mockHighlightTableData } from "@/mocks/mockHighlightTableData";
 
 interface Highlight {
   PatientId: Number;
@@ -48,12 +48,12 @@ export interface HighlightTypeList {
 
 export const fetchHighlights = async (): Promise<HighlightTableData[]> => {
   try {
-    const res = await highlightsAPI.get<Highlight[]>('?require_auth=false');
-    console.log('GET all Highlights', res.data);
+    const res = await highlightsAPI.get<Highlight[]>("?require_auth=false");
+    console.log("GET all Highlights", res.data);
 
     return mockHighlightTableData;
   } catch (error) {
-    console.error('GET all Highlights', error);
+    console.error("GET all Highlights", error);
     throw error;
   }
 };
@@ -61,12 +61,12 @@ export const fetchHighlights = async (): Promise<HighlightTableData[]> => {
 export const fetchHighlightTypes = async (): Promise<HighlightTypeList[]> => {
   try {
     const res = await highlightTypesAPI.get<HighlightType[]>(
-      '?require_auth=false'
+      "?require_auth=false"
     );
-    console.log('GET all Highlight Types', res.data);
+    console.log("GET all Highlight Types", res.data);
 
     return res.data.reduce<HighlightTypeList[]>((highlights, curr) => {
-      if (curr.IsDeleted === '0') {
+      if (curr.IsDeleted === "0") {
         return highlights.concat({
           id: curr.HighlightTypeID,
           value: curr.Value,
@@ -76,7 +76,7 @@ export const fetchHighlightTypes = async (): Promise<HighlightTypeList[]> => {
       return highlights;
     }, []);
   } catch (error) {
-    console.error('GET all highlight types', error);
+    console.error("GET all highlight types", error);
     throw error;
   }
 };
