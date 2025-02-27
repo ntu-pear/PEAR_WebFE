@@ -14,7 +14,7 @@ export const mockAccountTDList: User[] = [
   {
     "id": "U01d447fkcfe",
     "preferredName": "",
-    "nric_FullName": "ADELINE TAN",
+    "nric_FullName": "1 Test Account",
     "nric": "S9996953A",
     "nric_Address": "123 Ang Mo Kio Ave 1 #04-332 Singapore 550123",
     "nric_DateOfBirth": "1999-04-30",
@@ -212,14 +212,3 @@ export const mockAccountTDList: User[] = [
     "modifiedDate": "2025-02-17 15:21:00"
   }
 ]
-
-// export type UserRole = 'administrator' | 'caregiver' | 'doctor' | 'gameTherapist' | 'guardian' | 'supervisor'
-
-// export const mockUsersOfRoles = {
-//   administrator: ['Ms Janice'],
-//   caregiver: ['Adea'],
-//   doctor: ['Daniel'],
-//   gameTherapist: ['Alan'],
-//   guardian: ['Dawn'],
-//   supervisor: ['JESS'],
-// }
