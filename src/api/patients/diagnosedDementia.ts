@@ -2,6 +2,7 @@ import { DiagnosedDementiaTD } from "@/mocks/mockPatientDetails";
 import { formatDateString } from "@/utils/formatDate";
 import { dementiaList, getPatientAssignedDementia } from "../apiConfig";
 import { AxiosError } from "axios";
+import { retrieveAccessTokenFromCookie } from "../users/auth";
 
 export interface DiagnosedDementia {
   IsDeleted: string;
@@ -51,13 +52,24 @@ export const convertToDiagnosedDementiaTD = (
 export const fetchDiagnosedDementia = async (
   patientId: number
 ): Promise<DiagnosedDementiaTD[]> => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+
   try {
-    const dlResponse = await dementiaList.get<DementiaList[]>("");
+    const dlResponse = await dementiaList.get<DementiaList[]>("", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
     console.log("GET all dementia List", dlResponse.data);
 
     const ddResponse = await getPatientAssignedDementia.get<
       DiagnosedDementia[]
-    >(`/${patientId}`);
+    >(`/${patientId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
     console.log("GET all patient assigned dementia", ddResponse.data);
 
     return convertToDiagnosedDementiaTD(dlResponse.data, ddResponse.data);

@@ -6,6 +6,7 @@ import {
 } from "@/mocks/mockPatientDetails";
 import { convertToYesNo } from "@/utils/convertToYesNo";
 import { TableRowData } from "@/components/Table/DataTable";
+import { retrieveAccessTokenFromCookie } from "../users/auth";
 
 export interface PatientBase {
   name: string;
@@ -159,9 +160,17 @@ export const fetchAllPatientTD = async (
   pageNo: number = 0,
   pageSize: number = 10
 ): Promise<PatientTableDataServer> => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+
   try {
     const response = await patientsAPI.get<ViewPatientList>(
-      `?mask=true&pageNo=${pageNo}&pageSize=${pageSize}`
+      `?mask=true&pageNo=${pageNo}&pageSize=${pageSize}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
     );
     console.log("GET all Patients", response.data);
     return convertToPatientTDServer(response.data);
@@ -176,9 +185,17 @@ export const fetchPatientById = async (
   id: number,
   isNRICMasked: boolean = false
 ): Promise<PatientBase> => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+
   try {
     const response = await patientsAPI.get<ViewPatient>(
-      `/${id}?mask=${isNRICMasked}`
+      `/${id}?mask=${isNRICMasked}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
     );
     console.log("GET Patient", response.data.data);
     return toUpperCasePatient(response.data.data);
@@ -192,8 +209,15 @@ export const fetchPatientById = async (
 export const fetchPatientInfo = async (
   id: number
 ): Promise<PatientInformation> => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+
   try {
-    const response = await patientsAPI.get<ViewPatient>(`/${id}`);
+    const response = await patientsAPI.get<ViewPatient>(`/${id}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
     const p = response.data.data;
     console.log("GET Patient Info", p);
     return {
@@ -234,23 +258,44 @@ export const fetchPatientNRIC = async (
   id: number,
   isNRICMasked: boolean
 ): Promise<string> => {
-  const response = await patientsAPI.get<ViewPatient>(
-    `/${id}?mask=${isNRICMasked}`
-  );
-  const nric = response.data?.data?.nric;
-  console.log("GET Patient NRIC", nric);
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
 
-  return nric?.toUpperCase();
+  try {
+    const response = await patientsAPI.get<ViewPatient>(
+      `/${id}?mask=${isNRICMasked}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    const nric = response.data?.data?.nric;
+    console.log("GET Patient NRIC", nric);
+
+    return nric?.toUpperCase();
+  } catch (error) {
+    console.error("GET Patient NRIC", error);
+    throw error;
+  }
 };
 
 export const updatePatient = async (
   id: number,
   patient: PatientBase
 ): Promise<ViewPatient> => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+
   try {
     const response = await patientsAPI.put<ViewPatient>(
       `/update/${id}`,
-      patient
+      patient,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
     );
     console.log("PUT update Patient Info", response.data.data);
     return response.data;
@@ -264,6 +309,9 @@ export const updatePatientProfilePhoto = async (
   patientId: number,
   formData: FormData
 ): Promise<ViewPatient> => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+
   try {
     const response = await patientsAPI.put<ViewPatient>(
       `/update/${patientId}/update_patient_profile_picture`,
@@ -271,6 +319,7 @@ export const updatePatientProfilePhoto = async (
       {
         headers: {
           "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${token}`,
         },
       }
     );
@@ -283,5 +332,22 @@ export const updatePatientProfilePhoto = async (
 };
 
 export const deletePatientProfilePhoto = async (patientId: number) => {
-  console.log(patientId);
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+
+  try {
+    const response = await patientsAPI.delete<ViewPatient>(
+      `/update/${patientId}/update_patient_profile_picture`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    console.log("Delete delete Patient Profile Photo", response.data.data);
+    return response.data;
+  } catch (error) {
+    console.error("Delete delete Patient Profile Photo", error);
+    throw error;
+  }
 };

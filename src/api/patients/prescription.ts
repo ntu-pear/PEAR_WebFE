@@ -6,6 +6,7 @@ import {
 import { formatDateString } from "@/utils/formatDate";
 import { patientPrescriptionAPI, prescriptionAPI } from "../apiConfig";
 import { TableRowData } from "@/components/Table/DataTable";
+import { retrieveAccessTokenFromCookie } from "../users/auth";
 
 export interface Prescription {
   IsDeleted: string;
@@ -176,12 +177,20 @@ export const fetchPatientPrescription = async (
   pageNo: number = 0,
   pageSize: number = 10
 ): Promise<PrescriptionTDServer> => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+
   try {
     const dlResponse = mockPrescriptionListData;
     console.log("GET all prescription List", dlResponse.data);
 
     const ddResponse = await patientPrescriptionAPI.get<PrescriptionViewList>(
-      `/?patient_id=${patientId}&pageNo=${pageNo}&pageSize=${pageSize}`
+      `/?patient_id=${patientId}&pageNo=${pageNo}&pageSize=${pageSize}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
     );
 
     console.log("GET all patient prescriptions", ddResponse.data);
@@ -196,9 +205,17 @@ export const fetchPatientPrescription = async (
 export const fetchPrescriptionById = async (
   prescriptionId: number
 ): Promise<PrescriptionView> => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+
   try {
     const response = await prescriptionAPI.get<PrescriptionView>(
-      `/${prescriptionId}`
+      `/${prescriptionId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
     );
     console.log("GET prescription by prescriptionId", response.data);
     return response.data;
@@ -211,10 +228,18 @@ export const fetchPrescriptionById = async (
 export const addPatientPrescription = async (
   formData: PrescriptionFormData
 ): Promise<PrescriptionView> => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+
   try {
     const response = await prescriptionAPI.post<PrescriptionView>(
       `/add`,
-      formData
+      formData,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
     );
 
     console.log("ADD patient prescription", response.data);
@@ -230,10 +255,18 @@ export const deletePatientPrescription = async (
   prescriptionId: number,
   prescriptionDelete: PrescriptionDelete
 ): Promise<PrescriptionView> => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+
   try {
     const response = await prescriptionAPI.put<PrescriptionView>(
       `/delete/${prescriptionId}`,
-      prescriptionDelete
+      prescriptionDelete,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
     );
 
     console.log("PUT Delete patient prescription", response.data);
@@ -249,10 +282,18 @@ export const updatePatientPrescription = async (
   prescriptionId: number,
   prescriptionUpdate: PrescriptionUpdate
 ): Promise<PrescriptionView> => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+
   try {
     const response = await prescriptionAPI.put<PrescriptionView>(
       `/update/${prescriptionId}`,
-      prescriptionUpdate
+      prescriptionUpdate,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
     );
 
     console.log("PUT Update patient prescription", response.data);

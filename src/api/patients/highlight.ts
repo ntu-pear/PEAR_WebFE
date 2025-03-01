@@ -1,6 +1,7 @@
 import { TableRowData } from "@/components/Table/DataTable";
 import { highlightsAPI, highlightTypesAPI } from "../apiConfig";
 import { mockHighlightTableData } from "@/mocks/mockHighlightTableData";
+import { retrieveAccessTokenFromCookie } from "../users/auth";
 
 interface Highlight {
   PatientId: Number;
@@ -47,8 +48,15 @@ export interface HighlightTypeList {
 }
 
 export const fetchHighlights = async (): Promise<HighlightTableData[]> => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+
   try {
-    const res = await highlightsAPI.get<Highlight[]>("?require_auth=false");
+    const res = await highlightsAPI.get<Highlight[]>("?require_auth=true", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
     console.log("GET all Highlights", res.data);
 
     return mockHighlightTableData;
@@ -59,9 +67,17 @@ export const fetchHighlights = async (): Promise<HighlightTableData[]> => {
 };
 
 export const fetchHighlightTypes = async (): Promise<HighlightTypeList[]> => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+
   try {
     const res = await highlightTypesAPI.get<HighlightType[]>(
-      "?require_auth=false"
+      "?require_auth=true",
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
     );
     console.log("GET all Highlight Types", res.data);
 

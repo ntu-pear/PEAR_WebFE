@@ -1,6 +1,7 @@
 import { formatDateString } from "@/utils/formatDate";
 import { doctorNoteAPI } from "../apiConfig";
 import { TableRowData } from "@/components/Table/DataTable";
+import { retrieveAccessTokenFromCookie } from "../users/auth";
 
 export interface DoctorNote {
   isDeleted: string;
@@ -85,9 +86,17 @@ export const fetchDoctorNotes = async (
   pageNo: number = 0,
   pageSize: number = 10
 ): Promise<DoctorNoteTDServer> => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+
   try {
     const response = await doctorNoteAPI.get<DoctorNoteViewList>(
-      `GetDoctorNotesByPatient?patient_id=${patientId}&pageNo=${pageNo}&pageSize=${pageSize}`
+      `GetDoctorNotesByPatient?patient_id=${patientId}&pageNo=${pageNo}&pageSize=${pageSize}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
     );
     console.log("GET Patient Doctor Notes", response.data);
     return convertToDoctorNotesTD(response.data);

@@ -2,6 +2,7 @@ import { vitalAPI } from "../apiConfig";
 import { formatDateString, formatTimeString } from "@/utils/formatDate";
 import { convertToYesNo } from "@/utils/convertToYesNo";
 import { TableRowData } from "@/components/Table/DataTable";
+import { retrieveAccessTokenFromCookie } from "../users/auth";
 
 export interface VitalCheckBase {
   IsDeleted: string;
@@ -134,9 +135,17 @@ export const fetchVitals = async (
   pageNo: number = 0,
   pageSize: number = 10
 ): Promise<VitalCheckTDServer> => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+
   try {
     const response = await vitalAPI.get<ViewVitalCheckList>(
-      `/list?patient_id=${id}&pageNo=${pageNo}&pageSize=${pageSize}`
+      `/list?patient_id=${id}&pageNo=${pageNo}&pageSize=${pageSize}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
     );
     console.log("GET all Vitals for a patient", response.data);
     return convertToVitalTDServer(response.data);
@@ -149,8 +158,15 @@ export const fetchVitals = async (
 export const addVital = async (
   formData: VitalFormData
 ): Promise<ViewVitalCheck> => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+
   try {
-    const response = await vitalAPI.post<ViewVitalCheck>(`/add`, formData);
+    const response = await vitalAPI.post<ViewVitalCheck>(`/add`, formData, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
     console.log("POST Add Vital for a patient", response.data);
     return response.data;
   } catch (error) {
@@ -163,10 +179,18 @@ export const updateVital = async (
   vitalId: number,
   formData: VitalFormData
 ): Promise<ViewVitalCheck> => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+
   try {
     const response = await vitalAPI.put<ViewVitalCheck>(
       `/update/${vitalId}`,
-      formData
+      formData,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
     );
     console.log("PUT Update Vital for a patient", response.data);
     return response.data;
@@ -177,10 +201,21 @@ export const updateVital = async (
 };
 
 export const deleteVital = async (vitalId: number): Promise<ViewVitalCheck> => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+
   try {
-    const response = await vitalAPI.put<ViewVitalCheck>(`/delete`, {
-      Id: vitalId,
-    });
+    const response = await vitalAPI.put<ViewVitalCheck>(
+      `/delete`,
+      {
+        Id: vitalId,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
     console.log("PUT Delete Vital for a patient", response.data);
     return response.data;
   } catch (error) {
