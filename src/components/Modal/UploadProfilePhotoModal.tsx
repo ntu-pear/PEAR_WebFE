@@ -4,7 +4,13 @@ import { Input } from "../ui/input";
 import { useState } from "react";
 
 const ProfilePhotoInputModal: React.FC = () => {
-  const { modalRef, openModal, closeModal } = useModal();
+  const { modalRef, activeModal, openModal, closeModal } = useModal();
+  const { refreshProfile, isUser, patientId } = activeModal.props as {
+    refreshProfile: () => void;
+    isUser: boolean;
+    patientId?: string;
+  };
+
   const [error, setError] = useState("");
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -32,6 +38,9 @@ const ProfilePhotoInputModal: React.FC = () => {
         closeModal();
         openModal("confirmProfilePhoto", {
           tempPhoto: reader.result as string,
+          refreshProfile,
+          isUser,
+          patientId,
         });
       };
       reader.readAsDataURL(file);
