@@ -1,11 +1,16 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
-import { useForm, SubmitHandler, FieldErrors, UseFormRegister } from 'react-hook-form';
+import { useForm, SubmitHandler } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import { useModal } from '@/hooks/useModal';
 import RegisterExistingGuardianModal from '@/components/Modal/RegisterExistingGuardian';
 import { Plus } from 'lucide-react';
+import Input from '@/components/Form/Input';
+import RadioGroup from '@/components/Form/RadioGroup';
+import DateInput from '@/components/Form/DateInput';
+import Select from '@/components/Form/Select';
+import useGetRoles from '@/hooks/role/useGetRoles';
 
 type Inputs = {
   firstName: string;
@@ -16,16 +21,15 @@ type Inputs = {
   contactNo: string;
   gender: 'Male' | 'Female';
   dateOfBirth: Date;
+  email: string
+  role: string
 };
 
 const RegisterAccount: React.FC = () => {
   const { activeModal, openModal } = useModal();
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<Inputs>();
-  const onSubmit: SubmitHandler<Inputs> = (data) => { }
+  const form = useForm<Inputs>();
+  const onSubmit: SubmitHandler<Inputs> = (data) => { console.log(data) }
+  const roles = useGetRoles()
 
   return (
     <div className="flex min-h-screen w-full flex-col container mx-auto px-0 sm:px-4">
@@ -43,7 +47,7 @@ const RegisterAccount: React.FC = () => {
                 <Plus />
                 Register existing guardian
               </Button>
-              <form onSubmit={handleSubmit(onSubmit)}>
+              <form onSubmit={form.handleSubmit(onSubmit)}>
                 <Card className="m-3">
                   <CardHeader className="bg-sky-400 py-3 text-white font-semibold">
                     Personal Information
@@ -52,32 +56,38 @@ const RegisterAccount: React.FC = () => {
                     <Input
                       label="First Name"
                       name="firstName"
-                      register={register}
-                      errors={errors}
+                      form={form}
                     />
                     <Input
                       label="Last Name"
                       name="lastName"
-                      register={register}
-                      errors={errors}
+                      form={form}
                     />
                     <Input
                       label="Preferred Name"
                       name="preferredName"
-                      register={register}
-                      errors={errors}
+                      form={form}
                     />
                     <Input
                       label="NRIC"
                       name="nric"
-                      register={register}
-                      errors={errors}
+                      form={form}
                     />
                     <Input
                       label="Address"
                       name="address"
-                      register={register}
-                      errors={errors}
+                      form={form}
+                    />
+                    <RadioGroup
+                      label="Gender"
+                      name="gender"
+                      form={form}
+                      options={['Male', 'Female']}
+                    />
+                    <DateInput
+                      label="Date of Birth"
+                      name="dateOfBirth"
+                      form={form}
                     />
                   </CardContent>
                 </Card>
@@ -85,20 +95,24 @@ const RegisterAccount: React.FC = () => {
                   <CardHeader className="bg-sky-400 py-3 text-white font-semibold">
                     Account Information
                   </CardHeader>
-                  <CardContent className="py-4 flex justify-between">
+                  <CardContent className="py-4 flex flex-col">
+                    <Input
+                      label="Email"
+                      name="email"
+                      form={form}
+                    />
+                    <Select
+                      label="Role"
+                      name="role"
+                      form={form}
+                      options={roles.data?.map(role => role.roleName) || []}
+                    />
                   </CardContent>
                 </Card>
+                <Button type="submit" className="bg-blue-500 mr-1 ml-3">
+                  Send registration link to email
+                </Button>
               </form>
-              <div className="flex justify-between mb-4">
-
-                <div className="w-5/6 flex flex-col">
-
-
-                </div>
-              </div>
-              <Button type="submit" className="bg-blue-500 mr-1">
-                Send registration link to email
-              </Button>
             </CardContent>
           </Card>
         </main>
@@ -107,29 +121,5 @@ const RegisterAccount: React.FC = () => {
     </div>
   );
 };
-
-type Props = {
-  label: string
-  name: keyof Inputs
-  errors: FieldErrors<Inputs>
-  register: UseFormRegister<Inputs>
-}
-
-const Input = ({ label, name, register, errors }: Props) =>
-  <div className='pb-2 flex flex-col'>
-    <label className='mb-1'>
-      {label} <span className="text-red-600">*</span>
-    </label>
-    <input
-      className="border border-gray-300 rounded-md p-2"
-      placeholder={label}
-      {...register(name, { required: true })}
-    />
-    {errors.firstName && (
-      <p role="alert" className="text-red-600 text-sm">
-        The {label} field is required.
-      </p>
-    )}
-  </div>
 
 export default RegisterAccount;
