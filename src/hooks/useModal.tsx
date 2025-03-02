@@ -5,7 +5,7 @@ import React, {
   ReactNode,
   useEffect,
   useRef,
-} from 'react';
+} from "react";
 
 interface ActiveModalType {
   name: string | null;
@@ -66,13 +66,13 @@ export const ModalProvider: React.FC<ModalProviderProps> = ({ children }) => {
     };
 
     if (activeModal.name) {
-      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener("mousedown", handleClickOutside);
     } else {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     }
 
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [activeModal.name]);
 
@@ -95,7 +95,7 @@ export const ModalProvider: React.FC<ModalProviderProps> = ({ children }) => {
 export const useModal = () => {
   const context = useContext(ModalContext);
   if (!context) {
-    throw new Error('useModal must be used within a ModalProvider');
+    throw new Error("useModal must be used within a ModalProvider");
   }
   return context;
 };

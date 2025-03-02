@@ -1,6 +1,7 @@
-import { DiagnosedDementiaTD } from '@/mocks/mockPatientDetails';
-import { formatDateString } from '@/utils/formatDate';
-import { dementiaList, getPatientAssignedDementia } from '../apiConfig';
+import { DiagnosedDementiaTD } from "@/mocks/mockPatientDetails";
+import { formatDateString } from "@/utils/formatDate";
+import { dementiaList, getPatientAssignedDementia } from "../apiConfig";
+import { AxiosError } from "axios";
 
 export interface DiagnosedDementia {
   IsDeleted: string;
@@ -9,8 +10,8 @@ export interface DiagnosedDementia {
   id: number;
   CreatedDate: string;
   ModifiedDate: string;
-  CreatedById: number;
-  ModifiedById: number;
+  CreatedById: string;
+  ModifiedById: string;
 }
 
 export interface DementiaList {
@@ -26,24 +27,24 @@ export const convertToDiagnosedDementiaTD = (
   diagnosedDementias: DiagnosedDementia[]
 ): DiagnosedDementiaTD[] => {
   if (!Array.isArray(dementiaList)) {
-    console.log('Diagnosed Dementia is not an array', dementiaList);
+    console.log("Diagnosed Dementia is not an array", dementiaList);
     return [];
   }
 
   if (!Array.isArray(diagnosedDementias)) {
-    console.log('Diagnosed Dementia is not an array', diagnosedDementias);
+    console.log("Diagnosed Dementia is not an array", diagnosedDementias);
     return [];
   }
 
   return diagnosedDementias
-    .filter((dd) => dd.IsDeleted === '0')
+    .filter((dd) => dd.IsDeleted === "0")
     .map((dd) => ({
       id: dd.id,
-      dementiaDate: dd.CreatedDate ? formatDateString(dd.CreatedDate) : '',
+      dementiaDate: dd.CreatedDate ? formatDateString(dd.CreatedDate) : "",
       dementiaType:
         dementiaList.find(
           (dl) => dl.DementiaTypeListId === dd.DementiaTypeListId
-        )?.Value || '',
+        )?.Value || "",
     }));
 };
 
@@ -51,17 +52,25 @@ export const fetchDiagnosedDementia = async (
   patientId: number
 ): Promise<DiagnosedDementiaTD[]> => {
   try {
-    const dlResponse = await dementiaList.get<DementiaList[]>('');
-    console.log('GET all dementia List', dlResponse.data);
+    const dlResponse = await dementiaList.get<DementiaList[]>("");
+    console.log("GET all dementia List", dlResponse.data);
 
     const ddResponse = await getPatientAssignedDementia.get<
       DiagnosedDementia[]
     >(`/${patientId}`);
-    console.log('GET all patient assigned dementia', ddResponse.data);
+    console.log("GET all patient assigned dementia", ddResponse.data);
 
     return convertToDiagnosedDementiaTD(dlResponse.data, ddResponse.data);
   } catch (error) {
-    console.error('GET all dementia List/ patient assigned dementia', error);
+    if (error instanceof AxiosError) {
+      if (error.response && error.response.status === 404) {
+        console.warn(
+          "Patient assigned dementia not found, returning empty array."
+        );
+        return [];
+      }
+    }
+    console.error("GET all dementia List/ patient assigned dementia", error);
     throw error;
   }
 };

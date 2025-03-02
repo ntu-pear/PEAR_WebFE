@@ -1,6 +1,6 @@
-import React from 'react';
-import { render, screen } from '@testing-library/react';
-import { DataTableClient, TableRowData } from '@/components/Table/DataTable';
+import React from "react";
+import { render, screen } from "@testing-library/react";
+import { DataTableClient, TableRowData } from "@/components/Table/DataTable";
 
 interface MockData extends TableRowData {
   name: string;
@@ -8,8 +8,8 @@ interface MockData extends TableRowData {
 }
 
 const mockData: MockData[] = [
-  { id: 1, name: 'John Doe', age: 30 },
-  { id: 2, name: 'Jane Smith', age: 25 },
+  { id: 1, name: "John Doe", age: 30 },
+  { id: 2, name: "Jane Smith", age: 25 },
 ];
 
 const mockColumns: Array<{
@@ -17,12 +17,12 @@ const mockColumns: Array<{
   header: string;
   render?: (value: any, item: MockData) => React.ReactNode;
 }> = [
-  { key: 'name', header: 'Name' },
-  { key: 'age', header: 'Age' },
+  { key: "name", header: "Name" },
+  { key: "age", header: "Age" },
 ];
 
-describe('DataTable Component', () => {
-  test('renders table with correct headers', () => {
+describe("DataTable Component", () => {
+  test("renders table with correct headers", () => {
     render(
       <DataTableClient data={mockData} columns={mockColumns} viewMore={true} />
     );
@@ -32,12 +32,12 @@ describe('DataTable Component', () => {
     });
   });
 
-  test('renders correct number of rows', () => {
+  test("renders correct number of rows", () => {
     render(
       <DataTableClient data={mockData} columns={mockColumns} viewMore={true} />
     );
 
-    const rows = screen.getAllByRole('row');
+    const rows = screen.getAllByRole("row");
     // Add 1 to mockData.length to account for the header row
     expect(rows).toHaveLength(mockData.length + 1);
   });
@@ -47,6 +47,6 @@ describe('DataTable Component', () => {
       <DataTableClient data={mockData} columns={mockColumns} viewMore={true} />
     );
 
-    expect(screen.getByText('Actions', { exact: false })).toBeInTheDocument();
+    expect(screen.getByText("Actions", { exact: false })).toBeInTheDocument();
   });
 });

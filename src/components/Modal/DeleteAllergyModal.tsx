@@ -1,7 +1,7 @@
-import { Button } from '../ui/button';
-import { toast } from 'sonner';
-import { useModal } from '@/hooks/useModal';
-import { deletePatientAllergy } from '@/api/patients/allergy';
+import { Button } from "../ui/button";
+import { toast } from "sonner";
+import { useModal } from "@/hooks/useModal";
+import { deletePatientAllergy } from "@/api/patients/allergy";
 
 const DeleteAllergyModal: React.FC = () => {
   const { modalRef, activeModal, closeModal } = useModal();
@@ -16,12 +16,12 @@ const DeleteAllergyModal: React.FC = () => {
     try {
       await deletePatientAllergy(Number(allergyId));
       closeModal();
-      toast.success('Patient Allergy deleted successfully.');
+      toast.success("Patient Allergy deleted successfully.");
       refreshAllergyData();
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       closeModal();
-      toast.error('Failed to delete patient Allergy.');
+      toast.error("Failed to delete patient Allergy.");
     }
   };
 

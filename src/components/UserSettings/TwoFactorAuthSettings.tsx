@@ -1,9 +1,9 @@
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-import { Switch } from '../ui/switch';
-import { useModal } from '@/hooks/useModal';
-import { useState } from 'react';
-import Enable2FAModal from '../Modal/Enable2FAModal';
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { Switch } from "../ui/switch";
+import { useModal } from "@/hooks/useModal";
+import { useState } from "react";
+import Enable2FAModal from "../Modal/Enable2FAModal";
 
 const TwoFactorAuthSettings: React.FC = () => {
   const { activeModal, openModal } = useModal();
@@ -12,7 +12,7 @@ const TwoFactorAuthSettings: React.FC = () => {
   const handleSwitchChange = (checked: boolean) => {
     setIsSwitchOn(checked);
     if (checked) {
-      openModal('enable2FA');
+      openModal("enable2FA");
     }
   };
 
@@ -53,7 +53,7 @@ const TwoFactorAuthSettings: React.FC = () => {
           </Card>
         </CardContent>
       </Card>
-      {activeModal.name === 'enable2FA' && (
+      {activeModal.name === "enable2FA" && (
         <Enable2FAModal onCancelClick={handleCancelClick} />
       )}
     </>

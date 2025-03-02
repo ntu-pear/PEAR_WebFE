@@ -1,5 +1,5 @@
-import { getCurrentUserAPI, usersAPI } from './apiConfig';
-import { refreshAccessToken, sendLogout } from './users/auth';
+import { getCurrentUserAPI, usersAPI } from "./apiConfig";
+import { refreshAccessToken, sendLogout } from "./users/auth";
 
 let isRefreshing = false;
 //List that stores callback function with token param, for all pending 401 requests from axios instance below
@@ -19,13 +19,13 @@ const addSubscriber = (callback: (token: string) => void) => {
 
 // Update the respective Authorization headers for future requests
 export const updateAuthHeader = (token: string) => {
-  getCurrentUserAPI.defaults.headers['Authorization'] = `Bearer ${token}`;
+  getCurrentUserAPI.defaults.headers["Authorization"] = `Bearer ${token}`;
 };
 
 // Clear the respectively Authorization headers (for logout)
 export const clearAuthHeaders = () => {
-  delete getCurrentUserAPI.defaults.headers['Authorization'];
-  delete usersAPI.defaults.headers['Authorization'];
+  delete getCurrentUserAPI.defaults.headers["Authorization"];
+  delete usersAPI.defaults.headers["Authorization"];
 };
 
 let interceptorId: number | null = null;
@@ -41,7 +41,7 @@ export const addAuthInterceptor = () => {
         if (isRefreshing) {
           return new Promise((resolve) => {
             addSubscriber((token) => {
-              originalRequest.headers['Authorization'] = `Bearer ${token}`;
+              originalRequest.headers["Authorization"] = `Bearer ${token}`;
               resolve(getCurrentUserAPI(originalRequest));
             });
           });
@@ -57,10 +57,10 @@ export const addAuthInterceptor = () => {
           onTokenRefreshed(access_token);
 
           // Update the authorization header with the new access token.
-          originalRequest.headers['Authorization'] = `Bearer ${access_token}`;
+          originalRequest.headers["Authorization"] = `Bearer ${access_token}`;
           return getCurrentUserAPI(originalRequest); // Retry the original request with the new access token.
         } catch (refreshError) {
-          sendLogout();
+          await sendLogout();
           return Promise.reject(refreshError);
         } finally {
           isRefreshing = false; // Reset the refreshing flag after the process.
@@ -94,8 +94,8 @@ export const addUsersAPIInterceptor = () => {
             addSubscriber((token) => {
               const fullUrl = originalRequest.baseURL + originalRequest.url!;
               const url = new URL(fullUrl);
-              console.log('Original Full URL:', url.href);
-              url.searchParams.set('token', token);
+              console.log("Original Full URL:", url.href);
+              url.searchParams.set("token", token);
               originalRequest.url = url.toString();
               resolve(usersAPI(originalRequest));
             });
@@ -120,17 +120,17 @@ export const addUsersAPIInterceptor = () => {
           // Create a URL object from the full URL string
           const url = new URL(fullUrl);
 
-          console.log('Original Full URL:', url.href);
+          console.log("Original Full URL:", url.href);
 
           // Update the query string token with the new access token
-          url.searchParams.set('token', access_token);
+          url.searchParams.set("token", access_token);
 
           // Set the updated URL back to the original request
           originalRequest.url = url.toString();
 
           return usersAPI(originalRequest); // Retry the original request with the new access token.
         } catch (refreshError) {
-          sendLogout();
+          await sendLogout();
           return Promise.reject(refreshError);
         } finally {
           isRefreshing = false; // Reset the refreshing flag after the process.

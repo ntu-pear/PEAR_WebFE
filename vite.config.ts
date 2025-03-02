@@ -8,16 +8,16 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
-      '@components': path.resolve(__dirname, './src/components')
+      "@components": path.resolve(__dirname, "./src/components"),
     },
   },
   build: {
-    outDir: 'dist',  // Output directory for Vite builds
-    emptyOutDir: true,  // Clean the output directory before each build
+    outDir: "dist", // Output directory for Vite builds
+    emptyOutDir: true, // Clean the output directory before each build
   },
   server: {
     watch: {
-      usePolling: true
-    }
-  }
+      usePolling: true,
+    },
+  },
 });

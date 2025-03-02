@@ -1,13 +1,13 @@
-import { useModal } from '@/hooks/useModal';
-import { Button } from '../ui/button';
-import { Avatar, AvatarFallback } from '../ui/avatar';
-import { AvatarImage } from '@radix-ui/react-avatar';
-import { Loader2, UserRound } from 'lucide-react';
-import { updateUserProfilePhoto } from '@/api/users/user';
-import { toast } from 'sonner';
-import { useUserProfile } from '@/hooks/user/useUserProfile';
-import { useState } from 'react';
-import { Progress } from '../ui/progress';
+import { useModal } from "@/hooks/useModal";
+import { Button } from "../ui/button";
+import { Avatar, AvatarFallback } from "../ui/avatar";
+import { AvatarImage } from "@radix-ui/react-avatar";
+import { Loader2, UserRound } from "lucide-react";
+import { updateUserProfilePhoto } from "@/api/users/user";
+import { toast } from "sonner";
+import { useUserProfile } from "@/hooks/user/useUserProfile";
+import { useState } from "react";
+import { Progress } from "../ui/progress";
 
 const ConfirmProfilePhotoModal: React.FC = () => {
   const { modalRef, activeModal, closeModal } = useModal();
@@ -19,19 +19,19 @@ const ConfirmProfilePhotoModal: React.FC = () => {
   const [uploadProgress, setUploadProgress] = useState(0);
 
   const base64ToFile = (base64: string, baseFilename: string): File => {
-    const [metadata, data] = base64.split(',');
+    const [metadata, data] = base64.split(",");
 
     const mimeMatch = metadata.match(/:(.*?);/);
     if (!mimeMatch) {
       throw new Error(
-        'Invalid base64 string, MIME type could not be determined.'
+        "Invalid base64 string, MIME type could not be determined."
       );
     }
 
     const mime = mimeMatch[1];
-    if (![/*'image/png',*/ 'image/jpeg'].includes(mime)) {
+    if (![/*'image/png',*/ "image/jpeg"].includes(mime)) {
       throw new Error(
-        'Unsupported image format. Please upload a PNG or JPEG image.'
+        "Unsupported image format. Please upload a PNG or JPEG image."
       );
     }
 
@@ -49,7 +49,7 @@ const ConfirmProfilePhotoModal: React.FC = () => {
     event.preventDefault();
 
     if (!tempPhoto) {
-      console.log('No photo selected!');
+      console.log("No photo selected!");
       return;
     }
 
@@ -57,8 +57,8 @@ const ConfirmProfilePhotoModal: React.FC = () => {
     setUploadProgress(0);
 
     const formData = new FormData();
-    const file = base64ToFile(tempPhoto, 'profile_picture');
-    formData.append('file', file);
+    const file = base64ToFile(tempPhoto, "profile_picture");
+    formData.append("file", file);
 
     try {
       // Simulate upload progress
@@ -75,11 +75,11 @@ const ConfirmProfilePhotoModal: React.FC = () => {
       clearInterval(uploadSimulation);
       setUploadProgress(100);
       closeModal();
-      toast.success('Update user profile photo successfully');
+      toast.success("Update user profile photo successfully");
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       closeModal();
-      toast.error('Failed to update user profile photo.');
+      toast.error("Failed to update user profile photo.");
     } finally {
       setIsLoading(false);
     }
@@ -98,7 +98,7 @@ const ConfirmProfilePhotoModal: React.FC = () => {
         >
           <div className="flex justify-center col-span-1">
             <Avatar className="h-52 w-52">
-              <AvatarImage src={tempPhoto || ''} alt="Profile" />
+              <AvatarImage src={tempPhoto || ""} alt="Profile" />
               <AvatarFallback>
                 <UserRound className="w-48 h-48 text-gray-500" />
               </AvatarFallback>

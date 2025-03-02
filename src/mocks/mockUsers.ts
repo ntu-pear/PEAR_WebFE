@@ -7,26 +7,26 @@ export interface UsersData extends TableRowData {
 export const usersList: UsersData[] = [
   {
     id: "1",
-    name: "Ms Janice"
+    name: "Ms Janice",
   },
   {
     id: "2",
-    name: "Adea"
+    name: "Adea",
   },
   {
     id: "3",
-    name: "Daniel"
+    name: "Daniel",
   },
   {
     id: "4",
-    name: "Alan"
+    name: "Alan",
   },
   {
     id: "5",
-    name: "Dawn"
+    name: "Dawn",
   },
   {
     id: "6",
-    name: "JESS"
+    name: "JESS",
   },
-]
+];

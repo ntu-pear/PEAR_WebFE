@@ -1,14 +1,14 @@
-import { Navigate, Outlet, useLocation } from 'react-router-dom';
-import { useAuth } from '@/hooks/useAuth';
-import Navbar from './Navbar';
+import { Navigate, Outlet, useLocation } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
+import Navbar from "./Navbar";
 import {
   fetchUserProfilePhoto,
   getUserDetails,
   UserDetails,
-} from '@/api/users/user';
-import { useEffect, useState } from 'react';
-import { UserProfileContext } from '@/hooks/user/useUserProfile';
-import { Spinner } from './ui/spinner';
+} from "@/api/users/user";
+import { useEffect, useState } from "react";
+import { UserProfileContext } from "@/hooks/user/useUserProfile";
+import { Spinner } from "./ui/spinner";
 
 interface ProtectedRouteProps {
   allowedRoles?: string[];
@@ -27,7 +27,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ allowedRoles }) => {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       setProfilePhoto(null);
-      console.log('Failed to fetch user profile photo.');
+      console.log("Failed to fetch user profile photo.");
     }
   };
 
@@ -38,7 +38,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ allowedRoles }) => {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       setUserDetails(null);
-      console.log('Failed to fetch user profile details.');
+      console.log("Failed to fetch user profile details.");
     }
   };
 

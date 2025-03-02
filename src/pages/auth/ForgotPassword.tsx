@@ -1,13 +1,13 @@
 import {
   requestResetPassword,
   RequestResetPasswordForm,
-} from '@/api/users/user';
-import { Button } from '@/components/ui/button';
-import { useState } from 'react';
-import { toast } from 'sonner';
+} from "@/api/users/user";
+import { Button } from "@/components/ui/button";
+import { useState } from "react";
+import { toast } from "sonner";
 
 const ForgotPassword: React.FC = () => {
-  const [nric, setNRIC] = useState<string>('');
+  const [nric, setNRIC] = useState<string>("");
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { value } = e.target;
@@ -37,14 +37,14 @@ const ForgotPassword: React.FC = () => {
 
     try {
       console.log(
-        'requestResetPasswordFormData: ',
+        "requestResetPasswordFormData: ",
         requestResetPasswordFormData
       );
       await requestResetPassword(requestResetPasswordFormData);
-      toast.success('Reset password link have been sent to your email.');
+      toast.success("Reset password link have been sent to your email.");
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
-      toast.error('Invalid Details. Failed to send reset password link');
+      toast.error("Invalid Details. Failed to send reset password link");
     }
   };
 
@@ -53,8 +53,8 @@ const ForgotPassword: React.FC = () => {
       className="relative min-h-screen flex items-center justify-center bg-cover bg-center"
       style={{
         backgroundImage: "url('/background.jpg')",
-        backgroundSize: 'cover',
-        width: '100%',
+        backgroundSize: "cover",
+        width: "100%",
       }}
     >
       <div className="absolute inset-0 bg-black opacity-50"></div>

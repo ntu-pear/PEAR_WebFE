@@ -1,8 +1,8 @@
-import { Button } from '../ui/button';
-import { toast } from 'sonner';
-import { useModal } from '@/hooks/useModal';
-import { useUserProfile } from '@/hooks/user/useUserProfile';
-import { deleteUserProfilePhoto } from '@/api/users/user';
+import { Button } from "../ui/button";
+import { toast } from "sonner";
+import { useModal } from "@/hooks/useModal";
+import { useUserProfile } from "@/hooks/user/useUserProfile";
+import { deleteUserProfilePhoto } from "@/api/users/user";
 
 const DeleteProfilePhotoModal: React.FC = () => {
   const { modalRef, closeModal } = useModal();
@@ -15,11 +15,11 @@ const DeleteProfilePhotoModal: React.FC = () => {
       await deleteUserProfilePhoto();
       refreshProfilePhoto();
       closeModal();
-      toast.success('User profile photo deleted successfully.');
+      toast.success("User profile photo deleted successfully.");
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       closeModal();
-      toast.error('Failed to delete user profile photo.');
+      toast.error("Failed to delete user profile photo.");
     }
   };
 

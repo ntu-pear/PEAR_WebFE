@@ -1,11 +1,11 @@
-import { useModal } from '@/hooks/useModal';
-import { Button } from '../ui/button';
+import { useModal } from "@/hooks/useModal";
+import { Button } from "../ui/button";
 
 const AddActivityPreferenceModal: React.FC = () => {
   const { modalRef, closeModal } = useModal();
   const handleAddActivityPreference = (event: React.FormEvent) => {
     event.preventDefault();
-    console.log('Patient Activity Preference Added!');
+    console.log("Patient Activity Preference Added!");
     closeModal();
   };
 

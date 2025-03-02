@@ -1,12 +1,12 @@
-import { fetchAddress, GeocodeBase } from '@/api/geocode';
-import { Button } from '@/components/ui/button';
-import React, { useState } from 'react';
+import { fetchAddress, GeocodeBase } from "@/api/geocode";
+import { Button } from "@/components/ui/button";
+import React, { useState } from "react";
 
 const TestGeocode: React.FC = () => {
-  const [postalCode, setPostalCode] = useState('');
-  const [address, setAddress] = useState('');
-  const [unitNumber, setUnitNumber] = useState('');
-  const [error, setError] = useState('');
+  const [postalCode, setPostalCode] = useState("");
+  const [address, setAddress] = useState("");
+  const [unitNumber, setUnitNumber] = useState("");
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   const isValidPostalCode = (code: string) => {
@@ -16,16 +16,16 @@ const TestGeocode: React.FC = () => {
 
   const handleRetrieve = async () => {
     if (!postalCode) {
-      setError('Postal Code is required.');
+      setError("Postal Code is required.");
       return;
     }
 
     if (!isValidPostalCode(postalCode)) {
-      setError('Postal Code must be a 6-digit number.');
+      setError("Postal Code must be a 6-digit number.");
       return;
     }
 
-    setError('');
+    setError("");
     setLoading(true);
 
     try {
@@ -35,13 +35,13 @@ const TestGeocode: React.FC = () => {
       );
       setAddress(fetchedAddress.fullAddress);
     } catch (error: any) {
-      console.error('Error retrieving the address.:', error);
+      console.error("Error retrieving the address.:", error);
 
       if (error?.status === 404) {
-        console.log('Address not found for the provided postal code.');
-        setError('Address not found for the provided postal code.');
+        console.log("Address not found for the provided postal code.");
+        setError("Address not found for the provided postal code.");
       } else {
-        console.log('An unexpected error occurred:', error);
+        console.log("An unexpected error occurred:", error);
       }
     } finally {
       setLoading(false);
@@ -49,10 +49,10 @@ const TestGeocode: React.FC = () => {
   };
 
   const handleClear = () => {
-    setPostalCode('');
-    setAddress('');
-    setUnitNumber('');
-    setError('');
+    setPostalCode("");
+    setAddress("");
+    setUnitNumber("");
+    setError("");
   };
 
   return (
@@ -71,7 +71,7 @@ const TestGeocode: React.FC = () => {
                   type="text"
                   value={postalCode}
                   className="mt-1 block w-full p-2 border rounded-md text-gray-900"
-                  onChange={(e) => setPostalCode(e.target.value || '')}
+                  onChange={(e) => setPostalCode(e.target.value || "")}
                   required
                 />
               </div>
@@ -83,7 +83,7 @@ const TestGeocode: React.FC = () => {
                   type="text"
                   value={unitNumber}
                   className="mt-1 block w-full p-2 border rounded-md text-gray-900"
-                  onChange={(e) => setUnitNumber(e.target.value || '')}
+                  onChange={(e) => setUnitNumber(e.target.value || "")}
                 />
               </div>
               <div className="space-y-2 col-span-4 sm:col-span-3">
@@ -92,7 +92,7 @@ const TestGeocode: React.FC = () => {
                   className="mt-7 col-span-2 mr-2"
                   onClick={() => handleRetrieve()}
                 >
-                  {loading ? 'Retrieving...' : 'Retrieve'}
+                  {loading ? "Retrieving..." : "Retrieve"}
                 </Button>
                 <Button
                   variant="outline"
