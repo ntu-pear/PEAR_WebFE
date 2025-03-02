@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
+import { fetchAllLogs, LogsTableDataServer } from '@/api/logger/logs';
 
 // Static log data (for testing)
 const staticLogData = {
@@ -13,6 +14,8 @@ const staticLogData = {
       method: "create",
       table: "Doctor Note",
       user: "admin",
+      user_full_name:"Jane Doe",
+      message:"Created doctor note",
       original_data: null,
       updated_data: {
         doctorRemarks: "Create sth",
@@ -28,6 +31,8 @@ const staticLogData = {
       method: "create",
       table: "Doctor Note",
       user: "admin",
+      user_full_name:"Jane Doe",
+      message:"Created doctor note",
       original_data: null,
       updated_data: {
         doctorRemarks: "Testing123",
@@ -63,9 +68,31 @@ const AccountLogs: React.FC = () => {
   const [search, setSearch] = useState('');
   const [expandedRows, setExpandedRows] = useState<{ [key: number]: boolean }>({});
   const [pageNo] = useState(0); // Since we are using static data
-
+  const [table, setTable] = useState('');
+  const [user, setUser] = useState('');
+  const [action, setAction] = useState('');
+  const [timestampDesc, setTimestampDesc] = useState(true)
+  const [logsTDServer, setLogsTDServer] = useState<LogsTableDataServer>({
+        logs: [],
+        pagination: {
+          pageNo: 0,
+          pageSize: 0,
+          totalRecords: 0,
+          totalPages: 0,
+        },
+      });
   // Using static data instead of fetching
-  const data = staticLogData;
+  
+  const handleLogs = async () =>{
+    try{
+      const timestampOrder = timestampDesc? "desc" : "asc";
+      const response = await fetchAllLogs(action, user, table, timestampOrder)
+      setLogsTDServer(response)
+    }
+    catch (error) {
+      console.log("Error")
+    }
+  }
 
   // Toggle row expansion
   const toggleRow = (index: number) => {
@@ -81,12 +108,16 @@ const AccountLogs: React.FC = () => {
   };
 
   // Filter logs based on search
-  const filteredData = data.data.filter(
+  const filteredData = logsTDServer.logs.filter(
     (log) =>
       log.user.toLowerCase().includes(search) ||
       log.table.toLowerCase().includes(search) ||
       log.method.toLowerCase().includes(search)
   );
+
+  useEffect(() => {
+    handleLogs()
+  }, [action, user, table, timestampDesc])
 
   return (
     <div className="flex min-h-screen w-full flex-col container mx-auto px-4">
@@ -128,14 +159,14 @@ const AccountLogs: React.FC = () => {
                 </TableHeader>
                 <TableBody>
                   {filteredData.map((log, index) => (
-                    <>
+                    <React.Fragment key={index}>
                       {/* Main row */}
-                      <TableRow key={index}>
+                      <TableRow>
                         <TableCell>{index + 1}</TableCell> {/* Simulating Log AccountID */}
                         <TableCell>{log.updated_data?.patientId || '-'}</TableCell>
                         <TableCell>{log.user}</TableCell>
                         <TableCell>{log.method.charAt(0).toUpperCase() + log.method.slice(1)}</TableCell>
-                        <TableCell>{generateDescription(log.method, log.updated_data, log.table)}</TableCell>
+                        <TableCell>{log.message}</TableCell>
                         <TableCell>{format(new Date(log.timestamp), 'dd/MM/yyyy HH:mm')}</TableCell>
                         <TableCell>
                           <Button
@@ -207,13 +238,13 @@ const AccountLogs: React.FC = () => {
                           </TableCell>
                         </TableRow>
                       )}
-                    </>
+                    </React.Fragment>
                   ))}
                 </TableBody>
               </Table>
             </div>
             {/* Pagination */}
-            <div className="flex justify-between items-center mt-4">
+            {/* <div className="flex justify-between items-center mt-4">
               <Button
                 className="bg-gray-300"
                 disabled={pageNo === 0}
@@ -229,7 +260,7 @@ const AccountLogs: React.FC = () => {
               >
                 Next
               </Button>
-            </div>
+            </div> */}
           </CardContent>
         </Card>
       </div>
