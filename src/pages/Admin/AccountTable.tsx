@@ -123,7 +123,7 @@ const AccountTable: React.FC = () => {
     { key: "nric_FullName", header: "Name" },
     { key: "status", header: "Status" },
     { key: "email", header: "Email" },
-    { key: "loginTimeStamp", header: "Login Time", render: renderLoginTimeStamp },
+    { key: "loginTimeStamp", header: "Last Login", render: renderLoginTimeStamp },
     { key: "createdDate", header: "Created Date" },
     { key: "roleName", header: "Role" },
   ];
