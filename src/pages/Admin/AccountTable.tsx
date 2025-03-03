@@ -130,13 +130,13 @@ const AccountTable: React.FC = () => {
 
   return (
     <div className="flex min-h-screen w-full flex-col container mx-auto px-0 sm:px-4">
-      <div className="flex flex-col sm:gap-4 sm:py-4 sm:pl-14">
+      <div className="flex flex-col sm:gap-4 sm:py-4 sm:pl-14 sm:pr-14">
         <div className="flex items-center">
           <Searchbar
             searchItem={searchItem}
             onSearchChange={handleInputChange}
           />
-          <div className="flex items-center gap-2 ml-auto">
+          <div className="flex items-center gap-2 ml-auto sm:px-6">
             <div className="flex">
               <DropdownMenu modal={false}>
                 <DropdownMenuTrigger asChild>
