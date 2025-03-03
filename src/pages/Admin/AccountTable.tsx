@@ -101,6 +101,11 @@ const AccountTable: React.FC = () => {
 
       let filteredAccountTDList = fetchedAccountTDServer;
 
+      filteredAccountTDList = filteredAccountTDList.filter(
+              (atd: User) =>
+                activeStatus === 'All' ? true : atd.status.toLowerCase() === activeStatus.toLowerCase()
+            );
+
       const sortedAccountTDList = sortByName(filteredAccountTDList, "asc");
 
       setAccountTDServer(sortedAccountTDList);
