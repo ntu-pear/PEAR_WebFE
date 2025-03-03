@@ -60,3 +60,20 @@ export const updateUsersRole = async (role: string, users_Id: string[]) => {
     throw error;
   }
 };
+
+export const createUser = async (user: Partial<User>) => {
+  try {
+    const token = retrieveAccessTokenFromCookie();
+    if (!token) throw new Error("Token not found");
+    const response = await adminAPI.post(
+      "/create_account/",
+      { ...user },
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    console.log("Create user", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("Create user", error);
+    throw error;
+  }
+}

@@ -11,6 +11,7 @@ import RadioGroup from '@/components/Form/RadioGroup';
 import DateInput from '@/components/Form/DateInput';
 import Select from '@/components/Form/Select';
 import useGetRoles from '@/hooks/role/useGetRoles';
+import useCreateUser from '@/hooks/admin/useCreateUser';
 
 type Inputs = {
   firstName: string;
@@ -20,7 +21,7 @@ type Inputs = {
   address: string;
   contactNo: string;
   gender: 'Male' | 'Female';
-  dateOfBirth: Date;
+  dateOfBirth: string;
   email: string
   role: string
 };
@@ -28,7 +29,20 @@ type Inputs = {
 const RegisterAccount: React.FC = () => {
   const { activeModal, openModal } = useModal();
   const form = useForm<Inputs>();
-  const onSubmit: SubmitHandler<Inputs> = (data) => { console.log(data) }
+  const { mutate } = useCreateUser()
+  const onSubmit: SubmitHandler<Inputs> = (data) => {
+    console.log(data)
+    mutate({
+      nric_FullName: `${data.firstName} ${data.lastName}`,
+      nric_Address: data.address,
+      nric_DateOfBirth: data.dateOfBirth,
+      nric_Gender: data.gender.charAt(0) as "F" | "M",
+      contactNo: data.contactNo,
+      email: data.email,
+      roleName: data.role,
+      nric: data.nric,
+    })
+  }
   const roles = useGetRoles()
 
   return (
@@ -76,6 +90,11 @@ const RegisterAccount: React.FC = () => {
                     <Input
                       label="Address"
                       name="address"
+                      form={form}
+                    />
+                    <Input
+                      label="Contact No."
+                      name="contactNo"
                       form={form}
                     />
                     <RadioGroup
