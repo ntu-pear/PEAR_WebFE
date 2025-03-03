@@ -7,7 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -18,22 +18,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Badge } from "@/components/ui/badge";
 import Searchbar from "@/components/Searchbar";
 import { DataTableServer } from "@/components/Table/DataTable";
 
 import useDebounce from "@/hooks/useDebounce";
-import AvatarModalWrapper from "@/components/AvatarModalWrapper";
-import {
-  fetchAllPatientTD,
-  PatientTableData,
-  PatientTableDataServer,
-} from "@/api/patients/patients";
-
-import { fetchUsers, AccountTableDataServer, User } from "@/api/admin/user";
+import { fetchUsers, User } from "@/api/admin/user";
 
 import {
-  AccountTableData,
   mockAccountTDList,
 } from "@/mocks/mockAccountTableData";
 
@@ -72,7 +63,6 @@ const AccountTable: React.FC = () => {
   const [tabValue, setTabValue] = useState("all");
   const debouncedActiveStatus = useDebounce(activeStatus, 300);
   const debouncedSearch = useDebounce(searchItem, 300);
-  const debounceTabValue = useDebounce(tabValue, 300);
 
   const handleInputChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -112,7 +102,7 @@ const AccountTable: React.FC = () => {
 
   useEffect(() => {
     handleFilter();
-  }, [debouncedActiveStatus, debouncedSearch, debounceTabValue]);
+  }, [debouncedActiveStatus, debouncedSearch]);
 
   const renderLoginTimeStamp = (loginTimeStamp: string | null) => {
     return loginTimeStamp ? loginTimeStamp : "-";
