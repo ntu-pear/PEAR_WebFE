@@ -22,6 +22,7 @@ export interface User {
   twoFactorEnabled: boolean
   lockoutEnabled: boolean
   lockoutReason: string | null
+  loginTimeStamp: string
   createdById: string
   createdDate: string
   modifiedById: string

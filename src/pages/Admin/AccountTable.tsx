@@ -59,6 +59,7 @@ const AccountTable: React.FC = () => {
       twoFactorEnabled: false,
       lockoutEnabled: false,
       lockoutReason: null,
+      loginTimeStamp: "",
       createdById: "",
       createdDate: "",
       modifiedById: "",
@@ -128,6 +129,7 @@ const AccountTable: React.FC = () => {
     { key: "nric_FullName", header: "Name" },
     { key: "status", header: "Status" },
     { key: "email", header: "Email" },
+    { key: "loginTimeStamp", header: "Last Login" },
     { key: "createdDate", header: "Created Date" },
     { key: "roleName", header: "Role" },
   ];
@@ -209,27 +211,6 @@ const AccountTable: React.FC = () => {
                 </CardContent>
               </Card>
             </TabsContent>
-            {/* <TabsContent value="my_patients">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Manage Patients</CardTitle>
-                  <CardDescription>
-                    Manage your patients and view their details.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <DataTableServer
-                    data={patientTDServer.patients}
-                    pagination={patientTDServer.pagination}
-                    columns={columns}
-                    viewMore={true}
-                    viewMoreBaseLink={'/supervisor/view-patient'}
-                    activeTab={'information'}
-                    fetchData={handleFilter}
-                  />
-                </CardContent>
-              </Card>
-            </TabsContent> */}
           </Tabs>
         </main>
       </div>
