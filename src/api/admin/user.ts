@@ -31,7 +31,7 @@ export interface User {
 
 
 export interface AccountTableDataServer {
-  Items: User[];;
+  Items: User[];
 }
 
 export const fetchUsers = async () => {
