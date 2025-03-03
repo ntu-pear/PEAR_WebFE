@@ -6,72 +6,20 @@ import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
 import { fetchAllLogs, LogsTableDataServer } from '@/api/logger/logs';
 
-// Static log data (for testing)
-const staticLogData = {
-  data: [
-    {
-      timestamp: "2025-02-14T11:28:18",
-      method: "create",
-      table: "Doctor Note",
-      user: "admin",
-      user_full_name:"Jane Doe",
-      message:"Created doctor note",
-      original_data: null,
-      updated_data: {
-        doctorRemarks: "Create sth",
-        modifiedById: 0,
-        doctorId: 1,
-        patientId: 4,
-        createdById: 0,
-        isDeleted: "0"
-      }
-    },
-    {
-      timestamp: "2025-02-13T16:02:21",
-      method: "create",
-      table: "Doctor Note",
-      user: "admin",
-      user_full_name:"Jane Doe",
-      message:"Created doctor note",
-      original_data: null,
-      updated_data: {
-        doctorRemarks: "Testing123",
-        modifiedById: 1,
-        doctorId: 1,
-        patientId: 2,
-        createdById: 1,
-        isDeleted: "0"
-      }
-    }
-  ],
-  pageNo: 0,
-  pageSize: 10,
-  totalRecords: 2,
-  totalPages: 1
-};
-
-// Function to generate description based on action
-const generateDescription = (method: string, updatedData: any, table: string) => {
-  const actionPastTense = method === "create" ? "Created" :
-                          method === "update" ? "Updated" :
-                          method === "delete" ? "Deleted" :
-                          "Modified";
-
-  // Extract the first meaningful attribute from updated_data
-  const firstKey = updatedData ? Object.keys(updatedData)[0] : null;
-  const firstValue = firstKey ? updatedData[firstKey] : "Data";
-
-  return `${actionPastTense}: ${firstValue} in ${table}`;
-};
-
 const AccountLogs: React.FC = () => {
   const [search, setSearch] = useState('');
   const [expandedRows, setExpandedRows] = useState<{ [key: number]: boolean }>({});
   const [pageNo] = useState(0); // Since we are using static data
-  const [table, setTable] = useState('');
-  const [user, setUser] = useState('');
-  const [action, setAction] = useState('');
-  const [timestampDesc, setTimestampDesc] = useState(true)
+  const [table, setTable] = useState("")
+  const [user, setUser] = useState("")
+  const [action, setAction] = useState("")
+  const [patient, setPatient] = useState("")
+  const [filters, setFilters] = useState({
+    table: '',
+    user: '',
+    patient: '',
+    action: '',
+  });
   const [logsTDServer, setLogsTDServer] = useState<LogsTableDataServer>({
         logs: [],
         pagination: {
@@ -84,15 +32,26 @@ const AccountLogs: React.FC = () => {
   // Using static data instead of fetching
   
   const handleLogs = async () =>{
+    console.log("Calling logger ", filters)
     try{
-      const timestampOrder = timestampDesc? "desc" : "asc";
-      const response = await fetchAllLogs(action, user, table, timestampOrder)
+      const response = await fetchAllLogs(
+        filters.action,
+        filters.user,
+        filters.table,
+        "desc")
       setLogsTDServer(response)
     }
     catch (error) {
       console.log("Error")
     }
   }
+  const handleFilterReset = () => {
+    setAction("")
+    setUser("")
+    setPatient("")
+    setTable("")
+    setFilters({ table: '', user: '', patient: '', action: '' })
+   }
 
   // Toggle row expansion
   const toggleRow = (index: number) => {
@@ -100,11 +59,6 @@ const AccountLogs: React.FC = () => {
       ...prev,
       [index]: !prev[index],
     }));
-  };
-
-  // Handle search input change
-  const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setSearch(event.target.value.toLowerCase());
   };
 
   // Filter logs based on search
@@ -117,33 +71,102 @@ const AccountLogs: React.FC = () => {
 
   useEffect(() => {
     handleLogs()
-  }, [action, user, table, timestampDesc])
+  }, [filters])
 
   return (
-    <div className="flex min-h-screen w-full flex-col container mx-auto px-4">
-      <div className="py-6">
+    <div className="flex min-h-screen w-full container mx-auto static">
+       <div className="w-1/6 p-6 border absolute left-0 h-full bg-white">
+        <div className="p-4 border-b items-center">
+          <h3 className="text-2xl font-semibold leading-none tracking-tight">Filters</h3>
+        </div>
+        <div className="p-4 space-y-6 overflow-y-auto">
+          <div className="space-y-2">
+            <label className="block text-sm font-medium">Date Range</label>
+            <div className="space-y-2">
+              <div>
+                <span className="text-xs text-gray-500">Start Date</span>
+                <Input type="date" className="w-full mt-1" />
+              </div>
+              <div>
+                <span className="text-xs text-gray-500">End Date</span>
+                <Input type="date" className="w-full mt-1" />
+              </div>
+            </div>
+          </div>
+            
+          <div className="space-y-2">
+          <label className="block text-sm font-medium">Patient</label>
+            <Input 
+              type="text" 
+              placeholder="Search accounts..." 
+              className="w-full"
+              value={patient}
+              onChange={(e) => setPatient(e.target.value)}
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <label className="block text-sm font-medium">Action</label>
+            <div className="space-y-1">
+              <div className="flex items-center">
+                <input type="checkbox"
+                  id="action-view"
+                  className="mr-2" 
+                  checked={action === 'Create'}
+                  onChange={(e) =>
+                    setAction(e.target.checked? 'Create': '')
+                  }
+                />
+                <label htmlFor="action-view" className="text-sm">Create</label>
+              </div>
+              <div className="flex items-center">
+                <input type="checkbox" 
+                  id="action-edit" 
+                  className="mr-2"
+                  checked={action === 'Update'}
+                  onChange={(e) =>
+                    setAction(e.target.checked? 'Update': '')
+                  }
+                />
+                <label htmlFor="action-edit" className="text-sm">Update</label>
+              </div>
+              <div className="flex items-center">
+                <input type="checkbox" 
+                  id="action-delete" 
+                  className="mr-2" 
+                  checked={action === 'Delete'}
+                  onChange={(e) =>
+                    setAction(e.target.checked? 'Delete': '')
+                  }
+                />
+                <label htmlFor="action-delete" className="text-sm">Delete</label>
+              </div>
+            </div>
+          </div>
+          
+          <div className="space-y-2">
+            <label className="block text-sm font-medium">Account ID</label>
+            <Input 
+              type="text" 
+              placeholder="Search accounts..." 
+              className="w-full"
+              value={user}
+              onChange={(e) => setUser(e.target.value)}
+            />
+          </div>
+          
+          <div className="pt-2">
+            <Button className="w-full" onClick={() => setFilters({table, user, patient, action})}>Apply Filters</Button>
+            <Button variant="outline" className="w-full mt-2"  onClick={() => handleFilterReset()}>Reset</Button>
+          </div>
+        </div>
+      </div>
+      <div className="py-6 flex-1 justify-center">
         <Card>
           <CardHeader>
             <CardTitle>Account Logs</CardTitle>
           </CardHeader>
           <CardContent>
-            {/* Search Bar */}
-            <div className="flex justify-between mb-4">
-              <Input
-                type="text"
-                placeholder="Search logs..."
-                value={search}
-                onChange={handleSearch}
-                className="w-1/3 border border-gray-300 p-2 rounded-md"
-              />
-              <Input
-                type="text"
-                placeholder="dd/mm/yyyy to dd/mm/yyyy"
-                className="w-1/3 border border-gray-300 p-2 rounded-md"
-              />
-            </div>
-
-            {/* Table */}
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
