@@ -1,22 +1,111 @@
-import { SocialHistoryTD } from '@/mocks/mockPatientDetails';
-import { socialHistoryAPI } from '../apiConfig';
-import { convertToYesNo } from '@/utils/convertToYesNo';
+import {
+  dietListAPI,
+  educationListAPI,
+  liveWithListAPI,
+  occupationListAPI,
+  petListAPI,
+  religionListAPI,
+  socialHistoryAPI,
+} from "../apiConfig";
+import { convertToYesNo } from "@/utils/convertToYesNo";
+import { TableRowData } from "@/components/Table/DataTable";
+import { retrieveAccessTokenFromCookie } from "../users/auth";
 
 export interface SocialHistory {
-  active: string;
+  isDeleted: string;
   patientId: number;
-  sexuallyActive: string;
-  secondHandSmoker: string;
-  alcoholUse: string;
-  caffeineUse: string;
-  tobaccoUse: string;
-  drugUse: string;
-  exercise: string;
+  sexuallyActive: number;
+  secondHandSmoker: number;
+  alcoholUse: number;
+  caffeineUse: number;
+  tobaccoUse: number;
+  drugUse: number;
+  exercise: number;
+  dietListId: number;
+  educationListId: number;
+  liveWithListId: number;
+  occupationListId: number;
+  petListId: number;
+  religionListId: number;
   id: number;
+  dietValue: string;
+  educationValue: string;
+  liveWithValue: string;
+  occupationValue: string;
+  petValue: string;
+  religionValue: string;
   createdDate: string;
   modifiedDate: string;
-  createdById: number;
-  modifiedById: number;
+  createdById: number | string;
+  modifiedById: number | string;
+}
+
+export interface SocialHistoryTD extends TableRowData {
+  alcoholUse: string;
+  caffeineUse: string;
+  diet: string;
+  drugUse: string;
+  education: string;
+  exercise: string;
+  liveWith: string;
+  occupation: string;
+  pet: string;
+  religion: string;
+  secondhandSmoker: string;
+  sexuallyActive: string;
+  tobaccoUse: string;
+}
+
+export interface AddSocialHistory {
+  isDeleted: string;
+  patientId: number;
+  sexuallyActive: number;
+  secondHandSmoker: number;
+  alcoholUse: number;
+  caffeineUse: number;
+  tobaccoUse: number;
+  drugUse: number;
+  exercise: number;
+  dietListId: number;
+  educationListId: number;
+  liveWithListId: number;
+  occupationListId: number;
+  petListId: number;
+  religionListId: number;
+  createdDate: string;
+  modifiedDate: string;
+  createdById: number | string;
+  modifiedById: number | string;
+}
+
+export interface UpdateSocialHistory {
+  patientId: number;
+  sexuallyActive: number;
+  secondHandSmoker: number;
+  alcoholUse: number;
+  caffeineUse: number;
+  tobaccoUse: number;
+  drugUse: number;
+  exercise: number;
+  dietListId: number;
+  educationListId: number;
+  liveWithListId: number;
+  occupationListId: number;
+  petListId: number;
+  religionListId: number;
+  id: number;
+  modifiedById: number | string;
+  modifiedDate: string;
+}
+
+export interface SocialHistoryDDItem {
+  Value: string;
+  IsDeleted: string;
+  Id: number;
+  CreatedDateTime: string;
+  UpdatedDateTime: string;
+  CreatedById: number | string;
+  ModifiedById: number | string;
 }
 
 export const convertToSocialHistoryTD = (
@@ -26,31 +115,220 @@ export const convertToSocialHistoryTD = (
     id: socialHistory.id,
     alcoholUse: convertToYesNo(socialHistory.alcoholUse),
     caffeineUse: convertToYesNo(socialHistory.caffeineUse),
-    diet: '',
+    diet: socialHistory.dietValue.toUpperCase(),
     drugUse: convertToYesNo(socialHistory.drugUse),
-    education: '',
+    education: socialHistory.educationValue.toUpperCase(),
     exercise: convertToYesNo(socialHistory.exercise),
-    liveWith: '',
-    occupation: '',
-    pet: '',
-    religion: '',
+    liveWith: socialHistory.liveWithValue.toUpperCase(),
+    occupation: socialHistory.occupationValue.toUpperCase(),
+    pet: socialHistory.petValue.toUpperCase(),
+    religion: socialHistory.religionValue.toUpperCase(),
     secondhandSmoker: convertToYesNo(socialHistory.secondHandSmoker),
     sexuallyActive: convertToYesNo(socialHistory.sexuallyActive),
     tobaccoUse: convertToYesNo(socialHistory.tobaccoUse),
   };
 };
 
-export const fetchSocialHistory = async (
+export const fetchSocialHistoryTD = async (
   patientId: number
 ): Promise<SocialHistoryTD> => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+
   try {
     const response = await socialHistoryAPI.get<SocialHistory>(
-      `?patient_id=${patientId}`
+      `?patient_id=${patientId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
     );
-    console.log('GET Patient Social History', response.data);
+    console.log("GET Patient Social History", response.data);
     return convertToSocialHistoryTD(response.data);
   } catch (error) {
-    console.error('GET Patient Social History', error);
+    console.error("GET Patient Social History", error);
+    throw error;
+  }
+};
+
+export const fetchSocialHistory = async (
+  patientId: number
+): Promise<SocialHistory> => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+
+  try {
+    const response = await socialHistoryAPI.get<SocialHistory>(
+      `?patient_id=${patientId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    console.log("GET Patient Social History", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("GET Patient Social History", error);
+    throw error;
+  }
+};
+
+export const addSocialHistory = async (
+  patientId: number,
+  addSocialHistory: AddSocialHistory
+): Promise<SocialHistory> => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+
+  try {
+    const response = await socialHistoryAPI.post<SocialHistory>(
+      `/add?patient_id=${patientId}`,
+      addSocialHistory,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    console.log("POST add patient social history", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("POST add patient social history", error);
+    throw error;
+  }
+};
+
+export const updateSocialHistory = async (
+  patientId: number,
+  updateSocialHistory: UpdateSocialHistory
+): Promise<SocialHistory> => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+
+  try {
+    const response = await socialHistoryAPI.put<SocialHistory>(
+      `/update?patient_id=${patientId}`,
+      updateSocialHistory,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    console.log("PUT update patient social history", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("PUT update patient social history", error);
+    throw error;
+  }
+};
+
+export const fetchDietList = async (): Promise<SocialHistoryDDItem[]> => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+
+  try {
+    const response = await dietListAPI.get<SocialHistoryDDItem[]>(``, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    console.log("GET get diet list", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("GET get diet list", error);
+    throw error;
+  }
+};
+
+export const fetchEducationList = async (): Promise<SocialHistoryDDItem[]> => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+
+  try {
+    const response = await educationListAPI.get<SocialHistoryDDItem[]>(``, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    console.log("GET get education list", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("GET get education list", error);
+    throw error;
+  }
+};
+
+export const fetchLiveWithList = async (): Promise<SocialHistoryDDItem[]> => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+
+  try {
+    const response = await liveWithListAPI.get<SocialHistoryDDItem[]>(``, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    console.log("GET get live with list", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("GET get live with list", error);
+    throw error;
+  }
+};
+
+export const fetchOccupationList = async (): Promise<SocialHistoryDDItem[]> => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+
+  try {
+    const response = await occupationListAPI.get<SocialHistoryDDItem[]>(``, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    console.log("GET get occupation list", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("GET get occupation list", error);
+    throw error;
+  }
+};
+
+export const fetchPetList = async (): Promise<SocialHistoryDDItem[]> => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+
+  try {
+    const response = await petListAPI.get<SocialHistoryDDItem[]>(``, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    console.log("GET get pet list", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("GET get pet list", error);
+    throw error;
+  }
+};
+
+export const fetchReligionList = async (): Promise<SocialHistoryDDItem[]> => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+
+  try {
+    const response = await religionListAPI.get<SocialHistoryDDItem[]>(``, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    console.log("GET get religion list", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("GET get religion list", error);
     throw error;
   }
 };

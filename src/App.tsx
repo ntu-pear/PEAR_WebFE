@@ -1,56 +1,61 @@
-import './App.css';
+import "./App.css";
 import {
   BrowserRouter as Router,
   Routes,
   Route,
   Navigate,
-} from 'react-router-dom';
-import { ThemeProvider } from './components/ThemeProvider';
-import { Toaster } from './components/ui/sonner';
-import { ModalProvider } from './hooks/useModal';
-import { AuthProvider } from './hooks/useAuth';
-import ProtectedRoute from './components/ProtectedRoute';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+} from "react-router-dom";
+import { ThemeProvider } from "./components/ThemeProvider";
+import { Toaster } from "./components/ui/sonner";
+import { ModalProvider } from "./hooks/useModal";
+import { AuthProvider } from "./hooks/useAuth";
+import ProtectedRoute from "./components/ProtectedRoute";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
-import PatientTable from './pages/Supervisor/PatientTable';
-import AddPatient from './pages/Supervisor/AddPatient';
-import ManageAdhoc from './pages/Supervisor/ManageAdhoc';
-import AddAdhoc from './pages/Supervisor/AddAdhoc';
-import Login from './pages/auth/Login';
-import ForgotPassword from './pages/auth/ForgotPassword';
-import ViewMedicationSchedule from './pages/Supervisor/ViewMedicationSchedule';
-import ManageMedication from './pages/Supervisor/ManageMedication';
-import ManageActivities from './pages/Supervisor/ManageActivities';
-import ViewPatient from './pages/ViewPatient';
-import TestGeocode from './pages/testGeocode';
+import PatientTable from "./pages/Supervisor/PatientTable";
+import AddPatient from "./pages/Supervisor/AddPatient";
+import ManageAdhoc from "./pages/Supervisor/ManageAdhoc";
+import AddAdhoc from "./pages/Supervisor/AddAdhoc";
+import Login from "./pages/auth/Login";
+import ForgotPassword from "./pages/auth/ForgotPassword";
+import ViewMedicationSchedule from "./pages/Supervisor/ViewMedicationSchedule";
+import ManageMedication from "./pages/Supervisor/ManageMedication";
+import ManageActivities from "./pages/Supervisor/ManageActivities";
+import ViewPatient from "./pages/ViewPatient";
+import TestGeocode from "./pages/testGeocode";
 
-import EditRoles from './pages/Admin/EditRoles';
-import CreateRole from './pages/Admin/CreateRole';
-import EditRole from './pages/Admin/EditRole';
-import EditUserInRole from './pages/Admin/EditUserInRole';
+import EditRoles from "./pages/Admin/EditRoles";
+import CreateRole from "./pages/Admin/CreateRole";
+import EditRole from "./pages/Admin/EditRole";
+import EditUserInRole from "./pages/Admin/EditUserInRole";
 
-import Unauthorized from './pages/Unauthorized';
-import NotFound from './pages/NotFound';
-import TempPage from './pages/TempPage';
-import ResetPassword from './pages/auth/ResetPassword';
-import ResendRegistrationEmail from './pages/auth/ResendRegistrationEmail';
-import UserSettings from './pages/auth/UserSettings';
-import EmailSettings from './components/UserSettings/EmailSettings';
-import PasswordSettings from './components/UserSettings/PasswordSettings';
-import PersonalDataSettings from './components/UserSettings/PersonalDataSettings';
-import ProfileSettings from './components/UserSettings/ProfileSettings';
-import TwoFactorAuthSettings from './components/UserSettings/TwoFactorAuthSettings';
+import Unauthorized from "./pages/Unauthorized";
+import NotFound from "./pages/NotFound";
+import TempPage from "./pages/TempPage";
+import ResetPassword from "./pages/auth/ResetPassword";
+import ResendRegistrationEmail from "./pages/auth/ResendRegistrationEmail";
+import UserSettings from "./pages/auth/UserSettings";
+import EmailSettings from "./components/UserSettings/EmailSettings";
+import PasswordSettings from "./components/UserSettings/PasswordSettings";
+import PersonalDataSettings from "./components/UserSettings/PersonalDataSettings";
+import ProfileSettings from "./components/UserSettings/ProfileSettings";
+import TwoFactorAuthSettings from "./components/UserSettings/TwoFactorAuthSettings";
+import ConfirmNewEmail from "./pages/auth/ConfirmNewEmail";
+import Login2FA from "./pages/auth/Login2FA";
+import HighlightTable from "./pages/Supervisor/HighlightTable";
 import AccountTable from './pages/Admin/AccountTable';
 
-export const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false, staleTime: Infinity } } });
+export const queryClient = new QueryClient({
+  defaultOptions: { queries: { retry: false, staleTime: Infinity } },
+});
 
 const settingsRoutes = [
-  { path: 'profile', element: <ProfileSettings /> },
-  { path: 'email', element: <EmailSettings /> },
-  { path: 'password', element: <PasswordSettings /> },
-  { path: 'two-factor-auth', element: <TwoFactorAuthSettings /> },
-  { path: 'personal-data', element: <PersonalDataSettings /> },
-  { path: '*', element: <Navigate to="profile" replace /> }, // Default redirect
+  { path: "profile", element: <ProfileSettings /> },
+  { path: "email", element: <EmailSettings /> },
+  { path: "password", element: <PasswordSettings /> },
+  { path: "two-factor-auth", element: <TwoFactorAuthSettings /> },
+  { path: "personal-data", element: <PersonalDataSettings /> },
+  { path: "*", element: <Navigate to="profile" replace /> }, // Default redirect
 ];
 
 const App: React.FC = () => {
@@ -64,6 +69,8 @@ const App: React.FC = () => {
                 <main>
                   <Routes>
                     <Route path="/login" element={<Login />} />
+                    <Route path="/login-2fa" element={<Login2FA />} />
+
                     <Route
                       path="/forgot-password"
                       element={<ForgotPassword />}
@@ -76,11 +83,15 @@ const App: React.FC = () => {
                       path="/resend-registration-email"
                       element={<ResendRegistrationEmail />}
                     />
+                    <Route
+                      path="/confirm-email/:token"
+                      element={<ConfirmNewEmail />}
+                    />
 
                     {/* Routes for Supervisor */}
                     <Route
                       path="/supervisor/*"
-                      element={<ProtectedRoute allowedRoles={['SUPERVISOR']} />}
+                      element={<ProtectedRoute allowedRoles={["SUPERVISOR"]} />}
                     >
                       <Route
                         path="manage-patients"
@@ -105,6 +116,10 @@ const App: React.FC = () => {
                       />
                       <Route path="manage-adhoc" element={<ManageAdhoc />} />
                       <Route path="add-adhoc" element={<AddAdhoc />} />
+                      <Route
+                        path="view-highlights"
+                        element={<HighlightTable />}
+                      />
                       <Route path="settings/*" element={<UserSettings />}>
                         {settingsRoutes.map(({ path, element }) => (
                           <Route key={path} path={path} element={element} />
@@ -115,7 +130,7 @@ const App: React.FC = () => {
                     {/* Routes for Admin*/}
                     <Route
                       path="admin/*"
-                      element={<ProtectedRoute allowedRoles={['ADMIN']} />}
+                      element={<ProtectedRoute allowedRoles={["ADMIN"]} />}
                     >
                       <Route path="temp-page" element={<TempPage />} />
                       <Route path="manage-accounts" element={<AccountTable />} />
@@ -136,7 +151,7 @@ const App: React.FC = () => {
                     {/* Routes for Doctor*/}
                     <Route
                       path="doctor/*"
-                      element={<ProtectedRoute allowedRoles={['DOCTOR']} />}
+                      element={<ProtectedRoute allowedRoles={["DOCTOR"]} />}
                     >
                       <Route path="temp-page" element={<TempPage />} />
                       <Route path="settings/*" element={<UserSettings />}>
@@ -149,7 +164,7 @@ const App: React.FC = () => {
                     {/* Routes for Guardian*/}
                     <Route
                       path="guardian/*"
-                      element={<ProtectedRoute allowedRoles={['GUARDIAN']} />}
+                      element={<ProtectedRoute allowedRoles={["GUARDIAN"]} />}
                     >
                       <Route path="temp-page" element={<TempPage />} />
                       <Route path="settings/*" element={<UserSettings />}>
@@ -163,7 +178,7 @@ const App: React.FC = () => {
                     <Route
                       path="game-therapist/*"
                       element={
-                        <ProtectedRoute allowedRoles={['GAME THERAPIST']} />
+                        <ProtectedRoute allowedRoles={["GAME THERAPIST"]} />
                       }
                     >
                       <Route path="temp-page" element={<TempPage />} />

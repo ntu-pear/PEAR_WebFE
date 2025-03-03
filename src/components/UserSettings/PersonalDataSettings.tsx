@@ -1,13 +1,13 @@
-import { Button } from '@/components/ui/button';
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
   CardFooter,
   CardHeader,
   CardTitle,
-} from '../ui/card';
-import { Alert, AlertDescription } from '../ui/alert';
-import { AlertTriangle } from 'lucide-react';
+} from "../ui/card";
+import { Alert, AlertDescription } from "../ui/alert";
+import { AlertTriangle } from "lucide-react";
 
 const PersonalDataSettings: React.FC = () => {
   return (

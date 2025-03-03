@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -7,16 +7,16 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Button } from '@/components/ui/button';
-import { Sun, Moon, Bell, UserRound } from 'lucide-react';
-import { useTheme } from '@/components/ThemeProvider';
+} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
+import { Sun, Moon, Bell, UserRound } from "lucide-react";
+import { useTheme } from "@/components/ThemeProvider";
 // import Sidebar from '@/components/Sidebar';
-import SidebarMenu from '@/components/Sidebar/SidebarMenu';
-import { useAuth } from '@/hooks/useAuth';
-import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
+import SidebarMenu from "@/components/Sidebar/SidebarMenu";
+import { useAuth } from "@/hooks/useAuth";
+import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 
-import { useUserProfile } from '@/hooks/user/useUserProfile';
+import { useUserProfile } from "@/hooks/user/useUserProfile";
 
 const Navbar: React.FC = () => {
   const navigate = useNavigate();
@@ -25,36 +25,36 @@ const Navbar: React.FC = () => {
     {
       id: 1,
       avatar:
-        'https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=334&q=80',
-      name: 'Sara Salah',
-      action: 'replied on the',
-      target: 'Upload Image',
-      time: '2m',
+        "https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=334&q=80",
+      name: "Sara Salah",
+      action: "replied on the",
+      target: "Upload Image",
+      time: "2m",
     },
     {
       id: 2,
       avatar:
-        'https://images.unsplash.com/photo-1531427186611-ecfd6d936c79?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=634&q=80',
-      name: 'Slick Net',
-      action: 'started following you',
-      time: '45m',
+        "https://images.unsplash.com/photo-1531427186611-ecfd6d936c79?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=634&q=80",
+      name: "Slick Net",
+      action: "started following you",
+      time: "45m",
     },
     {
       id: 3,
       avatar:
-        'https://images.unsplash.com/photo-1450297350677-623de575f31c?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=334&q=80',
-      name: 'Jane Doe',
-      action: 'liked your reply on',
-      target: 'Test with TDD',
-      time: '1h',
+        "https://images.unsplash.com/photo-1450297350677-623de575f31c?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=334&q=80",
+      name: "Jane Doe",
+      action: "liked your reply on",
+      target: "Test with TDD",
+      time: "1h",
     },
     {
       id: 4,
       avatar:
-        'https://images.unsplash.com/photo-1580489944761-15a19d654956?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=398&q=80',
-      name: 'Abigail Bennett',
-      action: 'started following you',
-      time: '3h',
+        "https://images.unsplash.com/photo-1580489944761-15a19d654956?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=398&q=80",
+      name: "Abigail Bennett",
+      action: "started following you",
+      time: "3h",
     },
   ];
 
@@ -75,18 +75,18 @@ const Navbar: React.FC = () => {
   const handleUserSettings = () => {
     const settingsBaseLink = (() => {
       switch (currentUser?.roleName) {
-        case 'ADMIN':
-          return '/admin/settings/profile';
-        case 'SUPERVISOR':
-          return '/supervisor/settings/profile';
-        case 'DOCTOR':
-          return '/doctor/settings/profile';
-        case 'GAME THERAPIST':
-          return '/game-therapist/settings/profile';
-        case 'GUARDIAN':
-          return '/guardian/settings/profile';
+        case "ADMIN":
+          return "/admin/settings/profile";
+        case "SUPERVISOR":
+          return "/supervisor/settings/profile";
+        case "DOCTOR":
+          return "/doctor/settings/profile";
+        case "GAME THERAPIST":
+          return "/game-therapist/settings/profile";
+        case "GUARDIAN":
+          return "/guardian/settings/profile";
         default:
-          return '/login';
+          return "/login";
       }
     })();
 
@@ -99,18 +99,18 @@ const Navbar: React.FC = () => {
 
   const linkPath = (() => {
     switch (currentUser?.roleName) {
-      case 'ADMIN':
-        return '/admin/manage-accounts';
-      case 'SUPERVISOR':
-        return '/supervisor/manage-patients';
-      case 'DOCTOR':
-        return '/doctor/temp-page';
-      case 'GAME THERAPIST':
-        return '/game-therapist/temp-page';
-      case 'GUARDIAN':
-        return '/guardian/temp-page';
+      case "ADMIN":
+        return "/admin/manage-accounts";
+      case "SUPERVISOR":
+        return "/supervisor/manage-patients";
+      case "DOCTOR":
+        return "/doctor/temp-page";
+      case "GAME THERAPIST":
+        return "/game-therapist/temp-page";
+      case "GUARDIAN":
+        return "/guardian/temp-page";
       default:
-        return '/login';
+        return "/login";
     }
   })();
 
@@ -147,7 +147,7 @@ const Navbar: React.FC = () => {
                     {/* Dropdown menu */}
                     <div
                       className="fixed right-2 mt-2 rounded-md overflow-hidden z-50 bg-background border-b"
-                      style={{ width: '20rem' }}
+                      style={{ width: "20rem" }}
                     >
                       <div className="py-2">
                         {notifications.length > 0 ? (
@@ -165,13 +165,13 @@ const Navbar: React.FC = () => {
                               <p className="text-gray-600 text-sm mx-2 text-primary hover:text-black">
                                 <span className="font-bold">
                                   {notification.name}
-                                </span>{' '}
-                                {notification.action}{' '}
+                                </span>{" "}
+                                {notification.action}{" "}
                                 {notification.target && (
                                   <span className="font-bold text-blue-500">
                                     {notification.target}
                                   </span>
-                                )}{' '}
+                                )}{" "}
                                 . {notification.time}
                               </p>
                             </a>
@@ -199,9 +199,9 @@ const Navbar: React.FC = () => {
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
               >
-                {theme === 'dark' ? (
+                {theme === "dark" ? (
                   <Sun className="h-5 w-5" />
                 ) : (
                   <Moon className="h-5 w-5" />
@@ -218,9 +218,9 @@ const Navbar: React.FC = () => {
                     className="overflow-hidden rounded-full"
                   >
                     <Avatar className="h-10 w-10">
-                      <AvatarImage src={profilePhoto || ''} alt="Profile" />
+                      <AvatarImage src={profilePhoto || ""} alt="Profile" />
                       <AvatarFallback>
-                        {' '}
+                        {" "}
                         <UserRound className="w-48 h-48 text-gray-500" />
                       </AvatarFallback>
                     </Avatar>

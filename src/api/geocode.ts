@@ -1,4 +1,4 @@
-import { geocodeAPI } from './apiConfig';
+import { geocodeAPI } from "./apiConfig";
 
 export interface GeocodeBase {
   fullAddress: string;

@@ -1,34 +1,239 @@
-import { useModal } from '@/hooks/useModal';
-import { Button } from '../ui/button';
+import { useModal } from "@/hooks/useModal";
+import { Button } from "../ui/button";
+import {
+  fetchDietList,
+  fetchEducationList,
+  fetchLiveWithList,
+  fetchOccupationList,
+  fetchPetList,
+  fetchReligionList,
+  fetchSocialHistory,
+  SocialHistory,
+  SocialHistoryDDItem,
+  updateSocialHistory,
+  UpdateSocialHistory,
+} from "@/api/patients/socialHistory";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import { getDateTimeNowInUTC } from "@/utils/formatDate";
 
 const EditSocialHistoryModal: React.FC = () => {
-  const { modalRef, closeModal } = useModal();
+  const { modalRef, activeModal, closeModal } = useModal();
+  const { patientId, submitterId, refreshData } = activeModal.props as {
+    patientId: string;
+    submitterId: string;
+    refreshData: () => void;
+  };
+  const [rowData, setRowData] = useState<SocialHistory | null>(null);
+  const [dietList, setDietList] = useState<SocialHistoryDDItem[]>([]);
+  const [educationList, setEducationList] = useState<SocialHistoryDDItem[]>([]);
+  const [liveWithList, setLiveWithList] = useState<SocialHistoryDDItem[]>([]);
+  const [occupationList, setOccupationList] = useState<SocialHistoryDDItem[]>(
+    []
+  );
+  const [petList, setPetList] = useState<SocialHistoryDDItem[]>([]);
+  const [religionList, setReligionList] = useState<SocialHistoryDDItem[]>([]);
 
-  const handleEditSocialHistory = (event: React.FormEvent) => {
+  const handleFetchDietList = async () => {
+    try {
+      const response = await fetchDietList();
+      setDietList(response);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (error) {
+      toast.error("Failed to fetch Diet List");
+    }
+  };
+
+  const handleFetchEducationList = async () => {
+    try {
+      const response = await fetchEducationList();
+      setEducationList(response);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (error) {
+      toast.error("Failed to fetch Education List");
+    }
+  };
+
+  const handleFetchLiveWithList = async () => {
+    try {
+      const response = await fetchLiveWithList();
+      setLiveWithList(response);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (error) {
+      toast.error("Failed to fetch Live With List");
+    }
+  };
+
+  const handleOccupationList = async () => {
+    try {
+      const response = await fetchOccupationList();
+      setOccupationList(response);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (error) {
+      toast.error("Failed to fetch Occupation List");
+    }
+  };
+
+  const handlePetList = async () => {
+    try {
+      const response = await fetchPetList();
+      setPetList(response);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (error) {
+      toast.error("Failed to fetch Pet List");
+    }
+  };
+
+  const handleReligionList = async () => {
+    try {
+      const response = await fetchReligionList();
+      setReligionList(response);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (error) {
+      toast.error("Failed to fetch Religion List");
+    }
+  };
+
+  const handleChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
+  ) => {
+    const { name, value } = e.target;
+    if (rowData) {
+      setRowData({ ...rowData, [name]: value });
+    }
+  };
+
+  const handleFetchSocialHistory = async () => {
+    if (!patientId || isNaN(Number(patientId))) {
+      return;
+    }
+
+    try {
+      const fetchedSocialHistory: SocialHistory = await fetchSocialHistory(
+        Number(patientId)
+      );
+      setRowData(fetchedSocialHistory);
+
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (error) {
+      toast.error("Failed to fetch social history");
+    }
+  };
+
+  const handleEditSocialHistory = async (event: React.FormEvent) => {
     event.preventDefault();
-    console.log('Patient Social History Updated!');
+
+    if (!rowData) {
+      return;
+    }
+
+    // Create a new FormData object from the event's target
+    const formData = new FormData(event.target as HTMLFormElement);
+
+    // Convert FormData entries to an object
+    const formDataObj = Object.fromEntries(formData.entries());
+
+    console.log("formDataObj", formDataObj);
+
+    const dateTimeNow = getDateTimeNowInUTC();
+
+    const socialHistoryFormData: UpdateSocialHistory = {
+      patientId: parseInt(patientId as string, 10),
+      sexuallyActive: parseInt(formDataObj.sexuallyActive as string, 10),
+      secondHandSmoker: parseInt(formDataObj.secondHandSmoker as string, 10),
+      alcoholUse: parseInt(formDataObj.alcoholUse as string, 10),
+      caffeineUse: parseInt(formDataObj.caffeineUse as string, 10),
+      tobaccoUse: parseInt(formDataObj.tobaccoUse as string, 10),
+      drugUse: parseInt(formDataObj.drugUse as string, 10),
+      exercise: parseInt(formDataObj.exercise as string, 10),
+      dietListId: parseInt(formDataObj.dietListId as string, 10),
+      educationListId: parseInt(formDataObj.educationListId as string, 10),
+      liveWithListId: parseInt(formDataObj.liveWithListId as string, 10),
+      occupationListId: parseInt(formDataObj.occupationListId as string, 10),
+      petListId: parseInt(formDataObj.petListId as string, 10),
+      religionListId: parseInt(formDataObj.religionListId as string, 10),
+      id: rowData.id,
+      modifiedById: parseInt(submitterId as string, 10),
+      modifiedDate: dateTimeNow,
+    };
+
+    try {
+      console.log("socialHistoryFormData", socialHistoryFormData);
+
+      await updateSocialHistory(
+        parseInt(patientId as string, 10),
+        socialHistoryFormData
+      );
+      closeModal();
+      toast.success("Patient social history updated successfully.");
+      refreshData();
+    } catch (error) {
+      if (error instanceof Error) {
+        toast.error(
+          `Failed to update patient social history. ${error.message}`
+        );
+      } else {
+        // Fallback error handling for unknown error types
+        toast.error(
+          "Failed to update patient social history. An unknown error occurred."
+        );
+      }
+    }
+
     closeModal();
   };
+
+  useEffect(() => {
+    handleFetchDietList();
+    handleFetchEducationList();
+    handleFetchLiveWithList();
+    handleOccupationList();
+    handlePetList();
+    handleReligionList();
+    handleFetchSocialHistory();
+  }, []);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
       <div ref={modalRef} className="bg-background p-8 rounded-md w-[600px]">
-        <h3 className="text-lg font-medium mb-5">Edit Social History</h3>
+        <h3 className="text-lg font-medium mb-5">Add Social History</h3>
         <form
           onSubmit={handleEditSocialHistory}
           className="grid grid-cols-2 gap-4"
         >
           <div>
             <label className="block text-sm font-medium">
+              Alcohol Use<span className="text-red-600">*</span>
+            </label>
+            <select
+              name="alcoholUse"
+              className="mt-1 block w-full p-2 border rounded-md text-gray-900"
+              value={rowData?.alcoholUse}
+              onChange={handleChange}
+              required
+            >
+              <option value="2">Not to Tell</option>
+              <option value="0">No</option>
+              <option value="1">Yes</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium">
               Caffeine Use<span className="text-red-600">*</span>
             </label>
             <select
+              name="caffeineUse"
               className="mt-1 block w-full p-2 border rounded-md text-gray-900"
+              value={rowData?.caffeineUse}
+              onChange={handleChange}
               required
             >
-              <option value="-">Not to Tell</option>
-              <option value="yes">Yes</option>
-              <option value="no">No</option>
+              <option value="2">Not to Tell</option>
+              <option value="0">No</option>
+              <option value="1">Yes</option>
             </select>
           </div>
 
@@ -37,71 +242,36 @@ const EditSocialHistoryModal: React.FC = () => {
               Occupation <span className="text-red-600">*</span>
             </label>
             <select
+              name="occupationListId"
               className="mt-1 block w-full p-2 border rounded-md text-gray-900"
+              value={rowData?.occupationListId}
+              onChange={handleChange}
               required
             >
-              <option value="-">Not to tell</option>
-              <option value="Accountant">Accountant</option>
-              <option value="Actor">Actor</option>
-              <option value="Artist">Artist</option>
-              <option value="Business_owner">Business owner</option>
-              <option value="Chef/Cook">Chef/Cook</option>
-              <option value="Cleaner">Cleaner</option>
-              <option value="Clerk">Clerk</option>
-              <option value="Dentist">Dentist</option>
-              <option value="Doctor">Doctor</option>
-              <option value="Driver">Driver</option>
-              <option value="Engineer">Engineer</option>
-              <option value="Fireman">Fireman</option>
-              <option value="Florist">Florist</option>
-              <option value="Gardener">Gardener</option>
-              <option value="Hawker">Hawker</option>
-              <option value="Homemaker">Homemaker</option>
-              <option value="Housekeeper">Housekeeper</option>
-              <option value="Labourer">Labourer</option>
-              <option value="Lawyer">Lawyer</option>
-              <option value="Manager">Manager</option>
-              <option value="Mechanic">Mechanic</option>
-              <option value="Nurse">Nurse</option>
-              <option value="Policeman">Policeman</option>
-              <option value="Professional_sportsperson">
-                Professional sportsperson
-              </option>
-              <option value="Professor">Professor</option>
-              <option value="Receptionist">Receptionist</option>
-              <option value="Sales_person">Sales person</option>
-              <option value="Scientist">Scientist</option>
-              <option value="Secretary">Secretary</option>
-              <option value="Security_guard">Security guard</option>
-              <option value="Singer">Singer</option>
-              <option value="Teacher">Teacher</option>
-              <option value="Trader">Trader</option>
-              <option value="Unemployed">Unemployed</option>
-              <option value="Vet">Vet</option>
-              <option value="Waiter">Waiter</option>
-              <option value="Zoo_keeper">Zoo keeper</option>
+              <option value="-1">Not to tell</option>
+              {occupationList.map((ol) => (
+                <option key={ol.Id} value={ol.Id}>
+                  {ol.Value}
+                </option>
+              ))}
             </select>
           </div>
 
           <div>
             <label className="block text-sm font-medium">Diet</label>
             <select
+              name="dietListId"
               className="mt-1 block w-full p-2 border rounded-md text-gray-900"
+              value={rowData?.dietListId}
+              onChange={handleChange}
               required
             >
-              <option value="-">Not to tell</option>
-              <option value="Diabetic">Diabetic</option>
-              <option value="Gluten_free">Gluten-free</option>
-              <option value="Halal">Halal</option>
-              <option value="No_Cheese">No Cheese</option>
-              <option value="No_Dairy">No Dairy</option>
-              <option value="No_Meat">No Meat</option>
-              <option value="No_Peanuts">No Peanuts</option>
-              <option value="No_Seafood">No Seafood</option>
-              <option value="No_Vegetables">No Vegetables</option>
-              <option value="Soft_food">Soft food</option>
-              <option value="Vegan">Vegan</option>
-              <option value="Vegetarian">Vegetarian</option>
+              <option value="-1">Not to tell</option>
+              {dietList.map((dl) => (
+                <option key={dl.Id} value={dl.Id}>
+                  {dl.Value}
+                </option>
+              ))}
             </select>
           </div>
 
@@ -111,20 +281,18 @@ const EditSocialHistoryModal: React.FC = () => {
               <span className="text-red-600">*</span>
             </label>
             <select
+              name="petListId"
               className="mt-1 block w-full p-2 border rounded-md text-gray-900"
+              value={rowData?.petListId}
+              onChange={handleChange}
               required
             >
-              <option value="-">Not to Tell</option>
-              <option value="Bird">Bird</option>
-              <option value="Cat">Cat</option>
-              <option value="Dog">Dog</option>
-              <option value="Fish">Fish</option>
-              <option value="Guinea_Pig">Guinea Pig</option>
-              <option value="Hamster">Hamster</option>
-              <option value="Hedgehog">Hedgehog</option>
-              <option value="Rabbit">Rabbit</option>
-              <option value="Spider">Spider</option>
-              <option value="Tortoise">Tortoise</option>
+              <option value="-1">Not to tell</option>
+              {petList.map((pl) => (
+                <option key={pl.Id} value={pl.Id}>
+                  {pl.Value}
+                </option>
+              ))}
             </select>
           </div>
 
@@ -134,12 +302,15 @@ const EditSocialHistoryModal: React.FC = () => {
               <span className="text-red-600">*</span>
             </label>
             <select
+              name="drugUse"
               className="mt-1 block w-full p-2 border rounded-md text-gray-900"
+              value={rowData?.drugUse}
+              onChange={handleChange}
               required
             >
-              <option value="-">Not to Tell</option>
-              <option value="yes">Yes</option>
-              <option value="no">No</option>
+              <option value="2">Not to Tell</option>
+              <option value="0">No</option>
+              <option value="1">Yes</option>
             </select>
           </div>
 
@@ -149,25 +320,18 @@ const EditSocialHistoryModal: React.FC = () => {
               <span className="text-red-600">*</span>
             </label>
             <select
+              name="religionListId"
               className="mt-1 block w-full p-2 border rounded-md text-gray-900"
+              value={rowData?.religionListId}
+              onChange={handleChange}
               required
             >
-              <option value="-">Not to Tell</option>
-              <option value="Atheist">Atheist</option>
-              <option value="Buddhist">Buddhist</option>
-              <option value="Catholic">Catholic</option>
-              <option value="Christian">Christian</option>
-              <option value="Confucianism">Confucianism</option>
-              <option value="Free_Thinker">Free Thinker</option>
-              <option value="Hindu">Hindu</option>
-              <option value="Islam">Islam</option>
-              <option value="Judaism">Judaism</option>
-              <option value="Protestantism">Protestantism</option>
-              <option value="Shinto">Shinto</option>
-              <option value="Shintoist">Shintoist</option>
-              <option value="Sikhism">Sikhism</option>
-              <option value="Spiritism">Spiritism</option>
-              <option value="Taoist">Taoist</option>
+              <option value="-1">Not to tell</option>
+              {religionList.map((rl) => (
+                <option key={rl.Id} value={rl.Id}>
+                  {rl.Value}
+                </option>
+              ))}
             </select>
           </div>
 
@@ -176,19 +340,18 @@ const EditSocialHistoryModal: React.FC = () => {
               Education<span className="text-red-600">*</span>
             </label>
             <select
+              name="educationListId"
               className="mt-1 block w-full p-2 border rounded-md text-gray-900"
+              value={rowData?.educationListId}
+              onChange={handleChange}
               required
             >
-              <option value="-">Not to Tell</option>
-              <option value="Primary_or_lower">Primary or lower</option>
-              <option value="Secondary">Secondary</option>
-              <option value="ITE">ITE</option>
-              <option value="Junior_College">Junior College</option>
-              <option value="Diploma">Diploma</option>
-              <option value="Degree">Degree</option>
-              <option value="Master">Master</option>
-              <option value="Doctorate">Doctorate</option>
-              <option value="Vocational">Vocational</option>
+              <option value="-1">Not to tell</option>
+              {educationList.map((el) => (
+                <option key={el.Id} value={el.Id}>
+                  {el.Value}
+                </option>
+              ))}
             </select>
           </div>
 
@@ -197,12 +360,15 @@ const EditSocialHistoryModal: React.FC = () => {
               Secondhand Smoker<span className="text-red-600">*</span>
             </label>
             <select
+              name="secondHandSmoker"
               className="mt-1 block w-full p-2 border rounded-md text-gray-900"
+              value={rowData?.secondHandSmoker}
+              onChange={handleChange}
               required
             >
-              <option value="-">Not to Tell</option>
-              <option value="yes">Yes</option>
-              <option value="no">No</option>
+              <option value="2">Not to Tell</option>
+              <option value="0">No</option>
+              <option value="1">Yes</option>
             </select>
           </div>
 
@@ -211,12 +377,15 @@ const EditSocialHistoryModal: React.FC = () => {
               Exercise<span className="text-red-600">*</span>
             </label>
             <select
+              name="exercise"
               className="mt-1 block w-full p-2 border rounded-md text-gray-900"
+              value={rowData?.exercise}
+              onChange={handleChange}
               required
             >
-              <option value="-">Not to Tell</option>
-              <option value="yes">Yes</option>
-              <option value="no">No</option>
+              <option value="2">Not to Tell</option>
+              <option value="0">No</option>
+              <option value="1">Yes</option>
             </select>
           </div>
 
@@ -226,12 +395,15 @@ const EditSocialHistoryModal: React.FC = () => {
               <span className="text-red-600">*</span>
             </label>
             <select
+              name="sexuallyActive"
               className="mt-1 block w-full p-2 border rounded-md text-gray-900"
+              value={rowData?.sexuallyActive}
+              onChange={handleChange}
               required
             >
-              <option value="-">Not to Tell</option>
-              <option value="yes">Yes</option>
-              <option value="no">No</option>
+              <option value="2">Not to Tell</option>
+              <option value="0">No</option>
+              <option value="1">Yes</option>
             </select>
           </div>
 
@@ -241,17 +413,18 @@ const EditSocialHistoryModal: React.FC = () => {
               <span className="text-red-600">*</span>
             </label>
             <select
+              name="liveWithListId"
               className="mt-1 block w-full p-2 border rounded-md text-gray-900"
+              value={rowData?.liveWithListId}
+              onChange={handleChange}
               required
             >
-              <option value="-">Not to Tell</option>
-              <option value="Alone">Alone</option>
-              <option value="Children">Children</option>
-              <option value="Family">Family</option>
-              <option value="Friend">Friend</option>
-              <option value="Parents">Parents</option>
-              <option value="Relative">Relative</option>
-              <option value="Spouse">Spouse</option>
+              <option value="-1">Not to tell</option>
+              {liveWithList.map((lwl) => (
+                <option key={lwl.Id} value={lwl.Id}>
+                  {lwl.Value}
+                </option>
+              ))}
             </select>
           </div>
 
@@ -261,12 +434,15 @@ const EditSocialHistoryModal: React.FC = () => {
               <span className="text-red-600">*</span>
             </label>
             <select
+              name="tobaccoUse"
               className="mt-1 block w-full p-2 border rounded-md text-gray-900"
+              value={rowData?.tobaccoUse}
+              onChange={handleChange}
               required
             >
-              <option value="-">Not to Tell</option>
-              <option value="yes">Yes</option>
-              <option value="no">No</option>
+              <option value="2">Not to Tell</option>
+              <option value="0">No</option>
+              <option value="1">Yes</option>
             </select>
           </div>
 

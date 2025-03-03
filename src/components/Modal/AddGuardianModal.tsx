@@ -1,11 +1,11 @@
-import { useModal } from '@/hooks/useModal';
-import { Button } from '../ui/button';
+import { useModal } from "@/hooks/useModal";
+import { Button } from "../ui/button";
 
 const AddGuardianModal: React.FC = () => {
   const { modalRef, closeModal } = useModal();
   const handleAddGuardian = (event: React.FormEvent) => {
     event.preventDefault();
-    console.log('Patient Guardian Added!');
+    console.log("Patient Guardian Added!");
     closeModal();
   };
 

@@ -1,16 +1,16 @@
-import { Button } from '../ui/button';
-import { toast } from 'sonner';
-import { useModal } from '@/hooks/useModal';
+import { Button } from "../ui/button";
+import { toast } from "sonner";
+import { useModal } from "@/hooks/useModal";
 import {
   updatePatientPrescription,
   fetchPrescriptionById,
   Prescription,
   PrescriptionList,
   PrescriptionUpdate,
-} from '@/api/patients/prescription';
-import { getDateTimeNowInUTC } from '@/utils/formatDate';
-import { useEffect, useState } from 'react';
-import { mockPrescriptionList } from '@/mocks/mockPatientDetails';
+} from "@/api/patients/prescription";
+import { getDateTimeNowInUTC } from "@/utils/formatDate";
+import { useEffect, useState } from "react";
+import { mockPrescriptionList } from "@/mocks/mockPatientDetails";
 
 const EditPrescriptionModal: React.FC = () => {
   const { modalRef, activeModal, closeModal } = useModal();
@@ -25,14 +25,14 @@ const EditPrescriptionModal: React.FC = () => {
   const [prescriptionList, setPrescriptionList] = useState<PrescriptionList[]>(
     []
   );
-  const [startDate, setStartDate] = useState('');
+  const [startDate, setStartDate] = useState("");
 
   useEffect(() => {
     const handleFetchPrescriptionList = async () => {
       try {
         setPrescriptionList(mockPrescriptionList);
       } catch (error) {
-        toast.error('Failed to fetch Prescription List');
+        toast.error("Failed to fetch Prescription List");
       }
     };
 
@@ -43,7 +43,7 @@ const EditPrescriptionModal: React.FC = () => {
         setPrescription(response.data);
         setStartDate(response.data.StartDate);
       } catch (error) {
-        toast.error('Failed to fetch prescription details');
+        toast.error("Failed to fetch prescription details");
       }
     };
 
@@ -69,7 +69,7 @@ const EditPrescriptionModal: React.FC = () => {
         PrescriptionRemarks: prescription.PrescriptionRemarks,
         Status: prescription.Status,
         UpdatedDateTime: getDateTimeNowInUTC() as string,
-        UpdatedById: parseInt(submitterId, 10),
+        ModifiedById: submitterId as string,
       };
 
       console.log(updatedPrescription);
@@ -78,11 +78,11 @@ const EditPrescriptionModal: React.FC = () => {
         Number(prescriptionId),
         updatedPrescription
       );
-      toast.success('Prescription updated successfully.');
+      toast.success("Prescription updated successfully.");
       closeModal();
       refreshPrescriptionData();
     } catch (error) {
-      toast.error('Failed to update prescription.');
+      toast.error("Failed to update prescription.");
     }
   };
 

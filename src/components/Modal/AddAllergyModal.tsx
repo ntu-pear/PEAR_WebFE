@@ -1,6 +1,6 @@
-import { useModal } from '@/hooks/useModal';
-import { Button } from '../ui/button';
-import { useEffect, useState } from 'react';
+import { useModal } from "@/hooks/useModal";
+import { Button } from "../ui/button";
+import { useEffect, useState } from "react";
 import {
   addPatientAllergy,
   AllergyAddFormData,
@@ -8,8 +8,8 @@ import {
   AllergyType,
   fetchAllAllergyReactionTypes,
   fetchAllAllergyTypes,
-} from '@/api/patients/allergy';
-import { toast } from 'sonner';
+} from "@/api/patients/allergy";
+import { toast } from "sonner";
 
 const AddAllergyModal: React.FC = () => {
   const { modalRef, activeModal, closeModal } = useModal();
@@ -30,7 +30,7 @@ const AddAllergyModal: React.FC = () => {
       setAllergyTypes(fetchedAllergyTypes);
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
-      toast.error('Failed to fetch Allergy Types List');
+      toast.error("Failed to fetch Allergy Types List");
     }
   };
 
@@ -41,7 +41,7 @@ const AddAllergyModal: React.FC = () => {
       setAllergyReactionTypes(fetchedAllergyReactionTypes);
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
-      toast.error('Failed to fetch Allergy Reaction Types List');
+      toast.error("Failed to fetch Allergy Reaction Types List");
     }
   };
 
@@ -56,21 +56,21 @@ const AddAllergyModal: React.FC = () => {
 
     const allergyFormData: AllergyAddFormData = {
       AllergyRemarks: formDataObj.AllergyRemarks as string,
-      IsDeleted: '0',
+      IsDeleted: "0",
       PatientID: parseInt(patientId as string, 10),
       AllergyTypeID: parseInt(formDataObj.AllergyTypeID as string, 10),
       AllergyReactionTypeID: parseInt(
         formDataObj.AllergyReactionTypeID as string,
         10
       ),
-      createdById: parseInt(submitterId as string, 10),
-      modifiedById: parseInt(submitterId as string, 10),
+      CreatedById: submitterId as string,
+      ModifiedById: submitterId as string,
     };
 
     try {
       await addPatientAllergy(allergyFormData);
       closeModal();
-      toast.success('Patient allergy added successfully.');
+      toast.success("Patient allergy added successfully.");
       refreshAllergyData();
     } catch (error) {
       if (error instanceof Error) {
@@ -78,7 +78,7 @@ const AddAllergyModal: React.FC = () => {
       } else {
         // Fallback error handling for unknown error types
         toast.error(
-          'Failed to add patient allergy. An unknown error occurred.'
+          "Failed to add patient allergy. An unknown error occurred."
         );
       }
     }

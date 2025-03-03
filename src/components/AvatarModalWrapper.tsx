@@ -1,6 +1,6 @@
-import { PatientTableData } from '@/api/patients/patients';
-import React, { useState } from 'react';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { PatientTableData } from "@/api/patients/patients";
+import React, { useState } from "react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface AvatarModalProps {
   open: boolean;
@@ -41,9 +41,9 @@ interface AvatarModalWrapperProps {
 
 const AvatarModalWrapper: React.FC<AvatarModalWrapperProps> = ({ patient }) => {
   const [modalOpen, setModalOpen] = useState(false);
-  const [selectedImage, setSelectedImage] = useState<string>('');
-  const [selectedName, setSelectedName] = useState<string>('');
-  const [selectedPName, setSelectedPName] = useState<string>('');
+  const [selectedImage, setSelectedImage] = useState<string>("");
+  const [selectedName, setSelectedName] = useState<string>("");
+  const [selectedPName, setSelectedPName] = useState<string>("");
 
   return (
     <div>
@@ -51,9 +51,9 @@ const AvatarModalWrapper: React.FC<AvatarModalWrapperProps> = ({ patient }) => {
         <AvatarImage
           src={patient.image}
           alt={patient.name}
-          style={{ cursor: 'pointer' }} // Change cursor to pointer
+          style={{ cursor: "pointer" }} // Change cursor to pointer
           onClick={() => {
-            setSelectedImage(patient.image || '');
+            setSelectedImage(patient.image || "");
             setSelectedName(patient.name);
             setSelectedPName(patient.preferredName);
             setModalOpen(true);
@@ -61,15 +61,15 @@ const AvatarModalWrapper: React.FC<AvatarModalWrapperProps> = ({ patient }) => {
         />
         <AvatarFallback>
           {patient.name
-            .split(' ')
+            .split(" ")
             .map((n) => n[0])
-            .join('')}
+            .join("")}
         </AvatarFallback>
       </Avatar>
       <AvatarModal
         open={modalOpen}
         onClose={() => setModalOpen(false)}
-        imageUrl={selectedImage || ''}
+        imageUrl={selectedImage || ""}
         name={selectedName}
         preferredName={selectedPName}
       />

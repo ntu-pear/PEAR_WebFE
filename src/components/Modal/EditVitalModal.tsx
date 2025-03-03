@@ -1,9 +1,9 @@
-import { updateVital, VitalFormData } from '@/api/patients/vital';
-import { Button } from '../ui/button';
-import { toast } from 'sonner';
-import { useModal } from '@/hooks/useModal';
-import { VitalCheckTD } from '@/api/patients/vital';
-import { useEffect, useState } from 'react';
+import { updateVital, VitalFormData } from "@/api/patients/vital";
+import { Button } from "../ui/button";
+import { toast } from "sonner";
+import { useModal } from "@/hooks/useModal";
+import { VitalCheckTD } from "@/api/patients/vital";
+import { useEffect, useState } from "react";
 
 const EditVitalModal: React.FC = () => {
   const [rowData, setRowData] = useState<VitalFormData | null>(null);
@@ -51,19 +51,19 @@ const EditVitalModal: React.FC = () => {
       BloodSugarLevel: parseFloat(formDataObj.BloodSugarLevel as string),
       VitalRemarks: formDataObj.VitalRemarks as string,
       IsAfterMeal: formDataObj.IsAfterMeal as string,
-      UpdatedById: parseInt(submitterId as string, 10),
+      ModifiedById: submitterId as string,
     };
 
     try {
       // console.log('vitalFormData: ', vitalFormData);
       await updateVital(Number(vitalId), vitalFormData);
       closeModal();
-      toast.success('Vital updated successfully.');
+      toast.success("Vital updated successfully.");
       refreshVitalData();
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       closeModal();
-      toast.error('Failed to update patient vital.');
+      toast.error("Failed to update patient vital.");
     }
   };
 
@@ -79,7 +79,7 @@ const EditVitalModal: React.FC = () => {
         SpO2: vitalData.spO2,
         BloodSugarLevel: vitalData.bloodSugarLevel,
         VitalRemarks: vitalData.remark,
-        IsAfterMeal: vitalData.afterMeal === 'YES' ? '1' : '0',
+        IsAfterMeal: vitalData.afterMeal === "YES" ? "1" : "0",
       });
     }
   }, [vitalData, patientId, submitterId]);
@@ -99,7 +99,7 @@ const EditVitalModal: React.FC = () => {
               min={35}
               max={38}
               step={0.1}
-              value={rowData?.Temperature ?? ''}
+              value={rowData?.Temperature ?? ""}
               onChange={handleChange}
               className="mt-1 block w-full p-2 border rounded-md text-gray-900"
               required
@@ -116,7 +116,7 @@ const EditVitalModal: React.FC = () => {
               min={40}
               max={150}
               step={0.1}
-              value={rowData?.Weight ?? ''}
+              value={rowData?.Weight ?? ""}
               onChange={handleChange}
               className="mt-1 block w-full p-2 border rounded-md text-gray-900"
               required
@@ -133,7 +133,7 @@ const EditVitalModal: React.FC = () => {
               min={1.2}
               max={2.2}
               step={0.01}
-              value={rowData?.Height ?? ''}
+              value={rowData?.Height ?? ""}
               onChange={handleChange}
               className="mt-1 block w-full p-2 border rounded-md text-gray-900"
               required
@@ -149,7 +149,7 @@ const EditVitalModal: React.FC = () => {
               type="number"
               min={91}
               max={140}
-              value={rowData?.SystolicBP ?? ''}
+              value={rowData?.SystolicBP ?? ""}
               onChange={handleChange}
               className="mt-1 block w-full p-2 border rounded-md text-gray-900"
               required
@@ -165,7 +165,7 @@ const EditVitalModal: React.FC = () => {
               type="number"
               min={61}
               max={90}
-              value={rowData?.DiastolicBP ?? ''}
+              value={rowData?.DiastolicBP ?? ""}
               onChange={handleChange}
               className="mt-1 block w-full p-2 border rounded-md text-gray-900"
               required
@@ -181,7 +181,7 @@ const EditVitalModal: React.FC = () => {
               type="number"
               min={60}
               max={100}
-              value={rowData?.HeartRate ?? ''}
+              value={rowData?.HeartRate ?? ""}
               onChange={handleChange}
               className="mt-1 block w-full p-2 border rounded-md text-gray-900"
               required
@@ -198,7 +198,7 @@ const EditVitalModal: React.FC = () => {
               min={95}
               max={100}
               step={0.1}
-              value={rowData?.SpO2 ?? ''}
+              value={rowData?.SpO2 ?? ""}
               onChange={handleChange}
               className="mt-1 block w-full p-2 border rounded-md text-gray-900"
               required
@@ -215,7 +215,7 @@ const EditVitalModal: React.FC = () => {
               type="number"
               min={6}
               max={13}
-              value={rowData?.BloodSugarLevel ?? ''}
+              value={rowData?.BloodSugarLevel ?? ""}
               onChange={handleChange}
               className="mt-1 block w-full p-2 border rounded-md text-gray-900"
               required
@@ -228,7 +228,7 @@ const EditVitalModal: React.FC = () => {
             </label>
             <textarea
               name="VitalRemarks"
-              value={rowData?.VitalRemarks ?? ''}
+              value={rowData?.VitalRemarks ?? ""}
               onChange={handleChange}
               className="mt-1 block w-full p-2 border rounded-md text-gray-900"
               required
@@ -241,7 +241,7 @@ const EditVitalModal: React.FC = () => {
             </label>
             <select
               name="IsAfterMeal"
-              value={rowData?.IsAfterMeal ?? ''}
+              value={rowData?.IsAfterMeal ?? ""}
               onChange={handleChange}
               className="mt-1 block w-full p-2 border rounded-md text-gray-900"
               required

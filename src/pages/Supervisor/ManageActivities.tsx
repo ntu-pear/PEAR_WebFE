@@ -1,16 +1,16 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from "react";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import { PlusCircle } from 'lucide-react';
-import { DataTableClient } from '@/components/Table/DataTable';
-import { mockActivitiesList /*ActivitiesData*/ } from '@/mocks/mockActivities';
-import { Button } from '@/components/ui/button';
-import Searchbar from '@/components/Searchbar';
+} from "@/components/ui/card";
+import { PlusCircle } from "lucide-react";
+import { DataTableClient } from "@/components/Table/DataTable";
+import { mockActivitiesList /*ActivitiesData*/ } from "@/mocks/mockActivities";
+import { Button } from "@/components/ui/button";
+import Searchbar from "@/components/Searchbar";
 
 const ManageActivities: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -36,64 +36,64 @@ const ManageActivities: React.FC = () => {
     };
 
     if (isModalOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener("mousedown", handleClickOutside);
     } else {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     }
 
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [isModalOpen]);
 
   const handleFormSubmit = (event: React.FormEvent) => {
     event.preventDefault();
-    console.log('Form submitted!');
+    console.log("Form submitted!");
     closeModal();
   };
 
   const handleInputChange = () => {};
 
   const columns = [
-    { key: 'title', header: 'Patient Id' },
-    { key: 'description', header: 'Activity Description' },
+    { key: "title", header: "Patient Id" },
+    { key: "description", header: "Activity Description" },
     {
-      key: 'isCompulsory',
-      header: 'Compulsory',
+      key: "isCompulsory",
+      header: "Compulsory",
       render: (value: any) =>
         value ? (
-          <span style={{ color: 'green' }}>True</span>
+          <span style={{ color: "green" }}>True</span>
         ) : (
-          <span style={{ color: 'red' }}>False</span>
+          <span style={{ color: "red" }}>False</span>
         ),
     },
     {
-      key: 'isFixed',
-      header: 'Fixed',
+      key: "isFixed",
+      header: "Fixed",
       render: (value: any) =>
         value ? (
-          <span style={{ color: 'green' }}>True</span>
+          <span style={{ color: "green" }}>True</span>
         ) : (
-          <span style={{ color: 'red' }}>False</span>
+          <span style={{ color: "red" }}>False</span>
         ),
     },
     {
-      key: 'isGroup',
-      header: 'Group',
+      key: "isGroup",
+      header: "Group",
       render: (value: any) =>
         value ? (
-          <span style={{ color: 'green' }}>True</span>
+          <span style={{ color: "green" }}>True</span>
         ) : (
-          <span style={{ color: 'red' }}>False</span>
+          <span style={{ color: "red" }}>False</span>
         ),
     },
     {
-      key: 'fixedTimeSlots',
-      header: 'Fixed Time Slots',
+      key: "fixedTimeSlots",
+      header: "Fixed Time Slots",
       render: (value: any) => (value ? value : <span>NIL</span>),
     },
-    { key: 'startDate', header: 'Start Date' },
-    { key: 'endDate', header: 'End Date' },
+    { key: "startDate", header: "Start Date" },
+    { key: "endDate", header: "End Date" },
   ];
 
   return (
@@ -125,14 +125,14 @@ const ManageActivities: React.FC = () => {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => console.log('Edit', item)}
+                      onClick={() => console.log("Edit", item)}
                     >
                       Edit
                     </Button>
                     <Button
                       variant="destructive"
                       size="sm"
-                      onClick={() => console.log('Delete', item)}
+                      onClick={() => console.log("Delete", item)}
                     >
                       Delete
                     </Button>

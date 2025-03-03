@@ -1,11 +1,11 @@
-import { useModal } from '@/hooks/useModal';
-import { Button } from '../ui/button';
+import { useModal } from "@/hooks/useModal";
+import { Button } from "../ui/button";
 
 const AddHabitModal: React.FC = () => {
   const { modalRef, closeModal } = useModal();
   const handleAddHabit = (event: React.FormEvent) => {
     event.preventDefault();
-    console.log('Patient Habit Added!');
+    console.log("Patient Habit Added!");
     closeModal();
   };
 

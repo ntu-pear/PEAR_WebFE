@@ -1,7 +1,8 @@
-import { vitalAPI } from '../apiConfig';
-import { formatDateString, formatTimeString } from '@/utils/formatDate';
-import { convertToYesNo } from '@/utils/convertToYesNo';
-import { TableRowData } from '@/components/Table/DataTable';
+import { vitalAPI } from "../apiConfig";
+import { formatDateString, formatTimeString } from "@/utils/formatDate";
+import { convertToYesNo } from "@/utils/convertToYesNo";
+import { TableRowData } from "@/components/Table/DataTable";
+import { retrieveAccessTokenFromCookie } from "../users/auth";
 
 export interface VitalCheckBase {
   IsDeleted: string;
@@ -19,8 +20,8 @@ export interface VitalCheckBase {
   Id: number;
   CreatedDateTime: string;
   UpdatedDateTime: string;
-  CreatedById: number;
-  UpdatedById: number;
+  CreatedById: string;
+  ModifiedById: string;
 }
 
 // vital response body format from api
@@ -76,15 +77,15 @@ export interface VitalFormData {
   Height: number;
   Weight: number;
   VitalRemarks?: string;
-  CreatedById?: number;
-  UpdatedById?: number;
+  CreatedById?: string;
+  ModifiedById?: string;
 }
 
 const convertToVitalTDServer = (
   viewVitalCheck: ViewVitalCheckList
 ): VitalCheckTDServer => {
   if (!Array.isArray(viewVitalCheck.data)) {
-    console.error('viewVitalCheck is not an array', viewVitalCheck.data);
+    console.error("viewVitalCheck is not an array", viewVitalCheck.data);
     return {
       vitals: [],
       pagination: {
@@ -96,7 +97,7 @@ const convertToVitalTDServer = (
     };
   }
   const vitalsTransformed = viewVitalCheck.data
-    .filter((v) => v.IsDeleted === '0')
+    .filter((v) => v.IsDeleted === "0")
     .map((v) => ({
       id: v.Id,
       patientId: v.PatientId,
@@ -111,7 +112,7 @@ const convertToVitalTDServer = (
       spO2: parseFloat(v.SpO2.toFixed(0)),
       bloodSugarLevel: parseFloat(v.BloodSugarLevel.toFixed(0)),
       afterMeal: convertToYesNo(v.IsAfterMeal)?.toUpperCase(),
-      remark: v.VitalRemarks || '',
+      remark: v.VitalRemarks || "",
     }));
 
   const UpdatedTD = {
@@ -124,7 +125,7 @@ const convertToVitalTDServer = (
     },
   };
 
-  console.log('convertToVitalTDServer: ', UpdatedTD);
+  console.log("convertToVitalTDServer: ", UpdatedTD);
 
   return UpdatedTD;
 };
@@ -134,14 +135,22 @@ export const fetchVitals = async (
   pageNo: number = 0,
   pageSize: number = 10
 ): Promise<VitalCheckTDServer> => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+
   try {
     const response = await vitalAPI.get<ViewVitalCheckList>(
-      `/list?patient_id=${id}&pageNo=${pageNo}&pageSize=${pageSize}`
+      `/list?patient_id=${id}&pageNo=${pageNo}&pageSize=${pageSize}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
     );
-    console.log('GET all Vitals for a patient', response.data);
+    console.log("GET all Vitals for a patient", response.data);
     return convertToVitalTDServer(response.data);
   } catch (error) {
-    console.error('GET all Vitals for a patient', error);
+    console.error("GET all Vitals for a patient", error);
     throw error;
   }
 };
@@ -149,12 +158,19 @@ export const fetchVitals = async (
 export const addVital = async (
   formData: VitalFormData
 ): Promise<ViewVitalCheck> => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+
   try {
-    const response = await vitalAPI.post<ViewVitalCheck>(`/add`, formData);
-    console.log('POST Add Vital for a patient', response.data);
+    const response = await vitalAPI.post<ViewVitalCheck>(`/add`, formData, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    console.log("POST Add Vital for a patient", response.data);
     return response.data;
   } catch (error) {
-    console.error('POST Add Vital for a patient', error);
+    console.error("POST Add Vital for a patient", error);
     throw error;
   }
 };
@@ -163,28 +179,47 @@ export const updateVital = async (
   vitalId: number,
   formData: VitalFormData
 ): Promise<ViewVitalCheck> => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+
   try {
     const response = await vitalAPI.put<ViewVitalCheck>(
       `/update/${vitalId}`,
-      formData
+      formData,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
     );
-    console.log('PUT Update Vital for a patient', response.data);
+    console.log("PUT Update Vital for a patient", response.data);
     return response.data;
   } catch (error) {
-    console.error('PUT Update Vital for a patient', error);
+    console.error("PUT Update Vital for a patient", error);
     throw error;
   }
 };
 
 export const deleteVital = async (vitalId: number): Promise<ViewVitalCheck> => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+
   try {
-    const response = await vitalAPI.put<ViewVitalCheck>(`/delete`, {
-      Id: vitalId,
-    });
-    console.log('PUT Delete Vital for a patient', response.data);
+    const response = await vitalAPI.put<ViewVitalCheck>(
+      `/delete`,
+      {
+        Id: vitalId,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    console.log("PUT Delete Vital for a patient", response.data);
     return response.data;
   } catch (error) {
-    console.error('PUT Delete Vital for a patient', error);
+    console.error("PUT Delete Vital for a patient", error);
     throw error;
   }
 };

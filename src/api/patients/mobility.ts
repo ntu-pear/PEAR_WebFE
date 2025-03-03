@@ -1,14 +1,16 @@
-import { MobilityAidTD } from '@/mocks/mockPatientDetails';
-import { formatDateString } from '@/utils/formatDate';
-import { mobilityListAPI, patientMobilityAPI } from '../apiConfig';
+import { MobilityAidTD } from "@/mocks/mockPatientDetails";
+import { formatDateString } from "@/utils/formatDate";
+import { mobilityListAPI, patientMobilityAPI } from "../apiConfig";
+import { AxiosError } from "axios";
+import { retrieveAccessTokenFromCookie } from "../users/auth";
 
 export interface MobilityList {
   MobilityListId: number;
   IsDeleted: number;
   CreatedDateTime: string;
   ModifiedDateTime: string;
-  CreatedById: number;
-  ModifiedById: number;
+  CreatedById: string;
+  ModifiedById: string;
   Value: string;
 }
 
@@ -21,8 +23,8 @@ export interface MobilityAid {
   IsDeleted: number;
   CreatedDateTime: string;
   ModifiedDateTime: string;
-  CreatedById: number;
-  ModifiedById: number;
+  CreatedById: string;
+  ModifiedById: string;
 }
 
 export interface AddMobilityAid {
@@ -30,18 +32,30 @@ export interface AddMobilityAid {
   MobilityListId: number;
   MobilityRemarks: string;
   IsRecovered: boolean;
-  CreatedById: number;
-  ModifiedById: number;
+  CreatedById: string;
+  ModifiedById: string;
+}
+
+export interface UpdateMobilityAid {
+  MobilityRemarks: string;
+  IsRecovered: boolean;
 }
 
 export const fetchMobilityList = async (): Promise<MobilityList[]> => {
-  try {
-    const response = await mobilityListAPI.get<MobilityList[]>(``);
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
 
-    console.log('GET Patient Mobility List', response.data);
+  try {
+    const response = await mobilityListAPI.get<MobilityList[]>(``, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    console.log("GET Patient Mobility List", response.data);
     return response.data;
   } catch (error) {
-    console.error('GET Patient Mobility List', error);
+    console.error("GET Patient Mobility List", error);
     throw error;
   }
 };
@@ -51,11 +65,11 @@ export const convertToMobilityAidTD = (
   mobilityAids: MobilityAid[]
 ): MobilityAidTD[] => {
   if (!Array.isArray(mobilityList)) {
-    console.error('mobilityList is not an array', mobilityList);
+    console.error("mobilityList is not an array", mobilityList);
     return [];
   }
   if (!Array.isArray(mobilityAids)) {
-    console.error('mobilityAids is not an array', mobilityAids);
+    console.error("mobilityAids is not an array", mobilityAids);
     return [];
   }
 
@@ -67,30 +81,68 @@ export const convertToMobilityAidTD = (
       mobilityAids:
         mobilityList
           .find((ml) => ml.MobilityListId === ma.MobilityListId)
-          ?.Value?.toUpperCase() || '',
+          ?.Value?.toUpperCase() || "",
       remark: ma.MobilityRemarks,
-      condition: ma.IsRecovered ? 'FULLY RECOVERED' : 'NOT RECOVERED',
-      date: ma.CreatedDateTime ? formatDateString(ma.CreatedDateTime) : '',
+      condition: ma.IsRecovered ? "FULLY RECOVERED" : "NOT RECOVERED",
+      date: ma.CreatedDateTime ? formatDateString(ma.CreatedDateTime) : "",
     }));
 };
 
 export const fetchMobilityAids = async (
   patientId: number
 ): Promise<MobilityAidTD[]> => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+
   try {
     const mobilityList = await fetchMobilityList();
 
     const mobilityAidsResponse = await patientMobilityAPI.get<MobilityAid[]>(
-      `/${patientId}`
+      `/${patientId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
     );
-    console.log('GET Patient Mobility Aids', mobilityAidsResponse.data);
+    console.log("GET Patient Mobility Aids", mobilityAidsResponse.data);
 
     return convertToMobilityAidTD(
       mobilityList,
       [mobilityAidsResponse.data].flat()
     );
   } catch (error) {
-    console.error('GET Patient Mobility Aids', error);
+    if (error instanceof AxiosError) {
+      if (error.response && error.response.status === 404) {
+        console.warn("GET Patient Mobility Aids.", error);
+        return [];
+      }
+    }
+    console.error("GET Patient Mobility Aids", error);
+    throw error;
+  }
+};
+
+export const fetchMobilityAidById = async (
+  mobiilityAidID: number
+): Promise<MobilityAid> => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+
+  try {
+    const mobilityAidsResponse = await patientMobilityAPI.get<MobilityAid>(
+      `/${mobiilityAidID}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    console.log("GET Patient Mobility Aids", mobilityAidsResponse.data);
+
+    return mobilityAidsResponse.data;
+  } catch (error) {
+    console.error("GET Patient Mobility Aids", error);
     throw error;
   }
 };
@@ -98,15 +150,71 @@ export const fetchMobilityAids = async (
 export const addMobilityAid = async (
   addMobilityAid: AddMobilityAid
 ): Promise<MobilityAid> => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+
   try {
     const response = await patientMobilityAPI.post<MobilityAid>(
-      '',
-      addMobilityAid
+      "",
+      addMobilityAid,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
     );
-    console.log('GET Patient Mobility Aids', response.data);
+    console.log("GET Patient Mobility Aids", response.data);
     return response.data;
   } catch (error) {
-    console.error('POST add patient mobility aids', error);
+    console.error("POST add patient mobility aids", error);
+    throw error;
+  }
+};
+
+export const updateMobilityAid = async (
+  mobilityAidID: number,
+  updateMobilityAid: UpdateMobilityAid
+): Promise<MobilityAid> => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+
+  try {
+    const response = await patientMobilityAPI.put<MobilityAid>(
+      `/${mobilityAidID}`,
+      updateMobilityAid,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    console.log("PUT update patient Mobility Aids", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("PUT update patient mobility aids", error);
+    throw error;
+  }
+};
+
+export const deleteMobilityAid = async (
+  mobilityAidID: number
+): Promise<MobilityAid> => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+
+  try {
+    const response = await patientMobilityAPI.delete<MobilityAid>(
+      `/${mobilityAidID}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    console.log("DELETE delete patient Mobility Aids", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("DELETE delete  patient mobility aids", error);
     throw error;
   }
 };

@@ -1,10 +1,10 @@
-import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import React from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-import { Button } from '@/components/ui/button';
-import { useLocation, useNavigate } from 'react-router';
-import useGetUsersFromRole from '@/hooks/role/useGetUsersFromRole';
-import { Role } from '@/api/role/roles';
+import { Button } from "@/components/ui/button";
+import { useLocation, useNavigate } from "react-router";
+import useGetUsersFromRole from "@/hooks/role/useGetUsersFromRole";
+import { Role } from "@/api/role/roles";
 
 const EditRole: React.FC = () => {
   const navigate = useNavigate();

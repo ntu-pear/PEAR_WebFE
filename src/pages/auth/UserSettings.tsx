@@ -1,25 +1,25 @@
-import { useAuth } from '@/hooks/useAuth';
-import SettingsNav from '../../components/UserSettings/SettingsNav';
+import { useAuth } from "@/hooks/useAuth";
+import SettingsNav from "../../components/UserSettings/SettingsNav";
 
-import { Outlet } from 'react-router-dom';
+import { Outlet } from "react-router-dom";
 
 const UserSettings: React.FC = () => {
   const { currentUser } = useAuth();
 
   const basePath = (() => {
     switch (currentUser?.roleName) {
-      case 'ADMIN':
-        return '/admin/settings';
-      case 'SUPERVISOR':
-        return '/supervisor/settings';
-      case 'DOCTOR':
-        return '/doctor/settings';
-      case 'GAME THERAPIST':
-        return '/game-therapist/settings';
-      case 'GUARDIAN':
-        return '/guardian/settings';
+      case "ADMIN":
+        return "/admin/settings";
+      case "SUPERVISOR":
+        return "/supervisor/settings";
+      case "DOCTOR":
+        return "/doctor/settings";
+      case "GAME THERAPIST":
+        return "/game-therapist/settings";
+      case "GUARDIAN":
+        return "/guardian/settings";
       default:
-        return '/login';
+        return "/login";
     }
   })();
 
