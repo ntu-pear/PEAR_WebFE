@@ -102,16 +102,6 @@ const AccountTable: React.FC = () => {
 
       let filteredAccountTDList = fetchedAccountTDServer;
 
-      filteredAccountTDList = filteredAccountTDList.filter((user: User) =>
-        user.nric_FullName.toLowerCase().includes(searchItem.toLowerCase())
-      );
-
-      filteredAccountTDList = filteredAccountTDList.filter((user: User) =>
-        activeStatus === "All"
-          ? true
-          : user.status.toLowerCase() === activeStatus.toLowerCase()
-      );
-
       const sortedAccountTDList = sortByName(filteredAccountTDList, "asc");
 
       setAccountTDServer(sortedAccountTDList);
@@ -124,12 +114,16 @@ const AccountTable: React.FC = () => {
     handleFilter();
   }, [debouncedActiveStatus, debouncedSearch, debounceTabValue]);
 
-  const columns: { key: keyof User; header: string }[] = [
+  const renderLoginTimeStamp = (loginTimeStamp: string | null) => {
+    return loginTimeStamp ? loginTimeStamp : "-";
+  };
+
+  const columns: { key: keyof User ; header: string; render?: (value: any) => React.ReactNode }[] = [
     { key: "id", header: "ID" },
     { key: "nric_FullName", header: "Name" },
     { key: "status", header: "Status" },
     { key: "email", header: "Email" },
-    { key: "loginTimeStamp", header: "Last Login" },
+    { key: "loginTimeStamp", header: "Login Time", render: renderLoginTimeStamp },
     { key: "createdDate", header: "Created Date" },
     { key: "roleName", header: "Role" },
   ];
