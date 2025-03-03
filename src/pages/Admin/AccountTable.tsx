@@ -188,7 +188,7 @@ const AccountTable: React.FC = () => {
                     }}
                     columns={columns}
                     viewMore={true}
-                    viewMoreBaseLink={"/supervisor/view-patient"}
+                    viewMoreBaseLink={"/admin/view-account"}
                     activeTab={"information"}
                     fetchData={handleFilter}
                   />
