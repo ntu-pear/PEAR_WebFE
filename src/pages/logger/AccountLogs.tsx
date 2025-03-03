@@ -160,9 +160,8 @@ const AccountLogs: React.FC = () => {
                 <TableBody>
                   {filteredData.map((log, index) => (
                     <React.Fragment key={index}>
-                      {/* Main row */}
                       <TableRow>
-                        <TableCell>{index + 1}</TableCell> {/* Simulating Log AccountID */}
+                        <TableCell>{index + 1}</TableCell>
                         <TableCell>{log.updated_data?.patientId || '-'}</TableCell>
                         <TableCell>{log.user}</TableCell>
                         <TableCell>{log.method.charAt(0).toUpperCase() + log.method.slice(1)}</TableCell>
@@ -178,7 +177,6 @@ const AccountLogs: React.FC = () => {
                           </Button>
                         </TableCell>
                       </TableRow>
-
                       {/* Expanded row for Old vs. New state */}
                       {expandedRows[index] && (
                         <TableRow>
