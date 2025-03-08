@@ -22,11 +22,11 @@ export const fetchRoles = async () => {
   try {
     const token = retrieveAccessTokenFromCookie();
     if (!token) throw new Error("Token not found");
-    const response = await roleAPI.get<Role[]>("/", {
+    const response = await roleAPI.get<{ roles: Role[] }>("/", {
       headers: { Authorization: `Bearer ${token}` },
     });
     console.log("GET all roles", response.data);
-    return response.data;
+    return response.data.roles;
   } catch (error) {
     toast.error("Failed to fetch roles");
     console.error("GET all roles", error);
