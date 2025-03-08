@@ -32,11 +32,11 @@ export const fetchUsers = async () => {
   try {
     const token = retrieveAccessTokenFromCookie();
     if (!token) throw new Error("Token not found");
-    const response = await adminAPI.get<User[]>("/", {
+    const response = await adminAPI.get<{ users: User[] }>("/", {
       headers: { Authorization: `Bearer ${token}` },
     });
     console.log("GET all users", response.data);
-    return response.data;
+    return response.data.users;
   } catch (error) {
     toast.error("Failed to fetch users");
     console.error("GET all users", error);
