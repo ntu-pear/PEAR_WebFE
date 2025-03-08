@@ -9,6 +9,7 @@ import {
 } from "../apiConfig";
 import { convertToYesNo } from "@/utils/convertToYesNo";
 import { TableRowData } from "@/components/Table/DataTable";
+import { retrieveAccessTokenFromCookie } from "../users/auth";
 
 export interface SocialHistory {
   isDeleted: string;
@@ -131,9 +132,17 @@ export const convertToSocialHistoryTD = (
 export const fetchSocialHistoryTD = async (
   patientId: number
 ): Promise<SocialHistoryTD> => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+
   try {
     const response = await socialHistoryAPI.get<SocialHistory>(
-      `?patient_id=${patientId}`
+      `?patient_id=${patientId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
     );
     console.log("GET Patient Social History", response.data);
     return convertToSocialHistoryTD(response.data);
@@ -146,9 +155,17 @@ export const fetchSocialHistoryTD = async (
 export const fetchSocialHistory = async (
   patientId: number
 ): Promise<SocialHistory> => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+
   try {
     const response = await socialHistoryAPI.get<SocialHistory>(
-      `?patient_id=${patientId}`
+      `?patient_id=${patientId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
     );
     console.log("GET Patient Social History", response.data);
     return response.data;
@@ -162,10 +179,18 @@ export const addSocialHistory = async (
   patientId: number,
   addSocialHistory: AddSocialHistory
 ): Promise<SocialHistory> => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+
   try {
     const response = await socialHistoryAPI.post<SocialHistory>(
       `/add?patient_id=${patientId}`,
-      addSocialHistory
+      addSocialHistory,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
     );
     console.log("POST add patient social history", response.data);
     return response.data;
@@ -179,10 +204,18 @@ export const updateSocialHistory = async (
   patientId: number,
   updateSocialHistory: UpdateSocialHistory
 ): Promise<SocialHistory> => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+
   try {
     const response = await socialHistoryAPI.put<SocialHistory>(
       `/update?patient_id=${patientId}`,
-      updateSocialHistory
+      updateSocialHistory,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
     );
     console.log("PUT update patient social history", response.data);
     return response.data;
@@ -193,8 +226,15 @@ export const updateSocialHistory = async (
 };
 
 export const fetchDietList = async (): Promise<SocialHistoryDDItem[]> => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+
   try {
-    const response = await dietListAPI.get<SocialHistoryDDItem[]>(``);
+    const response = await dietListAPI.get<SocialHistoryDDItem[]>(``, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
     console.log("GET get diet list", response.data);
     return response.data;
   } catch (error) {
@@ -204,8 +244,15 @@ export const fetchDietList = async (): Promise<SocialHistoryDDItem[]> => {
 };
 
 export const fetchEducationList = async (): Promise<SocialHistoryDDItem[]> => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+
   try {
-    const response = await educationListAPI.get<SocialHistoryDDItem[]>(``);
+    const response = await educationListAPI.get<SocialHistoryDDItem[]>(``, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
     console.log("GET get education list", response.data);
     return response.data;
   } catch (error) {
@@ -215,8 +262,15 @@ export const fetchEducationList = async (): Promise<SocialHistoryDDItem[]> => {
 };
 
 export const fetchLiveWithList = async (): Promise<SocialHistoryDDItem[]> => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+
   try {
-    const response = await liveWithListAPI.get<SocialHistoryDDItem[]>(``);
+    const response = await liveWithListAPI.get<SocialHistoryDDItem[]>(``, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
     console.log("GET get live with list", response.data);
     return response.data;
   } catch (error) {
@@ -226,8 +280,15 @@ export const fetchLiveWithList = async (): Promise<SocialHistoryDDItem[]> => {
 };
 
 export const fetchOccupationList = async (): Promise<SocialHistoryDDItem[]> => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+
   try {
-    const response = await occupationListAPI.get<SocialHistoryDDItem[]>(``);
+    const response = await occupationListAPI.get<SocialHistoryDDItem[]>(``, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
     console.log("GET get occupation list", response.data);
     return response.data;
   } catch (error) {
@@ -237,8 +298,15 @@ export const fetchOccupationList = async (): Promise<SocialHistoryDDItem[]> => {
 };
 
 export const fetchPetList = async (): Promise<SocialHistoryDDItem[]> => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+
   try {
-    const response = await petListAPI.get<SocialHistoryDDItem[]>(``);
+    const response = await petListAPI.get<SocialHistoryDDItem[]>(``, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
     console.log("GET get pet list", response.data);
     return response.data;
   } catch (error) {
@@ -248,8 +316,15 @@ export const fetchPetList = async (): Promise<SocialHistoryDDItem[]> => {
 };
 
 export const fetchReligionList = async (): Promise<SocialHistoryDDItem[]> => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+
   try {
-    const response = await religionListAPI.get<SocialHistoryDDItem[]>(``);
+    const response = await religionListAPI.get<SocialHistoryDDItem[]>(``, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
     console.log("GET get religion list", response.data);
     return response.data;
   } catch (error) {

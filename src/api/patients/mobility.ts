@@ -2,6 +2,7 @@ import { MobilityAidTD } from "@/mocks/mockPatientDetails";
 import { formatDateString } from "@/utils/formatDate";
 import { mobilityListAPI, patientMobilityAPI } from "../apiConfig";
 import { AxiosError } from "axios";
+import { retrieveAccessTokenFromCookie } from "../users/auth";
 
 export interface MobilityList {
   MobilityListId: number;
@@ -41,8 +42,15 @@ export interface UpdateMobilityAid {
 }
 
 export const fetchMobilityList = async (): Promise<MobilityList[]> => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+
   try {
-    const response = await mobilityListAPI.get<MobilityList[]>(``);
+    const response = await mobilityListAPI.get<MobilityList[]>(``, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
 
     console.log("GET Patient Mobility List", response.data);
     return response.data;
@@ -83,11 +91,19 @@ export const convertToMobilityAidTD = (
 export const fetchMobilityAids = async (
   patientId: number
 ): Promise<MobilityAidTD[]> => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+
   try {
     const mobilityList = await fetchMobilityList();
 
     const mobilityAidsResponse = await patientMobilityAPI.get<MobilityAid[]>(
-      `/${patientId}`
+      `/${patientId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
     );
     console.log("GET Patient Mobility Aids", mobilityAidsResponse.data);
 
@@ -110,9 +126,17 @@ export const fetchMobilityAids = async (
 export const fetchMobilityAidById = async (
   mobiilityAidID: number
 ): Promise<MobilityAid> => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+
   try {
     const mobilityAidsResponse = await patientMobilityAPI.get<MobilityAid>(
-      `/${mobiilityAidID}`
+      `/${mobiilityAidID}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
     );
     console.log("GET Patient Mobility Aids", mobilityAidsResponse.data);
 
@@ -126,10 +150,18 @@ export const fetchMobilityAidById = async (
 export const addMobilityAid = async (
   addMobilityAid: AddMobilityAid
 ): Promise<MobilityAid> => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+
   try {
     const response = await patientMobilityAPI.post<MobilityAid>(
       "",
-      addMobilityAid
+      addMobilityAid,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
     );
     console.log("GET Patient Mobility Aids", response.data);
     return response.data;
@@ -143,10 +175,18 @@ export const updateMobilityAid = async (
   mobilityAidID: number,
   updateMobilityAid: UpdateMobilityAid
 ): Promise<MobilityAid> => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+
   try {
     const response = await patientMobilityAPI.put<MobilityAid>(
       `/${mobilityAidID}`,
-      updateMobilityAid
+      updateMobilityAid,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
     );
     console.log("PUT update patient Mobility Aids", response.data);
     return response.data;
@@ -159,9 +199,17 @@ export const updateMobilityAid = async (
 export const deleteMobilityAid = async (
   mobilityAidID: number
 ): Promise<MobilityAid> => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+
   try {
     const response = await patientMobilityAPI.delete<MobilityAid>(
-      `/${mobilityAidID}`
+      `/${mobilityAidID}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
     );
     console.log("DELETE delete patient Mobility Aids", response.data);
     return response.data;
