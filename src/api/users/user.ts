@@ -251,6 +251,30 @@ export const updateUserProfile = async (userProfileForm: UserProfileForm) => {
   }
 };
 
+export const updateUser2FA = async (checked: boolean) => {
+  try {
+    const token = retrieveAccessTokenFromCookie();
+    if (!token) throw new Error("No token found.");
+
+    const response = await userAPI.put<UserDetails>(
+      `/update_user/`,
+      {
+        twoFactorEnabled: checked,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    console.log("PUT update user 2fa", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("PUT update user 2fa", error);
+    throw error;
+  }
+};
+
 export const fetchUserProfilePhoto = async () => {
   try {
     const token = retrieveAccessTokenFromCookie();
