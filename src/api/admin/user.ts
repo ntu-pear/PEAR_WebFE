@@ -77,3 +77,18 @@ export const createUser = async (user: Partial<User>) => {
     throw error;
   }
 }
+
+export const getGuardian = async (nric: string) => {
+  try {
+    const token = retrieveAccessTokenFromCookie();
+    if (!token) throw new Error("Token not found");
+    const response = await adminAPI.get<User>(`/get_guardian/${nric}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    console.log("Get guardian", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("Get guardian", error);
+    throw error;
+  }
+}
