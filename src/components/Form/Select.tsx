@@ -34,7 +34,7 @@ export default function Select<T extends FieldValues>({
           </option>
         ))}
       </select>
-      {errors.firstName && (
+      {errors[name] && (
         <p role="alert" className="text-red-600 text-sm">
           The {label} field is required.
         </p>
