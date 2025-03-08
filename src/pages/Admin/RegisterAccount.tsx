@@ -30,6 +30,8 @@ const RegisterAccount: React.FC = () => {
   const { activeModal, openModal } = useModal();
   const form = useForm<Inputs>();
   const { mutate } = useCreateUser()
+  const roles = useGetRoles()
+
   const onSubmit: SubmitHandler<Inputs> = (data) => {
     console.log(data)
     mutate({
@@ -43,7 +45,6 @@ const RegisterAccount: React.FC = () => {
       nric: data.nric,
     })
   }
-  const roles = useGetRoles()
 
   return (
     <div className="flex min-h-screen w-full flex-col container mx-auto px-0 sm:px-4">
@@ -86,6 +87,12 @@ const RegisterAccount: React.FC = () => {
                       label="NRIC"
                       name="nric"
                       form={form}
+                      validation={{
+                        pattern: {
+                          value: /^[STGM]\d{7}[A-Z]$/,
+                          message: 'NRIC must be 9 characters in length and starts with character S,T,G,M'
+                        }
+                      }}
                     />
                     <Input
                       label="Address"
@@ -119,6 +126,12 @@ const RegisterAccount: React.FC = () => {
                       label="Email"
                       name="email"
                       form={form}
+                      validation={{
+                        pattern: {
+                          value: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
+                          message: 'The Email field is not a valid email address'
+                        }
+                      }}
                     />
                     <Select
                       label="Role"
