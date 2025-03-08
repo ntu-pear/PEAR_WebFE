@@ -1,24 +1,36 @@
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Switch } from "../ui/switch";
-import { useModal } from "@/hooks/useModal";
+// import { useModal } from "@/hooks/useModal";
 import { useState } from "react";
-import Enable2FAModal from "../Modal/Enable2FAModal";
+import { toast } from "sonner";
+import { updateUser2FA } from "@/api/users/user";
+// import Enable2FAModal from "../Modal/Enable2FAModal";
 
 const TwoFactorAuthSettings: React.FC = () => {
-  const { activeModal, openModal } = useModal();
+  // const { activeModal openModal } = useModal();
   const [isSwitchOn, setIsSwitchOn] = useState(false);
 
-  const handleSwitchChange = (checked: boolean) => {
+  const handleSwitchChange = async (checked: boolean) => {
     setIsSwitchOn(checked);
-    if (checked) {
-      openModal("enable2FA");
+    // if (checked) {
+    //   openModal("enable2FA");
+    // }
+
+    const switchStatusText = checked ? "enable" : "disable";
+
+    try {
+      await updateUser2FA(checked);
+      toast.success(`User Email 2FA ${switchStatusText}d !`);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (error) {
+      toast.error(`Failed to ${switchStatusText} User Email 2FA !`);
     }
   };
 
-  const handleCancelClick = () => {
-    setIsSwitchOn(false);
-  };
+  // const handleCancelClick = () => {
+  //   setIsSwitchOn(false);
+  // };
 
   return (
     <>
@@ -53,9 +65,9 @@ const TwoFactorAuthSettings: React.FC = () => {
           </Card>
         </CardContent>
       </Card>
-      {activeModal.name === "enable2FA" && (
+      {/* {activeModal.name === "enable2FA" && (
         <Enable2FAModal onCancelClick={handleCancelClick} />
-      )}
+      )} */}
     </>
   );
 };

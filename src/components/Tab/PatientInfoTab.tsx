@@ -32,6 +32,8 @@ import {
 } from "@/api/patients/socialHistory";
 import { fetchDiagnosedDementia } from "@/api/patients/diagnosedDementia";
 import AddSocialHistoryModal from "../Modal/AddSocialHistory";
+import EditMobilityAid from "../Modal/EditMobilityAidModal";
+import DeleteMobilityAidModal from "../Modal/DeleteMobilityAidModal";
 
 interface PatientInfoTabProps extends TabProps {
   patientInfo: PatientInformation | null;
@@ -372,6 +374,35 @@ const PatientInfoTab: React.FC<PatientInfoTabProps> = ({
               data={mobilityAids}
               columns={mobilityAidsColumns}
               viewMore={false}
+              renderActions={(item) => (
+                <div className="flex space-x-2">
+                  <Button
+                    size="sm"
+                    className="mt-3"
+                    onClick={() =>
+                      openModal("editMobilityAids", {
+                        mobilityAidId: String(item.id),
+                        refreshData: handleFetchMobilityAids,
+                      })
+                    }
+                  >
+                    Edit
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    className="mt-3"
+                    onClick={() =>
+                      openModal("deleteMobilityAids", {
+                        mobilityAidId: String(item.id),
+                        refreshData: handleFetchMobilityAids,
+                      })
+                    }
+                  >
+                    Delete
+                  </Button>
+                </div>
+              )}
             />
           </CardContent>
         </Card>
@@ -501,6 +532,8 @@ const PatientInfoTab: React.FC<PatientInfoTabProps> = ({
       {activeModal.name === "addMedicalHistory" && <AddMedicalHistoryModal />}
 
       {activeModal.name === "addMobilityAids" && <AddMobilityAidModal />}
+      {activeModal.name === "editMobilityAids" && <EditMobilityAid />}
+      {activeModal.name === "deleteMobilityAids" && <DeleteMobilityAidModal />}
 
       {activeModal.name === "editStaffAllocation" && (
         <EditStaffAllocationModal />

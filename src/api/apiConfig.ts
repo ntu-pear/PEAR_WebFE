@@ -84,6 +84,10 @@ export const createPatientAllergyAPI = axios.create({
   baseURL: `${VITE_PATIENT_SERVICE_URL}/create_patient_allergy`,
 });
 
+export const updatePatientAllergyAPI = axios.create({
+  baseURL: `${VITE_PATIENT_SERVICE_URL}/update_patient_allergy`,
+});
+
 export const deletePatientAllergyAPI = axios.create({
   baseURL: `${VITE_PATIENT_SERVICE_URL}/delete_patient_allergy`,
 });

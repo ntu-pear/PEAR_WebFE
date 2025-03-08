@@ -11,6 +11,7 @@ import AddAllergyModal from "../Modal/AddAllergyModal";
 import { fetchPatientAllergy } from "@/api/patients/allergy";
 import { toast } from "sonner";
 import DeleteAllergyModal from "../Modal/DeleteAllergyModal";
+import EditAllergyModal from "../Modal/EditAllergyModal";
 
 const AllergyTab: React.FC<TabProps> = ({ id }) => {
   const [allergy, setAllergy] = useState<AllergyTD[]>([]);
@@ -80,6 +81,19 @@ const AllergyTab: React.FC<TabProps> = ({ id }) => {
               renderActions={(item) => (
                 <div className="flex space-x-2 w-[75px] sm:w-[150px]">
                   <Button
+                    size="sm"
+                    className="mt-3"
+                    onClick={() =>
+                      openModal("editAllergy", {
+                        allergyId: item.id,
+                        patientId: id,
+                        refreshAllergyData,
+                      })
+                    }
+                  >
+                    Edit
+                  </Button>
+                  <Button
                     variant="destructive"
                     size="sm"
                     className="mt-3"
@@ -99,6 +113,7 @@ const AllergyTab: React.FC<TabProps> = ({ id }) => {
         </Card>
       </TabsContent>
       {activeModal.name === "addAllergy" && <AddAllergyModal />}
+      {activeModal.name === "editAllergy" && <EditAllergyModal />}
       {activeModal.name === "deleteAllergy" && <DeleteAllergyModal />}
     </>
   );
