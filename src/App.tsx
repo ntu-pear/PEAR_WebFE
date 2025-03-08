@@ -28,6 +28,7 @@ import EditRoles from "./pages/Admin/EditRoles";
 import CreateRole from "./pages/Admin/CreateRole";
 import EditRole from "./pages/Admin/EditRole";
 import EditUserInRole from "./pages/Admin/EditUserInRole";
+import RegisterAccount from "./pages/Admin/RegisterAccount";
 
 import Unauthorized from "./pages/Unauthorized";
 import NotFound from "./pages/NotFound";
@@ -132,6 +133,7 @@ const App: React.FC = () => {
                       element={<ProtectedRoute allowedRoles={["ADMIN"]} />}
                     >
                       <Route path="temp-page" element={<TempPage />} />
+                      <Route path="register-account" element={<RegisterAccount />} />
                       <Route path="edit-roles" element={<EditRoles />} />
                       <Route path="create-role" element={<CreateRole />} />
                       <Route path="edit-role/:id" element={<EditRole />} />
