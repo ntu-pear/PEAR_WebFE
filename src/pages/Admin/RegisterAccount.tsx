@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useForm, SubmitHandler } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import { useModal } from '@/hooks/useModal';
-import RegisterExistingGuardianModal from '@/components/Modal/RegisterExistingGuardian';
+import RegisterExistingGuardianModal from '@/components/Modal/RegisterExistingGuardianModal';
 import { Plus } from 'lucide-react';
 import Input from '@/components/Form/Input';
 import RadioGroup from '@/components/Form/RadioGroup';
@@ -55,13 +55,13 @@ const RegisterAccount: React.FC = () => {
               <CardTitle>Register Account</CardTitle>
             </CardHeader>
             <CardContent className="flex flex-col align-middle">
-              <Button
+              {/* <Button
                 className="bg-sky-600 self-center gap-2"
                 onClick={() => openModal('registerExistingGuardian')}
               >
                 <Plus />
                 Register existing guardian
-              </Button>
+              </Button> */}
               <form onSubmit={form.handleSubmit(onSubmit)}>
                 <Card className="m-3">
                   <CardHeader className="bg-sky-400 py-3 text-white font-semibold">
