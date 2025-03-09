@@ -33,7 +33,6 @@ const RegisterAccount: React.FC = () => {
   const roles = useGetRoles()
 
   const onSubmit: SubmitHandler<Inputs> = (data) => {
-    console.log(data)
     mutate({
       nric_FullName: `${data.firstName} ${data.lastName}`,
       nric_Address: data.address,
@@ -103,6 +102,12 @@ const RegisterAccount: React.FC = () => {
                       label="Contact No."
                       name="contactNo"
                       form={form}
+                      validation={{
+                        pattern: {
+                          value: /^[689]\d{7}$/,
+                          message: 'Contact No. must have 8 digits in length and start with digit 6, 8 or 9'
+                        }
+                      }}
                     />
                     <RadioGroup
                       label="Gender"
