@@ -1,5 +1,5 @@
 import axios from "axios";
-import { userAPI, usersAPI } from "../apiConfig";
+import { getDoctorNameAPI, userAPI, usersAPI } from "../apiConfig";
 import { retrieveAccessTokenFromCookie } from "./auth";
 
 export interface RequestResetPasswordForm {
@@ -326,6 +326,29 @@ export const deleteUserProfilePhoto = async () => {
     return response.data;
   } catch (error) {
     console.error("DELETE delete user profile photo", error);
+    throw error;
+  }
+};
+
+export const getDoctorNameById = async (userId: string): Promise<string> => {
+  try {
+    const token = retrieveAccessTokenFromCookie();
+    if (!token) throw new Error("No token found.");
+
+    const response = await getDoctorNameAPI.post(
+      `?userId=${userId}`,
+      {},
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    console.log("GET get doctor name by id", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("GET get doctor name by id", error);
     throw error;
   }
 };

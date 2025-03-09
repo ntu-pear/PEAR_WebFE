@@ -2,6 +2,7 @@ import { formatDateString } from "@/utils/formatDate";
 import { doctorNoteAPI } from "../apiConfig";
 import { TableRowData } from "@/components/Table/DataTable";
 import { retrieveAccessTokenFromCookie } from "../users/auth";
+import { getDoctorNameById } from "../users/user";
 
 export interface DoctorNote {
   isDeleted: string;
@@ -39,9 +40,9 @@ export interface DoctorNoteTDServer {
   };
 }
 
-export const convertToDoctorNotesTD = (
+export const convertToDoctorNotesTD = async (
   doctorNoteViewList: DoctorNoteViewList
-): DoctorNoteTDServer => {
+): Promise<DoctorNoteTDServer> => {
   if (!Array.isArray(doctorNoteViewList.data)) {
     console.error(
       "doctorNoteViewList.data is not an array",
@@ -58,14 +59,42 @@ export const convertToDoctorNotesTD = (
     };
   }
 
-  const doctorNotesTransformed = doctorNoteViewList.data
-    .filter((dn) => dn.isDeleted === "0")
-    .map((dn) => ({
-      id: dn.id,
-      date: dn.createdDate ? formatDateString(dn.createdDate) : "",
-      doctorName: dn.doctorId.toString().toUpperCase(), //temporary use doctorId for now
-      notes: dn.doctorRemarks || "",
-    }));
+  const filteredNotes = doctorNoteViewList.data.filter(
+    (dn) => dn.isDeleted === "0"
+  );
+
+  // Extract all doctorIds from filteredNotes
+  const doctorIds = filteredNotes.map((dn) => dn.doctorId);
+
+  //get only unique doctorIds by creating a Set
+  const uniqueDoctorIds = [...new Set(doctorIds)];
+
+  // Fetch doctor names concurrently and pair with the original unique doctorId
+  const doctorNameResults = await Promise.all(
+    uniqueDoctorIds.map(async (doctorId) => {
+      try {
+        const name = await getDoctorNameById(doctorId.toString());
+        return { doctorId: doctorId, doctorName: name };
+      } catch (error) {
+        console.error(`Error fetching doctor name for ID ${doctorId}`, error);
+        return { doctorId: doctorId, doctorName: "-" };
+      }
+    })
+  );
+
+  //convert array of doctorId,doctorName into map
+  const doctorNameMap = new Map(
+    doctorNameResults.map((dn) => [dn.doctorId, dn.doctorName])
+  );
+
+  console.log("doctorNameMap", doctorNameMap);
+
+  const doctorNotesTransformed = filteredNotes.map((dn) => ({
+    id: dn.id,
+    date: dn.createdDate ? formatDateString(dn.createdDate) : "",
+    doctorName: doctorNameMap.get(dn.doctorId.toString()) || "-",
+    notes: dn.doctorRemarks || "",
+  }));
 
   const updatedTD = {
     doctornotes: doctorNotesTransformed,
@@ -99,7 +128,7 @@ export const fetchDoctorNotes = async (
       }
     );
     console.log("GET Patient Doctor Notes", response.data);
-    return convertToDoctorNotesTD(response.data);
+    return await convertToDoctorNotesTD(response.data);
   } catch (error) {
     console.error("GET Patient Doctor Notes", error);
     throw error;
