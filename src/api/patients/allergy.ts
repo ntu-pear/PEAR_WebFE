@@ -5,6 +5,7 @@ import {
   createPatientAllergyAPI,
   deletePatientAllergyAPI,
   patientAllergyAPI,
+  updatePatientAllergyAPI,
 } from "../apiConfig";
 import { retrieveAccessTokenFromCookie } from "../users/auth";
 import { AxiosError } from "axios";
@@ -20,14 +21,6 @@ export interface Allergy {
   UpdatedDateTime: string;
   CreatedById: string;
   ModifiedById: string;
-}
-
-export interface AllergyFormData {
-  AllergyRemarks: string;
-  IsDeleted: string;
-  PatientID: number;
-  AllergyTypeID: number;
-  AllergyReactionTypeID: number;
 }
 
 export interface AllergyType {
@@ -48,6 +41,12 @@ export interface AllergyReactionType {
   ModifiedById: string;
 }
 
+export interface AllergyAutoFill {
+  AllergyRemarks?: string;
+  AllergyTypeID?: number;
+  AllergyReactionTypeID?: number;
+}
+
 export interface AllergyAddFormData {
   AllergyRemarks: string;
   IsDeleted: string;
@@ -61,11 +60,9 @@ export interface AllergyAddFormData {
 export interface AllergyUpdateFormData {
   AllergyRemarks: string;
   IsDeleted: string;
-  PatientID?: number;
+  Patient_AllergyID: number;
   AllergyTypeID: number;
   AllergyReactionTypeID: number;
-  CreatedById?: string;
-  ModifiedById?: string;
 }
 
 export const convertToAllergyTD = (allergies: Allergy[]): AllergyTD[] => {
@@ -83,6 +80,30 @@ export const convertToAllergyTD = (allergies: Allergy[]): AllergyTD[] => {
       reaction: a.AllergyReactionTypeValue?.toUpperCase(),
       notes: a.AllergyRemarks || "",
     }));
+};
+
+export const convertToAllergyAutoFill = (
+  allergyTD: AllergyTD,
+  allergyTypes: AllergyType[],
+  allergyReactionTypes: AllergyReactionType[]
+): AllergyAutoFill => {
+  if (!Array.isArray(allergyTypes)) {
+    console.error("allergyTypes is not an array", allergyTypes);
+  }
+
+  if (!Array.isArray(allergyReactionTypes)) {
+    console.error("allergyReactionType is not an array", allergyReactionTypes);
+  }
+
+  return {
+    AllergyRemarks: allergyTD.notes,
+    AllergyTypeID: allergyTypes.find(
+      (at) => at.Value.toUpperCase() === allergyTD?.allergicTo.toUpperCase()
+    )?.AllergyTypeID,
+    AllergyReactionTypeID: allergyReactionTypes.find(
+      (art) => art.Value.toUpperCase() === allergyTD?.reaction.toUpperCase()
+    )?.AllergyReactionTypeID,
+  };
 };
 
 export const fetchPatientAllergy = async (
@@ -105,11 +126,28 @@ export const fetchPatientAllergy = async (
   } catch (error) {
     if (error instanceof AxiosError) {
       if (error.response && error.response.status === 404) {
-        console.warn("GET all dementia List/ patient assigned dementia", error);
+        console.warn("Get Patient Allergy", error);
         return [];
       }
     }
-    console.error("GET all dementia List/ patient assigned dementia", error);
+    console.error("Get Patient Allergy", error);
+    throw error;
+  }
+};
+
+export const fetchPatientAllergyById = async (
+  patient_id: number,
+  allergy_id: number
+): Promise<AllergyAutoFill> => {
+  try {
+    const r1 = await fetchPatientAllergy(patient_id);
+    const r2 = await fetchAllAllergyTypes();
+    const r3 = await fetchAllAllergyReactionTypes();
+
+    const filteredR1 = r1.filter((p) => p.id === allergy_id)[0];
+    return convertToAllergyAutoFill(filteredR1, r2, r3);
+  } catch (error) {
+    console.error("Get Patient Allergy", error);
     throw error;
   }
 };
@@ -179,7 +217,34 @@ export const addPatientAllergy = async (
   }
 };
 
-// not working atm, backend api does not update isDeleted to 1'
+export const updatePatientAllergy = async (
+  patientId: number,
+  formData: AllergyUpdateFormData
+): Promise<Allergy> => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+
+  try {
+    const response = await updatePatientAllergyAPI.put<Allergy>(
+      `/${patientId}`,
+      formData,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    console.log("PUT update patient allergy", response.data);
+    return response.data;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } catch (error: any) {
+    if (error.response) {
+      throw new Error(error.response.data.detail);
+    }
+    throw error;
+  }
+};
+
 export const deletePatientAllergy = async (
   patient_allergy_id: number
 ): Promise<Allergy> => {

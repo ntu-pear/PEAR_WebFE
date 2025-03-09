@@ -8,8 +8,35 @@ import {
 } from "../ui/card";
 import { Alert, AlertDescription } from "../ui/alert";
 import { AlertTriangle } from "lucide-react";
+import { getUserDetails } from "@/api/users/user";
+import { toast } from "sonner";
 
 const PersonalDataSettings: React.FC = () => {
+  const handleDownloadUserData = async () => {
+    try {
+      const jsonData = await getUserDetails();
+
+      //Create Blob object , JSON.stringify(value, replacer, space)
+      const blob = new Blob([JSON.stringify(jsonData, null, 2)], {
+        type: "application/json",
+      });
+      //temporary auto download link
+      const url = URL.createObjectURL(blob);
+
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "PersonalData.json";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      URL.revokeObjectURL(url);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (error) {
+      toast.error("Failed to download personal data.");
+    }
+  };
+
   return (
     <Card>
       <CardHeader className="border-b">
@@ -35,7 +62,7 @@ const PersonalDataSettings: React.FC = () => {
         </Alert>
       </CardContent>
       <CardFooter className="flex gap-4 justify-start pt-2 pb-6">
-        <Button>Download</Button>
+        <Button onClick={handleDownloadUserData}>Download</Button>
         <Button variant="destructive" disabled>
           Delete Account
         </Button>

@@ -1,17 +1,17 @@
-import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import React from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-import { useForm, SubmitHandler } from 'react-hook-form';
-import { Button } from '@/components/ui/button';
-import { useModal } from '@/hooks/useModal';
-import RegisterExistingGuardianModal from '@/components/Modal/RegisterExistingGuardianModal';
-import { Plus } from 'lucide-react';
-import Input from '@/components/Form/Input';
-import RadioGroup from '@/components/Form/RadioGroup';
-import DateInput from '@/components/Form/DateInput';
-import Select from '@/components/Form/Select';
-import useGetRoles from '@/hooks/role/useGetRoles';
-import useCreateUser from '@/hooks/admin/useCreateUser';
+import { useForm, SubmitHandler } from "react-hook-form";
+import { Button } from "@/components/ui/button";
+import { useModal } from "@/hooks/useModal";
+import RegisterExistingGuardianModal from "@/components/Modal/RegisterExistingGuardianModal";
+/*import { Plus } from 'lucide-react';*/
+import Input from "@/components/Form/Input";
+import RadioGroup from "@/components/Form/RadioGroup";
+import DateInput from "@/components/Form/DateInput";
+import Select from "@/components/Form/Select";
+import useGetRoles from "@/hooks/role/useGetRoles";
+import useCreateUser from "@/hooks/admin/useCreateUser";
 
 type Inputs = {
   firstName: string;
@@ -20,17 +20,17 @@ type Inputs = {
   nric: string;
   address: string;
   contactNo: string;
-  gender: 'Male' | 'Female';
+  gender: "Male" | "Female";
   dateOfBirth: string;
-  email: string
-  role: string
+  email: string;
+  role: string;
 };
 
 const RegisterAccount: React.FC = () => {
-  const { activeModal, openModal } = useModal();
+  const { activeModal /*openModal*/ } = useModal();
   const form = useForm<Inputs>();
-  const { mutate } = useCreateUser()
-  const roles = useGetRoles()
+  const { mutate } = useCreateUser();
+  const roles = useGetRoles();
 
   const onSubmit: SubmitHandler<Inputs> = (data) => {
     mutate({
@@ -42,8 +42,8 @@ const RegisterAccount: React.FC = () => {
       email: data.email,
       roleName: data.role,
       nric: data.nric,
-    })
-  }
+    });
+  };
 
   return (
     <div className="flex min-h-screen w-full flex-col container mx-auto px-0 sm:px-4">
@@ -89,8 +89,9 @@ const RegisterAccount: React.FC = () => {
                       validation={{
                         pattern: {
                           value: /^[STGM]\d{7}[A-Z]$/,
-                          message: 'NRIC must be 9 characters in length and starts with character S,T,G,M'
-                        }
+                          message:
+                            "NRIC must be 9 characters in length and starts with character S,T,G,M",
+                        },
                       }}
                     />
                     <Input
@@ -113,7 +114,7 @@ const RegisterAccount: React.FC = () => {
                       label="Gender"
                       name="gender"
                       form={form}
-                      options={['Male', 'Female']}
+                      options={["Male", "Female"]}
                     />
                     <DateInput
                       label="Date of Birth"
@@ -133,16 +134,18 @@ const RegisterAccount: React.FC = () => {
                       formReturn={form}
                       validation={{
                         pattern: {
-                          value: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
-                          message: 'The Email field is not a valid email address'
-                        }
+                          value:
+                            /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
+                          message:
+                            "The Email field is not a valid email address",
+                        },
                       }}
                     />
                     <Select
                       label="Role"
                       name="role"
                       form={form}
-                      options={roles.data?.map(role => role.roleName) || []}
+                      options={roles.data?.map((role) => role.roleName) || []}
                     />
                   </CardContent>
                 </Card>
@@ -154,7 +157,9 @@ const RegisterAccount: React.FC = () => {
           </Card>
         </main>
       </div>
-      {activeModal.name === 'registerExistingGuardian' && <RegisterExistingGuardianModal />}
+      {activeModal.name === "registerExistingGuardian" && (
+        <RegisterExistingGuardianModal />
+      )}
     </div>
   );
 };
