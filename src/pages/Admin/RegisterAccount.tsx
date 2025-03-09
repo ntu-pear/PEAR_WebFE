@@ -70,22 +70,22 @@ const RegisterAccount: React.FC = () => {
                     <Input
                       label="First Name"
                       name="firstName"
-                      form={form}
+                      formReturn={form}
                     />
                     <Input
                       label="Last Name"
                       name="lastName"
-                      form={form}
+                      formReturn={form}
                     />
                     <Input
                       label="Preferred Name"
                       name="preferredName"
-                      form={form}
+                      formReturn={form}
                     />
                     <Input
                       label="NRIC"
                       name="nric"
-                      form={form}
+                      formReturn={form}
                       validation={{
                         pattern: {
                           value: /^[STGM]\d{7}[A-Z]$/,
@@ -96,12 +96,12 @@ const RegisterAccount: React.FC = () => {
                     <Input
                       label="Address"
                       name="address"
-                      form={form}
+                      formReturn={form}
                     />
                     <Input
                       label="Contact No."
                       name="contactNo"
-                      form={form}
+                      formReturn={form}
                       validation={{
                         pattern: {
                           value: /^[689]\d{7}$/,
@@ -130,7 +130,7 @@ const RegisterAccount: React.FC = () => {
                     <Input
                       label="Email"
                       name="email"
-                      form={form}
+                      formReturn={form}
                       validation={{
                         pattern: {
                           value: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,

@@ -21,7 +21,7 @@ const RegisterExistingGuardianModal: React.FC = () => {
                 label="Enter Guardian's NRIC"
                 name="nric"
                 placeholder='NRIC'
-                form={form}
+                formReturn={form}
                 validation={{
                   pattern: {
                     value: /^[STGM]\d{7}[A-Z]$/,
