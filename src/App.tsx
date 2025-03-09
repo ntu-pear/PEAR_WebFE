@@ -44,6 +44,7 @@ import TwoFactorAuthSettings from "./components/UserSettings/TwoFactorAuthSettin
 import ConfirmNewEmail from "./pages/auth/ConfirmNewEmail";
 import Login2FA from "./pages/auth/Login2FA";
 import HighlightTable from "./pages/Supervisor/HighlightTable";
+import VerifyAccount from "./pages/Admin/VerifyAccount";
 
 export const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: false, staleTime: Infinity } },
@@ -134,6 +135,7 @@ const App: React.FC = () => {
                     >
                       <Route path="temp-page" element={<TempPage />} />
                       <Route path="register-account" element={<RegisterAccount />} />
+                      <Route path="verify-account/:token" element={<VerifyAccount />} />
                       <Route path="edit-roles" element={<EditRoles />} />
                       <Route path="create-role" element={<CreateRole />} />
                       <Route path="edit-role/:id" element={<EditRole />} />
