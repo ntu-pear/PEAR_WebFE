@@ -60,7 +60,7 @@ export const fetchUsersByFields = async (
     "page" : pageNo,
     "page_size" : pageSize
   }
-): Promise<User[]> => {
+): Promise<AccountTableDataServer> => {
   const token = retrieveAccessTokenFromCookie();
   if (!token) throw new Error("No token found.");
 
@@ -75,7 +75,7 @@ export const fetchUsersByFields = async (
       }
     );
     console.log("GET accounts by field", response.data);
-    return response.data.data;
+    return response.data;
   } catch (error) {
     console.error("GET accounts by field", error);
     throw error;

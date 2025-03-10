@@ -84,7 +84,7 @@ const AccountTable: React.FC = () => {
 
   const handleFilter = async () => {
     try {
-      const fetchedAccountTDServer: User[] =
+      const fetchedAccountTDServer: AccountTableDataServer =
         import.meta.env.MODE === "development" ||
         import.meta.env.MODE === "production"
           ? await fetchUsersByFields()

@@ -1,4 +1,4 @@
-import { User } from "@/api/admin/user";
+import { AccountTableDataServer, User } from "@/api/admin/user";
 import { TableRowData } from "@/components/Table/DataTable";
 
 export interface AccountTableData extends TableRowData {
@@ -10,7 +10,11 @@ export interface AccountTableData extends TableRowData {
   role: string;
 }
 
-export const mockAccountTDList: User[] = [
+export const mockAccountTDList: AccountTableDataServer = {
+  total: 8,
+  pageNo: 1,
+  pageSize: 10,
+  data: [
   {
     "id": "U01d447fkcfe",
     "preferredName": "",
@@ -219,4 +223,4 @@ export const mockAccountTDList: User[] = [
     "modifiedDate": "2025-02-17 15:21:00",
     "loginTimeStamp": "2025-02-20 14:10:19"
   }
-]
+]}
