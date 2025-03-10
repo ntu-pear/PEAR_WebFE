@@ -29,34 +29,11 @@ import {
 } from "@/mocks/mockAccountTableData";
 
 const AccountTable: React.FC = () => {
-  const [accountTDServer, setAccountTDServer] = useState<User[]>([
-    {
-      id: "",
-      preferredName: "",
-      nric_FullName: "",
-      nric: "",
-      nric_Address: "",
-      nric_DateOfBirth: "",
-      nric_Gender: "F",
-      roleName: "",
-      contactNo: "",
-      allowNotification: false,
-      profilePicture: "",
-      status: "ACTIVE",
-      email: "",
-      emailConfirmed: false,
-      verified: false,
-      active: false,
-      twoFactorEnabled: false,
-      lockoutEnabled: false,
-      lockoutReason: null,
-      loginTimeStamp: "",
-      createdById: "",
-      createdDate: "",
-      modifiedById: "",
-      modifiedDate: "",
-    },
-  ]);
+  const [accountTDServer, setAccountTDServer] = useState<AccountTableDataServer>({
+    pageNo: 0,
+    pageSize: 0,
+    total: 0,
+    data: []});
 
   const [activeStatus, setActiveStatus] = useState("All");
   const [searchItem, setSearchItem] = useState("");
@@ -82,12 +59,12 @@ const AccountTable: React.FC = () => {
     });
   };
 
-  const handleFilter = async () => {
+  const handleFilter = async (pageNo: number, pageSize: number) => {
     try {
       const fetchedAccountTDServer: AccountTableDataServer =
         import.meta.env.MODE === "development" ||
         import.meta.env.MODE === "production"
-          ? await fetchUsersByFields()
+          ? await fetchUsersByFields(pageNo, pageSize, {})
           : mockAccountTDList;
 
       let filteredAccountTDList = fetchedAccountTDServer;
@@ -101,7 +78,7 @@ const AccountTable: React.FC = () => {
   };
 
   useEffect(() => {
-    handleFilter();
+    handleFilter(accountTDServer.pageNo, accountTDServer.pageSize);
   }, [debouncedActiveStatus, debouncedSearch]);
 
   const renderLoginTimeStamp = (loginTimeStamp: string | null) => {
