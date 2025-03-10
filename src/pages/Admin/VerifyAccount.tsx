@@ -33,7 +33,6 @@ const VerifyAccount: React.FC = () => {
   const onSubmit: SubmitHandler<Inputs> = (data) => {
     const url = window.location.href;
     const token = url.substring(url.lastIndexOf('/') + 1);
-    console.log(token)
 
     mutate({
       user: {
