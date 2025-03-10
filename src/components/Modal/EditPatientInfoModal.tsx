@@ -17,6 +17,7 @@ import { mockPreferredLanguageList } from "@/mocks/mockPatientDetails";
 import { fetchAddress, GeocodeBase } from "@/api/geocode";
 import { toast } from "sonner";
 import { PreferredLanguage } from "@/api/patients/preferredLanguage";
+import dayjs from "dayjs";
 
 const EditPatientInfoModal: React.FC = () => {
   const { modalRef, activeModal, closeModal } = useModal();
@@ -269,7 +270,16 @@ const EditPatientInfoModal: React.FC = () => {
     ) {
       return false;
     }
-    if (!/^(S|T|F|G)\d{7}[A-Z]$/.test(patient.nric)) {
+    if (!/^(S|T|F|G|M)\d{7}[A-Z]$/.test(patient.nric)) {
+      return false;
+    }
+
+    const minDate = dayjs().subtract(15, "years");
+    const maxDate = dayjs().subtract(150, "years");
+
+    const dateOfBirth = dayjs(patient.dateOfBirth);
+
+    if (dateOfBirth.isBefore(maxDate) || dateOfBirth.isAfter(minDate)) {
       return false;
     }
     return true;
@@ -378,7 +388,8 @@ const EditPatientInfoModal: React.FC = () => {
                 <input
                   type="text"
                   name="nric"
-                  pattern="^(S|T|F|G)\d{7}[A-Z]$"
+                  pattern="^(S|T|F|G|M)\d{7}[A-Z]$"
+                  title="NRIC must be 9 characters in length and starts with character S,T,F,G,M."
                   value={patient?.nric || ""}
                   minLength={9}
                   maxLength={9}
@@ -399,6 +410,8 @@ const EditPatientInfoModal: React.FC = () => {
                   value={patient?.dateOfBirth || ""}
                   onChange={(e) => handleChange(e)}
                   className="mt-1 block w-full p-2 border rounded-md text-gray-900"
+                  min={dayjs().subtract(150, "years").format("YYYY-MM-DD")}
+                  max={dayjs().subtract(15, "years").format("YYYY-MM-DD")}
                   required
                 />
               </div>

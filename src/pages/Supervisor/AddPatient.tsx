@@ -13,6 +13,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { convertToUTCISOString, getDateTimeNowInUTC } from "@/utils/formatDate";
 import useGetPreferredLanguageList from "@/hooks/dropDownList/useGetPreferredLanguageList";
 import { toast } from "sonner";
+import dayjs from "dayjs";
 
 const patientInfoSchema = z
   .object({
@@ -28,9 +29,20 @@ const patientInfoSchema = z
     dateOfBirth: z
       .string()
       .min(1, { message: "Date of birth is required" })
-      .refine((date) => new Date(date) <= new Date(), {
-        message: "Date of birth cannot be in the future",
-      }),
+      .refine(
+        (date) => {
+          const today = dayjs(); // Get the current date using Day.js
+          const dob = dayjs(date); // Parse the provided date using Day.js
+          const age = today.diff(dob, "year"); // Get the difference in years
+
+          // Check if age is between 15 and 150 years
+          return age >= 15 && age <= 150;
+        },
+        {
+          message:
+            "Date of Birth should be at least 15 years ago and no more than 150 years ago",
+        }
+      ),
     gender: z.enum(["M", "F"], {
       message: "Gender is required",
     }),
@@ -59,23 +71,36 @@ const patientInfoSchema = z
     startDate: z
       .string()
       .min(1, { message: "Joining date is required" })
-      .refine((date) => new Date(date) <= new Date(), {
-        message: "Joining date cannot be in the future",
-      }),
+      .refine(
+        (date) => {
+          const today = dayjs(); // Current date using Day.js
+          const startDate = dayjs(date); // Convert the provided start date to a Day.js object
+
+          // Get the difference in days between today and the start date
+          const diffInDays = today.diff(startDate, "day");
+
+          // Check if the start date is within +/-30 days of today's date
+          return Math.abs(diffInDays) <= 30;
+        },
+        {
+          message: "Joining date must be +/-30 days from today date",
+        }
+      ),
     endDate: z.string().optional().or(z.literal("")),
   })
   //superrefine on entire object to compare 2 fields
   .superRefine((data, ctx) => {
     if (data.endDate && data.endDate !== "") {
-      const startDate = new Date(data.startDate);
-      const endDate = new Date(data.endDate);
+      // Parse the dates using Day.js
+      const startDate = dayjs(data.startDate).startOf("day"); // Get start of the day
+      const endDate = dayjs(data.endDate).startOf("day"); // Get start of the day
 
-      //if issue does not get called, means validation passed
-      if (endDate <= startDate) {
+      // Compare the two dates (endDate must be after startDate)
+      if (endDate.isBefore(startDate, "day")) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: "End Date must be at least 1 day after start date",
-          path: ["endDate"], //determine which field to show the error at
+          message: "End Date must be after start date",
+          path: ["endDate"],
         });
       }
     }
