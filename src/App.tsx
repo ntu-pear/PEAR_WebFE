@@ -88,6 +88,10 @@ const App: React.FC = () => {
                       path="/confirm-email/:token"
                       element={<ConfirmNewEmail />}
                     />
+                    <Route
+                      path="verify-account/:token"
+                      element={<VerifyAccount />}
+                    />
 
                     {/* Routes for Supervisor */}
                     <Route
@@ -135,7 +139,6 @@ const App: React.FC = () => {
                     >
                       <Route path="temp-page" element={<TempPage />} />
                       <Route path="register-account" element={<RegisterAccount />} />
-                      <Route path="verify-account/:token" element={<VerifyAccount />} />
                       <Route path="edit-roles" element={<EditRoles />} />
                       <Route path="create-role" element={<CreateRole />} />
                       <Route path="edit-role/:id" element={<EditRole />} />
