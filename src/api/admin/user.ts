@@ -29,9 +29,11 @@ export interface User {
   modifiedDate: string
 }
 
-
 export interface AccountTableDataServer {
-  Items: User[];
+  data: User[];
+  pageNo: number;
+  pageSize: number;
+  total: number;
 }
 
 export const fetchUsers = async () => {
@@ -46,6 +48,36 @@ export const fetchUsers = async () => {
   } catch (error) {
     toast.error("Failed to fetch users");
     console.error("GET all users", error);
+    throw error;
+  }
+};
+
+//Get All Patients with skip and limit
+export const fetchUsersByFields = async (
+  pageNo: number = 0,
+  pageSize: number = 10,
+  filters: any = {
+    "page" : pageNo,
+    "page_size" : pageSize
+  }
+): Promise<User[]> => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+
+  try {
+    const response = await adminAPI.post<AccountTableDataServer>(
+      `?page=${pageNo}&page_size=${pageSize}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        data: filters,
+      }
+    );
+    console.log("GET accounts by field", response.data);
+    return response.data.data;
+  } catch (error) {
+    console.error("GET accounts by field", error);
     throw error;
   }
 };

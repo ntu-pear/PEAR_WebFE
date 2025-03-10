@@ -22,7 +22,7 @@ import Searchbar from "@/components/Searchbar";
 import { DataTableServer } from "@/components/Table/DataTable";
 
 import useDebounce from "@/hooks/useDebounce";
-import { fetchUsers, User } from "@/api/admin/user";
+import { AccountTableDataServer, fetchUsers, fetchUsersByFields, User } from "@/api/admin/user";
 
 import {
   mockAccountTDList,
@@ -87,7 +87,7 @@ const AccountTable: React.FC = () => {
       const fetchedAccountTDServer: User[] =
         import.meta.env.MODE === "development" ||
         import.meta.env.MODE === "production"
-          ? await fetchUsers()
+          ? await fetchUsersByFields()
           : mockAccountTDList;
 
       let filteredAccountTDList = fetchedAccountTDServer;
