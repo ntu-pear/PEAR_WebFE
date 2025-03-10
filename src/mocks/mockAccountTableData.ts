@@ -14,7 +14,7 @@ export const mockAccountTDList: AccountTableDataServer = {
   total: 8,
   pageNo: 1,
   pageSize: 10,
-  data: [
+  users: [
   {
     "id": "U01d447fkcfe",
     "preferredName": "",

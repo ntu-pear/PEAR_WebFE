@@ -30,7 +30,7 @@ export interface User {
 }
 
 export interface AccountTableDataServer {
-  data: User[];
+  users: User[];
   pageNo: number;
   pageSize: number;
   total: number;

@@ -37,7 +37,7 @@ const AccountTable: React.FC = () => {
       pageNo: 1,
       pageSize: 10,
       total: 0,
-      data: [],
+      users: [],
     });
 
   const [activeStatus, setActiveStatus] = useState("All");
@@ -86,7 +86,7 @@ const AccountTable: React.FC = () => {
           ? await fetchUsersByFields(pageNo, pageSize, filteredJsonList)
           : mockAccountTDList;
 
-      let filteredAccountTDList = fetchedAccountTDServer.data;
+      let filteredAccountTDList = fetchedAccountTDServer.users;
 
       const sortedAccountTDList = sortByName(filteredAccountTDList, "asc");
 
@@ -183,7 +183,7 @@ const AccountTable: React.FC = () => {
                 </CardHeader>
                 <CardContent>
                   <DataTableServer
-                    data={accountTDServer.data}
+                    data={accountTDServer.users}
                     pagination={{
                       pageNo: 0,
                       pageSize: 0,
