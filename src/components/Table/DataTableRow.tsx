@@ -44,7 +44,7 @@ function DataTableRow<T extends TableRowData>({
           {/* Fallback to the direct value */}
         </TableCell>
       ))}
-      <TableCell className="flex justify-around">
+      <TableCell className="flex flex-col sm:flex-row gap-1 sm:items-center sm:justify-start sm:ml-4">
         {viewMore && viewMoreLink ? (
           <Link to={viewMoreLink}>
             <Button aria-label="View more" variant="default" size="sm">
@@ -52,7 +52,7 @@ function DataTableRow<T extends TableRowData>({
             </Button>
           </Link>
         ) : null}
-        {renderActions ? renderActions(item) : null}{" "}
+        {renderActions && <div>{renderActions(item)}</div>}
         {/* Render custom actions */}
       </TableCell>
     </TableRow>

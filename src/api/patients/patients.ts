@@ -360,6 +360,24 @@ export const updatePatient = async (
   }
 };
 
+export const deletePatient = async (id: number): Promise<ViewPatient> => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+
+  try {
+    const response = await patientsAPI.delete<ViewPatient>(`/delete/${id}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    console.log("DELETE delete patient", response.data.data);
+    return response.data;
+  } catch (error) {
+    console.error("DELETE delete patient", error);
+    throw error;
+  }
+};
+
 export const updatePatientProfilePhoto = async (
   patientId: number,
   formData: FormData
@@ -399,10 +417,10 @@ export const deletePatientProfilePhoto = async (patientId: number) => {
         },
       }
     );
-    console.log("Delete delete Patient Profile Photo", response.data.data);
+    console.log("DELETE delete Patient Profile Photo", response.data.data);
     return response.data;
   } catch (error) {
-    console.error("Delete delete Patient Profile Photo", error);
+    console.error("DELETE delete Patient Profile Photo", error);
     throw error;
   }
 };
