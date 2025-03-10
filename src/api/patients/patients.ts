@@ -1,12 +1,10 @@
 import { patientsAPI } from "../apiConfig";
 import { formatDateString } from "@/utils/formatDate";
-import {
-  PatientInformation,
-  mockPreferredLanguageList,
-} from "@/mocks/mockPatientDetails";
+import { PatientInformation } from "@/mocks/mockPatientDetails";
 import { convertToYesNo } from "@/utils/convertToYesNo";
 import { TableRowData } from "@/components/Table/DataTable";
 import { retrieveAccessTokenFromCookie } from "../users/auth";
+import { fetchPreferredLanguageList } from "./preferredLanguage";
 
 export interface PatientBase {
   name: string;
@@ -248,8 +246,12 @@ export const fetchPatientInfo = async (
         Authorization: `Bearer ${token}`,
       },
     });
+
     const p = response.data.data;
     console.log("GET Patient Info", p);
+
+    const pll = await fetchPreferredLanguageList();
+
     return {
       id: id,
       name: p.name?.toUpperCase(),
@@ -267,7 +269,7 @@ export const fetchPatientInfo = async (
       homeNo: p.homeNo || "-",
       handphoneNo: p.handphoneNo || "-",
       preferredLanguage:
-        mockPreferredLanguageList
+        pll
           .find((pl) => pl.id === p.preferredLanguageId)
           ?.value.toUpperCase() || "-",
       privacyLevel: p.privacyLevel,

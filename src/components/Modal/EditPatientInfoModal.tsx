@@ -13,10 +13,12 @@ import {
   getDateForDatePicker,
   getDateTimeNowInUTC,
 } from "@/utils/formatDate";
-import { mockPreferredLanguageList } from "@/mocks/mockPatientDetails";
 import { fetchAddress, GeocodeBase } from "@/api/geocode";
 import { toast } from "sonner";
-import { PreferredLanguage } from "@/api/patients/preferredLanguage";
+import {
+  fetchPreferredLanguageList,
+  PreferredLanguage,
+} from "@/api/patients/preferredLanguage";
 import dayjs from "dayjs";
 
 const EditPatientInfoModal: React.FC = () => {
@@ -69,7 +71,7 @@ const EditPatientInfoModal: React.FC = () => {
   };
 
   const handleFetchPreferredLanguage = async () => {
-    const response = mockPreferredLanguageList;
+    const response = await fetchPreferredLanguageList();
     setPreferredLanguage(response);
   };
 
