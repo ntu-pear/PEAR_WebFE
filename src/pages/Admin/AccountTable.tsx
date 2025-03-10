@@ -73,10 +73,20 @@ const AccountTable: React.FC = () => {
         page_size: pageSize,
       };
 
+      // map the status field to the actual values required by api
+      // 'AL', 'MC' or 'ACTIVE'
+      if (apiFilterJson.status === "All") {
+        apiFilterJson.status = "AL"
+      } else if (apiFilterJson.status === "Active") {
+        apiFilterJson.status = "ACTIVE"
+      } else if (apiFilterJson.status === "Inactive") {
+        apiFilterJson.status = "MC"
+      }
+
       // remove items that is empty or equal to "ALL"
       const filteredJsonList = Object.fromEntries(
         Object.entries(apiFilterJson).filter(
-          ([_, value]) => value !== "" && value !== "All"
+          ([_, value]) => value !== ""
         )
       );
 
