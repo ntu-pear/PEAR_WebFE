@@ -66,12 +66,12 @@ export const fetchUsersByFields = async (
 
   try {
     const response = await adminAPI.post<AccountTableDataServer>(
-      `?page=${pageNo}&page_size=${pageSize}`,
+      `/get_users_by_fields?page=${pageNo}&page_size=${pageSize}`,
+      filters,
       {
         headers: {
           Authorization: `Bearer ${token}`,
         },
-        data: filters,
       }
     );
     console.log("GET accounts by field", response.data);

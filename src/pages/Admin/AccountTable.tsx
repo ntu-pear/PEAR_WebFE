@@ -22,18 +22,23 @@ import Searchbar from "@/components/Searchbar";
 import { DataTableServer } from "@/components/Table/DataTable";
 
 import useDebounce from "@/hooks/useDebounce";
-import { AccountTableDataServer, fetchUsers, fetchUsersByFields, User } from "@/api/admin/user";
-
 import {
-  mockAccountTDList,
-} from "@/mocks/mockAccountTableData";
+  AccountTableDataServer,
+  fetchUsers,
+  fetchUsersByFields,
+  User,
+} from "@/api/admin/user";
+
+import { mockAccountTDList } from "@/mocks/mockAccountTableData";
 
 const AccountTable: React.FC = () => {
-  const [accountTDServer, setAccountTDServer] = useState<AccountTableDataServer>({
-    pageNo: 0,
-    pageSize: 0,
-    total: 0,
-    data: []});
+  const [accountTDServer, setAccountTDServer] =
+    useState<AccountTableDataServer>({
+      pageNo: 1,
+      pageSize: 10,
+      total: 0,
+      data: [],
+    });
 
   const [activeStatus, setActiveStatus] = useState("All");
   const [searchItem, setSearchItem] = useState("");
@@ -61,17 +66,31 @@ const AccountTable: React.FC = () => {
 
   const handleFilter = async (pageNo: number, pageSize: number) => {
     try {
+      const apiFilterJson = {
+        nric_FullName: debouncedSearch,
+        status: debouncedActiveStatus,
+        page: pageNo,
+        page_size: pageSize,
+      };
+
+      // remove items that is empty or equal to "ALL"
+      const filteredJsonList = Object.fromEntries(
+        Object.entries(apiFilterJson).filter(
+          ([_, value]) => value !== "" && value !== "All"
+        )
+      );
+
       const fetchedAccountTDServer: AccountTableDataServer =
         import.meta.env.MODE === "development" ||
         import.meta.env.MODE === "production"
-          ? await fetchUsersByFields(pageNo, pageSize, {})
+          ? await fetchUsersByFields(pageNo, pageSize, filteredJsonList)
           : mockAccountTDList;
 
-      let filteredAccountTDList = fetchedAccountTDServer;
+      let filteredAccountTDList = fetchedAccountTDServer.data;
 
       const sortedAccountTDList = sortByName(filteredAccountTDList, "asc");
 
-      setAccountTDServer(sortedAccountTDList);
+      setAccountTDServer(fetchedAccountTDServer);
     } catch (error) {
       console.error("Error fetching accounts:", error);
     }
@@ -85,12 +104,20 @@ const AccountTable: React.FC = () => {
     return loginTimeStamp ? loginTimeStamp : "-";
   };
 
-  const columns: { key: keyof User ; header: string; render?: (value: any) => React.ReactNode }[] = [
+  const columns: {
+    key: keyof User;
+    header: string;
+    render?: (value: any) => React.ReactNode;
+  }[] = [
     { key: "id", header: "ID" },
     { key: "nric_FullName", header: "Name" },
     { key: "status", header: "Status" },
     { key: "email", header: "Email" },
-    { key: "loginTimeStamp", header: "Last Login", render: renderLoginTimeStamp },
+    {
+      key: "loginTimeStamp",
+      header: "Last Login",
+      render: renderLoginTimeStamp,
+    },
     { key: "createdDate", header: "Created Date" },
     { key: "roleName", header: "Role" },
   ];
@@ -156,7 +183,7 @@ const AccountTable: React.FC = () => {
                 </CardHeader>
                 <CardContent>
                   <DataTableServer
-                    data={accountTDServer}
+                    data={accountTDServer.data}
                     pagination={{
                       pageNo: 0,
                       pageSize: 0,
