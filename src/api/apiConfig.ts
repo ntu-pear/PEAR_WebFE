@@ -68,6 +68,10 @@ export const vitalAPI = axios.create({
   baseURL: `${VITE_PATIENT_SERVICE_URL}/Vital`,
 });
 
+export const LanguageListPAI = axios.create({
+  baseURL: `${VITE_PATIENT_SERVICE_URL}/PatientListLanguage/`,
+});
+
 export const patientAllergyAPI = axios.create({
   baseURL: `${VITE_PATIENT_SERVICE_URL}/get_patient_allergy`,
 });

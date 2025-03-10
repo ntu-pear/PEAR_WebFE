@@ -76,6 +76,36 @@ export interface PatientTableDataServer {
   };
 }
 
+export interface AddPatientSection {
+  name: string;
+  nric: string;
+  address: string;
+  tempAddress?: string;
+  homeNo?: string;
+  handphoneNo?: string;
+  gender: string;
+  dateOfBirth: string;
+  isApproved?: string;
+  preferredName?: string;
+  preferredLanguageId?: number;
+  updateBit: string;
+  autoGame: string;
+  startDate: string;
+  endDate?: string;
+  isActive: string;
+  isRespiteCare: string;
+  privacyLevel: number;
+  terminationReason?: string;
+  inActiveReason?: string;
+  inActiveDate?: string;
+  profilePicture?: string;
+  isDeleted: number;
+  createdDate: string;
+  modifiedDate: string;
+  CreatedById: string;
+  ModifiedById: string;
+}
+
 const convertToPatientTDServer = (
   patientPagination: ViewPatientList
 ): PatientTableDataServer => {
@@ -276,6 +306,29 @@ export const fetchPatientNRIC = async (
     return nric?.toUpperCase();
   } catch (error) {
     console.error("GET Patient NRIC", error);
+    throw error;
+  }
+};
+
+export const addPatient = async (
+  patient: AddPatientSection
+): Promise<ViewPatient> => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+  try {
+    const response = await patientsAPI.post<ViewPatient>(
+      `add?require_auth=true`,
+      patient,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    console.log("POST add patient", response.data.data);
+    return response.data;
+  } catch (error) {
+    console.error("POST add patient", error);
     throw error;
   }
 };

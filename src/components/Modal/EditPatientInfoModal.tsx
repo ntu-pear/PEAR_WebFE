@@ -13,12 +13,10 @@ import {
   getDateForDatePicker,
   getDateTimeNowInUTC,
 } from "@/utils/formatDate";
-import {
-  mockPreferredLanguageList,
-  PreferredLanguage,
-} from "@/mocks/mockPatientDetails";
+import { mockPreferredLanguageList } from "@/mocks/mockPatientDetails";
 import { fetchAddress, GeocodeBase } from "@/api/geocode";
 import { toast } from "sonner";
+import { PreferredLanguage } from "@/api/patients/preferredLanguage";
 
 const EditPatientInfoModal: React.FC = () => {
   const { modalRef, activeModal, closeModal } = useModal();
