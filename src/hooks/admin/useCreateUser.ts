@@ -14,7 +14,9 @@ const useCreateUser = () => {
       toast.success("New user successfully registered. Confirmation link has been sent to registered email");
       queryClient.invalidateQueries({ queryKey: ["accounts"] });
     },
-    onError: () => toast.error("Failed to create user"),
+    onError: (error: { response: { data: { detail: string } } }) => toast.error(
+      "Failed to create user. " + error.response.data.detail
+    ),
   });
 };
 

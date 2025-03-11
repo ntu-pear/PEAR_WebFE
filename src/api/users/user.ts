@@ -65,6 +65,36 @@ export interface UserPasswordForm {
   confirmPassword: string;
 }
 
+export interface VerifyUserForm {
+  nric_FullName: string;
+  nric_Address: string;
+  nric_DateOfBirth: string;
+  nric_Gender: string;
+  contactNo: string | null;
+  email: string;
+  roleName: string;
+  nric: string;
+  password: string;
+  confirm_Password: string;
+}
+
+export const verifyUser = async (user: VerifyUserForm, UrlToken: string) => {
+  try {
+    const token = retrieveAccessTokenFromCookie();
+    if (!token) throw new Error("Token not found");
+    const response = await userAPI.post(
+      `/verify_account/${UrlToken}`,
+      { ...user },
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    console.log("Verify user", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("Verify user", error);
+    throw error;
+  }
+}
+
 export const requestResetPassword = async (
   requestResetPasswordForm: RequestResetPasswordForm
 ) => {
