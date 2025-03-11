@@ -16,6 +16,9 @@ import { toast } from "sonner";
 import dayjs from "dayjs";
 import { useModal } from "@/hooks/useModal";
 import RetrieveAddressModal from "@/components/Modal/RetrieveAddressModal";
+import ProfilePhotoSet from "@/components/ProfilePhotoSet";
+import useUploadPatientPhoto from "@/hooks/patient/useUploadPatientPhoto";
+import { AddPatientSection } from "@/api/patients/patients";
 
 const patientInfoSchema = z
   .object({
@@ -124,6 +127,7 @@ const AddPatient: React.FC = () => {
     "guardian-info": null,
   });
   const isClickRef = useRef<boolean>(false);
+  const [profilePhotoFile, setProfilePhotoFile] = useState<File | null>(null);
   const {
     register,
     setValue,
@@ -149,9 +153,10 @@ const AddPatient: React.FC = () => {
       },
     },
   });
-  //addPatient -> uploadProfilePhoto -> addPatientGuardian
+  //addPatient -> uploadProfilePhotoFile -> addPatientGuardian
   const preferredLanguageListObj = useGetPreferredLanguageList();
   const { mutateAsync: addPatient } = useAddPatient();
+  const { mutateAsync: updatePatientProfilePhoto } = useUploadPatientPhoto();
   const { currentUser } = useAuth();
   const { activeModal, openModal } = useModal();
 
@@ -187,7 +192,7 @@ const AddPatient: React.FC = () => {
       return;
     }
 
-    const formData = {
+    const patientFormData: AddPatientSection = {
       name: data.patientInfoSchema.name,
       nric: data.patientInfoSchema.nric,
       address: data.patientInfoSchema.address,
@@ -219,9 +224,21 @@ const AddPatient: React.FC = () => {
       ModifiedById: currentUser?.userId,
     };
 
-    console.log("addPatient formData", formData);
+    console.log("addPatient formData", patientFormData);
+    const response = await addPatient(patientFormData);
+    const patientId = response.data.id;
 
-    await addPatient(formData);
+    if (patientId && profilePhotoFile) {
+      const photoFileFormData = new FormData();
+      photoFileFormData.append("file", profilePhotoFile);
+
+      console.log("patientId", patientId);
+      console.log("photoFileFormData", photoFileFormData);
+      await updatePatientProfilePhoto({
+        patientId,
+        formData: photoFileFormData,
+      });
+    }
   };
 
   useEffect(() => {
@@ -385,19 +402,17 @@ const AddPatient: React.FC = () => {
                             Date of Birth{" "}
                             <span className="text-destructive ml-1">*</span>
                           </Label>
-                          <div className="mt-2">
-                            <input
-                              id="patient-dob"
-                              type="date"
-                              className=" block w-full p-2 border rounded-md text-gray-900"
-                              {...register("patientInfoSchema.dateOfBirth")}
-                            />
-                            {errors.patientInfoSchema?.dateOfBirth && (
-                              <div className="text-red-600 text-sm">
-                                {errors.patientInfoSchema?.dateOfBirth.message}
-                              </div>
-                            )}
-                          </div>
+                          <input
+                            id="patient-dob"
+                            type="date"
+                            className=" block w-full p-2 border rounded-md text-gray-900"
+                            {...register("patientInfoSchema.dateOfBirth")}
+                          />
+                          {errors.patientInfoSchema?.dateOfBirth && (
+                            <div className="text-red-600 text-sm">
+                              {errors.patientInfoSchema?.dateOfBirth.message}
+                            </div>
+                          )}
                         </div>
 
                         <div className="sm:col-span-2">
@@ -547,6 +562,18 @@ const AddPatient: React.FC = () => {
 
                         <div className="sm:col-span-1" />
 
+                        <div className="sm:col-span-6">
+                          <Label>Patient Profile Photo </Label>
+                          <Card>
+                            <CardContent className="pt-6">
+                              <ProfilePhotoSet
+                                profilePhotoFile={profilePhotoFile}
+                                setProfilePhotoFile={setProfilePhotoFile}
+                              />
+                            </CardContent>
+                          </Card>
+                        </div>
+
                         <div className="sm:col-span-2">
                           <Label htmlFor="patient-preferred-language">
                             Patient Preferred Language{" "}
@@ -638,14 +665,12 @@ const AddPatient: React.FC = () => {
                             Joining Date{" "}
                             <span className="text-destructive ml-1">*</span>
                           </Label>
-                          <div className="mt-2">
-                            <input
-                              id="patient-joining-date"
-                              type="date"
-                              className=" block w-full p-2 border rounded-md text-gray-900"
-                              {...register("patientInfoSchema.startDate")}
-                            />
-                          </div>
+                          <input
+                            id="patient-joining-date"
+                            type="date"
+                            className=" block w-full p-2 border rounded-md text-gray-900"
+                            {...register("patientInfoSchema.startDate")}
+                          />
                           {errors.patientInfoSchema?.startDate && (
                             <div className="text-red-600 text-sm">
                               {errors.patientInfoSchema?.startDate.message}
@@ -657,14 +682,12 @@ const AddPatient: React.FC = () => {
                           <Label htmlFor="patient-leaving-date">
                             Leaving Date (if any)
                           </Label>
-                          <div className="mt-2">
-                            <input
-                              id="patient-leaving-date"
-                              type="date"
-                              className=" block w-full p-2 border rounded-md text-gray-900"
-                              {...register("patientInfoSchema.endDate")}
-                            />
-                          </div>
+                          <input
+                            id="patient-leaving-date"
+                            type="date"
+                            className=" block w-full p-2 border rounded-md text-gray-900"
+                            {...register("patientInfoSchema.endDate")}
+                          />
                           {errors.patientInfoSchema?.endDate && (
                             <div className="text-red-600 text-sm">
                               {errors.patientInfoSchema?.endDate.message}
