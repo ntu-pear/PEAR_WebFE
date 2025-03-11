@@ -95,9 +95,8 @@ const PrescriptionTab: React.FC<TabProps> = ({ id }) => {
               fetchData={handleFetchPrescription}
               columns={prescriptionColumns}
               viewMore={false}
-              className="table-fixed"
               renderActions={(item) => (
-                <div className="flex space-x-2 flex-col">
+                <div className="flex justify-start flex-col">
                   <Button
                     variant="default"
                     size="sm"
