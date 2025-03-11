@@ -14,6 +14,8 @@ import { convertToUTCISOString, getDateTimeNowInUTC } from "@/utils/formatDate";
 import useGetPreferredLanguageList from "@/hooks/dropDownList/useGetPreferredLanguageList";
 import { toast } from "sonner";
 import dayjs from "dayjs";
+import { useModal } from "@/hooks/useModal";
+import RetrieveAddressModal from "@/components/Modal/RetrieveAddressModal";
 
 const patientInfoSchema = z
   .object({
@@ -124,6 +126,7 @@ const AddPatient: React.FC = () => {
   const isClickRef = useRef<boolean>(false);
   const {
     register,
+    setValue,
     handleSubmit,
     formState: { errors },
   } = useForm<FormInputs>({
@@ -150,6 +153,7 @@ const AddPatient: React.FC = () => {
   const preferredLanguageListObj = useGetPreferredLanguageList();
   const { mutateAsync: addPatient } = useAddPatient();
   const { currentUser } = useAuth();
+  const { activeModal, openModal } = useModal();
 
   const handleClick = (sectionId: string) => {
     isClickRef.current = true;
@@ -163,6 +167,16 @@ const AddPatient: React.FC = () => {
     setTimeout(() => {
       isClickRef.current = false;
     }, 2000);
+  };
+
+  const handleUpdateAddressField = (
+    fieldName: "address" | "tempAddress",
+    searchedAddress: string
+  ) => {
+    setValue(`patientInfoSchema.${fieldName}`, searchedAddress, {
+      shouldValidate: true,
+      shouldDirty: true,
+    });
   };
 
   const handleAddPatient: SubmitHandler<FormInputs> = async (data, event) => {
@@ -479,7 +493,17 @@ const AddPatient: React.FC = () => {
                               className="block w-full p-2 border rounded-md text-gray-900"
                               {...register("patientInfoSchema.address")}
                             />
-                            <Button type="button" variant="outline" size="icon">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="icon"
+                              onClick={() =>
+                                openModal("retrieveAddress", {
+                                  fieldName: "address",
+                                  handleUpdateAddressField,
+                                })
+                              }
+                            >
                               <Search className="h-4 w-4" />
                             </Button>
                           </div>
@@ -500,7 +524,17 @@ const AddPatient: React.FC = () => {
                               className="block w-full p-2 border rounded-md text-gray-900"
                               {...register("patientInfoSchema.tempAddress")}
                             />
-                            <Button type="button" variant="outline" size="icon">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="icon"
+                              onClick={() =>
+                                openModal("retrieveAddress", {
+                                  fieldName: "tempAddress",
+                                  handleUpdateAddressField,
+                                })
+                              }
+                            >
                               <Search className="h-4 w-4" />
                             </Button>
                           </div>
@@ -654,6 +688,7 @@ const AddPatient: React.FC = () => {
           </div>
         </form>
       </div>
+      {activeModal.name === "retrieveAddress" && <RetrieveAddressModal />}
     </div>
   );
 };
