@@ -8,10 +8,8 @@ import {
 import Cookies from "js-cookie";
 import {
   addAuthInterceptor,
-  addUsersAPIInterceptor,
   clearAuthHeaders,
   ejectAuthInterceptor,
-  ejectUsersAPIInterceptor,
 } from "../interceptors";
 
 export interface Token {
@@ -92,7 +90,6 @@ export const sendLogin = async (
       response.data.access_token_expires_at
     );
     addAuthInterceptor();
-    addUsersAPIInterceptor();
     return response.data;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
@@ -172,7 +169,6 @@ export const sendLogout = async () => {
     Cookies.remove(REFRESH_TOKEN_COOKIE_NAME);
     Cookies.remove(ACCESS_TOKEN_EXPIRY_COOKIE_NAME);
     ejectAuthInterceptor();
-    ejectUsersAPIInterceptor();
     clearAuthHeaders();
 
     const response = await logoutAPI.delete(`/`, {
