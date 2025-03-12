@@ -56,10 +56,7 @@ export const fetchUsers = async () => {
 export const fetchUsersByFields = async (
   pageNo: number = 0,
   pageSize: number = 10,
-  filters: any = {
-    "page" : pageNo,
-    "page_size" : pageSize
-  }
+  filters: any = {}
 ): Promise<AccountTableDataServer> => {
   const token = retrieveAccessTokenFromCookie();
   if (!token) throw new Error("No token found.");

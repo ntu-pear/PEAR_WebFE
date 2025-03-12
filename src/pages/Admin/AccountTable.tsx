@@ -68,22 +68,19 @@ const AccountTable: React.FC = () => {
     try {
       const apiFilterJson = {
         nric_FullName: debouncedSearch,
-        status: debouncedActiveStatus,
-        page: pageNo,
-        page_size: pageSize,
+        active: debouncedActiveStatus,
       };
 
-      // map the status field to the actual values required by api
-      // 'AL', 'MC' or 'ACTIVE'
-      if (apiFilterJson.status === "All") {
-        apiFilterJson.status = "AL"
-      } else if (apiFilterJson.status === "Active") {
-        apiFilterJson.status = "ACTIVE"
-      } else if (apiFilterJson.status === "Inactive") {
-        apiFilterJson.status = "MC"
+      // map the active field to actual values
+      if (apiFilterJson.active === "All") {
+        apiFilterJson.active = ""
+      } else if (apiFilterJson.active === "Active") {
+        apiFilterJson.active = "true"
+      } else if (apiFilterJson.active === "Inactive") {
+        apiFilterJson.active = "false"
       }
 
-      // remove items that is empty or equal to "ALL"
+      // remove items that is empty
       const filteredJsonList = Object.fromEntries(
         Object.entries(apiFilterJson).filter(
           ([_, value]) => value !== ""
