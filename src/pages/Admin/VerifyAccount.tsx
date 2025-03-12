@@ -11,9 +11,7 @@ import useGetRoles from '@/hooks/role/useGetRoles';
 import useVerifyUser from '@/hooks/user/useVerifyUser';
 
 type Inputs = {
-  firstName: string;
-  lastName: string;
-  preferredName: string;
+  fullName: string;
   nric: string;
   address: string;
   contactNo: string;
@@ -36,7 +34,7 @@ const VerifyAccount: React.FC = () => {
 
     mutate({
       user: {
-        nric_FullName: `${data.firstName} ${data.lastName}`,
+        nric_FullName: data.fullName,
         nric_Address: data.address,
         nric_DateOfBirth: data.dateOfBirth,
         nric_Gender: data.gender.charAt(0) as "F" | "M",
@@ -67,18 +65,8 @@ const VerifyAccount: React.FC = () => {
                   </CardHeader>
                   <CardContent className="py-4 flex flex-col">
                     <Input
-                      label="First Name"
-                      name="firstName"
-                      formReturn={form}
-                    />
-                    <Input
-                      label="Last Name"
-                      name="lastName"
-                      formReturn={form}
-                    />
-                    <Input
-                      label="Preferred Name"
-                      name="preferredName"
+                      label="Full Name"
+                      name="fullName"
                       formReturn={form}
                     />
                     <Input
