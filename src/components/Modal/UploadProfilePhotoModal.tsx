@@ -17,10 +17,9 @@ const ProfilePhotoInputModal: React.FC = () => {
     const file = event.target.files?.[0];
     if (file) {
       // Check if the file is an image type (jpg, jpeg, png)
-      const validTypes = ["image/jpeg" /*'image/png'*/];
+      const validTypes = ["image/jpeg", "image/png"];
       if (!validTypes.includes(file.type)) {
-        // setError('Please upload a JPG, JPEG, or PNG file.');
-        setError("Please upload a JPG or JPEG file.");
+        setError("Please upload a JPG, JPEG, or PNG file.");
         return;
       }
 

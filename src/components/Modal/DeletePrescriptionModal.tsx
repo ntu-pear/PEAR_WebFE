@@ -5,19 +5,16 @@ import {
   deletePatientPrescription,
   fetchPrescriptionById,
   Prescription,
-  PrescriptionDelete,
 } from "@/api/patients/prescription";
-import { getDateTimeNowInUTC } from "@/utils/formatDate";
 import { useEffect, useState } from "react";
 
 const DeletePrescriptionModal: React.FC = () => {
   const { modalRef, activeModal, closeModal } = useModal();
-  const { prescriptionId, submitterId, refreshPrescriptionData } =
-    activeModal.props as {
-      prescriptionId: string;
-      submitterId: string;
-      refreshPrescriptionData: () => void;
-    };
+  const { prescriptionId, refreshPrescriptionData } = activeModal.props as {
+    prescriptionId: string;
+    submitterId: string;
+    refreshPrescriptionData: () => void;
+  };
   const [prescription, setPrescription] = useState<Prescription | null>(null);
 
   const handlefetchPrescriptionById = async (prescriptionId: string) => {
@@ -34,22 +31,7 @@ const DeletePrescriptionModal: React.FC = () => {
     if (!prescription) return;
 
     try {
-      const prescriptionDelete: PrescriptionDelete = {
-        PatientId: prescription.PatientId,
-        PrescriptionListId: prescription.PrescriptionListId,
-        Dosage: prescription.Dosage,
-        FrequencyPerDay: prescription.FrequencyPerDay,
-        Instruction: prescription.Instruction,
-        StartDate: prescription.StartDate,
-        PrescriptionRemarks: prescription.PrescriptionRemarks,
-        UpdatedDateTime: getDateTimeNowInUTC(),
-        ModifiedById: submitterId as string,
-      };
-
-      await deletePatientPrescription(
-        Number(prescriptionId),
-        prescriptionDelete
-      );
+      await deletePatientPrescription(Number(prescriptionId));
       closeModal();
       toast.success("Prescription deleted successfully.");
       refreshPrescriptionData();

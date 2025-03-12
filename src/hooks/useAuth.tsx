@@ -1,4 +1,4 @@
-import { addAuthInterceptor, addUsersAPIInterceptor } from "@/api/interceptors";
+import { addAuthInterceptor } from "@/api/interceptors";
 import {
   CurrentUser,
   getCurrentUser,
@@ -46,7 +46,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       const loginResponse = await sendLogin(formData);
 
       addAuthInterceptor();
-      addUsersAPIInterceptor();
 
       if ("access_token" in loginResponse) {
         const response = await getCurrentUser();
@@ -78,7 +77,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     try {
       await sendLogin2FA(email, code);
       addAuthInterceptor();
-      addUsersAPIInterceptor();
 
       const response = await getCurrentUser();
       console.log(response);
@@ -105,7 +103,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     setCurrentUser(null);
     await sendLogout();
 
-    toast.dismiss();
     if (currentUser?.roleName !== "CAREGIVER") {
       toast.success("Logout successful.");
     }

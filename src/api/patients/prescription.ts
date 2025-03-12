@@ -252,16 +252,14 @@ export const addPatientPrescription = async (
 };
 
 export const deletePatientPrescription = async (
-  prescriptionId: number,
-  prescriptionDelete: PrescriptionDelete
+  prescriptionId: number
 ): Promise<PrescriptionView> => {
   const token = retrieveAccessTokenFromCookie();
   if (!token) throw new Error("No token found.");
 
   try {
-    const response = await prescriptionAPI.put<PrescriptionView>(
+    const response = await prescriptionAPI.delete<PrescriptionView>(
       `/delete/${prescriptionId}`,
-      prescriptionDelete,
       {
         headers: {
           Authorization: `Bearer ${token}`,

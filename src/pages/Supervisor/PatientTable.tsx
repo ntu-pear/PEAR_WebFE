@@ -34,6 +34,8 @@ import {
   PatientTableData,
   PatientTableDataServer,
 } from "@/api/patients/patients";
+import { useModal } from "@/hooks/useModal";
+import DeletePatientModal from "@/components/Modal/DeletePatientModal";
 
 const PatientTable: React.FC = () => {
   const [patientTDServer, setPatientTDServer] =
@@ -52,6 +54,7 @@ const PatientTable: React.FC = () => {
   const debouncedActiveStatus = useDebounce(activeStatus, 300);
   const debouncedSearch = useDebounce(searchItem, 300);
   const debounceTabValue = useDebounce(tabValue, 300);
+  const { activeModal, openModal } = useModal();
 
   const handleInputChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -105,8 +108,12 @@ const PatientTable: React.FC = () => {
     }
   };
 
-  useEffect(() => {
+  const refreshData = () => {
     handleFilter(patientTDServer.pagination.pageNo || 0);
+  };
+
+  useEffect(() => {
+    refreshData();
   }, [debouncedActiveStatus, debouncedSearch, debounceTabValue]);
 
   const columns = [
@@ -135,8 +142,8 @@ const PatientTable: React.FC = () => {
             value === "Active"
               ? "default"
               : value === "Inactive"
-                ? "secondary"
-                : "outline"
+              ? "secondary"
+              : "outline"
           }
         >
           {value}
@@ -225,6 +232,22 @@ const PatientTable: React.FC = () => {
                     viewMoreBaseLink={"/supervisor/view-patient"}
                     activeTab={"information"}
                     fetchData={handleFilter}
+                    renderActions={(item) => (
+                      <div className="ml-4 sm:ml-2">
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() =>
+                            openModal("deletePatient", {
+                              patientId: item.id,
+                              refreshData,
+                            })
+                          }
+                        >
+                          Delete
+                        </Button>
+                      </div>
+                    )}
                   />
                 </CardContent>
               </Card>
@@ -246,6 +269,22 @@ const PatientTable: React.FC = () => {
                     viewMoreBaseLink={"/supervisor/view-patient"}
                     activeTab={"information"}
                     fetchData={handleFilter}
+                    renderActions={(item) => (
+                      <div className="ml-4 sm:ml-2">
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() =>
+                            openModal("deletePatient", {
+                              patientId: item.id,
+                              refreshData,
+                            })
+                          }
+                        >
+                          Delete
+                        </Button>
+                      </div>
+                    )}
                   />
                 </CardContent>
               </Card>
@@ -253,6 +292,7 @@ const PatientTable: React.FC = () => {
           </Tabs>
         </main>
       </div>
+      {activeModal.name === "deletePatient" && <DeletePatientModal />}
     </div>
   );
 };

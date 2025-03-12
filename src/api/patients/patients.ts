@@ -1,12 +1,10 @@
 import { patientsAPI } from "../apiConfig";
 import { formatDateString } from "@/utils/formatDate";
-import {
-  PatientInformation,
-  mockPreferredLanguageList,
-} from "@/mocks/mockPatientDetails";
+import { PatientInformation } from "@/mocks/mockPatientDetails";
 import { convertToYesNo } from "@/utils/convertToYesNo";
 import { TableRowData } from "@/components/Table/DataTable";
 import { retrieveAccessTokenFromCookie } from "../users/auth";
+import { fetchPreferredLanguageList } from "./preferredLanguage";
 
 export interface PatientBase {
   name: string;
@@ -74,6 +72,36 @@ export interface PatientTableDataServer {
     totalRecords: number;
     totalPages: number;
   };
+}
+
+export interface AddPatientSection {
+  name: string;
+  nric: string;
+  address: string;
+  tempAddress?: string;
+  homeNo?: string;
+  handphoneNo?: string;
+  gender: string;
+  dateOfBirth: string;
+  isApproved?: string;
+  preferredName?: string;
+  preferredLanguageId?: number;
+  updateBit: string;
+  autoGame: string;
+  startDate: string;
+  endDate?: string;
+  isActive: string;
+  isRespiteCare: string;
+  privacyLevel: number;
+  terminationReason?: string;
+  inActiveReason?: string;
+  inActiveDate?: string;
+  profilePicture?: string;
+  isDeleted: number;
+  createdDate: string;
+  modifiedDate: string;
+  CreatedById: string;
+  ModifiedById: string;
 }
 
 const convertToPatientTDServer = (
@@ -218,8 +246,12 @@ export const fetchPatientInfo = async (
         Authorization: `Bearer ${token}`,
       },
     });
+
     const p = response.data.data;
     console.log("GET Patient Info", p);
+
+    const pll = await fetchPreferredLanguageList();
+
     return {
       id: id,
       name: p.name?.toUpperCase(),
@@ -237,7 +269,7 @@ export const fetchPatientInfo = async (
       homeNo: p.homeNo || "-",
       handphoneNo: p.handphoneNo || "-",
       preferredLanguage:
-        mockPreferredLanguageList
+        pll
           .find((pl) => pl.id === p.preferredLanguageId)
           ?.value.toUpperCase() || "-",
       privacyLevel: p.privacyLevel,
@@ -280,6 +312,29 @@ export const fetchPatientNRIC = async (
   }
 };
 
+export const addPatient = async (
+  patient: AddPatientSection
+): Promise<ViewPatient> => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+  try {
+    const response = await patientsAPI.post<ViewPatient>(
+      `add?require_auth=true`,
+      patient,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    console.log("POST add patient", response.data.data);
+    return response.data;
+  } catch (error) {
+    console.error("POST add patient", error);
+    throw error;
+  }
+};
+
 export const updatePatient = async (
   id: number,
   patient: PatientBase
@@ -301,6 +356,24 @@ export const updatePatient = async (
     return response.data;
   } catch (error) {
     console.error("PUT update Patient Info", error);
+    throw error;
+  }
+};
+
+export const deletePatient = async (id: number): Promise<ViewPatient> => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+
+  try {
+    const response = await patientsAPI.delete<ViewPatient>(`/delete/${id}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    console.log("DELETE delete patient", response.data.data);
+    return response.data;
+  } catch (error) {
+    console.error("DELETE delete patient", error);
     throw error;
   }
 };
@@ -344,10 +417,10 @@ export const deletePatientProfilePhoto = async (patientId: number) => {
         },
       }
     );
-    console.log("Delete delete Patient Profile Photo", response.data.data);
+    console.log("DELETE delete Patient Profile Photo", response.data.data);
     return response.data;
   } catch (error) {
-    console.error("Delete delete Patient Profile Photo", error);
+    console.error("DELETE delete Patient Profile Photo", error);
     throw error;
   }
 };

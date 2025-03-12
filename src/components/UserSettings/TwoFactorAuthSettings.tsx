@@ -2,14 +2,19 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Switch } from "../ui/switch";
 // import { useModal } from "@/hooks/useModal";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { updateUser2FA } from "@/api/users/user";
+import { getUserDetails, updateUser2FA } from "@/api/users/user";
 // import Enable2FAModal from "../Modal/Enable2FAModal";
 
 const TwoFactorAuthSettings: React.FC = () => {
   // const { activeModal openModal } = useModal();
   const [isSwitchOn, setIsSwitchOn] = useState(false);
+
+  const fetchUser2FA = async () => {
+    const response = await getUserDetails();
+    setIsSwitchOn(response.twoFactorEnabled);
+  };
 
   const handleSwitchChange = async (checked: boolean) => {
     setIsSwitchOn(checked);
@@ -31,6 +36,10 @@ const TwoFactorAuthSettings: React.FC = () => {
   // const handleCancelClick = () => {
   //   setIsSwitchOn(false);
   // };
+
+  useEffect(() => {
+    fetchUser2FA();
+  }, []);
 
   return (
     <>

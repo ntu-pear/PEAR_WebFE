@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 
 export interface TableRowData {
   id: string | number;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [key: string]: any;
 }
 
@@ -19,6 +20,7 @@ interface DataTableClientProps<T extends TableRowData> {
   columns: Array<{
     key: keyof T;
     header: string;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     render?: (value: any, item: T) => React.ReactNode;
     className?: string;
   }>;
@@ -43,6 +45,7 @@ interface DataTableServerProps<T extends TableRowData> {
   columns: Array<{
     key: keyof T;
     header: string;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     render?: (value: any, item: T) => React.ReactNode;
     className?: string;
   }>;
