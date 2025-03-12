@@ -103,7 +103,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     setCurrentUser(null);
     await sendLogout();
 
-    toast.dismiss();
     if (currentUser?.roleName !== "CAREGIVER") {
       toast.success("Logout successful.");
     }
