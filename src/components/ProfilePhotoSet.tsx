@@ -19,9 +19,10 @@ const ProfilePhotoSet: React.FC<ProfilePhotoSetProps> = ({
     const file = event.target.files?.[0] || null;
 
     if (file) {
-      const validTypes = ["image/jpeg", "image/jpg"]; // Only allow JPG & JPEG
+      // Check if the file is an image type (jpg, jpeg, png)
+      const validTypes = ["image/jpeg", "image/png"];
       if (!validTypes.includes(file.type)) {
-        setError("Please upload a JPG or JPEG file.");
+        setError("Please upload a JPG, JPEG, or PNG file.");
         return;
       }
 
@@ -32,7 +33,7 @@ const ProfilePhotoSet: React.FC<ProfilePhotoSetProps> = ({
         return;
       }
 
-      // Rename the file to "profile_picture.jpg" or "profile_picture.jpeg"
+      // Rename the file
       const renamedFile = new File(
         [file],
         `profile_picture.${file.type.split("/")[1]}`,
