@@ -12,10 +12,12 @@ import { fetchPatientAllergy } from "@/api/patients/allergy";
 import { toast } from "sonner";
 import DeleteAllergyModal from "../Modal/DeleteAllergyModal";
 import EditAllergyModal from "../Modal/EditAllergyModal";
+import { useAuth } from "@/hooks/useAuth";
 
 const AllergyTab: React.FC<TabProps> = ({ id }) => {
   const [allergy, setAllergy] = useState<AllergyTD[]>([]);
   const { activeModal, openModal } = useModal();
+  const { currentUser } = useAuth();
 
   const handleFetchAllergy = async () => {
     if (!id || isNaN(Number(id))) return;
@@ -61,7 +63,7 @@ const AllergyTab: React.FC<TabProps> = ({ id }) => {
                 onClick={() =>
                   openModal("addAllergy", {
                     patientId: id,
-                    submitterId: "1",
+                    submitterId: currentUser?.userId,
                     refreshAllergyData,
                   })
                 }

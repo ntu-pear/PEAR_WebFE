@@ -11,6 +11,7 @@ import { useModal } from "@/hooks/useModal";
 import DeleteVitalModal from "../Modal/DeleteVitalModal";
 import { toast } from "sonner";
 import EditVitalModal from "../Modal/EditVitalModal";
+import { useAuth } from "@/hooks/useAuth";
 
 const VitalTab: React.FC<TabProps> = ({ id }) => {
   const [vitalCheck, setVitalCheck] = useState<VitalCheckTDServer>({
@@ -23,6 +24,7 @@ const VitalTab: React.FC<TabProps> = ({ id }) => {
     },
   });
   const { activeModal, openModal } = useModal();
+  const { currentUser } = useAuth();
 
   const handleFetchVitalCheck = async (pageNo: number) => {
     if (!id || isNaN(Number(id))) return;
@@ -76,7 +78,7 @@ const VitalTab: React.FC<TabProps> = ({ id }) => {
                 onClick={() =>
                   openModal("addVital", {
                     patientId: id,
-                    submitterId: "1",
+                    submitterId: currentUser?.userId,
                     refreshVitalData,
                   })
                 }
@@ -105,7 +107,7 @@ const VitalTab: React.FC<TabProps> = ({ id }) => {
                         vitalId: String(item.id),
                         vitalData: item,
                         patientId: String(id),
-                        submitterId: "1",
+                        submitterId: currentUser?.userId,
                         refreshVitalData,
                       })
                     }

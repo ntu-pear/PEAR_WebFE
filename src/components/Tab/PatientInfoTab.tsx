@@ -34,6 +34,7 @@ import { fetchDiagnosedDementia } from "@/api/patients/diagnosedDementia";
 import AddSocialHistoryModal from "../Modal/AddSocialHistory";
 import EditMobilityAid from "../Modal/EditMobilityAidModal";
 import DeleteMobilityAidModal from "../Modal/DeleteMobilityAidModal";
+import { useAuth } from "@/hooks/useAuth";
 
 interface PatientInfoTabProps extends TabProps {
   patientInfo: PatientInformation | null;
@@ -52,6 +53,7 @@ const PatientInfoTab: React.FC<PatientInfoTabProps> = ({
   handleNRICToggle,
   refreshPatientData,
 }) => {
+  const { currentUser } = useAuth();
   const [diagnosedDementia, setDiagnosedDementia] = useState<
     DiagnosedDementiaTD[]
   >([]);
@@ -227,7 +229,7 @@ const PatientInfoTab: React.FC<PatientInfoTabProps> = ({
                   onClick={() =>
                     openModal("editPatientInfo", {
                       patientId: String(id),
-                      submitterId: "2",
+                      submitterId: currentUser?.userId,
                       refreshPatientData,
                     })
                   }
@@ -357,7 +359,7 @@ const PatientInfoTab: React.FC<PatientInfoTabProps> = ({
                 onClick={() =>
                   openModal("addMobilityAids", {
                     patientId: String(id),
-                    submitterId: "2",
+                    submitterId: currentUser?.userId,
                     refreshMobilityData,
                   })
                 }
@@ -464,7 +466,7 @@ const PatientInfoTab: React.FC<PatientInfoTabProps> = ({
                     onClick={() =>
                       openModal("addSocialHistory", {
                         patientId: String(id),
-                        submitterId: "2",
+                        submitterId: currentUser?.userId,
                         refreshData: handleFetchSocialHistory,
                       })
                     }
@@ -481,7 +483,7 @@ const PatientInfoTab: React.FC<PatientInfoTabProps> = ({
                     onClick={() =>
                       openModal("editSocialHistory", {
                         patientId: String(id),
-                        submitterId: "2",
+                        submitterId: currentUser?.userId,
                         refreshData: handleFetchSocialHistory,
                       })
                     }

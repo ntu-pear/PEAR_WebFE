@@ -14,9 +14,11 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import DeletePrescriptionModal from "../Modal/DeletePrescriptionModal";
 import EditPrescriptionModal from "../Modal/EditPrescriptionModal";
+import { useAuth } from "@/hooks/useAuth";
 
 const PrescriptionTab: React.FC<TabProps> = ({ id }) => {
   const { activeModal, openModal } = useModal();
+  const { currentUser } = useAuth();
   const [prescription, setPrescription] = useState<PrescriptionTDServer>({
     prescriptions: [],
     pagination: {
@@ -76,7 +78,7 @@ const PrescriptionTab: React.FC<TabProps> = ({ id }) => {
                 onClick={() =>
                   openModal("addPrescription", {
                     patientId: id,
-                    submitterId: "1",
+                    submitterId: currentUser?.userId,
                     refreshPrescriptionData,
                   })
                 }
@@ -104,7 +106,7 @@ const PrescriptionTab: React.FC<TabProps> = ({ id }) => {
                     onClick={() => {
                       openModal("editPrescription", {
                         prescriptionId: String(item.id),
-                        submitterId: "1",
+                        submitterId: currentUser?.userId,
                         refreshPrescriptionData,
                       });
                     }}
@@ -118,7 +120,7 @@ const PrescriptionTab: React.FC<TabProps> = ({ id }) => {
                     onClick={() =>
                       openModal("deletePrescription", {
                         prescriptionId: String(item.id),
-                        submitterId: "1",
+                        submitterId: currentUser?.userId,
                         refreshPrescriptionData,
                       })
                     }
