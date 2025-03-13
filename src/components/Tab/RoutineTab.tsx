@@ -6,7 +6,7 @@ import { DataTableClient } from "../Table/DataTable";
 import { mockRoutine } from "@/mocks/mockPatientDetails";
 import TabProps from "./types";
 import { useModal } from "@/hooks/useModal";
-import AddRoutineModal from "../Modal/AddRoutineModal";
+import AddRoutineModal from "../Modal/Add/AddRoutineModal";
 
 const RoutineTab: React.FC<TabProps> = () => {
   const { activeModal, openModal } = useModal();

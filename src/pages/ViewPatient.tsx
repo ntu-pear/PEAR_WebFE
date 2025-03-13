@@ -17,7 +17,7 @@ import { Trash2, Upload } from "lucide-react";
 import { useModal } from "@/hooks/useModal";
 import UploadProfilePhotoModal from "@/components/Modal/UploadProfilePhotoModal";
 import ConfirmProfilePhotoModal from "@/components/Modal/ConfirmProfilePhotoModal";
-import DeleteProfilePhotoModal from "@/components/Modal/DeleteProfilePhotoModal";
+import DeleteProfilePhotoModal from "@/components/Modal/Delete/DeleteProfilePhotoModal";
 
 const AllergyTab = React.lazy(() => import("@/components/Tab/AllergyTab"));
 const GuardianTab = React.lazy(() => import("@/components/Tab/GuardianTab"));

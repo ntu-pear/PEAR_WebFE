@@ -15,11 +15,11 @@ import {
 } from "@/mocks/mockPatientDetails";
 import TabProps from "./types";
 import { useModal } from "@/hooks/useModal";
-import EditPatientInfoModal from "../Modal/EditPatientInfoModal";
-import AddMedicalHistoryModal from "../Modal/AddMedicalHistoryModal";
-import AddMobilityAidModal from "../Modal/AddMobilityAidModal";
-import EditStaffAllocationModal from "../Modal/EditStaffAllocationModal";
-import EditSocialHistoryModal from "../Modal/EditSocialHistoryModal";
+import EditPatientInfoModal from "../Modal/Edit/EditPatientInfoModal";
+import AddMedicalHistoryModal from "../Modal/Add/AddMedicalHistoryModal";
+import AddMobilityAidModal from "../Modal/Add/AddMobilityAidModal";
+import EditStaffAllocationModal from "../Modal/Edit/EditStaffAllocationModal";
+import EditSocialHistoryModal from "../Modal/Edit/EditSocialHistoryModal";
 import { toast } from "sonner";
 import {
   DoctorNoteTDServer,
@@ -31,9 +31,9 @@ import {
   SocialHistoryTD,
 } from "@/api/patients/socialHistory";
 import { fetchDiagnosedDementia } from "@/api/patients/diagnosedDementia";
-import AddSocialHistoryModal from "../Modal/AddSocialHistory";
-import EditMobilityAid from "../Modal/EditMobilityAidModal";
-import DeleteMobilityAidModal from "../Modal/DeleteMobilityAidModal";
+import AddSocialHistoryModal from "../Modal/Add/AddSocialHistory";
+import EditMobilityAid from "../Modal/Edit/EditMobilityAidModal";
+import DeleteMobilityAidModal from "../Modal/Delete/DeleteMobilityAidModal";
 import { useAuth } from "@/hooks/useAuth";
 
 interface PatientInfoTabProps extends TabProps {

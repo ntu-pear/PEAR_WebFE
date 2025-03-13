@@ -6,7 +6,7 @@ import { DataTableClient } from "../Table/DataTable";
 import { mockProblemLog } from "@/mocks/mockPatientDetails";
 import TabProps from "./types";
 import { useModal } from "@/hooks/useModal";
-import AddProblemModal from "../Modal/AddProblemModal";
+import AddProblemModal from "../Modal/Add/AddProblemModal";
 
 const ProblemLogTab: React.FC<TabProps> = () => {
   const { activeModal, openModal } = useModal();

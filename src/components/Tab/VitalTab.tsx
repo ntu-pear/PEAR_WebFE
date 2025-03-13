@@ -6,11 +6,11 @@ import { DataTableServer } from "../Table/DataTable";
 import TabProps from "./types";
 import { useEffect, useState } from "react";
 import { fetchVitals, VitalCheckTDServer } from "@/api/patients/vital";
-import AddVitalModal from "../Modal/AddVitalModal";
+import AddVitalModal from "../Modal/Add/AddVitalModal";
 import { useModal } from "@/hooks/useModal";
-import DeleteVitalModal from "../Modal/DeleteVitalModal";
+import DeleteVitalModal from "../Modal/Delete/DeleteVitalModal";
 import { toast } from "sonner";
-import EditVitalModal from "../Modal/EditVitalModal";
+import EditVitalModal from "../Modal/Edit/EditVitalModal";
 import { useAuth } from "@/hooks/useAuth";
 
 const VitalTab: React.FC<TabProps> = ({ id }) => {

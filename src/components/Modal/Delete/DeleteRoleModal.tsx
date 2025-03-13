@@ -1,5 +1,5 @@
 import useDeleteRole from "@/hooks/role/useDeleteRole";
-import { Button } from "../ui/button";
+import { Button } from "../../ui/button";
 import { useModal } from "@/hooks/useModal";
 import { Role } from "@/api/role/roles";
 

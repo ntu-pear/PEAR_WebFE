@@ -6,7 +6,7 @@ import { DataTableClient } from "../Table/DataTable";
 import { mockActivityExclusion } from "@/mocks/mockPatientDetails";
 import TabProps from "./types";
 import { useModal } from "@/hooks/useModal";
-import AddActivityExclusionModal from "../Modal/AddActivityExclusionModal";
+import AddActivityExclusionModal from "../Modal/Add/AddActivityExclusionModal";
 
 const ActivityExclusionTab: React.FC<TabProps> = () => {
   const { activeModal, openModal } = useModal();

@@ -4,7 +4,7 @@ import useGetRoles from "@/hooks/role/useGetRoles";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router";
 import { useModal } from "@/hooks/useModal";
-import DeleteRoleModal from "@/components/Modal/DeleteRoleModal";
+import DeleteRoleModal from "@/components/Modal/Delete/DeleteRoleModal";
 
 const EditRoles: React.FC = () => {
   const { data } = useGetRoles();

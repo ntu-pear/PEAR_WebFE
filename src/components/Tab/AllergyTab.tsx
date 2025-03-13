@@ -7,11 +7,11 @@ import { AllergyTD, mockAllergyTD } from "@/mocks/mockPatientDetails";
 import TabProps from "./types";
 import { useEffect, useState } from "react";
 import { useModal } from "@/hooks/useModal";
-import AddAllergyModal from "../Modal/AddAllergyModal";
+import AddAllergyModal from "../Modal/Add/AddAllergyModal";
 import { fetchPatientAllergy } from "@/api/patients/allergy";
 import { toast } from "sonner";
-import DeleteAllergyModal from "../Modal/DeleteAllergyModal";
-import EditAllergyModal from "../Modal/EditAllergyModal";
+import DeleteAllergyModal from "../Modal/Delete/DeleteAllergyModal";
+import EditAllergyModal from "../Modal/Edit/EditAllergyModal";
 import { useAuth } from "@/hooks/useAuth";
 
 const AllergyTab: React.FC<TabProps> = ({ id }) => {

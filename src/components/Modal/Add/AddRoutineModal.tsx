@@ -1,26 +1,22 @@
 import { useModal } from "@/hooks/useModal";
-import { Button } from "../ui/button";
+import { Button } from "../../ui/button";
 
-const AddActivityExclusionModal: React.FC = () => {
+const AddRoutineModal: React.FC = () => {
   const { modalRef, closeModal } = useModal();
-
-  const handleAddActivityExclusion = (event: React.FormEvent) => {
+  const handleAddRoutine = (event: React.FormEvent) => {
     event.preventDefault();
-    console.log("Patient Activity Exclusion Added!");
+    console.log("Patient Routine Added!");
     closeModal();
   };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
       <div ref={modalRef} className="bg-background p-8 rounded-md w-[400px]">
-        <h3 className="text-lg font-medium mb-5">Add Activity Exclusion</h3>
-        <form
-          onSubmit={handleAddActivityExclusion}
-          className="grid grid-cols-2 gap-4"
-        >
+        <h3 className="text-lg font-medium mb-5">Add Routine</h3>
+        <form onSubmit={handleAddRoutine} className="grid grid-cols-2 gap-4">
           <div className="col-span-2">
             <label className="block text-sm font-medium">
-              Activity<span className="text-red-600">*</span>
+              Routine Activity<span className="text-red-600">*</span>
             </label>
             <select
               className="mt-1 block w-full p-2 border rounded-md text-gray-900"
@@ -59,33 +55,33 @@ const AddActivityExclusionModal: React.FC = () => {
             </select>
           </div>
 
-          <div className="col-span-2 flex space-x-4">
-            <div className="w-full">
-              <label className="block text-sm font-medium">
-                Start Date <span className="text-red-600">*</span>
-              </label>
-              <input
-                type="date"
-                className="mt-1 block w-full p-2 border rounded-md text-gray-900"
-                required
-              />
-            </div>
-            <div className="w-full">
-              <label className="block text-sm font-medium">
-                End Date <span className="text-red-600">*</span>
-              </label>
-              <input
-                type="date"
-                className="mt-1 block w-full p-2 border rounded-md text-gray-900"
-                required
-              />
-            </div>
+          <div className="col-span-2">
+            <label className="block text-sm font-medium">
+              Routine time slots <span className="text-red-600">*</span>
+            </label>
+            <input
+              type="text"
+              className="mt-1 block w-full p-2 border rounded-md text-gray-900"
+              required
+            />
           </div>
 
           <div className="col-span-2">
             <label className="block text-sm font-medium">
-              Remark <span className="text-red-600">*</span>
+              Include in schedule?<span className="text-red-600">*</span>
             </label>
+            <select
+              className="mt-1 block w-full p-2 border rounded-md text-gray-900"
+              required
+            >
+              <option value="">Please select an option</option>
+              <option value="yes">Yes</option>
+              <option value="no">No</option>
+            </select>
+          </div>
+
+          <div className="col-span-2">
+            <label className="block text-sm font-medium">Routine Issues</label>
             <textarea
               className="mt-1 block w-full p-2 border rounded-md text-gray-900"
               required
@@ -104,4 +100,4 @@ const AddActivityExclusionModal: React.FC = () => {
   );
 };
 
-export default AddActivityExclusionModal;
+export default AddRoutineModal;

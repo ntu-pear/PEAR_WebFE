@@ -35,7 +35,7 @@ import {
   PatientTableDataServer,
 } from "@/api/patients/patients";
 import { useModal } from "@/hooks/useModal";
-import DeletePatientModal from "@/components/Modal/DeletePatientModal";
+import DeletePatientModal from "@/components/Modal/Delete/DeletePatientModal";
 
 const PatientTable: React.FC = () => {
   const [patientTDServer, setPatientTDServer] =

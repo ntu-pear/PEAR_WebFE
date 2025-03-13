@@ -15,7 +15,7 @@ import useGetPreferredLanguageList from "@/hooks/dropDownList/useGetPreferredLan
 import { toast } from "sonner";
 import dayjs from "dayjs";
 import { useModal } from "@/hooks/useModal";
-import RetrieveAddressModal from "@/components/Modal/RetrieveAddressModal";
+import RetrieveAddressModal from "@/components/Modal/Get/RetrieveAddressModal";
 import ProfilePhotoSet from "@/components/ProfilePhotoSet";
 import useUploadPatientPhoto from "@/hooks/patient/useUploadPatientPhoto";
 import { AddPatientSection } from "@/api/patients/patients";

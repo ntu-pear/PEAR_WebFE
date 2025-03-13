@@ -1,5 +1,5 @@
 import { updateVital, VitalFormData } from "@/api/patients/vital";
-import { Button } from "../ui/button";
+import { Button } from "../../ui/button";
 import { toast } from "sonner";
 import { useModal } from "@/hooks/useModal";
 import { VitalCheckTD } from "@/api/patients/vital";

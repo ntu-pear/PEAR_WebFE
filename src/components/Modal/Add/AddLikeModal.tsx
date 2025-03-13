@@ -1,22 +1,22 @@
 import { useModal } from "@/hooks/useModal";
-import { Button } from "../ui/button";
+import { Button } from "../../ui/button";
 
-const AddDislikeModal: React.FC = () => {
+const AddLikeModal: React.FC = () => {
   const { modalRef, closeModal } = useModal();
-  const handleAddDislike = (event: React.FormEvent) => {
+  const handleAddLike = (event: React.FormEvent) => {
     event.preventDefault();
-    console.log("Patient Dislike Added!");
+    console.log("Patient Like Added!");
     closeModal();
   };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
       <div ref={modalRef} className="bg-background p-8 rounded-md w-[400px]">
-        <h3 className="text-lg font-medium mb-5">Add Dislike</h3>
-        <form onSubmit={handleAddDislike} className="grid grid-cols-2 gap-4">
+        <h3 className="text-lg font-medium mb-5">Add Like</h3>
+        <form onSubmit={handleAddLike} className="grid grid-cols-2 gap-4">
           <div className="col-span-2">
             <label className="block text-sm font-medium">
-              Dislikes<span className="text-red-600">*</span>
+              Likes<span className="text-red-600">*</span>
             </label>
             <select
               className="mt-1 block w-full p-2 border rounded-md text-gray-900"
@@ -64,4 +64,4 @@ const AddDislikeModal: React.FC = () => {
   );
 };
 
-export default AddDislikeModal;
+export default AddLikeModal;

@@ -11,10 +11,10 @@ import {
 } from "@/mocks/mockPatientDetails";
 import TabProps from "./types";
 import { useModal } from "@/hooks/useModal";
-import AddLikeModal from "../Modal/AddLikeModal";
-import AddDislikeModal from "../Modal/AddDislikeModal";
-import AddHobbyModal from "../Modal/AddHobbyModal";
-import AddHabitModal from "../Modal/AddHabitModal";
+import AddLikeModal from "../Modal/Add/AddLikeModal";
+import AddDislikeModal from "../Modal/Add/AddDislikeModal";
+import AddHobbyModal from "../Modal/Add/AddHobbyModal";
+import AddHabitModal from "../Modal/Add/AddHabitModal";
 
 const PersonalPreferenceTab: React.FC<TabProps> = () => {
   const { activeModal, openModal } = useModal();

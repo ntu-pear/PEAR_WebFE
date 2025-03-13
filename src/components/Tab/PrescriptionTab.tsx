@@ -5,15 +5,15 @@ import { TabsContent } from "../ui/tabs";
 import { DataTableServer } from "../Table/DataTable";
 import TabProps from "./types";
 import { useModal } from "@/hooks/useModal";
-import AddPrescriptionModal from "../Modal/AddPrescriptionModal";
+import AddPrescriptionModal from "../Modal/Add/AddPrescriptionModal";
 import {
   fetchPatientPrescription,
   PrescriptionTDServer,
 } from "@/api/patients/prescription";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import DeletePrescriptionModal from "../Modal/DeletePrescriptionModal";
-import EditPrescriptionModal from "../Modal/EditPrescriptionModal";
+import DeletePrescriptionModal from "../Modal/Delete/DeletePrescriptionModal";
+import EditPrescriptionModal from "../Modal/Edit/EditPrescriptionModal";
 import { useAuth } from "@/hooks/useAuth";
 
 const PrescriptionTab: React.FC<TabProps> = ({ id }) => {

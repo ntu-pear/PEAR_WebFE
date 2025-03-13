@@ -6,7 +6,7 @@ import { DataTableClient } from "../Table/DataTable";
 import { mockActivityPreferences } from "@/mocks/mockPatientDetails";
 import TabProps from "./types";
 import { useModal } from "@/hooks/useModal";
-import AddActivityPreferenceModal from "../Modal/AddActivityPreferenceModal";
+import AddActivityPreferenceModal from "../Modal/Add/AddActivityPreferenceModal";
 
 const ActivityPreferenceTab: React.FC<TabProps> = () => {
   const { activeModal, openModal } = useModal();

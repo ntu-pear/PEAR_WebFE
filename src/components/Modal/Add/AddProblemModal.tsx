@@ -1,5 +1,5 @@
 import { useModal } from "@/hooks/useModal";
-import { Button } from "../ui/button";
+import { Button } from "../../ui/button";
 
 const AddProblemModal: React.FC = () => {
   const { modalRef, closeModal } = useModal();

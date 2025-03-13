@@ -1,5 +1,5 @@
 import { useModal } from "@/hooks/useModal";
-import { Button } from "../ui/button";
+import { Button } from "../../ui/button";
 import { useEffect, useState } from "react";
 import {
   AllergyAutoFill,

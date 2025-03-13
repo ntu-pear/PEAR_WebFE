@@ -1,6 +1,6 @@
 import { useModal } from "@/hooks/useModal";
-import { Button } from "../ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
+import { Button } from "../../ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../ui/tabs";
 import { useEffect, useRef, useState } from "react";
 import { Pencil, X } from "lucide-react";
 import {

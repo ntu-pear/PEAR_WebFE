@@ -8,7 +8,7 @@ import TabProps from "./types";
 import { useEffect, useState } from "react";
 
 import { useModal } from "@/hooks/useModal";
-import AddGuardianModal from "../Modal/AddGuardianModal";
+import AddGuardianModal from "../Modal/Add/AddGuardianModal";
 import { toast } from "sonner";
 
 const GuardianTab: React.FC<TabProps> = ({ id }) => {
