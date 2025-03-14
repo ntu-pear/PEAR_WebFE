@@ -23,6 +23,7 @@ import ManageMedication from "./pages/Supervisor/ManageMedication";
 import ManageActivities from "./pages/Supervisor/ManageActivities";
 import ViewPatient from "./pages/ViewPatient";
 import TestGeocode from "./pages/testGeocode";
+import AccountLogs from './pages/logger/AccountLogs';
 
 import EditRoles from "./pages/Admin/EditRoles";
 import CreateRole from "./pages/Admin/CreateRole";
@@ -142,6 +143,7 @@ const App: React.FC = () => {
                       <Route path="edit-roles" element={<EditRoles />} />
                       <Route path="create-role" element={<CreateRole />} />
                       <Route path="edit-role/:id" element={<EditRole />} />
+                      <Route path="account-logs/" element={<AccountLogs />} />
                       <Route
                         path="edit-user-in-role/:id"
                         element={<EditUserInRole />}
