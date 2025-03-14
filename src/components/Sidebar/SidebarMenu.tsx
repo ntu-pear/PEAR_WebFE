@@ -110,6 +110,11 @@ const supervisorMenu: MenuSection[] = [
         path: "/supervisor/manage-approval-requests",
       },
       {
+        title: "View Patient Logs",
+        icon: "BookText",
+        path: "/supervisor/view-patient-logs",
+      },
+      {
         title: "View Activity Logs",
         icon: "BookText",
         path: "/supervisor/view-activity-logs",
