@@ -45,6 +45,7 @@ import ConfirmNewEmail from "./pages/auth/ConfirmNewEmail";
 import Login2FA from "./pages/auth/Login2FA";
 import HighlightTable from "./pages/Supervisor/HighlightTable";
 import VerifyAccount from "./pages/Admin/VerifyAccount";
+import { ViewPatientProvider } from "./hooks/patient/useViewPatient";
 
 export const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: false, staleTime: Infinity } },
@@ -58,6 +59,15 @@ const settingsRoutes = [
   { path: "personal-data", element: <PersonalDataSettings /> },
   { path: "*", element: <Navigate to="profile" replace /> }, // Default redirect
 ];
+
+//this was placed here, so that all providers can be viewed in one file.
+const ViewPatientWrapper: React.FC = () => {
+  return (
+    <ViewPatientProvider>
+      <ViewPatient />
+    </ViewPatientProvider>
+  );
+};
 
 const App: React.FC = () => {
   return (
@@ -104,7 +114,7 @@ const App: React.FC = () => {
                       />
                       <Route
                         path="view-patient/:id"
-                        element={<ViewPatient />}
+                        element={<ViewPatientWrapper />}
                       />
                       <Route path="add-patient" element={<AddPatient />} />
                       <Route
@@ -138,7 +148,10 @@ const App: React.FC = () => {
                       element={<ProtectedRoute allowedRoles={["ADMIN"]} />}
                     >
                       <Route path="temp-page" element={<TempPage />} />
-                      <Route path="register-account" element={<RegisterAccount />} />
+                      <Route
+                        path="register-account"
+                        element={<RegisterAccount />}
+                      />
                       <Route path="edit-roles" element={<EditRoles />} />
                       <Route path="create-role" element={<CreateRole />} />
                       <Route path="edit-role/:id" element={<EditRole />} />

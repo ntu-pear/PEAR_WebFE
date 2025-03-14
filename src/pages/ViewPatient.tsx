@@ -1,11 +1,7 @@
-import { fetchPatientInfo, fetchPatientNRIC } from "@/api/patients/patients";
-import React, { Suspense, useEffect, useState } from "react";
-import { useParams, useNavigate, useLocation } from "react-router-dom";
+import React, { Suspense } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-
-import { PatientInformation } from "@/mocks/mockPatientDetails";
-import { toast } from "sonner";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,6 +14,7 @@ import { useModal } from "@/hooks/useModal";
 import UploadProfilePhotoModal from "@/components/Modal/UploadProfilePhotoModal";
 import ConfirmProfilePhotoModal from "@/components/Modal/ConfirmProfilePhotoModal";
 import DeleteProfilePhotoModal from "@/components/Modal/Delete/DeleteProfilePhotoModal";
+import { useViewPatient } from "@/hooks/patient/useViewPatient";
 
 const AllergyTab = React.lazy(() => import("@/components/Tab/AllergyTab"));
 const GuardianTab = React.lazy(() => import("@/components/Tab/GuardianTab"));
@@ -46,57 +43,13 @@ const ActivityExclusionTab = React.lazy(
 );
 
 const ViewPatient: React.FC = () => {
-  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const location = useLocation();
   const activeTab =
     new URLSearchParams(location.search).get("tab") || "information";
-  const [patientInfo, setPatientInfo] = useState<PatientInformation | null>(
-    null
-  );
-  const [nricData, setNricData] = useState<{ nric: string; isMasked: boolean }>(
-    {
-      nric: "",
-      isMasked: true,
-    }
-  );
+
+  const { id, patientInfo, refreshPatientData } = useViewPatient();
   const { activeModal, openModal } = useModal();
-
-  const handleNRICToggle = async () => {
-    if (!id || isNaN(Number(id))) return;
-    try {
-      const updatedNric: string = await fetchPatientNRIC(
-        Number(id),
-        !nricData.isMasked
-      );
-
-      setNricData({
-        nric: updatedNric,
-        isMasked: !nricData.isMasked,
-      });
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (error) {
-      toast.error("Failed to fetch patient NRIC");
-    }
-  };
-
-  const refreshPatientData = async () => {
-    if (!id || isNaN(Number(id))) return;
-    try {
-      const fetchedPatientInfo: PatientInformation = await fetchPatientInfo(
-        Number(id)
-      );
-
-      setPatientInfo(fetchedPatientInfo);
-      setNricData({
-        nric: fetchedPatientInfo.nric,
-        isMasked: true,
-      });
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (error) {
-      toast.error("Failed to fetch patient information");
-    }
-  };
 
   const handleTabChange = (value: string) => {
     // Update the URL with the new tab
@@ -105,10 +58,6 @@ const ViewPatient: React.FC = () => {
       search: `?tab=${value}`, // Set the selected tab in the URL query
     });
   };
-
-  useEffect(() => {
-    refreshPatientData();
-  }, []);
 
   return (
     <>
@@ -204,13 +153,7 @@ const ViewPatient: React.FC = () => {
             <Suspense fallback={<div>Loading...</div>}>
               {activeTab === "information" && (
                 <TabsContent value="information">
-                  <PatientInfoTab
-                    id={id}
-                    patientInfo={patientInfo}
-                    nricData={nricData}
-                    handleNRICToggle={handleNRICToggle}
-                    refreshPatientData={refreshPatientData}
-                  />
+                  <PatientInfoTab id={id} />
                 </TabsContent>
               )}
               {activeTab === "allergy" && (
