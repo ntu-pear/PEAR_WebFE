@@ -1,6 +1,6 @@
 import React, { Suspense } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -29,7 +29,7 @@ const PrescriptionTab = React.lazy(
   () => import("@/components/Tab/PrescriptionTab")
 );
 const ProblemLogTab = React.lazy(
-  () => import("@/components/Tab/ProblemLogTab")
+  () => import("@/components/Tab/ProblemHistoryTab")
 );
 const RoutineTab = React.lazy(() => import("@/components/Tab/RoutineTab"));
 const PhotoAlbumTab = React.lazy(
@@ -137,7 +137,7 @@ const ViewPatient: React.FC = () => {
               <TabsTrigger value="personal-preference">
                 Personal Preference
               </TabsTrigger>
-              <TabsTrigger value="problem-log">Problem Log</TabsTrigger>
+              <TabsTrigger value="problem-history">Problem History</TabsTrigger>
               <TabsTrigger value="activity-preference">
                 Activity Preference
               </TabsTrigger>
@@ -151,61 +151,17 @@ const ViewPatient: React.FC = () => {
             </TabsList>
 
             <Suspense fallback={<div>Loading...</div>}>
-              {activeTab === "information" && (
-                <TabsContent value="information">
-                  <PatientInfoTab id={id} />
-                </TabsContent>
-              )}
-              {activeTab === "allergy" && (
-                <TabsContent value="allergy">
-                  <AllergyTab id={id} />
-                </TabsContent>
-              )}
-              {activeTab === "vital" && (
-                <TabsContent value="vital">
-                  <VitalTab id={id} />
-                </TabsContent>
-              )}
-              {activeTab === "personal-preference" && (
-                <TabsContent value="personal-preference">
-                  <PersonalPreferenceTab id={id} />
-                </TabsContent>
-              )}
-              {activeTab === "problem-log" && (
-                <TabsContent value="problem-log">
-                  <ProblemLogTab id={id} />
-                </TabsContent>
-              )}
-              {activeTab === "activity-preference" && (
-                <TabsContent value="activity-preference">
-                  <ActivityPreferenceTab id={id} />
-                </TabsContent>
-              )}
-              {activeTab === "routine" && (
-                <TabsContent value="routine">
-                  <RoutineTab id={id} />
-                </TabsContent>
-              )}
-              {activeTab === "prescription" && (
-                <TabsContent value="prescription">
-                  <PrescriptionTab id={id} />
-                </TabsContent>
-              )}
-              {activeTab === "photo-album" && (
-                <TabsContent value="photo-album">
-                  <PhotoAlbumTab id={id} />
-                </TabsContent>
-              )}
-              {activeTab === "guardian" && (
-                <TabsContent value="guardian">
-                  <GuardianTab id={id} />
-                </TabsContent>
-              )}
-              {activeTab === "activity-exclusion" && (
-                <TabsContent value="activity-exclusion">
-                  <ActivityExclusionTab id={id} />
-                </TabsContent>
-              )}
+              {activeTab === "information" && <PatientInfoTab />}
+              {activeTab === "allergy" && <AllergyTab />}
+              {activeTab === "vital" && <VitalTab />}
+              {activeTab === "personal-preference" && <PersonalPreferenceTab />}
+              {activeTab === "problem-history" && <ProblemLogTab />}
+              {activeTab === "activity-preference" && <ActivityPreferenceTab />}
+              {activeTab === "routine" && <RoutineTab />}
+              {activeTab === "prescription" && <PrescriptionTab />}
+              {activeTab === "photo-album" && <PhotoAlbumTab />}
+              {activeTab === "guardian" && <GuardianTab />}
+              {activeTab === "activity-exclusion" && <ActivityExclusionTab />}
             </Suspense>
           </Tabs>
         </div>

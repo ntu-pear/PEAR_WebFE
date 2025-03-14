@@ -1,5 +1,4 @@
 import { TabsContent } from "../ui/tabs";
-import TabProps from "./types";
 import { useModal } from "@/hooks/useModal";
 import EditPatientInfoModal from "../Modal/Edit/EditPatientInfoModal";
 import AddMedicalHistoryModal from "../Modal/Add/AddMedicalHistoryModal";
@@ -17,13 +16,13 @@ import DoctorNotesCard from "../Card/DoctorNotesCard";
 import StaffAllocationCard from "../Card/StaffAllocationCard";
 import SocialHistoryCard from "../Card/SocialHistoryCard";
 
-const PatientInfoTab: React.FC<TabProps> = () => {
+const PatientInfoTab: React.FC = () => {
   const { activeModal } = useModal();
 
   return (
     <>
       <TabsContent value="information">
-        <div className="grid gap-2 md:grid-cols-2">
+        <div className="grid gap-2 md:grid-cols-2 my-2">
           <PatientInfoCard />
           <DiagnosedDementiaCard />
         </div>
