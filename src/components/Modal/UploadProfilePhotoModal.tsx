@@ -1,37 +1,45 @@
-import { useModal } from '@/hooks/useModal';
-import { Button } from '../ui/button';
-import { Input } from '../ui/input';
-import { useState } from 'react';
+import { useModal } from "@/hooks/useModal";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
+import { useState } from "react";
 
 const ProfilePhotoInputModal: React.FC = () => {
-  const { modalRef, openModal, closeModal } = useModal();
-  const [error, setError] = useState('');
+  const { modalRef, activeModal, openModal, closeModal } = useModal();
+  const { refreshProfile, isUser, patientId } = activeModal.props as {
+    refreshProfile: () => void;
+    isUser: boolean;
+    patientId?: string;
+  };
+
+  const [error, setError] = useState("");
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
       // Check if the file is an image type (jpg, jpeg, png)
-      const validTypes = ['image/jpeg' /*'image/png'*/];
+      const validTypes = ["image/jpeg", "image/png"];
       if (!validTypes.includes(file.type)) {
-        // setError('Please upload a JPG, JPEG, or PNG file.');
-        setError('Please upload a JPG or JPEG file.');
+        setError("Please upload a JPG, JPEG, or PNG file.");
         return;
       }
 
       // Check if the file size is under 2MB (2MB = 2,000,000 bytes)
       if (file.size >= 2_000_000) {
         setError(
-          'The file is too large. Please upload a file no more than 2MB.'
+          "The file is too large. Please upload a file no more than 2MB."
         );
         return;
       }
-      setError('');
+      setError("");
 
       const reader = new FileReader();
       reader.onload = () => {
         closeModal();
-        openModal('confirmProfilePhoto', {
+        openModal("confirmProfilePhoto", {
           tempPhoto: reader.result as string,
+          refreshProfile,
+          isUser,
+          patientId,
         });
       };
       reader.readAsDataURL(file);

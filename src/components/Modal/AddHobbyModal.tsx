@@ -1,11 +1,11 @@
-import { useModal } from '@/hooks/useModal';
-import { Button } from '../ui/button';
+import { useModal } from "@/hooks/useModal";
+import { Button } from "../ui/button";
 
 const AddHobbyModal: React.FC = () => {
   const { modalRef, closeModal } = useModal();
   const handleAddHobby = (event: React.FormEvent) => {
     event.preventDefault();
-    console.log('Patient Hobby Added!');
+    console.log("Patient Hobby Added!");
     closeModal();
   };
 

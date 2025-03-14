@@ -1,19 +1,19 @@
-import { PlusCircle } from 'lucide-react';
-import { Button } from '../ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-import { TabsContent } from '../ui/tabs';
-import { DataTableClient } from '../Table/DataTable';
-import { mockActivityPreferences } from '@/mocks/mockPatientDetails';
-import TabProps from './types';
-import { useModal } from '@/hooks/useModal';
-import AddActivityPreferenceModal from '../Modal/AddActivityPreferenceModal';
+import { PlusCircle } from "lucide-react";
+import { Button } from "../ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { TabsContent } from "../ui/tabs";
+import { DataTableClient } from "../Table/DataTable";
+import { mockActivityPreferences } from "@/mocks/mockPatientDetails";
+import TabProps from "./types";
+import { useModal } from "@/hooks/useModal";
+import AddActivityPreferenceModal from "../Modal/AddActivityPreferenceModal";
 
 const ActivityPreferenceTab: React.FC<TabProps> = () => {
   const { activeModal, openModal } = useModal();
   const activityPreferencesColumns = [
-    { key: 'activityName', header: 'Activity Name' },
-    { key: 'activityDescription', header: 'Activity Description' },
-    { key: 'likeOrDislike', header: 'Like/Dislike' },
+    { key: "activityName", header: "Activity Name" },
+    { key: "activityDescription", header: "Activity Description" },
+    { key: "likeOrDislike", header: "Like/Dislike" },
   ];
 
   return (
@@ -26,7 +26,7 @@ const ActivityPreferenceTab: React.FC<TabProps> = () => {
               <Button
                 size="sm"
                 className="h-8 w-24 gap-1"
-                onClick={() => openModal('addActivityPreference')}
+                onClick={() => openModal("addActivityPreference")}
               >
                 <PlusCircle className="h-4 w-4" />
                 <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
@@ -44,7 +44,7 @@ const ActivityPreferenceTab: React.FC<TabProps> = () => {
           </CardContent>
         </Card>
       </TabsContent>
-      {activeModal.name == 'addActivityPreference' && (
+      {activeModal.name == "addActivityPreference" && (
         <AddActivityPreferenceModal />
       )}
     </>

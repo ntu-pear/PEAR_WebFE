@@ -1,19 +1,19 @@
-import { PlusCircle } from 'lucide-react';
-import { Button } from '../ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-import { TabsContent } from '../ui/tabs';
-import { DataTableServer } from '../Table/DataTable';
-import TabProps from './types';
-import { useModal } from '@/hooks/useModal';
-import AddPrescriptionModal from '../Modal/AddPrescriptionModal';
+import { PlusCircle } from "lucide-react";
+import { Button } from "../ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { TabsContent } from "../ui/tabs";
+import { DataTableServer } from "../Table/DataTable";
+import TabProps from "./types";
+import { useModal } from "@/hooks/useModal";
+import AddPrescriptionModal from "../Modal/AddPrescriptionModal";
 import {
   fetchPatientPrescription,
   PrescriptionTDServer,
-} from '@/api/patients/prescription';
-import { useEffect, useState } from 'react';
-import { toast } from 'sonner';
-import DeletePrescriptionModal from '../Modal/DeletePrescriptionModal';
-import EditPrescriptionModal from '../Modal/EditPrescriptionModal';
+} from "@/api/patients/prescription";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import DeletePrescriptionModal from "../Modal/DeletePrescriptionModal";
+import EditPrescriptionModal from "../Modal/EditPrescriptionModal";
 
 const PrescriptionTab: React.FC<TabProps> = ({ id }) => {
   const { activeModal, openModal } = useModal();
@@ -38,12 +38,12 @@ const PrescriptionTab: React.FC<TabProps> = ({ id }) => {
 
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
-      toast.error('Failed to fetch prescription for patient');
+      toast.error("Failed to fetch prescription for patient");
     }
   };
 
   useEffect(() => {
-    console.log('patientId', id);
+    console.log("patientId", id);
     refreshPrescriptionData();
   }, []);
 
@@ -52,15 +52,15 @@ const PrescriptionTab: React.FC<TabProps> = ({ id }) => {
   };
 
   const prescriptionColumns = [
-    { key: 'drugName', header: 'Drug Name', className: 'truncate-column' },
-    { key: 'dosage', header: 'Dosage', className: 'truncate-column' },
-    { key: 'frequencyPerDay', header: 'Frequency Per Day' },
-    { key: 'instruction', header: 'Instruction', className: 'truncate-column' },
-    { key: 'startDate', header: 'Start Date' },
-    { key: 'endDate', header: 'End Date' },
-    { key: 'afterMeal', header: 'After Meal' },
+    { key: "drugName", header: "Drug Name", className: "truncate-column" },
+    { key: "dosage", header: "Dosage", className: "truncate-column" },
+    { key: "frequencyPerDay", header: "Frequency Per Day" },
+    { key: "instruction", header: "Instruction", className: "truncate-column" },
+    { key: "startDate", header: "Start Date" },
+    { key: "endDate", header: "End Date" },
+    { key: "afterMeal", header: "After Meal" },
     //{ key: 'remark', header: 'Remark', className: 'truncate-column' },
-    { key: 'status', header: 'Status', className: 'truncate-column' },
+    { key: "status", header: "Status", className: "truncate-column" },
   ];
 
   return (
@@ -74,9 +74,9 @@ const PrescriptionTab: React.FC<TabProps> = ({ id }) => {
                 size="sm"
                 className="h-8 w-24 gap-1"
                 onClick={() =>
-                  openModal('addPrescription', {
+                  openModal("addPrescription", {
                     patientId: id,
-                    submitterId: '1',
+                    submitterId: "1",
                     refreshPrescriptionData,
                   })
                 }
@@ -95,17 +95,16 @@ const PrescriptionTab: React.FC<TabProps> = ({ id }) => {
               fetchData={handleFetchPrescription}
               columns={prescriptionColumns}
               viewMore={false}
-              className="table-fixed"
               renderActions={(item) => (
-                <div className="flex space-x-2 flex-col">
+                <div className="flex justify-start flex-col">
                   <Button
                     variant="default"
                     size="sm"
                     className="mt-3"
                     onClick={() => {
-                      openModal('editPrescription', {
+                      openModal("editPrescription", {
                         prescriptionId: String(item.id),
-                        submitterId: '1',
+                        submitterId: "1",
                         refreshPrescriptionData,
                       });
                     }}
@@ -117,9 +116,9 @@ const PrescriptionTab: React.FC<TabProps> = ({ id }) => {
                     size="sm"
                     className="mt-3"
                     onClick={() =>
-                      openModal('deletePrescription', {
+                      openModal("deletePrescription", {
                         prescriptionId: String(item.id),
-                        submitterId: '1',
+                        submitterId: "1",
                         refreshPrescriptionData,
                       })
                     }
@@ -132,9 +131,9 @@ const PrescriptionTab: React.FC<TabProps> = ({ id }) => {
           </CardContent>
         </Card>
       </TabsContent>
-      {activeModal.name === 'addPrescription' && <AddPrescriptionModal />}
-      {activeModal.name === 'deletePrescription' && <DeletePrescriptionModal />}
-      {activeModal.name === 'editPrescription' && <EditPrescriptionModal />}
+      {activeModal.name === "addPrescription" && <AddPrescriptionModal />}
+      {activeModal.name === "deletePrescription" && <DeletePrescriptionModal />}
+      {activeModal.name === "editPrescription" && <EditPrescriptionModal />}
     </>
   );
 };

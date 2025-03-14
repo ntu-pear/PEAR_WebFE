@@ -1,11 +1,11 @@
-import { useModal } from '@/hooks/useModal';
-import { Button } from '../ui/button';
+import { useModal } from "@/hooks/useModal";
+import { Button } from "../ui/button";
 
 const AddMedicalHistoryModal: React.FC = () => {
   const { modalRef, closeModal } = useModal();
   const handleAddMedicalHistory = (event: React.FormEvent) => {
     event.preventDefault();
-    console.log('Patient Medical History added!');
+    console.log("Patient Medical History added!");
     closeModal();
   };
 

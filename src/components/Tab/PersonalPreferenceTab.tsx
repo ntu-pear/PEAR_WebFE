@@ -1,28 +1,28 @@
-import { PlusCircle } from 'lucide-react';
-import { Button } from '../ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-import { TabsContent } from '../ui/tabs';
-import { DataTableClient } from '../Table/DataTable';
+import { PlusCircle } from "lucide-react";
+import { Button } from "../ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { TabsContent } from "../ui/tabs";
+import { DataTableClient } from "../Table/DataTable";
 import {
   mockDislike,
   mockHabit,
   mockHobby,
   mockLike,
-} from '@/mocks/mockPatientDetails';
-import TabProps from './types';
-import { useModal } from '@/hooks/useModal';
-import AddLikeModal from '../Modal/AddLikeModal';
-import AddDislikeModal from '../Modal/AddDislikeModal';
-import AddHobbyModal from '../Modal/AddHobbyModal';
-import AddHabitModal from '../Modal/AddHabitModal';
+} from "@/mocks/mockPatientDetails";
+import TabProps from "./types";
+import { useModal } from "@/hooks/useModal";
+import AddLikeModal from "../Modal/AddLikeModal";
+import AddDislikeModal from "../Modal/AddDislikeModal";
+import AddHobbyModal from "../Modal/AddHobbyModal";
+import AddHabitModal from "../Modal/AddHabitModal";
 
 const PersonalPreferenceTab: React.FC<TabProps> = () => {
   const { activeModal, openModal } = useModal();
 
   const personalPreferenceColumns = [
-    { key: 'dateCreated', header: 'Date Created', width: '15%' },
-    { key: 'authorName', header: 'Author Name', width: '15%' },
-    { key: 'description', header: 'Description', width: '50%' },
+    { key: "dateCreated", header: "Date Created", width: "15%" },
+    { key: "authorName", header: "Author Name", width: "15%" },
+    { key: "description", header: "Description", width: "50%" },
   ];
 
   return (
@@ -35,7 +35,7 @@ const PersonalPreferenceTab: React.FC<TabProps> = () => {
               <Button
                 size="sm"
                 className="h-8 w-24 gap-1"
-                onClick={() => openModal('addLike')}
+                onClick={() => openModal("addLike")}
               >
                 <PlusCircle className="h-4 w-4" />
                 <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
@@ -59,7 +59,7 @@ const PersonalPreferenceTab: React.FC<TabProps> = () => {
               <Button
                 size="sm"
                 className="h-8 w-24 gap-1"
-                onClick={() => openModal('addDislike')}
+                onClick={() => openModal("addDislike")}
               >
                 <PlusCircle className="h-4 w-4" />
                 <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
@@ -83,7 +83,7 @@ const PersonalPreferenceTab: React.FC<TabProps> = () => {
               <Button
                 size="sm"
                 className="h-8 w-24 gap-1"
-                onClick={() => openModal('addHobby')}
+                onClick={() => openModal("addHobby")}
               >
                 <PlusCircle className="h-4 w-4" />
                 <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
@@ -107,7 +107,7 @@ const PersonalPreferenceTab: React.FC<TabProps> = () => {
               <Button
                 size="sm"
                 className="h-8 w-24 gap-1"
-                onClick={() => openModal('addHabit')}
+                onClick={() => openModal("addHabit")}
               >
                 <PlusCircle className="h-4 w-4" />
                 <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
@@ -125,13 +125,13 @@ const PersonalPreferenceTab: React.FC<TabProps> = () => {
           </CardContent>
         </Card>
       </TabsContent>
-      {activeModal.name === 'addLike' && <AddLikeModal />}
+      {activeModal.name === "addLike" && <AddLikeModal />}
 
-      {activeModal.name === 'addDislike' && <AddDislikeModal />}
+      {activeModal.name === "addDislike" && <AddDislikeModal />}
 
-      {activeModal.name === 'addHobby' && <AddHobbyModal />}
+      {activeModal.name === "addHobby" && <AddHobbyModal />}
 
-      {activeModal.name === 'addHabit' && <AddHabitModal />}
+      {activeModal.name === "addHabit" && <AddHabitModal />}
     </>
   );
 };

@@ -1,12 +1,12 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { ListFilter } from 'lucide-react';
+import React, { useState, useRef, useEffect } from "react";
+import { ListFilter } from "lucide-react";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
+} from "@/components/ui/card";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -14,16 +14,16 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Button } from '@/components/ui/button';
-import { DataTableClient } from '@/components/Table/DataTable';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import Searchbar from '@/components/Searchbar';
+} from "@/components/ui/dropdown-menu";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { DataTableClient } from "@/components/Table/DataTable";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import Searchbar from "@/components/Searchbar";
 import {
   mockPatientMedicationList,
   PatientMedicationData,
-} from '@/mocks/mockPatientMedication';
+} from "@/mocks/mockPatientMedication";
 
 const ManageMedication: React.FC = () => {
   const [expandedPatient, setExpandedPatient] =
@@ -57,18 +57,18 @@ const ManageMedication: React.FC = () => {
     };
 
     if (isModalOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener("mousedown", handleClickOutside);
     }
 
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [isModalOpen]);
 
   const columns = [
     {
-      key: 'patient',
-      header: 'Patient',
+      key: "patient",
+      header: "Patient",
       render: (value: string, patient: PatientMedicationData) => (
         <div className="flex items-center gap-3 ">
           <Avatar>
@@ -78,9 +78,9 @@ const ManageMedication: React.FC = () => {
             />
             <AvatarFallback>
               {patient.patientName
-                .split(' ')
+                .split(" ")
                 .map((n) => n[0])
-                .join('')}
+                .join("")}
             </AvatarFallback>
           </Avatar>
           <div>
@@ -90,11 +90,11 @@ const ManageMedication: React.FC = () => {
         </div>
       ),
     },
-    { key: 'preferredName', header: 'Preferred Name' },
-    { key: 'nric', header: 'NRIC' },
-    { key: 'startDate', header: 'Start Date' },
-    { key: 'endDate', header: 'End Date' },
-    { key: 'patientStatusInActiveDate', header: 'Inactive Date' },
+    { key: "preferredName", header: "Preferred Name" },
+    { key: "nric", header: "NRIC" },
+    { key: "startDate", header: "Start Date" },
+    { key: "endDate", header: "End Date" },
+    { key: "patientStatusInActiveDate", header: "Inactive Date" },
   ];
 
   // Function to render medication details dynamically from the selected patient's data
@@ -183,7 +183,7 @@ const ManageMedication: React.FC = () => {
                           variant="outline"
                           size="sm"
                           onClick={() =>
-                            console.log('View Patient Details', item)
+                            console.log("View Patient Details", item)
                           }
                         >
                           View Patient Details
@@ -225,7 +225,7 @@ const ManageMedication: React.FC = () => {
             {renderMedicationDetails(expandedPatient)}
             {/* Always show Create Medication button */}
             <div className="mt-4">
-              <Button onClick={() => console.log('Create Medication')}>
+              <Button onClick={() => console.log("Create Medication")}>
                 Create Medication
               </Button>
             </div>

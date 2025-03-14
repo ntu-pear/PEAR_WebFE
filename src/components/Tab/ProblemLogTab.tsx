@@ -1,19 +1,19 @@
-import { PlusCircle } from 'lucide-react';
-import { Button } from '../ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-import { TabsContent } from '../ui/tabs';
-import { DataTableClient } from '../Table/DataTable';
-import { mockProblemLog } from '@/mocks/mockPatientDetails';
-import TabProps from './types';
-import { useModal } from '@/hooks/useModal';
-import AddProblemModal from '../Modal/AddProblemModal';
+import { PlusCircle } from "lucide-react";
+import { Button } from "../ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { TabsContent } from "../ui/tabs";
+import { DataTableClient } from "../Table/DataTable";
+import { mockProblemLog } from "@/mocks/mockPatientDetails";
+import TabProps from "./types";
+import { useModal } from "@/hooks/useModal";
+import AddProblemModal from "../Modal/AddProblemModal";
 
 const ProblemLogTab: React.FC<TabProps> = () => {
   const { activeModal, openModal } = useModal();
   const problemLogColumns = [
-    { key: 'author', header: 'Author' },
-    { key: 'description', header: 'Description' },
-    { key: 'remark', header: 'Remark' },
+    { key: "author", header: "Author" },
+    { key: "description", header: "Description" },
+    { key: "remark", header: "Remark" },
   ];
 
   return (
@@ -26,7 +26,7 @@ const ProblemLogTab: React.FC<TabProps> = () => {
               <Button
                 size="sm"
                 className="h-8 w-24 gap-1"
-                onClick={() => openModal('addProblem')}
+                onClick={() => openModal("addProblem")}
               >
                 <PlusCircle className="h-4 w-4" />
                 <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
@@ -44,7 +44,7 @@ const ProblemLogTab: React.FC<TabProps> = () => {
           </CardContent>
         </Card>
       </TabsContent>
-      {activeModal.name === 'addProblem' && <AddProblemModal />}
+      {activeModal.name === "addProblem" && <AddProblemModal />}
     </>
   );
 };

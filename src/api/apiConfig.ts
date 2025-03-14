@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios from "axios";
 
 const VITE_PATIENT_SERVICE_URL: string = import.meta.env
   .VITE_PATIENT_SERVICE_URL;
@@ -41,8 +41,36 @@ export const socialHistoryAPI = axios.create({
   baseURL: `${VITE_PATIENT_SERVICE_URL}/SocialHistory`,
 });
 
+export const dietListAPI = axios.create({
+  baseURL: `${VITE_PATIENT_SERVICE_URL}/get_diet_types`,
+});
+
+export const educationListAPI = axios.create({
+  baseURL: `${VITE_PATIENT_SERVICE_URL}/get_education_types`,
+});
+
+export const liveWithListAPI = axios.create({
+  baseURL: `${VITE_PATIENT_SERVICE_URL}/get_livewith_types`,
+});
+
+export const occupationListAPI = axios.create({
+  baseURL: `${VITE_PATIENT_SERVICE_URL}/get_occupation_types`,
+});
+
+export const petListAPI = axios.create({
+  baseURL: `${VITE_PATIENT_SERVICE_URL}/get_pet_types`,
+});
+
+export const religionListAPI = axios.create({
+  baseURL: `${VITE_PATIENT_SERVICE_URL}/get_religion_types`,
+});
+
 export const vitalAPI = axios.create({
   baseURL: `${VITE_PATIENT_SERVICE_URL}/Vital`,
+});
+
+export const LanguageListPAI = axios.create({
+  baseURL: `${VITE_PATIENT_SERVICE_URL}/PatientListLanguage/`,
 });
 
 export const patientAllergyAPI = axios.create({
@@ -61,6 +89,10 @@ export const createPatientAllergyAPI = axios.create({
   baseURL: `${VITE_PATIENT_SERVICE_URL}/create_patient_allergy`,
 });
 
+export const updatePatientAllergyAPI = axios.create({
+  baseURL: `${VITE_PATIENT_SERVICE_URL}/update_patient_allergy`,
+});
+
 export const deletePatientAllergyAPI = axios.create({
   baseURL: `${VITE_PATIENT_SERVICE_URL}/delete_patient_allergy`,
 });
@@ -77,6 +109,14 @@ export const guardianAPI = axios.create({
   baseURL: `${VITE_PATIENT_SERVICE_URL}/Guardian`,
 });
 
+export const highlightsAPI = axios.create({
+  baseURL: `${VITE_PATIENT_SERVICE_URL}/get_all_highlights`,
+});
+
+export const highlightTypesAPI = axios.create({
+  baseURL: `${VITE_PATIENT_SERVICE_URL}/get_highlight_types`,
+});
+
 //geocode
 export const geocodeAPI = axios.create({
   baseURL: `${VITE_GEOCODE_SERVICE_URL}/geocode`,
@@ -85,6 +125,18 @@ export const geocodeAPI = axios.create({
 //user
 export const loginAPI = axios.create({
   baseURL: `${VITE_USER_SERVICE_URL}/login`,
+});
+
+export const verifyOTP = axios.create({
+  baseURL: `${VITE_USER_SERVICE_URL}/verify-otp`,
+});
+
+export const requestOTP = axios.create({
+  baseURL: `${VITE_USER_SERVICE_URL}/request-otp`,
+});
+
+export const logoutAPI = axios.create({
+  baseURL: `${VITE_USER_SERVICE_URL}/logout`,
 });
 
 export const refreshTokenAPI = axios.create({
@@ -101,13 +153,14 @@ export const userAPI = axios.create({
 
 export const roleAPI = axios.create({
   baseURL: `${VITE_USER_SERVICE_URL}/roles`,
-})
+});
 
 export const adminAPI = axios.create({
   baseURL: `${VITE_USER_SERVICE_URL}/admin`,
-})
-export const usersAPI = axios.create({
-  baseURL: `${VITE_USER_SERVICE_URL}/users`,
+});
+
+export const getDoctorNameAPI = axios.create({
+  baseURL: `${VITE_USER_SERVICE_URL}/supervisor/get_doctors`,
 });
 
 export const loggerAPI = axios.create({

@@ -1,11 +1,12 @@
-import { mockPrescriptionListData } from '@/mocks/mockPatientDetails';
+import { mockPrescriptionListData } from "@/mocks/mockPatientDetails";
 import {
   convertIsAfterMeal,
   getStatusDescription,
-} from '@/utils/convertToYesNo';
-import { formatDateString } from '@/utils/formatDate';
-import { patientPrescriptionAPI, prescriptionAPI } from '../apiConfig';
-import { TableRowData } from '@/components/Table/DataTable';
+} from "@/utils/convertToYesNo";
+import { formatDateString } from "@/utils/formatDate";
+import { patientPrescriptionAPI, prescriptionAPI } from "../apiConfig";
+import { TableRowData } from "@/components/Table/DataTable";
+import { retrieveAccessTokenFromCookie } from "../users/auth";
 
 export interface Prescription {
   IsDeleted: string;
@@ -22,8 +23,8 @@ export interface Prescription {
   Id: number;
   CreatedDateTime: string;
   UpdatedDateTime: string;
-  CreatedById: number;
-  UpdatedById: number;
+  CreatedById: string;
+  ModifiedById: string;
 }
 
 export interface PrescriptionList {
@@ -81,8 +82,8 @@ export interface PrescriptionFormData {
   IsAfterMeal: string;
   PrescriptionRemarks: string;
   Status: string;
-  CreatedById: number;
-  UpdatedById: number;
+  CreatedById: string;
+  ModifiedById: string;
   CreatedDateTime: string;
   UpdatedDateTime: string;
 }
@@ -96,7 +97,7 @@ export interface PrescriptionDelete {
   StartDate: string;
   PrescriptionRemarks: string;
   UpdatedDateTime: string;
-  UpdatedById: number;
+  ModifiedById: string;
 }
 
 export interface PrescriptionUpdate {
@@ -111,7 +112,7 @@ export interface PrescriptionUpdate {
   PrescriptionRemarks: string;
   Status: string;
   UpdatedDateTime: string;
-  UpdatedById: number;
+  ModifiedById: string;
 }
 
 const convertToPrescriptionTDServer = (
@@ -119,12 +120,12 @@ const convertToPrescriptionTDServer = (
   prescriptionViewList: PrescriptionViewList
 ): PrescriptionTDServer => {
   if (!Array.isArray(prescriptionList)) {
-    console.error('prescriptionList is not an array', prescriptionList);
+    console.error("prescriptionList is not an array", prescriptionList);
   }
 
   if (!Array.isArray(prescriptionViewList.data)) {
     console.error(
-      'prescriptionViewList.data is not an array',
+      "prescriptionViewList.data is not an array",
       prescriptionViewList.data
     );
     return {
@@ -139,14 +140,14 @@ const convertToPrescriptionTDServer = (
   }
 
   const prescriptionsTransformed = prescriptionViewList.data
-    .filter((p) => p.IsDeleted === '0')
+    .filter((p) => p.IsDeleted === "0")
     .sort((a, b) => b.Id - a.Id) // Descending order
     .map((p) => ({
       id: p.Id,
       drugName:
         prescriptionList
           .find((pl) => pl.Id === p.PrescriptionListId)
-          ?.Value.toUpperCase() || '',
+          ?.Value.toUpperCase() || "",
       dosage: p.Dosage.toUpperCase(),
       frequencyPerDay: p.FrequencyPerDay,
       instruction: p.Instruction,
@@ -167,7 +168,7 @@ const convertToPrescriptionTDServer = (
     },
   };
 
-  console.log('convertToPrescriptionTD: ', updatedTD);
+  console.log("convertToPrescriptionTD: ", updatedTD);
   return updatedTD;
 };
 
@@ -176,19 +177,27 @@ export const fetchPatientPrescription = async (
   pageNo: number = 0,
   pageSize: number = 10
 ): Promise<PrescriptionTDServer> => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+
   try {
     const dlResponse = mockPrescriptionListData;
-    console.log('GET all prescription List', dlResponse.data);
+    console.log("GET all prescription List", dlResponse.data);
 
     const ddResponse = await patientPrescriptionAPI.get<PrescriptionViewList>(
-      `/?patient_id=${patientId}&pageNo=${pageNo}&pageSize=${pageSize}`
+      `/?patient_id=${patientId}&pageNo=${pageNo}&pageSize=${pageSize}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
     );
 
-    console.log('GET all patient prescriptions', ddResponse.data);
+    console.log("GET all patient prescriptions", ddResponse.data);
 
     return convertToPrescriptionTDServer(dlResponse.data, ddResponse.data);
   } catch (error) {
-    console.error('GET all prescription List/ patient prescriptions', error);
+    console.error("GET all prescription List/ patient prescriptions", error);
     throw error;
   }
 };
@@ -196,14 +205,22 @@ export const fetchPatientPrescription = async (
 export const fetchPrescriptionById = async (
   prescriptionId: number
 ): Promise<PrescriptionView> => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+
   try {
     const response = await prescriptionAPI.get<PrescriptionView>(
-      `/${prescriptionId}`
+      `/${prescriptionId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
     );
-    console.log('GET prescription by prescriptionId', response.data);
+    console.log("GET prescription by prescriptionId", response.data);
     return response.data;
   } catch (error) {
-    console.error('GET prescription by prescriptionId', error);
+    console.error("GET prescription by prescriptionId", error);
     throw error;
   }
 };
@@ -211,36 +228,50 @@ export const fetchPrescriptionById = async (
 export const addPatientPrescription = async (
   formData: PrescriptionFormData
 ): Promise<PrescriptionView> => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+
   try {
     const response = await prescriptionAPI.post<PrescriptionView>(
       `/add`,
-      formData
+      formData,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
     );
 
-    console.log('ADD patient prescription', response.data);
+    console.log("ADD patient prescription", response.data);
 
     return response.data;
   } catch (error) {
-    console.error('ADD patient prescription', error);
+    console.error("ADD patient prescription", error);
     throw error;
   }
 };
 
 export const deletePatientPrescription = async (
-  prescriptionId: number,
-  prescriptionDelete: PrescriptionDelete
+  prescriptionId: number
 ): Promise<PrescriptionView> => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+
   try {
-    const response = await prescriptionAPI.put<PrescriptionView>(
+    const response = await prescriptionAPI.delete<PrescriptionView>(
       `/delete/${prescriptionId}`,
-      prescriptionDelete
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
     );
 
-    console.log('PUT Delete patient prescription', response.data);
+    console.log("PUT Delete patient prescription", response.data);
 
     return response.data;
   } catch (error) {
-    console.error('PUT Delete patient prescription', error);
+    console.error("PUT Delete patient prescription", error);
     throw error;
   }
 };
@@ -249,17 +280,25 @@ export const updatePatientPrescription = async (
   prescriptionId: number,
   prescriptionUpdate: PrescriptionUpdate
 ): Promise<PrescriptionView> => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+
   try {
     const response = await prescriptionAPI.put<PrescriptionView>(
       `/update/${prescriptionId}`,
-      prescriptionUpdate
+      prescriptionUpdate,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
     );
 
-    console.log('PUT Update patient prescription', response.data);
+    console.log("PUT Update patient prescription", response.data);
 
     return response.data;
   } catch (error) {
-    console.error('PUT Update patient prescription', error);
+    console.error("PUT Update patient prescription", error);
     throw error;
   }
 };

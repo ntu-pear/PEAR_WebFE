@@ -1,10 +1,10 @@
-import { useEffect, useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { EyeIcon, EyeOffIcon, UserIcon } from 'lucide-react';
-import { useAuth } from '@/hooks/useAuth';
-import { useNavigate } from 'react-router';
-import { toast } from 'sonner';
+import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { EyeIcon, EyeOffIcon, UserIcon } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { useNavigate } from "react-router";
+import { toast } from "sonner";
 
 const Login: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -26,24 +26,24 @@ const Login: React.FC = () => {
   useEffect(() => {
     if (currentUser) {
       switch (currentUser.roleName) {
-        case 'ADMIN':
-          navigate('/admin/temp-page', { replace: true });
+        case "ADMIN":
+          navigate("/admin/temp-page", { replace: true });
           break;
-        case 'CAREGIVER':
-          toast.error('Caregiver is only available on mobile.');
+        case "CAREGIVER":
+          toast.error("Caregiver is only available on mobile.");
           logout();
           break;
-        case 'DOCTOR':
-          navigate('/doctor/temp-page', { replace: true });
+        case "DOCTOR":
+          navigate("/doctor/temp-page", { replace: true });
           break;
-        case 'GUARDIAN':
-          navigate('/guardian/temp-page', { replace: true });
+        case "GUARDIAN":
+          navigate("/guardian/temp-page", { replace: true });
           break;
-        case 'GAME THERAPIST':
-          navigate('/game-therapist/temp-page', { replace: true });
+        case "GAME THERAPIST":
+          navigate("/game-therapist/temp-page", { replace: true });
           break;
-        case 'SUPERVISOR':
-          navigate('/supervisor/manage-patients', { replace: true });
+        case "SUPERVISOR":
+          navigate("/supervisor/manage-patients", { replace: true });
           break;
         default:
           break;
@@ -56,8 +56,8 @@ const Login: React.FC = () => {
       className="relative min-h-screen flex items-center justify-center bg-cover bg-center"
       style={{
         backgroundImage: "url('/background.jpg')",
-        backgroundSize: 'cover',
-        width: '100%',
+        backgroundSize: "cover",
+        width: "100%",
       }}
     >
       {/* Dark overlay */}
@@ -86,7 +86,7 @@ const Login: React.FC = () => {
           <div className="relative">
             <Input
               name="password"
-              type={showPassword ? 'text' : 'password'}
+              type={showPassword ? "text" : "password"}
               placeholder="Password"
               className="pr-10 text-gray-700"
             />

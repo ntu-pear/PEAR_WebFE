@@ -1,16 +1,16 @@
-import { PlusCircle } from 'lucide-react';
-import { Button } from '../ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-import { TabsContent } from '../ui/tabs';
-import { DataTableServer } from '../Table/DataTable';
-import TabProps from './types';
-import { useEffect, useState } from 'react';
-import { fetchVitals, VitalCheckTDServer } from '@/api/patients/vital';
-import AddVitalModal from '../Modal/AddVitalModal';
-import { useModal } from '@/hooks/useModal';
-import DeleteVitalModal from '../Modal/DeleteVitalModal';
-import { toast } from 'sonner';
-import EditVitalModal from '../Modal/EditVitalModal';
+import { PlusCircle } from "lucide-react";
+import { Button } from "../ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { TabsContent } from "../ui/tabs";
+import { DataTableServer } from "../Table/DataTable";
+import TabProps from "./types";
+import { useEffect, useState } from "react";
+import { fetchVitals, VitalCheckTDServer } from "@/api/patients/vital";
+import AddVitalModal from "../Modal/AddVitalModal";
+import { useModal } from "@/hooks/useModal";
+import DeleteVitalModal from "../Modal/DeleteVitalModal";
+import { toast } from "sonner";
+import EditVitalModal from "../Modal/EditVitalModal";
 
 const VitalTab: React.FC<TabProps> = ({ id }) => {
   const [vitalCheck, setVitalCheck] = useState<VitalCheckTDServer>({
@@ -35,12 +35,12 @@ const VitalTab: React.FC<TabProps> = ({ id }) => {
       setVitalCheck(fetchedVitalCheck);
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
-      toast.error('Failed to fetch vital for patient');
+      toast.error("Failed to fetch vital for patient");
     }
   };
 
   useEffect(() => {
-    console.log('patientId', id);
+    console.log("patientId", id);
     refreshVitalData();
   }, []);
 
@@ -49,18 +49,18 @@ const VitalTab: React.FC<TabProps> = ({ id }) => {
   };
 
   const vitalCheckColumns = [
-    { key: 'date', header: 'Date' },
-    { key: 'time', header: 'Time' },
-    { key: 'temperature', header: 'Temperature (°C)' },
-    { key: 'weight', header: 'Weight (kg)' },
-    { key: 'height', header: 'Height (m)' },
-    { key: 'systolicBP', header: 'Systolic BP (mmHg)' },
-    { key: 'diastolicBP', header: 'Diastolic BP (mmHg)' },
-    { key: 'heartRate', header: 'Heart Rate (bpm)' },
-    { key: 'spO2', header: 'SpO2 (%)' },
-    { key: 'bloodSugarLevel', header: 'Blood Sugar Level (mmol/L)' },
-    { key: 'afterMeal', header: 'After Meal' },
-    { key: 'remark', header: 'Remark' },
+    { key: "date", header: "Date" },
+    { key: "time", header: "Time" },
+    { key: "temperature", header: "Temperature (°C)" },
+    { key: "weight", header: "Weight (kg)" },
+    { key: "height", header: "Height (m)" },
+    { key: "systolicBP", header: "Systolic BP (mmHg)" },
+    { key: "diastolicBP", header: "Diastolic BP (mmHg)" },
+    { key: "heartRate", header: "Heart Rate (bpm)" },
+    { key: "spO2", header: "SpO2 (%)" },
+    { key: "bloodSugarLevel", header: "Blood Sugar Level (mmol/L)" },
+    { key: "afterMeal", header: "After Meal" },
+    { key: "remark", header: "Remark" },
   ];
 
   return (
@@ -74,9 +74,9 @@ const VitalTab: React.FC<TabProps> = ({ id }) => {
                 size="sm"
                 className="h-8 w-24 gap-1"
                 onClick={() =>
-                  openModal('addVital', {
+                  openModal("addVital", {
                     patientId: id,
-                    submitterId: '1',
+                    submitterId: "1",
                     refreshVitalData,
                   })
                 }
@@ -101,11 +101,11 @@ const VitalTab: React.FC<TabProps> = ({ id }) => {
                     size="sm"
                     className="mt-3"
                     onClick={() =>
-                      openModal('editVital', {
+                      openModal("editVital", {
                         vitalId: String(item.id),
                         vitalData: item,
                         patientId: String(id),
-                        submitterId: '1',
+                        submitterId: "1",
                         refreshVitalData,
                       })
                     }
@@ -117,7 +117,7 @@ const VitalTab: React.FC<TabProps> = ({ id }) => {
                     size="sm"
                     className="mt-3"
                     onClick={() =>
-                      openModal('deleteVital', {
+                      openModal("deleteVital", {
                         vitalId: String(item.id),
                         refreshVitalData,
                       })
@@ -131,9 +131,9 @@ const VitalTab: React.FC<TabProps> = ({ id }) => {
           </CardContent>
         </Card>
       </TabsContent>
-      {activeModal.name === 'addVital' && <AddVitalModal />}
-      {activeModal.name === 'editVital' && <EditVitalModal />}
-      {activeModal.name === 'deleteVital' && <DeleteVitalModal />}
+      {activeModal.name === "addVital" && <AddVitalModal />}
+      {activeModal.name === "editVital" && <EditVitalModal />}
+      {activeModal.name === "deleteVital" && <DeleteVitalModal />}
     </>
   );
 };

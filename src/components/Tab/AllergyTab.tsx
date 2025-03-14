@@ -1,16 +1,17 @@
-import { PlusCircle } from 'lucide-react';
-import { Button } from '../ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-import { TabsContent } from '../ui/tabs';
-import { DataTableClient } from '../Table/DataTable';
-import { AllergyTD, mockAllergyTD } from '@/mocks/mockPatientDetails';
-import TabProps from './types';
-import { useEffect, useState } from 'react';
-import { useModal } from '@/hooks/useModal';
-import AddAllergyModal from '../Modal/AddAllergyModal';
-import { fetchPatientAllergy } from '@/api/patients/allergy';
-import { toast } from 'sonner';
-import DeleteAllergyModal from '../Modal/DeleteAllergyModal';
+import { PlusCircle } from "lucide-react";
+import { Button } from "../ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { TabsContent } from "../ui/tabs";
+import { DataTableClient } from "../Table/DataTable";
+import { AllergyTD, mockAllergyTD } from "@/mocks/mockPatientDetails";
+import TabProps from "./types";
+import { useEffect, useState } from "react";
+import { useModal } from "@/hooks/useModal";
+import AddAllergyModal from "../Modal/AddAllergyModal";
+import { fetchPatientAllergy } from "@/api/patients/allergy";
+import { toast } from "sonner";
+import DeleteAllergyModal from "../Modal/DeleteAllergyModal";
+import EditAllergyModal from "../Modal/EditAllergyModal";
 
 const AllergyTab: React.FC<TabProps> = ({ id }) => {
   const [allergy, setAllergy] = useState<AllergyTD[]>([]);
@@ -20,20 +21,20 @@ const AllergyTab: React.FC<TabProps> = ({ id }) => {
     if (!id || isNaN(Number(id))) return;
     try {
       const fetchedAllergy: AllergyTD[] =
-        import.meta.env.MODE === 'development' ||
-        import.meta.env.MODE === 'production'
+        import.meta.env.MODE === "development" ||
+        import.meta.env.MODE === "production"
           ? await fetchPatientAllergy(Number(id))
           : mockAllergyTD;
 
       setAllergy(fetchedAllergy);
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
-      toast.error('Failed to fetch allergy for patient');
+      toast.error("Failed to fetch allergy for patient");
     }
   };
 
   useEffect(() => {
-    console.log('patientId', id);
+    console.log("patientId", id);
     handleFetchAllergy();
   }, []);
 
@@ -42,9 +43,9 @@ const AllergyTab: React.FC<TabProps> = ({ id }) => {
   };
 
   const allergyColumns = [
-    { key: 'allergicTo', header: 'Allergic To', width: '15%' },
-    { key: 'reaction', header: 'Reaction', width: '15%' },
-    { key: 'notes', header: 'Notes', width: '50%' },
+    { key: "allergicTo", header: "Allergic To", width: "15%" },
+    { key: "reaction", header: "Reaction", width: "15%" },
+    { key: "notes", header: "Notes", width: "50%" },
   ];
 
   return (
@@ -58,9 +59,9 @@ const AllergyTab: React.FC<TabProps> = ({ id }) => {
                 size="sm"
                 className="h-8 w-24 gap-1"
                 onClick={() =>
-                  openModal('addAllergy', {
+                  openModal("addAllergy", {
                     patientId: id,
-                    submitterId: '1',
+                    submitterId: "1",
                     refreshAllergyData,
                   })
                 }
@@ -80,11 +81,24 @@ const AllergyTab: React.FC<TabProps> = ({ id }) => {
               renderActions={(item) => (
                 <div className="flex space-x-2 w-[75px] sm:w-[150px]">
                   <Button
+                    size="sm"
+                    className="mt-3"
+                    onClick={() =>
+                      openModal("editAllergy", {
+                        allergyId: item.id,
+                        patientId: id,
+                        refreshAllergyData,
+                      })
+                    }
+                  >
+                    Edit
+                  </Button>
+                  <Button
                     variant="destructive"
                     size="sm"
                     className="mt-3"
                     onClick={() =>
-                      openModal('deleteAllergy', {
+                      openModal("deleteAllergy", {
                         allergyId: item.id,
                         refreshAllergyData,
                       })
@@ -98,8 +112,9 @@ const AllergyTab: React.FC<TabProps> = ({ id }) => {
           </CardContent>
         </Card>
       </TabsContent>
-      {activeModal.name === 'addAllergy' && <AddAllergyModal />}
-      {activeModal.name === 'deleteAllergy' && <DeleteAllergyModal />}
+      {activeModal.name === "addAllergy" && <AddAllergyModal />}
+      {activeModal.name === "editAllergy" && <EditAllergyModal />}
+      {activeModal.name === "deleteAllergy" && <DeleteAllergyModal />}
     </>
   );
 };

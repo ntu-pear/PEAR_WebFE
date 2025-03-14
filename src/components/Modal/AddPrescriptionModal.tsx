@@ -1,14 +1,14 @@
-import { useModal } from '@/hooks/useModal';
-import { Button } from '../ui/button';
-import { getDateTimeNowInUTC } from '@/utils/formatDate';
-import { toast } from 'sonner';
+import { useModal } from "@/hooks/useModal";
+import { Button } from "../ui/button";
+import { getDateTimeNowInUTC } from "@/utils/formatDate";
+import { toast } from "sonner";
 import {
   addPatientPrescription,
   PrescriptionFormData,
   PrescriptionList,
-} from '@/api/patients/prescription';
-import { useEffect, useState } from 'react';
-import { mockPrescriptionList } from '@/mocks/mockPatientDetails';
+} from "@/api/patients/prescription";
+import { useEffect, useState } from "react";
+import { mockPrescriptionList } from "@/mocks/mockPatientDetails";
 
 const AddPrescriptionModal: React.FC = () => {
   const { modalRef, activeModal, closeModal } = useModal();
@@ -21,7 +21,7 @@ const AddPrescriptionModal: React.FC = () => {
   const [prescriptionList, setPrescriptionList] = useState<PrescriptionList[]>(
     []
   );
-  const [startDate, setStartDate] = useState('');
+  const [startDate, setStartDate] = useState("");
   const handleFetchPrescriptionList = async () => {
     try {
       const fetchedPrescriptionList: PrescriptionList[] = mockPrescriptionList;
@@ -30,7 +30,7 @@ const AddPrescriptionModal: React.FC = () => {
 
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
-      toast.error('Failed to fetch Prescription List');
+      toast.error("Failed to fetch Prescription List");
     }
   };
 
@@ -58,8 +58,8 @@ const AddPrescriptionModal: React.FC = () => {
       IsAfterMeal: formDataObj.IsAfterMeal as string,
       PrescriptionRemarks: formDataObj.PrescriptionRemarks as string,
       Status: formDataObj.Status as string,
-      CreatedById: parseInt(submitterId as string, 10),
-      UpdatedById: parseInt(submitterId as string, 10),
+      CreatedById: submitterId as string,
+      ModifiedById: submitterId as string,
       CreatedDateTime: getDateTimeNowInUTC() as string,
       UpdatedDateTime: getDateTimeNowInUTC() as string,
     };
@@ -69,7 +69,7 @@ const AddPrescriptionModal: React.FC = () => {
     try {
       await addPatientPrescription(prescriptionFormData);
       closeModal();
-      toast.success('Patient prescription added successfully.');
+      toast.success("Patient prescription added successfully.");
       refreshPrescriptionData();
     } catch (error) {
       if (error instanceof Error) {
@@ -77,7 +77,7 @@ const AddPrescriptionModal: React.FC = () => {
       } else {
         // Fallback error handling for unknown error types
         toast.error(
-          'Failed to add patient prescription. An unknown error occurred.'
+          "Failed to add patient prescription. An unknown error occurred."
         );
       }
     }

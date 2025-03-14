@@ -1,23 +1,20 @@
-import { Button } from '../ui/button';
-import { toast } from 'sonner';
-import { useModal } from '@/hooks/useModal';
+import { Button } from "../ui/button";
+import { toast } from "sonner";
+import { useModal } from "@/hooks/useModal";
 import {
   deletePatientPrescription,
   fetchPrescriptionById,
   Prescription,
-  PrescriptionDelete,
-} from '@/api/patients/prescription';
-import { getDateTimeNowInUTC } from '@/utils/formatDate';
-import { useEffect, useState } from 'react';
+} from "@/api/patients/prescription";
+import { useEffect, useState } from "react";
 
 const DeletePrescriptionModal: React.FC = () => {
   const { modalRef, activeModal, closeModal } = useModal();
-  const { prescriptionId, submitterId, refreshPrescriptionData } =
-    activeModal.props as {
-      prescriptionId: string;
-      submitterId: string;
-      refreshPrescriptionData: () => void;
-    };
+  const { prescriptionId, refreshPrescriptionData } = activeModal.props as {
+    prescriptionId: string;
+    submitterId: string;
+    refreshPrescriptionData: () => void;
+  };
   const [prescription, setPrescription] = useState<Prescription | null>(null);
 
   const handlefetchPrescriptionById = async (prescriptionId: string) => {
@@ -34,29 +31,14 @@ const DeletePrescriptionModal: React.FC = () => {
     if (!prescription) return;
 
     try {
-      const prescriptionDelete: PrescriptionDelete = {
-        PatientId: prescription.PatientId,
-        PrescriptionListId: prescription.PrescriptionListId,
-        Dosage: prescription.Dosage,
-        FrequencyPerDay: prescription.FrequencyPerDay,
-        Instruction: prescription.Instruction,
-        StartDate: prescription.StartDate,
-        PrescriptionRemarks: prescription.PrescriptionRemarks,
-        UpdatedDateTime: getDateTimeNowInUTC(),
-        UpdatedById: parseInt(submitterId as string, 10),
-      };
-
-      await deletePatientPrescription(
-        Number(prescriptionId),
-        prescriptionDelete
-      );
+      await deletePatientPrescription(Number(prescriptionId));
       closeModal();
-      toast.success('Prescription deleted successfully.');
+      toast.success("Prescription deleted successfully.");
       refreshPrescriptionData();
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       closeModal();
-      toast.error('Failed to delete patient prescription.');
+      toast.error("Failed to delete patient prescription.");
     }
   };
 
