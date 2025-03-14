@@ -46,6 +46,7 @@ import Login2FA from "./pages/auth/Login2FA";
 import HighlightTable from "./pages/Supervisor/HighlightTable";
 import VerifyAccount from "./pages/Admin/VerifyAccount";
 import { ViewPatientProvider } from "./hooks/patient/useViewPatient";
+import PatientLogs from "./pages/logger/PatientLogs";
 
 export const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: false, staleTime: Infinity } },
@@ -134,6 +135,10 @@ const App: React.FC = () => {
                       <Route
                         path="view-highlights"
                         element={<HighlightTable />}
+                      />
+                      <Route
+                        path="view-patient-logs"
+                        element={<PatientLogs />}
                       />
                       <Route path="settings/*" element={<UserSettings />}>
                         {settingsRoutes.map(({ path, element }) => (
