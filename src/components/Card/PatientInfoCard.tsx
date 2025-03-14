@@ -31,7 +31,7 @@ const PatientInfoCard: React.FC = () => {
   ];
 
   return (
-    <Card className="my-2">
+    <Card>
       <CardHeader>
         <CardTitle className="text-lg flex items-center justify-between">
           <span>Information</span>

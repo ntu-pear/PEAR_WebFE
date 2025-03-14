@@ -47,10 +47,10 @@ export const ViewPatientProvider: React.FC<{ children: ReactNode }> = ({
         !nricData.isMasked
       );
 
-      setNricData({
+      setNricData((prevState) => ({
         nric: updatedNric,
-        isMasked: !nricData.isMasked,
-      });
+        isMasked: !prevState.isMasked,
+      }));
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       toast.error("Failed to fetch patient NRIC");
