@@ -13,14 +13,12 @@ import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { fetchAllLogs, LogsTableDataServer } from "@/api/logger/logs";
 
-const AccountLogs: React.FC = () => {
+const PatientLogs: React.FC = () => {
   const [search /*setSearch*/] = useState("");
   const [expandedRows, setExpandedRows] = useState<{ [key: number]: boolean }>(
     {}
   );
-  const [
-    /*pageNo*/
-  ] = useState(0); // Since we are using static data
+  //const [pageNo] = useState(0); // Since we are using static data
   const [table, setTable] = useState("");
   const [user, setUser] = useState("");
   const [action, setAction] = useState("");
@@ -342,4 +340,4 @@ const AccountLogs: React.FC = () => {
   );
 };
 
-export default AccountLogs;
+export default PatientLogs;

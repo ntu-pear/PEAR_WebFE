@@ -23,7 +23,6 @@ import ManageMedication from "./pages/Supervisor/ManageMedication";
 import ManageActivities from "./pages/Supervisor/ManageActivities";
 import ViewPatient from "./pages/ViewPatient";
 import TestGeocode from "./pages/testGeocode";
-import AccountLogs from './pages/logger/AccountLogs';
 
 import EditRoles from "./pages/Admin/EditRoles";
 import CreateRole from "./pages/Admin/CreateRole";
@@ -46,6 +45,7 @@ import ConfirmNewEmail from "./pages/auth/ConfirmNewEmail";
 import Login2FA from "./pages/auth/Login2FA";
 import HighlightTable from "./pages/Supervisor/HighlightTable";
 import VerifyAccount from "./pages/Admin/VerifyAccount";
+import PatientLogs from "./pages/logger/PatientLogs";
 
 export const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: false, staleTime: Infinity } },
@@ -126,6 +126,10 @@ const App: React.FC = () => {
                         path="view-highlights"
                         element={<HighlightTable />}
                       />
+                      <Route
+                        path="view-patient-logs"
+                        element={<PatientLogs />}
+                      />
                       <Route path="settings/*" element={<UserSettings />}>
                         {settingsRoutes.map(({ path, element }) => (
                           <Route key={path} path={path} element={element} />
@@ -139,11 +143,13 @@ const App: React.FC = () => {
                       element={<ProtectedRoute allowedRoles={["ADMIN"]} />}
                     >
                       <Route path="temp-page" element={<TempPage />} />
-                      <Route path="register-account" element={<RegisterAccount />} />
+                      <Route
+                        path="register-account"
+                        element={<RegisterAccount />}
+                      />
                       <Route path="edit-roles" element={<EditRoles />} />
                       <Route path="create-role" element={<CreateRole />} />
                       <Route path="edit-role/:id" element={<EditRole />} />
-                      <Route path="account-logs/" element={<AccountLogs />} />
                       <Route
                         path="edit-user-in-role/:id"
                         element={<EditUserInRole />}
