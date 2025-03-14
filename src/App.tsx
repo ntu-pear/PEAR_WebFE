@@ -31,6 +31,22 @@ import EditRole from "./pages/Admin/EditRole";
 import EditUserInRole from "./pages/Admin/EditUserInRole";
 import RegisterAccount from "./pages/Admin/RegisterAccount";
 
+import Unauthorized from "./pages/Unauthorized";
+import NotFound from "./pages/NotFound";
+import TempPage from "./pages/TempPage";
+import ResetPassword from "./pages/auth/ResetPassword";
+import ResendRegistrationEmail from "./pages/auth/ResendRegistrationEmail";
+import UserSettings from "./pages/auth/UserSettings";
+import EmailSettings from "./components/UserSettings/EmailSettings";
+import PasswordSettings from "./components/UserSettings/PasswordSettings";
+import PersonalDataSettings from "./components/UserSettings/PersonalDataSettings";
+import ProfileSettings from "./components/UserSettings/ProfileSettings";
+import TwoFactorAuthSettings from "./components/UserSettings/TwoFactorAuthSettings";
+import ConfirmNewEmail from "./pages/auth/ConfirmNewEmail";
+import Login2FA from "./pages/auth/Login2FA";
+import HighlightTable from "./pages/Supervisor/HighlightTable";
+import VerifyAccount from "./pages/Admin/VerifyAccount";
+
 export const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: false, staleTime: Infinity } },
 });
