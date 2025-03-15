@@ -15,6 +15,8 @@ import MobilityAidsCard from "../Card/MobilityAidsCard";
 import DoctorNotesCard from "../Card/DoctorNotesCard";
 import StaffAllocationCard from "../Card/StaffAllocationCard";
 import SocialHistoryCard from "../Card/SocialHistoryCard";
+import AddDiagnosedDementiaModal from "../Modal/Add/AddDiagnosedDementiaModal";
+import DeleteDiagnosedDementiaModal from "../Modal/Delete/DeleteDiagnosedDementiaModal";
 
 const PatientInfoTab: React.FC = () => {
   const { activeModal } = useModal();
@@ -41,7 +43,12 @@ const PatientInfoTab: React.FC = () => {
         </div>
       </TabsContent>
       {activeModal.name === "editPatientInfo" && <EditPatientInfoModal />}
-
+      {activeModal.name === "addDiagnosedDementia" && (
+        <AddDiagnosedDementiaModal />
+      )}
+      {activeModal.name === "deleteDiagnosedDementia" && (
+        <DeleteDiagnosedDementiaModal />
+      )}
       {activeModal.name === "addMedicalHistory" && <AddMedicalHistoryModal />}
 
       {activeModal.name === "addMobilityAids" && <AddMobilityAidModal />}
