@@ -61,41 +61,43 @@ const SocialHistoryCard: React.FC = () => {
           <CardTitle className="text-lg flex items-center justify-between">
             <span>Social History</span>
 
-            {!socialHistory ? (
-              <Button
-                size="sm"
-                className="h-8 w-24 gap-1"
-                onClick={() =>
-                  openModal("addSocialHistory", {
-                    patientId: String(id),
-                    submitterId: currentUser?.userId,
-                    refreshData: handleFetchSocialHistory,
-                  })
-                }
-              >
-                <PlusCircle className="h-4 w-4" />
-                <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                  Add
-                </span>
-              </Button>
-            ) : (
-              <Button
-                size="sm"
-                className="h-8 w-24 gap-1"
-                onClick={() =>
-                  openModal("editSocialHistory", {
-                    patientId: String(id),
-                    submitterId: currentUser?.userId,
-                    refreshData: handleFetchSocialHistory,
-                  })
-                }
-              >
-                <FilePenLine className="h-4 w-4" />
-                <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                  Edit
-                </span>
-              </Button>
-            )}
+            {!socialHistory
+              ? currentUser?.roleName === "SUPERVISOR" && (
+                  <Button
+                    size="sm"
+                    className="h-8 w-24 gap-1"
+                    onClick={() =>
+                      openModal("addSocialHistory", {
+                        patientId: String(id),
+                        submitterId: currentUser?.userId,
+                        refreshData: handleFetchSocialHistory,
+                      })
+                    }
+                  >
+                    <PlusCircle className="h-4 w-4" />
+                    <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+                      Add
+                    </span>
+                  </Button>
+                )
+              : currentUser?.roleName === "SUPERVISOR" && (
+                  <Button
+                    size="sm"
+                    className="h-8 w-24 gap-1"
+                    onClick={() =>
+                      openModal("editSocialHistory", {
+                        patientId: String(id),
+                        submitterId: currentUser?.userId,
+                        refreshData: handleFetchSocialHistory,
+                      })
+                    }
+                  >
+                    <FilePenLine className="h-4 w-4" />
+                    <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+                      Edit
+                    </span>
+                  </Button>
+                )}
           </CardTitle>
         </CardHeader>
         <CardContent className="grid gap-4 md:grid-cols-2">

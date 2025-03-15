@@ -7,9 +7,9 @@ import { useModal } from "@/hooks/useModal";
 import { useViewPatient } from "@/hooks/patient/useViewPatient";
 
 const PatientInfoCard: React.FC = () => {
-  const { currentUser } = useAuth();
   const { id, patientInfo, nricData, handleNRICToggle, refreshPatientData } =
     useViewPatient();
+  const { currentUser } = useAuth();
   const { openModal } = useModal();
 
   const patientInformationColumns = [
@@ -35,22 +35,24 @@ const PatientInfoCard: React.FC = () => {
       <CardHeader>
         <CardTitle className="text-lg flex items-center justify-between">
           <span>Information</span>
-          <Button
-            size="sm"
-            className="h-8 w-24 gap-1"
-            onClick={() =>
-              openModal("editPatientInfo", {
-                patientId: String(id),
-                submitterId: currentUser?.userId,
-                refreshPatientData,
-              })
-            }
-          >
-            <FilePenLine className="h-4 w-4" />
-            <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-              Edit
-            </span>
-          </Button>
+          {currentUser?.roleName === "SUPERVISOR" && (
+            <Button
+              size="sm"
+              className="h-8 w-24 gap-1"
+              onClick={() =>
+                openModal("editPatientInfo", {
+                  patientId: String(id),
+                  submitterId: currentUser?.userId,
+                  refreshPatientData,
+                })
+              }
+            >
+              <FilePenLine className="h-4 w-4" />
+              <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+                Edit
+              </span>
+            </Button>
+          )}
         </CardTitle>
       </CardHeader>
       <CardContent className="grid gap-2 md:grid-cols-2">

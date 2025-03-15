@@ -46,28 +46,66 @@ const AllergyCard: React.FC = () => {
     { key: "reaction", header: "Reaction", width: "15%" },
     { key: "notes", header: "Notes", width: "50%" },
   ];
+
+  const renderActions = (item: AllergyTD) => {
+    return (
+      currentUser?.roleName === "SUPERVISOR" && (
+        <div className="flex space-x-2 w-[75px] sm:w-[150px]">
+          <Button
+            size="sm"
+            className="mt-3"
+            onClick={() =>
+              openModal("editAllergy", {
+                allergyId: item.id,
+                patientId: id,
+                refreshAllergyData,
+              })
+            }
+          >
+            Edit
+          </Button>
+          <Button
+            variant="destructive"
+            size="sm"
+            className="mt-3"
+            onClick={() =>
+              openModal("deleteAllergy", {
+                allergyId: item.id,
+                refreshAllergyData,
+              })
+            }
+          >
+            Delete
+          </Button>
+        </div>
+      )
+    );
+  };
+
   return (
     <>
       <Card>
         <CardHeader>
           <CardTitle className="text-lg flex items-center justify-between">
             <span>Allergy</span>
-            <Button
-              size="sm"
-              className="h-8 w-24 gap-1"
-              onClick={() =>
-                openModal("addAllergy", {
-                  patientId: id,
-                  submitterId: currentUser?.userId,
-                  refreshAllergyData,
-                })
-              }
-            >
-              <PlusCircle className="h-4 w-4" />
-              <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                Add
-              </span>
-            </Button>
+            {currentUser?.roleName === "SUPERVISOR" && (
+              <Button
+                size="sm"
+                className="h-8 w-24 gap-1"
+                onClick={() =>
+                  openModal("addAllergy", {
+                    patientId: id,
+                    submitterId: currentUser?.userId,
+                    refreshAllergyData,
+                  })
+                }
+              >
+                <PlusCircle className="h-4 w-4" />
+                <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+                  Add
+                </span>
+              </Button>
+            )}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -75,36 +113,8 @@ const AllergyCard: React.FC = () => {
             data={allergy}
             columns={allergyColumns}
             viewMore={false}
-            renderActions={(item) => (
-              <div className="flex space-x-2 w-[75px] sm:w-[150px]">
-                <Button
-                  size="sm"
-                  className="mt-3"
-                  onClick={() =>
-                    openModal("editAllergy", {
-                      allergyId: item.id,
-                      patientId: id,
-                      refreshAllergyData,
-                    })
-                  }
-                >
-                  Edit
-                </Button>
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  className="mt-3"
-                  onClick={() =>
-                    openModal("deleteAllergy", {
-                      allergyId: item.id,
-                      refreshAllergyData,
-                    })
-                  }
-                >
-                  Delete
-                </Button>
-              </div>
-            )}
+            renderActions={renderActions}
+            hideActionsHeader={currentUser?.roleName !== "SUPERVISOR"}
           />
         </CardContent>
       </Card>

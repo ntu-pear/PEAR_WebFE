@@ -47,28 +47,64 @@ const MobilityAidsCard: React.FC = () => {
     { key: "date", header: "Date" },
   ];
 
+  const renderActions = (item: MobilityAidTD) => {
+    return (
+      currentUser?.roleName === "SUPERVISOR" && (
+        <div className="flex space-x-2">
+          <Button
+            size="sm"
+            className="mt-3"
+            onClick={() =>
+              openModal("editMobilityAids", {
+                mobilityAidId: String(item.id),
+                refreshData: handleFetchMobilityAids,
+              })
+            }
+          >
+            Edit
+          </Button>
+          <Button
+            variant="destructive"
+            size="sm"
+            className="mt-3"
+            onClick={() =>
+              openModal("deleteMobilityAids", {
+                mobilityAidId: String(item.id),
+                refreshData: handleFetchMobilityAids,
+              })
+            }
+          >
+            Delete
+          </Button>
+        </div>
+      )
+    );
+  };
+
   return (
     <>
       <Card>
         <CardHeader>
           <CardTitle className="text-lg flex items-center justify-between">
             <span>Mobility Aids</span>
-            <Button
-              size="sm"
-              className="h-8 w-24 gap-1"
-              onClick={() =>
-                openModal("addMobilityAids", {
-                  patientId: String(id),
-                  submitterId: currentUser?.userId,
-                  refreshMobilityData,
-                })
-              }
-            >
-              <PlusCircle className="h-4 w-4" />
-              <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                Add
-              </span>
-            </Button>
+            {currentUser?.roleName === "SUPERVISOR" && (
+              <Button
+                size="sm"
+                className="h-8 w-24 gap-1"
+                onClick={() =>
+                  openModal("addMobilityAids", {
+                    patientId: String(id),
+                    submitterId: currentUser?.userId,
+                    refreshMobilityData,
+                  })
+                }
+              >
+                <PlusCircle className="h-4 w-4" />
+                <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+                  Add
+                </span>
+              </Button>
+            )}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -76,35 +112,8 @@ const MobilityAidsCard: React.FC = () => {
             data={mobilityAids}
             columns={mobilityAidsColumns}
             viewMore={false}
-            renderActions={(item) => (
-              <div className="flex space-x-2">
-                <Button
-                  size="sm"
-                  className="mt-3"
-                  onClick={() =>
-                    openModal("editMobilityAids", {
-                      mobilityAidId: String(item.id),
-                      refreshData: handleFetchMobilityAids,
-                    })
-                  }
-                >
-                  Edit
-                </Button>
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  className="mt-3"
-                  onClick={() =>
-                    openModal("deleteMobilityAids", {
-                      mobilityAidId: String(item.id),
-                      refreshData: handleFetchMobilityAids,
-                    })
-                  }
-                >
-                  Delete
-                </Button>
-              </div>
-            )}
+            renderActions={renderActions}
+            hideActionsHeader={currentUser?.roleName !== "SUPERVISOR"}
           />
         </CardContent>
       </Card>

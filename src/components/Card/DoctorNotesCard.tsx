@@ -7,9 +7,11 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { DataTableServer } from "../Table/DataTable";
+import { useAuth } from "@/hooks/useAuth";
 
 const DoctorNotesCard: React.FC = () => {
   const { id } = useViewPatient();
+  const { currentUser } = useAuth();
 
   const [doctorNotes, setDoctorNotes] = useState<DoctorNoteTDServer>({
     doctornotes: [],
@@ -61,7 +63,7 @@ const DoctorNotesCard: React.FC = () => {
             fetchData={handleFetchDoctorNotes}
             columns={doctorNotesColumns}
             viewMore={false}
-            hideActionsHeader={true}
+            hideActionsHeader={currentUser?.roleName !== "DOCTOR"}
           />
         </CardContent>
       </Card>

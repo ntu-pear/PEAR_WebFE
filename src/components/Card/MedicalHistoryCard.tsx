@@ -4,8 +4,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { PlusCircle } from "lucide-react";
 import { DataTableClient } from "../Table/DataTable";
 import { mockMedicalDetails } from "@/mocks/mockPatientDetails";
+import { useAuth } from "@/hooks/useAuth";
 
 const MedicalHistoryCard: React.FC = () => {
+  const { currentUser } = useAuth();
   const { openModal } = useModal();
 
   const medicalDetailsColumns = [
@@ -21,16 +23,18 @@ const MedicalHistoryCard: React.FC = () => {
         <CardHeader>
           <CardTitle className="text-lg flex items-center justify-between">
             <span>Medical History</span>
-            <Button
-              size="sm"
-              className="h-8 w-24 gap-1"
-              onClick={() => openModal("addMedicalHistory")}
-            >
-              <PlusCircle className="h-4 w-4" />
-              <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                Add
-              </span>
-            </Button>
+            {currentUser?.roleName === "SUPERVISOR" && (
+              <Button
+                size="sm"
+                className="h-8 w-24 gap-1"
+                onClick={() => openModal("addMedicalHistory")}
+              >
+                <PlusCircle className="h-4 w-4" />
+                <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+                  Add
+                </span>
+              </Button>
+            )}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -38,6 +42,7 @@ const MedicalHistoryCard: React.FC = () => {
             data={mockMedicalDetails}
             columns={medicalDetailsColumns}
             viewMore={false}
+            hideActionsHeader={currentUser?.roleName !== "SUPERVISOR"}
           />
         </CardContent>
       </Card>

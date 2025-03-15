@@ -7,7 +7,11 @@ import { useModal } from "@/hooks/useModal";
 import { useAuth } from "@/hooks/useAuth";
 import { PlusCircle } from "lucide-react";
 import { DataTableServer } from "../Table/DataTable";
-import { VitalCheckTDServer, fetchVitals } from "@/api/patients/vital";
+import {
+  VitalCheckTD,
+  VitalCheckTDServer,
+  fetchVitals,
+} from "@/api/patients/vital";
 
 const VitalCard: React.FC = () => {
   const { id } = useViewPatient();
@@ -62,28 +66,67 @@ const VitalCard: React.FC = () => {
     { key: "remark", header: "Remark" },
   ];
 
+  const renderActions = (item: VitalCheckTD) => {
+    return (
+      currentUser?.roleName === "SUPERVISOR" && (
+        <div className="flex space-x-2">
+          <Button
+            size="sm"
+            className="mt-3"
+            onClick={() =>
+              openModal("editVital", {
+                vitalId: String(item.id),
+                vitalData: item,
+                patientId: String(id),
+                submitterId: currentUser?.userId,
+                refreshVitalData,
+              })
+            }
+          >
+            Edit
+          </Button>
+          <Button
+            variant="destructive"
+            size="sm"
+            className="mt-3"
+            onClick={() =>
+              openModal("deleteVital", {
+                vitalId: String(item.id),
+                refreshVitalData,
+              })
+            }
+          >
+            Delete
+          </Button>
+        </div>
+      )
+    );
+  };
+
   return (
     <>
       <Card>
         <CardHeader>
           <CardTitle className="text-lg flex items-center justify-between">
             <span>Vital Checks</span>
-            <Button
-              size="sm"
-              className="h-8 w-24 gap-1"
-              onClick={() =>
-                openModal("addVital", {
-                  patientId: id,
-                  submitterId: currentUser?.userId,
-                  refreshVitalData,
-                })
-              }
-            >
-              <PlusCircle className="h-4 w-4" />
-              <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                Add
-              </span>
-            </Button>
+            {currentUser?.roleName === "SUPERVISOR" && (
+              <Button
+                size="sm"
+                className="h-8 w-24 gap-1"
+                onClick={() =>
+                  openModal("addVital", {
+                    patientId: id,
+                    submitterId: currentUser?.userId,
+                    refreshVitalData,
+                  })
+                }
+              >
+                <PlusCircle className="h-4 w-4" />
+                <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+                  Add
+                </span>
+              </Button>
+            )}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -93,38 +136,8 @@ const VitalCard: React.FC = () => {
             fetchData={handleFetchVitalCheck}
             columns={vitalCheckColumns}
             viewMore={false}
-            renderActions={(item) => (
-              <div className="flex space-x-2">
-                <Button
-                  size="sm"
-                  className="mt-3"
-                  onClick={() =>
-                    openModal("editVital", {
-                      vitalId: String(item.id),
-                      vitalData: item,
-                      patientId: String(id),
-                      submitterId: currentUser?.userId,
-                      refreshVitalData,
-                    })
-                  }
-                >
-                  Edit
-                </Button>
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  className="mt-3"
-                  onClick={() =>
-                    openModal("deleteVital", {
-                      vitalId: String(item.id),
-                      refreshVitalData,
-                    })
-                  }
-                >
-                  Delete
-                </Button>
-              </div>
-            )}
+            renderActions={renderActions}
+            hideActionsHeader={currentUser?.roleName !== "SUPERVISOR"}
           />
         </CardContent>
       </Card>

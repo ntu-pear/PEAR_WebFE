@@ -4,8 +4,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { FilePenLine } from "lucide-react";
 import { DataTableClient } from "../Table/DataTable";
 import { mockStaffAllocation } from "@/mocks/mockPatientDetails";
+import { useAuth } from "@/hooks/useAuth";
 
 const StaffAllocationCard: React.FC = () => {
+  const { currentUser } = useAuth();
   const { openModal } = useModal();
 
   const staffAllocationColumns = [
@@ -19,16 +21,18 @@ const StaffAllocationCard: React.FC = () => {
         <CardHeader>
           <CardTitle className="text-lg flex items-center justify-between">
             <span>Staff Allocation</span>
-            <Button
-              size="sm"
-              className="h-8 w-24 gap-1"
-              onClick={() => openModal("editStaffAllocation")}
-            >
-              <FilePenLine className="h-4 w-4" />
-              <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                Edit
-              </span>
-            </Button>
+            {currentUser?.roleName === "SUPERVISOR" && (
+              <Button
+                size="sm"
+                className="h-8 w-24 gap-1"
+                onClick={() => openModal("editStaffAllocation")}
+              >
+                <FilePenLine className="h-4 w-4" />
+                <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+                  Edit
+                </span>
+              </Button>
+            )}
           </CardTitle>
         </CardHeader>
         <CardContent>

@@ -8,9 +8,11 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { DataTableClient } from "../Table/DataTable";
+import { useAuth } from "@/hooks/useAuth";
 
 const DiagnosedDementiaCard: React.FC = () => {
   const { id } = useViewPatient();
+  const { currentUser } = useAuth();
   const [diagnosedDementia, setDiagnosedDementia] = useState<
     DiagnosedDementiaTD[]
   >([]);
@@ -52,7 +54,7 @@ const DiagnosedDementiaCard: React.FC = () => {
             data={diagnosedDementia}
             columns={dementiaColumns}
             viewMore={false}
-            hideActionsHeader={true}
+            hideActionsHeader={currentUser?.roleName !== "DOCTOR"}
           />
         </CardContent>
       </Card>
