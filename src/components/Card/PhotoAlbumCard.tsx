@@ -3,7 +3,7 @@ import { PlusCircle } from "lucide-react";
 import { Button } from "../ui/button";
 import { useModal } from "@/hooks/useModal";
 
-const LikeCard: React.FC = () => {
+const PhotoAlbumCard: React.FC = () => {
   const { openModal } = useModal();
   return (
     <>
@@ -29,4 +29,4 @@ const LikeCard: React.FC = () => {
   );
 };
 
-export default LikeCard;
+export default PhotoAlbumCard;

@@ -34,7 +34,8 @@ const Login: React.FC = () => {
           logout();
           break;
         case "DOCTOR":
-          navigate("/doctor/temp-page", { replace: true });
+          // navigate("/doctor/temp-page", { replace: true });
+          navigate("/doctor/manage-patients", { replace: true });
           break;
         case "GUARDIAN":
           navigate("/guardian/temp-page", { replace: true });

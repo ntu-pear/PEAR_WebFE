@@ -106,7 +106,8 @@ const Navbar: React.FC = () => {
       case "SUPERVISOR":
         return "/supervisor/manage-patients";
       case "DOCTOR":
-        return "/doctor/temp-page";
+        // return "/doctor/temp-page";
+        return "/doctor/manage-patients";
       case "GAME THERAPIST":
         return "/game-therapist/temp-page";
       case "GUARDIAN":

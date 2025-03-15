@@ -36,8 +36,35 @@ import {
 } from "@/api/patients/patients";
 import { useModal } from "@/hooks/useModal";
 import DeletePatientModal from "@/components/Modal/Delete/DeletePatientModal";
+import { useAuth } from "@/hooks/useAuth";
 
 const PatientTable: React.FC = () => {
+  const { currentUser } = useAuth();
+  const hasAccessToAllPatients: boolean = (() => {
+    switch (currentUser?.roleName) {
+      case "SUPERVISOR":
+        return true;
+      //temporary
+      case "DOCTOR":
+        return true;
+      default:
+        return false;
+    }
+  })();
+
+  const hasDelete: boolean = currentUser?.roleName === "SUPERVISOR";
+
+  const viewMoreBaseLink: string = (() => {
+    switch (currentUser?.roleName) {
+      case "SUPERVISOR":
+        return "/supervisor/view-patient";
+      case "DOCTOR":
+        return "/doctor/view-patient";
+      default:
+        return "";
+    }
+  })();
+
   const [patientTDServer, setPatientTDServer] =
     useState<PatientTableDataServer>({
       patients: [],
@@ -50,7 +77,9 @@ const PatientTable: React.FC = () => {
     });
   const [activeStatus, setActiveStatus] = useState("All");
   const [searchItem, setSearchItem] = useState("");
-  const [tabValue, setTabValue] = useState("all");
+  const [tabValue, setTabValue] = useState(
+    hasAccessToAllPatients ? "all_patients" : "my_patients"
+  );
   const debouncedActiveStatus = useDebounce(activeStatus, 300);
   const debouncedSearch = useDebounce(searchItem, 300);
   const debounceTabValue = useDebounce(tabValue, 300);
@@ -163,15 +192,38 @@ const PatientTable: React.FC = () => {
     },
   ];
 
+  const renderActions = (item: PatientTableData) =>
+    hasDelete ? (
+      <div className="ml-4 sm:ml-2">
+        <Button
+          variant="destructive"
+          size="sm"
+          onClick={() =>
+            openModal("deletePatient", {
+              patientId: item.id,
+              refreshData,
+            })
+          }
+        >
+          Delete
+        </Button>
+      </div>
+    ) : null;
+
   return (
     <div className="flex min-h-screen w-full flex-col container mx-auto px-0 sm:px-4">
       <div className="flex flex-col sm:gap-4 sm:py-4 sm:pl-14">
         <Searchbar searchItem={searchItem} onSearchChange={handleInputChange} />
         <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
-          <Tabs value={tabValue} onValueChange={setTabValue}>
+          <Tabs
+            value={tabValue}
+            onValueChange={(val) => hasAccessToAllPatients && setTabValue(val)}
+          >
             <div className="flex items-center">
               <TabsList>
-                <TabsTrigger value="all">All Patients</TabsTrigger>
+                {hasAccessToAllPatients && (
+                  <TabsTrigger value="all_patients">All Patients</TabsTrigger>
+                )}
                 <TabsTrigger value="my_patients">My Patients</TabsTrigger>
               </TabsList>
               <div className="flex items-center gap-2 ml-auto">
@@ -215,43 +267,30 @@ const PatientTable: React.FC = () => {
                 </div>
               </div>
             </div>
-            <TabsContent value="all">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Manage Patients</CardTitle>
-                  <CardDescription>
-                    Manage all patients and view their details.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <DataTableServer
-                    data={patientTDServer.patients}
-                    pagination={patientTDServer.pagination}
-                    columns={columns}
-                    viewMore={true}
-                    viewMoreBaseLink={"/supervisor/view-patient"}
-                    activeTab={"information"}
-                    fetchData={handleFilter}
-                    renderActions={(item) => (
-                      <div className="ml-4 sm:ml-2">
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          onClick={() =>
-                            openModal("deletePatient", {
-                              patientId: item.id,
-                              refreshData,
-                            })
-                          }
-                        >
-                          Delete
-                        </Button>
-                      </div>
-                    )}
-                  />
-                </CardContent>
-              </Card>
-            </TabsContent>
+            {hasAccessToAllPatients && (
+              <TabsContent value="all_patients">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Manage Patients</CardTitle>
+                    <CardDescription>
+                      Manage all patients and view their details.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <DataTableServer
+                      data={patientTDServer.patients}
+                      pagination={patientTDServer.pagination}
+                      columns={columns}
+                      viewMore={true}
+                      viewMoreBaseLink={viewMoreBaseLink}
+                      activeTab={"information"}
+                      fetchData={handleFilter}
+                      renderActions={renderActions}
+                    />
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            )}
             <TabsContent value="my_patients">
               <Card>
                 <CardHeader>
@@ -266,25 +305,10 @@ const PatientTable: React.FC = () => {
                     pagination={patientTDServer.pagination}
                     columns={columns}
                     viewMore={true}
-                    viewMoreBaseLink={"/supervisor/view-patient"}
+                    viewMoreBaseLink={"viewMoreBaseLink"}
                     activeTab={"information"}
                     fetchData={handleFilter}
-                    renderActions={(item) => (
-                      <div className="ml-4 sm:ml-2">
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          onClick={() =>
-                            openModal("deletePatient", {
-                              patientId: item.id,
-                              refreshData,
-                            })
-                          }
-                        >
-                          Delete
-                        </Button>
-                      </div>
-                    )}
+                    renderActions={renderActions}
                   />
                 </CardContent>
               </Card>
@@ -292,7 +316,9 @@ const PatientTable: React.FC = () => {
           </Tabs>
         </main>
       </div>
-      {activeModal.name === "deletePatient" && <DeletePatientModal />}
+      {hasDelete && activeModal.name === "deletePatient" && (
+        <DeletePatientModal />
+      )}
     </div>
   );
 };
