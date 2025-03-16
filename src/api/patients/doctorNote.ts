@@ -7,13 +7,17 @@ import { getDoctorNameById } from "../users/user";
 export interface DoctorNote {
   isDeleted: string;
   patientId: number;
-  doctorId: number | string;
+  doctorId: string;
   doctorRemarks: string;
   id: number;
   createdDate: string;
   modifiedDate: string;
   CreatedById: string;
   ModifiedById: string;
+}
+
+interface ViewDoctorNote {
+  data: DoctorNote;
 }
 
 interface DoctorNoteViewList {
@@ -24,7 +28,7 @@ interface DoctorNoteViewList {
   totalPages: number;
 }
 
-interface DoctorNoteTD extends TableRowData {
+export interface DoctorNoteTD extends TableRowData {
   date: string;
   doctorName: string;
   notes: string;
@@ -38,6 +42,23 @@ export interface DoctorNoteTDServer {
     totalRecords: number;
     totalPages: number;
   };
+}
+
+export interface AddDoctorNoteForm {
+  isDeleted: string;
+  patientId: number;
+  doctorId: string;
+  doctorRemarks: string;
+  CreatedById: string;
+  ModifiedById: string;
+}
+
+export interface UpdateDoctorNoteForm {
+  isDeleted: string;
+  patientId: number;
+  doctorId: string;
+  doctorRemarks: string;
+  ModifiedById: string;
 }
 
 export const convertToDoctorNotesTD = async (
@@ -131,6 +152,101 @@ export const fetchDoctorNotes = async (
     return await convertToDoctorNotesTD(response.data);
   } catch (error) {
     console.error("GET Patient Doctor Notes", error);
+    throw error;
+  }
+};
+
+export const fetchDoctorNoteById = async (
+  noteId: number
+): Promise<ViewDoctorNote> => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+
+  try {
+    const response = await doctorNoteAPI.get<ViewDoctorNote>(
+      `?note_id=${noteId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    console.log("GET get doctor note", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("GET get doctor note", error);
+    throw error;
+  }
+};
+
+export const addDoctorNote = async (
+  formData: AddDoctorNoteForm
+): Promise<ViewDoctorNote> => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+
+  try {
+    const response = await doctorNoteAPI.post<ViewDoctorNote>(
+      "/add",
+      formData,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    console.log("POST add doctor note", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("POST add doctor note", error);
+    throw error;
+  }
+};
+
+export const updateDoctorNote = async (
+  noteId: number,
+  formData: UpdateDoctorNoteForm
+): Promise<ViewDoctorNote> => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+
+  try {
+    const response = await doctorNoteAPI.put<ViewDoctorNote>(
+      `/update?note_id=${noteId}`,
+      formData,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    console.log("PUT update doctor note", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("PUT update doctor note", error);
+    throw error;
+  }
+};
+
+export const deleteDoctorNote = async (
+  noteId: number
+): Promise<ViewDoctorNote> => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+
+  try {
+    const response = await doctorNoteAPI.delete<ViewDoctorNote>(
+      `/delete?note_id=${noteId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    console.log("DELETE delete doctor note", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("DELETE delete doctor note", error);
     throw error;
   }
 };
