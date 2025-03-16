@@ -48,6 +48,7 @@ import VerifyAccount from "./pages/Admin/VerifyAccount";
 import { ViewPatientProvider } from "./hooks/patient/useViewPatient";
 import PatientLogs from "./pages/logger/PatientLogs";
 import AccountTable from "./pages/Admin/AccountTable";
+import ManageSocialHistory from "./pages/Admin/ManageSocialHistory";
 
 export const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: false, staleTime: Infinity } },
@@ -170,6 +171,7 @@ const App: React.FC = () => {
                         path="edit-user-in-role/:id"
                         element={<EditUserInRole />}
                       />
+                      <Route path="manage-social-history" element={<ManageSocialHistory />} />
                       <Route path="settings/*" element={<UserSettings />}>
                         {settingsRoutes.map(({ path, element }) => (
                           <Route key={path} path={path} element={element} />

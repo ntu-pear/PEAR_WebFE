@@ -1,7 +1,7 @@
 import { FieldValues, Path, UseFormReturn } from "react-hook-form"
 
 type Props<T extends FieldValues> = {
-  label: string
+  label?: string
   name: Path<T>
   form: UseFormReturn<T>
   required?: boolean
@@ -20,9 +20,9 @@ export default function RadioGroup<T extends FieldValues>({
   return (
     <div className='pb-2 flex flex-col'>
       <label className='mb-1'>
-        {label} {required && <span className="text-red-600">*</span>}
+        {label} {label && required && <span className="text-red-600">*</span>}
       </label>
-      <div className="flex flex-row gap-2">
+      <div className="flex flex-row gap-4">
         {options.map((value) => (
           <label htmlFor={value} className="flex gap-1">
             <input {...register(name, { required })} type='radio' value={value} id={value} />
