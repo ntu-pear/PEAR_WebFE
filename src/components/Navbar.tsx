@@ -17,6 +17,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 
 import { useUserProfile } from "@/hooks/user/useUserProfile";
+import { toast } from "sonner";
 
 const Navbar: React.FC = () => {
   const navigate = useNavigate();
@@ -94,6 +95,7 @@ const Navbar: React.FC = () => {
   };
 
   const handleLogout = () => {
+    toast.dismiss();
     logout();
   };
 
@@ -104,7 +106,8 @@ const Navbar: React.FC = () => {
       case "SUPERVISOR":
         return "/supervisor/manage-patients";
       case "DOCTOR":
-        return "/doctor/temp-page";
+        // return "/doctor/temp-page";
+        return "/doctor/manage-patients";
       case "GAME THERAPIST":
         return "/game-therapist/temp-page";
       case "GUARDIAN":

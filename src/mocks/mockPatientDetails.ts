@@ -328,7 +328,7 @@ export const mockDiagnosedDementiaList: DiagnosedDementiaTD[] = [
   },
 ];
 
-export const mockMediclaDetails: MedicalDetails[] = [
+export const mockMedicalDetails: MedicalDetails[] = [
   {
     id: 1,
     medicalDetails: "1",

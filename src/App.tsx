@@ -12,7 +12,7 @@ import { AuthProvider } from "./hooks/useAuth";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
-import PatientTable from "./pages/Supervisor/PatientTable";
+import PatientTable from "./pages/PatientTable";
 import AddPatient from "./pages/Supervisor/AddPatient";
 import ManageAdhoc from "./pages/Supervisor/ManageAdhoc";
 import AddAdhoc from "./pages/Supervisor/AddAdhoc";
@@ -45,6 +45,7 @@ import ConfirmNewEmail from "./pages/auth/ConfirmNewEmail";
 import Login2FA from "./pages/auth/Login2FA";
 import HighlightTable from "./pages/Supervisor/HighlightTable";
 import VerifyAccount from "./pages/Admin/VerifyAccount";
+import { ViewPatientProvider } from "./hooks/patient/useViewPatient";
 import PatientLogs from "./pages/logger/PatientLogs";
 
 export const queryClient = new QueryClient({
@@ -59,6 +60,15 @@ const settingsRoutes = [
   { path: "personal-data", element: <PersonalDataSettings /> },
   { path: "*", element: <Navigate to="profile" replace /> }, // Default redirect
 ];
+
+//this was placed here, so that all providers can be viewed in one file.
+const ViewPatientWrapper: React.FC = () => {
+  return (
+    <ViewPatientProvider>
+      <ViewPatient />
+    </ViewPatientProvider>
+  );
+};
 
 const App: React.FC = () => {
   return (
@@ -105,7 +115,7 @@ const App: React.FC = () => {
                       />
                       <Route
                         path="view-patient/:id"
-                        element={<ViewPatient />}
+                        element={<ViewPatientWrapper />}
                       />
                       <Route path="add-patient" element={<AddPatient />} />
                       <Route
@@ -166,7 +176,15 @@ const App: React.FC = () => {
                       path="doctor/*"
                       element={<ProtectedRoute allowedRoles={["DOCTOR"]} />}
                     >
-                      <Route path="temp-page" element={<TempPage />} />
+                      {/* <Route path="temp-page" element={<TempPage />} /> */}
+                      <Route
+                        path="manage-patients"
+                        element={<PatientTable />}
+                      />
+                      <Route
+                        path="view-patient/:id"
+                        element={<ViewPatientWrapper />}
+                      />
                       <Route path="settings/*" element={<UserSettings />}>
                         {settingsRoutes.map(({ path, element }) => (
                           <Route key={path} path={path} element={element} />

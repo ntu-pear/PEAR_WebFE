@@ -12,7 +12,7 @@ import { Trash2, Upload, UserRound } from "lucide-react";
 import { useModal } from "@/hooks/useModal";
 import UploadProfilePhotoModal from "../Modal/UploadProfilePhotoModal";
 import ConfirmProfilePhotoModal from "../Modal/ConfirmProfilePhotoModal";
-import DeleteProfilePhotoModal from "../Modal/DeleteProfilePhotoModal";
+import DeleteProfilePhotoModal from "../Modal/Delete/DeleteProfilePhotoModal";
 import { useUserProfile } from "@/hooks/user/useUserProfile";
 import {
   updateUserProfile,
