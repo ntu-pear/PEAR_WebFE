@@ -27,7 +27,8 @@ const Login: React.FC = () => {
     if (currentUser) {
       switch (currentUser.roleName) {
         case "ADMIN":
-          navigate("/admin/temp-page", { replace: true });
+          // navigate("/admin/temp-page", { replace: true });
+          navigate("/admin/manage-accounts", { replace: true });
           break;
         case "CAREGIVER":
           toast.error("Caregiver is only available on mobile.");
