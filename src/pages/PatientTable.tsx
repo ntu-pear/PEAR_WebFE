@@ -93,20 +93,20 @@ const PatientTable: React.FC = () => {
     []
   );
 
-  const sortByName = (data: PatientTableData[], direction: "asc" | "desc") => {
-    return [...data].sort((a, b) => {
-      if (a.name < b.name) return direction === "asc" ? -1 : 1;
-      if (a.name > b.name) return direction === "asc" ? 1 : -1;
-      return 0;
-    });
-  };
-
   const handleFilter = async (pageNo: number) => {
     try {
       const fetchedPatientTDServer: PatientTableDataServer =
         import.meta.env.MODE === "development" ||
         import.meta.env.MODE === "production"
-          ? await fetchAllPatientTD(pageNo)
+          ? await fetchAllPatientTD(
+              searchItem,
+              activeStatus === "All"
+                ? null
+                : activeStatus === "Active"
+                ? "1"
+                : "0",
+              pageNo
+            )
           : mockPatientTDList;
 
       let filteredPatientTDList = fetchedPatientTDServer.patients.filter(
@@ -126,10 +126,8 @@ const PatientTable: React.FC = () => {
             : true
       );
 
-      const sortedPatientTDList = sortByName(filteredPatientTDList, "asc");
-
       setPatientTDServer({
-        patients: sortedPatientTDList,
+        patients: filteredPatientTDList,
         pagination: fetchedPatientTDServer.pagination,
       });
     } catch (error) {

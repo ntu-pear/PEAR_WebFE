@@ -73,7 +73,6 @@ export const convertToAllergyTD = (allergies: Allergy[]): AllergyTD[] => {
 
   return allergies
     .filter((a) => a.IsDeleted === "0")
-    .sort((a, b) => b.Patient_AllergyID - a.Patient_AllergyID) // Descending order
     .map((a) => ({
       id: a.Patient_AllergyID,
       allergicTo: a.AllergyTypeValue?.toUpperCase(),

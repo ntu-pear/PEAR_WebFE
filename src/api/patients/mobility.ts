@@ -75,7 +75,6 @@ export const convertToMobilityAidTD = (
 
   return mobilityAids
     .filter((ma) => ma.IsDeleted === 0)
-    .sort((a, b) => b.MobilityID - a.MobilityID) // Descending order
     .map((ma) => ({
       id: ma.MobilityID,
       mobilityAids:
