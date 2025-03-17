@@ -33,6 +33,7 @@ const DoctorNotesCard: React.FC = () => {
     try {
       const fetchedDoctorNotes: DoctorNoteTDServer = await fetchDoctorNotes(
         Number(id),
+        currentUser?.roleName.toLowerCase() as string,
         pageNo
       );
 

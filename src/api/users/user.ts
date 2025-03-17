@@ -363,12 +363,15 @@ export const deleteUserProfilePhoto = async () => {
   }
 };
 
-export const getDoctorNameById = async (userId: string): Promise<string> => {
+export const getDoctorNameById = async (
+  userId: string, //userId of the doctor who wrote the note
+  roleName: string
+): Promise<string> => {
   try {
     const token = retrieveAccessTokenFromCookie();
     if (!token) throw new Error("No token found.");
 
-    const response = await getDoctorNameAPI.post(
+    const response = await getDoctorNameAPI(roleName).post(
       `?userId=${userId}`,
       {},
       {
