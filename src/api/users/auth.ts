@@ -8,15 +8,19 @@ import {
 import Cookies from "js-cookie";
 import {
   addAuthInterceptor,
-  addUsersAPIInterceptor,
   clearAuthHeaders,
   ejectAuthInterceptor,
-  ejectUsersAPIInterceptor,
 } from "../interceptors";
 
 export interface Token {
   access_token: string;
   refresh_token: string;
+  access_token_expires_at: string;
+}
+
+export interface Require2FA {
+  email: string;
+  msg: string;
 }
 
 export interface Require2FA {
@@ -32,18 +36,24 @@ export interface CurrentUser {
 
 const ACCESS_TOKEN_COOKIE_NAME = "access_token";
 const REFRESH_TOKEN_COOKIE_NAME = "refresh_token";
+const ACCESS_TOKEN_EXPIRY_COOKIE_NAME = "access_token_expires_at";
 
 export const storeTokenInCookie = (
   access_token: string,
-  refresh_token: string
+  refresh_token: string,
+  access_token_expires_at: string
 ) => {
   Cookies.set(ACCESS_TOKEN_COOKIE_NAME, access_token);
-
   Cookies.set(REFRESH_TOKEN_COOKIE_NAME, refresh_token);
+  Cookies.set(ACCESS_TOKEN_EXPIRY_COOKIE_NAME, access_token_expires_at);
 };
 
-export const updateAccessTokenInCookie = (access_token: string) => {
+export const updateAccessTokenInCookie = (
+  access_token: string,
+  access_token_expires_at: string
+) => {
   Cookies.set(ACCESS_TOKEN_COOKIE_NAME, access_token);
+  Cookies.set(ACCESS_TOKEN_EXPIRY_COOKIE_NAME, access_token_expires_at);
 };
 
 export const retrieveAccessTokenFromCookie = () => {
@@ -52,6 +62,10 @@ export const retrieveAccessTokenFromCookie = () => {
 
 export const retrieveRefreshTokenFromCookie = () => {
   return Cookies.get(REFRESH_TOKEN_COOKIE_NAME);
+};
+
+export const retrieveAccessTokenExpiryFromCookie = () => {
+  return Cookies.get(ACCESS_TOKEN_EXPIRY_COOKIE_NAME);
 };
 
 export const sendLogin = async (
@@ -75,9 +89,12 @@ export const sendLogin = async (
 
     console.log("POST login data", response.data);
 
-    storeTokenInCookie(response.data.access_token, response.data.refresh_token);
+    storeTokenInCookie(
+      response.data.access_token,
+      response.data.refresh_token,
+      response.data.access_token_expires_at
+    );
     addAuthInterceptor();
-    addUsersAPIInterceptor();
     return response.data;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
@@ -97,7 +114,11 @@ export const sendLogin2FA = async (
 
     console.log("GET login 2FA data", response.data);
 
-    storeTokenInCookie(response.data.access_token, response.data.refresh_token);
+    storeTokenInCookie(
+      response.data.access_token,
+      response.data.refresh_token,
+      response.data.access_token_expires_at
+    );
     return response.data;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
@@ -131,7 +152,10 @@ export const refreshAccessToken = async () => {
     if (!refresh_token) throw new Error("No refresh token found.");
 
     const response = await refreshTokenAPI.post("/", { refresh_token });
-    updateAccessTokenInCookie(response.data.access_token);
+    updateAccessTokenInCookie(
+      response.data.access_token,
+      response.data.access_token_expires_at
+    );
 
     console.log("POST refresh user access token.", response);
     return response;
@@ -148,8 +172,8 @@ export const sendLogout = async () => {
 
     Cookies.remove(ACCESS_TOKEN_COOKIE_NAME);
     Cookies.remove(REFRESH_TOKEN_COOKIE_NAME);
+    Cookies.remove(ACCESS_TOKEN_EXPIRY_COOKIE_NAME);
     ejectAuthInterceptor();
-    ejectUsersAPIInterceptor();
     clearAuthHeaders();
 
     const response = await logoutAPI.delete(`/`, {

@@ -1,5 +1,5 @@
 import axios from "axios";
-import { userAPI, usersAPI } from "../apiConfig";
+import { getDoctorNameAPI, userAPI } from "../apiConfig";
 import { retrieveAccessTokenFromCookie } from "./auth";
 
 export interface RequestResetPasswordForm {
@@ -64,6 +64,36 @@ export interface UserPasswordForm {
   newPassword: string;
   confirmPassword: string;
 }
+
+export interface VerifyUserForm {
+  nric_FullName: string;
+  nric_Address: string;
+  nric_DateOfBirth: string;
+  nric_Gender: string;
+  contactNo: string | null;
+  email: string;
+  roleName: string;
+  nric: string;
+  password: string;
+  confirm_Password: string;
+}
+
+export const verifyUser = async (user: VerifyUserForm, UrlToken: string) => {
+  try {
+    const token = retrieveAccessTokenFromCookie();
+    if (!token) throw new Error("Token not found");
+    const response = await userAPI.post(
+      `/verify_account/${UrlToken}`,
+      { ...user },
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    console.log("Verify user", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("Verify user", error);
+    throw error;
+  }
+};
 
 export const requestResetPassword = async (
   requestResetPasswordForm: RequestResetPasswordForm
@@ -251,12 +281,40 @@ export const updateUserProfile = async (userProfileForm: UserProfileForm) => {
   }
 };
 
+export const updateUser2FA = async (checked: boolean) => {
+  try {
+    const token = retrieveAccessTokenFromCookie();
+    if (!token) throw new Error("No token found.");
+
+    const response = await userAPI.put<UserDetails>(
+      `/update_user/`,
+      {
+        twoFactorEnabled: checked,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    console.log("PUT update user 2fa", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("PUT update user 2fa", error);
+    throw error;
+  }
+};
+
 export const fetchUserProfilePhoto = async () => {
   try {
     const token = retrieveAccessTokenFromCookie();
     if (!token) throw new Error("No token found.");
 
-    const response = await usersAPI.get(`/profile_pic/?token=${token}`);
+    const response = await userAPI.get(`/profile_pic/`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
 
     console.log("GET fetch user profile photo", response.data);
     return response?.data?.image_url;
@@ -271,15 +329,12 @@ export const updateUserProfilePhoto = async (formData: FormData) => {
     const token = retrieveAccessTokenFromCookie();
     if (!token) throw new Error("No token found.");
 
-    const response = await usersAPI.post(
-      `/upload_profile_pic/?token=${token}`,
-      formData,
-      {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      }
-    );
+    const response = await userAPI.post(`/upload_profile_pic/`, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+        Authorization: `Bearer ${token}`,
+      },
+    });
 
     console.log("POST update user profile photo", response.data);
     return response.data;
@@ -294,14 +349,42 @@ export const deleteUserProfilePhoto = async () => {
     const token = retrieveAccessTokenFromCookie();
     if (!token) throw new Error("No token found.");
 
-    const response = await usersAPI.delete(
-      `/delete_profile_pic/?token=${token}`
-    );
+    const response = await userAPI.delete(`/delete_profile_pic/`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
 
     console.log("DELETE delete user profile photo", response.data);
     return response.data;
   } catch (error) {
     console.error("DELETE delete user profile photo", error);
+    throw error;
+  }
+};
+
+export const getDoctorNameById = async (
+  userId: string, //userId of the doctor who wrote the note
+  roleName: string
+): Promise<string> => {
+  try {
+    const token = retrieveAccessTokenFromCookie();
+    if (!token) throw new Error("No token found.");
+
+    const response = await getDoctorNameAPI(roleName).post(
+      `?userId=${userId}`,
+      {},
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    console.log("GET get doctor name by id", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("GET get doctor name by id", error);
     throw error;
   }
 };

@@ -205,21 +205,18 @@ export const deleteVital = async (vitalId: number): Promise<ViewVitalCheck> => {
   if (!token) throw new Error("No token found.");
 
   try {
-    const response = await vitalAPI.put<ViewVitalCheck>(
-      `/delete`,
-      {
+    const response = await vitalAPI.delete<ViewVitalCheck>(`/delete`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      data: {
         Id: vitalId,
       },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-    console.log("PUT Delete Vital for a patient", response.data);
+    });
+    console.log("DELETE Delete Vital for a patient", response.data);
     return response.data;
   } catch (error) {
-    console.error("PUT Delete Vital for a patient", error);
+    console.error("DELETE Delete Vital for a patient", error);
     throw error;
   }
 };

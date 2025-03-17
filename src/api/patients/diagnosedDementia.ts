@@ -1,6 +1,11 @@
 import { DiagnosedDementiaTD } from "@/mocks/mockPatientDetails";
 import { formatDateString } from "@/utils/formatDate";
-import { dementiaList, getPatientAssignedDementia } from "../apiConfig";
+import {
+  createPatientAssignedDementiaAPI,
+  deletePatientAssignedDementiaAPI,
+  dementiaListAPI,
+  getPatientAssignedDementiaAPI,
+} from "../apiConfig";
 import { AxiosError } from "axios";
 import { retrieveAccessTokenFromCookie } from "../users/auth";
 
@@ -15,7 +20,7 @@ export interface DiagnosedDementia {
   ModifiedById: string;
 }
 
-export interface DementiaList {
+export interface DementiaType {
   Value: string;
   IsDeleted: string;
   DementiaTypeListId: number;
@@ -23,8 +28,36 @@ export interface DementiaList {
   ModifiedDate: string;
 }
 
+export interface AddDementiaForm {
+  IsDeleted: string;
+  PatientId: number;
+  DementiaTypeListId: number;
+  CreatedDate: string;
+  ModifiedDate: string;
+  CreatedById: string;
+  ModifiedById: string;
+}
+
+export const fetchDementiaTypeList = async (): Promise<DementiaType[]> => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+  try {
+    const response = await dementiaListAPI.get<DementiaType[]>("", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    console.log("GET all dementia Type List", response.data);
+
+    return response.data;
+  } catch (error) {
+    console.error("GET all dementia Type List", error);
+    throw error;
+  }
+};
+
 export const convertToDiagnosedDementiaTD = (
-  dementiaList: DementiaList[],
+  dementiaList: DementiaType[],
   diagnosedDementias: DiagnosedDementia[]
 ): DiagnosedDementiaTD[] => {
   if (!Array.isArray(dementiaList)) {
@@ -56,23 +89,18 @@ export const fetchDiagnosedDementia = async (
   if (!token) throw new Error("No token found.");
 
   try {
-    const dlResponse = await dementiaList.get<DementiaList[]>("", {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-    console.log("GET all dementia List", dlResponse.data);
+    const dlResponse = await fetchDementiaTypeList();
 
-    const ddResponse = await getPatientAssignedDementia.get<
+    const ddResponse = await getPatientAssignedDementiaAPI.get<
       DiagnosedDementia[]
     >(`/${patientId}`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
     });
-    console.log("GET all patient assigned dementia", ddResponse.data);
+    console.log("GET all patient assigned dementia", ddResponse);
 
-    return convertToDiagnosedDementiaTD(dlResponse.data, ddResponse.data);
+    return convertToDiagnosedDementiaTD(dlResponse, ddResponse.data);
   } catch (error) {
     if (error instanceof AxiosError) {
       if (error.response && error.response.status === 404) {
@@ -83,6 +111,55 @@ export const fetchDiagnosedDementia = async (
       }
     }
     console.error("GET all dementia List/ patient assigned dementia", error);
+    throw error;
+  }
+};
+
+export const addDiagnosedDementa = async (
+  formData: AddDementiaForm
+): Promise<DiagnosedDementia> => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+
+  try {
+    const response =
+      await createPatientAssignedDementiaAPI.post<DiagnosedDementia>(
+        "",
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+    console.log("POST add diagnosed dementia", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("POST add diagnosed dementia", error);
+    throw error;
+  }
+};
+
+export const deleteDiagnosedDementa = async (
+  dementiaId: number
+): Promise<DiagnosedDementia> => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+
+  try {
+    const response =
+      await deletePatientAssignedDementiaAPI.delete<DiagnosedDementia>(
+        `/${dementiaId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+    console.log("Delete delete diagnosed dementia", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("Delete delete diagnosed dementia", error);
     throw error;
   }
 };

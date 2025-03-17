@@ -32,11 +32,14 @@ const ConfirmProfilePhotoModal: React.FC = () => {
     }
 
     const mime = mimeMatch[1];
-    if (![/*'image/png',*/ "image/jpeg"].includes(mime)) {
+    if (!["image/jpeg", "image/png"].includes(mime)) {
       throw new Error(
-        "Unsupported image format. Please upload a PNG or JPEG image."
+        "Unsupported image format. Please upload a JPG, JPEG, or PNG image."
       );
     }
+
+    const extension = mime === "image/png" ? "png" : "jpg"; // Determine correct extension
+    const filename = `${baseFilename}.${extension}`; // Append extension
 
     const binary = atob(data);
     const array = new Uint8Array(binary.length);
@@ -45,7 +48,7 @@ const ConfirmProfilePhotoModal: React.FC = () => {
       array[i] = binary.charCodeAt(i);
     }
 
-    return new File([array], baseFilename, { type: mime });
+    return new File([array], filename, { type: mime });
   };
 
   const handleConfirmProfilePhoto = async (event: React.FormEvent) => {

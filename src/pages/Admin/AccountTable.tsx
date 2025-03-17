@@ -24,7 +24,7 @@ import { DataTableServer } from "@/components/Table/DataTable";
 import useDebounce from "@/hooks/useDebounce";
 import {
   AccountTableDataServer,
-  fetchUsers,
+  //fetchUsers,
   fetchUsersByFields,
   User,
 } from "@/api/admin/user";
@@ -54,15 +54,15 @@ const AccountTable: React.FC = () => {
     []
   );
 
-  const sortByName = (data: User[], direction: "asc" | "desc") => {
-    return [...data].sort((a, b) => {
-      if (a.nric_FullName < b.nric_FullName)
-        return direction === "asc" ? -1 : 1;
-      if (a.nric_FullName > b.nric_FullName)
-        return direction === "asc" ? 1 : -1;
-      return 0;
-    });
-  };
+  // const sortByName = (data: User[], direction: "asc" | "desc") => {
+  //   return [...data].sort((a, b) => {
+  //     if (a.nric_FullName < b.nric_FullName)
+  //       return direction === "asc" ? -1 : 1;
+  //     if (a.nric_FullName > b.nric_FullName)
+  //       return direction === "asc" ? 1 : -1;
+  //     return 0;
+  //   });
+  // };
 
   const handleFilter = async (pageNo: number, pageSize: number) => {
     try {
@@ -73,18 +73,16 @@ const AccountTable: React.FC = () => {
 
       // map the active field to actual values
       if (apiFilterJson.active === "All") {
-        apiFilterJson.active = ""
+        apiFilterJson.active = "";
       } else if (apiFilterJson.active === "Active") {
-        apiFilterJson.active = "true"
+        apiFilterJson.active = "true";
       } else if (apiFilterJson.active === "Inactive") {
-        apiFilterJson.active = "false"
+        apiFilterJson.active = "false";
       }
 
       // remove items that is empty
       const filteredJsonList = Object.fromEntries(
-        Object.entries(apiFilterJson).filter(
-          ([_, value]) => value !== ""
-        )
+        Object.entries(apiFilterJson).filter(([_, value]) => value !== "")
       );
 
       const fetchedAccountTDServer: AccountTableDataServer =
@@ -93,9 +91,9 @@ const AccountTable: React.FC = () => {
           ? await fetchUsersByFields(pageNo, pageSize, filteredJsonList)
           : mockAccountTDList;
 
-      let filteredAccountTDList = fetchedAccountTDServer.users;
+      //let filteredAccountTDList = fetchedAccountTDServer.users;
 
-      const sortedAccountTDList = sortByName(filteredAccountTDList, "asc");
+      //const sortedAccountTDList = sortByName(filteredAccountTDList, "asc");
 
       setAccountTDServer(fetchedAccountTDServer);
     } catch (error) {

@@ -7,6 +7,7 @@ const VITE_GEOCODE_SERVICE_URL: string = import.meta.env
   .VITE_GEOCODE_SERVICE_URL;
 
 // console.log('Patient Service URL:' + VITE_PATIENT_SERVICE_URL);
+const VITE_LOGGER_SERVICE_URL: string = import.meta.env.VITE_LOGGER_SERVICE_URL;
 
 export const VITE_USER_SERVICE_URL: string = import.meta.env
   .VITE_USER_SERVICE_URL;
@@ -16,12 +17,20 @@ export const patientsAPI = axios.create({
   baseURL: `${VITE_PATIENT_SERVICE_URL}/patients`,
 });
 
-export const dementiaList = axios.create({
+export const dementiaListAPI = axios.create({
   baseURL: `${VITE_PATIENT_SERVICE_URL}/PatientAssignedDementiaList`,
 });
 
-export const getPatientAssignedDementia = axios.create({
+export const getPatientAssignedDementiaAPI = axios.create({
   baseURL: `${VITE_PATIENT_SERVICE_URL}/get_assigned_dementias`,
+});
+
+export const createPatientAssignedDementiaAPI = axios.create({
+  baseURL: `${VITE_PATIENT_SERVICE_URL}/create_assigned_dementia`,
+});
+
+export const deletePatientAssignedDementiaAPI = axios.create({
+  baseURL: `${VITE_PATIENT_SERVICE_URL}/delete_assigned_dementia`,
 });
 
 export const mobilityListAPI = axios.create({
@@ -68,6 +77,10 @@ export const vitalAPI = axios.create({
   baseURL: `${VITE_PATIENT_SERVICE_URL}/Vital`,
 });
 
+export const LanguageListPAI = axios.create({
+  baseURL: `${VITE_PATIENT_SERVICE_URL}/PatientListLanguage/`,
+});
+
 export const patientAllergyAPI = axios.create({
   baseURL: `${VITE_PATIENT_SERVICE_URL}/get_patient_allergy`,
 });
@@ -82,6 +95,10 @@ export const allergyReactionTypeAPI = axios.create({
 
 export const createPatientAllergyAPI = axios.create({
   baseURL: `${VITE_PATIENT_SERVICE_URL}/create_patient_allergy`,
+});
+
+export const updatePatientAllergyAPI = axios.create({
+  baseURL: `${VITE_PATIENT_SERVICE_URL}/update_patient_allergy`,
 });
 
 export const deletePatientAllergyAPI = axios.create({
@@ -149,6 +166,12 @@ export const roleAPI = axios.create({
 export const adminAPI = axios.create({
   baseURL: `${VITE_USER_SERVICE_URL}/admin`,
 });
-export const usersAPI = axios.create({
-  baseURL: `${VITE_USER_SERVICE_URL}/users`,
+
+export const getDoctorNameAPI = (roleName: string) =>
+  axios.create({
+    baseURL: `${VITE_USER_SERVICE_URL}/${roleName}/get_doctors`,
+  });
+
+export const loggerAPI = axios.create({
+  baseURL: `${VITE_LOGGER_SERVICE_URL}/Logs`,
 });
