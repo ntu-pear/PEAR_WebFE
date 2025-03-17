@@ -62,7 +62,8 @@ export interface UpdateDoctorNoteForm {
 }
 
 export const convertToDoctorNotesTD = async (
-  doctorNoteViewList: DoctorNoteViewList
+  doctorNoteViewList: DoctorNoteViewList,
+  roleName: string
 ): Promise<DoctorNoteTDServer> => {
   if (!Array.isArray(doctorNoteViewList.data)) {
     console.error(
@@ -94,7 +95,7 @@ export const convertToDoctorNotesTD = async (
   const doctorNameResults = await Promise.all(
     uniqueDoctorIds.map(async (doctorId) => {
       try {
-        const name = await getDoctorNameById(doctorId.toString());
+        const name = await getDoctorNameById(doctorId.toString(), roleName);
         return { doctorId: doctorId, doctorName: name };
       } catch (error) {
         console.error(`Error fetching doctor name for ID ${doctorId}`, error);
@@ -133,6 +134,7 @@ export const convertToDoctorNotesTD = async (
 
 export const fetchDoctorNotes = async (
   patientId: number,
+  roleName: string,
   pageNo: number = 0,
   pageSize: number = 10
 ): Promise<DoctorNoteTDServer> => {
@@ -149,7 +151,7 @@ export const fetchDoctorNotes = async (
       }
     );
     console.log("GET Patient Doctor Notes", response.data);
-    return await convertToDoctorNotesTD(response.data);
+    return await convertToDoctorNotesTD(response.data, roleName);
   } catch (error) {
     console.error("GET Patient Doctor Notes", error);
     throw error;

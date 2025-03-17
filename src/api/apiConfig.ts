@@ -167,9 +167,10 @@ export const adminAPI = axios.create({
   baseURL: `${VITE_USER_SERVICE_URL}/admin`,
 });
 
-export const getDoctorNameAPI = axios.create({
-  baseURL: `${VITE_USER_SERVICE_URL}/supervisor/get_doctors`,
-});
+export const getDoctorNameAPI = (roleName: string) =>
+  axios.create({
+    baseURL: `${VITE_USER_SERVICE_URL}/${roleName}/get_doctors`,
+  });
 
 export const loggerAPI = axios.create({
   baseURL: `${VITE_LOGGER_SERVICE_URL}/Logs`,
