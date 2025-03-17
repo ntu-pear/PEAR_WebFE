@@ -28,7 +28,7 @@ export const fetchRoles = async () => {
     console.log("GET all roles", response.data);
     return response.data.roles;
   } catch (error) {
-    toast.error("Failed to fetch roles");
+    toast.error(`Failed to fetch roles. ${(error as { response: { data: { detail: string } } }).response.data.detail}`);
     console.error("GET all roles", error);
     throw error;
   }
@@ -70,12 +70,13 @@ export const getUsersFromRole = async (roleName: string) => {
   try {
     const token = retrieveAccessTokenFromCookie();
     if (!token) throw new Error("Token not found");
-    const response = await roleAPI.get<User[]>(`/${roleName}/users`, {
+    const response = await roleAPI.get<{ users: User[] }>(`/users/${roleName}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     console.log("Get users from role", response.data);
-    return response.data;
+    return response.data.users;
   } catch (error) {
+    toast.error(`Failed to fetch users from ${roleName} role. ${(error as { response: { data: { detail: string } } }).response.data.detail}`);
     console.error("Get users from role", error);
     throw error;
   }

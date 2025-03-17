@@ -14,7 +14,8 @@ const useCreateRole = () => {
       toast.success("Role created successfully");
       queryClient.invalidateQueries({ queryKey: ["roles"] });
     },
-    onError: () => toast.error("Failed to create role"),
+    onError: (error: { response: { data: { detail: string } } }) =>
+      toast.error(`Failed to create role. ${error.response.data.detail}`),
   });
 };
 

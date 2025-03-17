@@ -46,7 +46,7 @@ export const fetchUsers = async () => {
     console.log("GET all users", response.data);
     return response.data;
   } catch (error) {
-    toast.error("Failed to fetch users");
+    toast.error(`Failed to fetch users. ${(error as { response: { data: { detail: string } } }).response.data.detail}`);
     console.error("GET all users", error);
     throw error;
   }

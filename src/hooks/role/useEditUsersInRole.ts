@@ -19,7 +19,8 @@ const useEditUsersInRole = () => {
       toast.success("Users role updated");
       queryClient.invalidateQueries({ queryKey: ["users"] });
     },
-    onError: () => toast.error("Failed to update users role"),
+    onError: (error: { response: { data: { detail: string } } }) =>
+      toast.error(`Failed to update users role. ${error.response.data.detail}`),
   });
 };
 
