@@ -3,32 +3,35 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 import { useForm, SubmitHandler } from "react-hook-form";
 import { Button } from "@/components/ui/button";
-import { useNavigate } from "react-router";
 import { InfoIcon, SaveIcon } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import RadioGroup from "@/components/Form/RadioGroup";
 
+type PrivacySetting = 'Sensitive' | 'Non-sensitive';
+
 type PrivacySettingsForm = {
-  alcoholUse: 'Sensitive' | 'Non-sensitive';
-  caffeineUse: 'Sensitive' | 'Non-sensitive';
-  diet: 'Sensitive' | 'Non-sensitive';
-  drugUse: 'Sensitive' | 'Non-sensitive';
-  education: 'Sensitive' | 'Non-sensitive';
-  exercise: 'Sensitive' | 'Non-sensitive';
-  liveWith: 'Sensitive' | 'Non-sensitive';
-  occupation: 'Sensitive' | 'Non-sensitive';
-  pet: 'Sensitive' | 'Non-sensitive';
-  religion: 'Sensitive' | 'Non-sensitive';
-  secondhandSmoker: 'Sensitive' | 'Non-sensitive';
-  sexuallyActive: 'Sensitive' | 'Non-sensitive';
-  tobaccoUse: 'Sensitive' | 'Non-sensitive';
+  alcoholUse: PrivacySetting;
+  caffeineUse: PrivacySetting;
+  diet: PrivacySetting;
+  drugUse: PrivacySetting;
+  education: PrivacySetting;
+  exercise: PrivacySetting;
+  liveWith: PrivacySetting;
+  occupation: PrivacySetting;
+  pet: PrivacySetting;
+  religion: PrivacySetting;
+  secondhandSmoker: PrivacySetting;
+  sexuallyActive: PrivacySetting;
+  tobaccoUse: PrivacySetting;
 };
 
+type PrivacyLevel = 'None' | 'Low' | 'Medium' | 'High';
+
 type PrivacyLevelForm = {
-  gameTherapist: 'None' | 'Low' | 'Medium' | 'High';
-  caregiver: 'None' | 'Low' | 'Medium' | 'High';
-  doctor: 'None' | 'Low' | 'Medium' | 'High';
-  supervisor: 'None' | 'Low' | 'Medium' | 'High';
+  gameTherapist: PrivacyLevel;
+  caregiver: PrivacyLevel;
+  doctor: PrivacyLevel;
+  supervisor: PrivacyLevel;
 };
 
 const privacySettingsHeaderCols = [
@@ -52,15 +55,25 @@ const privacySettingsRows = [
   { name: 'tobaccoUse', label: 'Tobacco Use' },
 ]
 
+const privacyLevelHeaderCols = [
+  "Role",
+  "Privacy Level",
+]
+
+const privacyLevelRows = [
+  { name: 'gameTherapist', label: 'Game Therapist' },
+  { name: 'caregiver', label: 'Caregiver' },
+  { name: 'doctor', label: 'Doctor' },
+  { name: 'supervisor', label: 'Supervisor' },
+]
+
 const ManageSocialHistory: React.FC = () => {
-  const navigate = useNavigate();
   const privacySettingsForm = useForm<PrivacySettingsForm>();
   const privacyLevelForm = useForm<PrivacyLevelForm>();
   const onSubmitPrivacySettings: SubmitHandler<PrivacySettingsForm> = (data) => console.log(data);
   const onSubmitPrivacyLevel: SubmitHandler<PrivacyLevelForm> = (data) => console.log(data);
   const [privacySettingsTooltipVisible, setPrivacySettingsTooltipVisible] = useState(false);
   const [privacyLevelTooltipVisible, setPrivacyLevelTooltipVisible] = useState(false);
-
 
   return (
     <div className="flex min-h-screen w-full flex-col container mx-auto px-0 sm:px-4">
@@ -97,33 +110,33 @@ const ManageSocialHistory: React.FC = () => {
                   </div>
                 </CardHeader>
                 <CardContent className="py-4 flex flex-col">
-                  <Table className="border mb-2">
-                    <TableHeader>
-                      <TableRow>
-                        {privacySettingsHeaderCols.map((col) => (
-                          <TableHead className='border' key={col}>{col}</TableHead>
-                        ))}
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {privacySettingsRows.map((row) => (
-                        <TableRow key={row.name} className="odd:bg-slate-100">
-                          <TableCell className='border'>{row.label}</TableCell>
-                          <TableCell>
-                            <RadioGroup
-                              form={privacySettingsForm}
-                              name={row.name as keyof PrivacySettingsForm}
-                              options={['Sensitive', 'Non-Sensitive']}
-                            />
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
                   <form
                     onSubmit={privacySettingsForm.handleSubmit(onSubmitPrivacySettings)}
                     className="flex flex-col items-center"
                   >
+                    <Table className="border mb-2">
+                      <TableHeader>
+                        <TableRow>
+                          {privacySettingsHeaderCols.map((col) => (
+                            <TableHead className='border' key={col}>{col}</TableHead>
+                          ))}
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {privacySettingsRows.map((row) => (
+                          <TableRow key={row.name} className="odd:bg-slate-100">
+                            <TableCell className='border'>{row.label}</TableCell>
+                            <TableCell>
+                              <RadioGroup
+                                form={privacySettingsForm}
+                                name={row.name as keyof PrivacySettingsForm}
+                                options={['Sensitive', 'Non-Sensitive']}
+                              />
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
                     <Button className="bg-sky-600 gap-2 w-auto">
                       <SaveIcon />
                       Save Changes
@@ -156,9 +169,31 @@ const ManageSocialHistory: React.FC = () => {
                     onSubmit={privacyLevelForm.handleSubmit(onSubmitPrivacyLevel)}
                     className="flex flex-col items-center"
                   >
+                    <Table className="border mb-2">
+                      <TableHeader>
+                        <TableRow>
+                          {privacyLevelHeaderCols.map((col) => (
+                            <TableHead className='border' key={col}>{col}</TableHead>
+                          ))}
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {privacyLevelRows.map((row) => (
+                          <TableRow key={row.name} className="odd:bg-slate-100">
+                            <TableCell className='border'>{row.label}</TableCell>
+                            <TableCell>
+                              <RadioGroup
+                                form={privacyLevelForm}
+                                name={row.name as keyof PrivacyLevelForm}
+                                options={['None', 'Low', 'Medium', 'High']}
+                              />
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
                     <Button
                       className="bg-sky-600 gap-2 w-auto"
-                      onClick={() => navigate("/admin/edit-roles")}
                     >
                       <SaveIcon />
                       Save Changes
