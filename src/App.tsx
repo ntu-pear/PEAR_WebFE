@@ -47,6 +47,7 @@ import HighlightTable from "./pages/Supervisor/HighlightTable";
 import VerifyAccount from "./pages/Admin/VerifyAccount";
 import { ViewPatientProvider } from "./hooks/patient/useViewPatient";
 import PatientLogs from "./pages/logger/PatientLogs";
+import AccountTable from "./pages/Admin/AccountTable";
 
 export const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: false, staleTime: Infinity } },
@@ -152,7 +153,12 @@ const App: React.FC = () => {
                       path="admin/*"
                       element={<ProtectedRoute allowedRoles={["ADMIN"]} />}
                     >
-                      <Route path="temp-page" element={<TempPage />} />
+                      {/* <Route path="temp-page" element={<TempPage />} /> */}
+                      <Route
+                        path="manage-accounts"
+                        element={<AccountTable />}
+                      />
+
                       <Route
                         path="register-account"
                         element={<RegisterAccount />}

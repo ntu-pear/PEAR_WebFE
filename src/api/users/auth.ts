@@ -23,6 +23,11 @@ export interface Require2FA {
   msg: string;
 }
 
+export interface Require2FA {
+  email: string;
+  msg: string;
+}
+
 export interface CurrentUser {
   userId: string;
   roleName: string;
