@@ -1,4 +1,3 @@
-import { addAuthInterceptor } from "@/api/interceptors";
 import {
   CurrentUser,
   getCurrentUser,
@@ -45,8 +44,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     try {
       const loginResponse = await sendLogin(formData);
 
-      addAuthInterceptor();
-
       if ("access_token" in loginResponse) {
         const response = await getCurrentUser();
         setCurrentUser(response);
@@ -76,7 +73,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   const login2FA = async (email: string, code: string) => {
     try {
       await sendLogin2FA(email, code);
-      addAuthInterceptor();
 
       const response = await getCurrentUser();
       console.log(response);
@@ -114,6 +110,21 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   const fetchUser = async () => {
     try {
       setIsLoading(true);
+
+      const expiresAt = retrieveAccessTokenExpiryFromCookie();
+      if (expiresAt) {
+        const expiryTime = dayjs.utc(expiresAt);
+        const timeLeft = expiryTime.diff(dayjs.utc());
+
+        // When token has already past expired, logout immediately when user try refresh
+        if (timeLeft <= 0) {
+          setIsLoading(false);
+          toast.warning("Session expired. Logging out.");
+          await logout();
+          return;
+        }
+      }
+
       const user = await getCurrentUser();
       if (user?.roleName === "CAREGIVER") {
         throw new Error("Caregiver is only available on mobile application.");
@@ -143,8 +154,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     if (expiryTimeout.current !== null) {
       clearTimeout(expiryTimeout.current);
     }
-    if (timeLeft > 60000 && timeLeft < 300000) {
-      //if (timeLeft > 60000) {
+
+    if (timeLeft > 10000 && timeLeft < 300000) {
+      //if (timeLeft > 10000) {
       toast.dismiss();
       toast.warning(
         <div className="flex flex-col">
@@ -187,6 +199,17 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         </div>,
         { duration: timeLeft }
       );
+
+      // Auto logout once the token starts to expire
+      expiryTimeout.current = setTimeout(async () => {
+        toast.dismiss();
+        toast.warning("Session expired. Logging out.");
+        setTimeout(async () => {
+          toast.dismiss();
+          await logout();
+        }, 1000);
+      }, timeLeft);
+
       // else if more than 5mins, schedule the toast
     } else if (timeLeft >= 300000) {
       const timeoutId = setTimeout(checkAccessTokenExpiry, timeLeft - 300000); // Set timeout for 5 minutes before expiry
