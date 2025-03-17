@@ -1,12 +1,12 @@
-import { MobilityAidTD } from "@/mocks/mockPatientDetails";
 import { formatDateString } from "@/utils/formatDate";
 import { mobilityListAPI, patientMobilityAPI } from "../apiConfig";
 import { AxiosError } from "axios";
 import { retrieveAccessTokenFromCookie } from "../users/auth";
+import { TableRowData } from "@/components/Table/DataTable";
 
 export interface MobilityList {
   MobilityListId: number;
-  IsDeleted: number;
+  IsDeleted: boolean;
   CreatedDateTime: string;
   ModifiedDateTime: string;
   CreatedById: string;
@@ -20,11 +20,40 @@ export interface MobilityAid {
   MobilityRemarks: string;
   IsRecovered: boolean;
   MobilityID: number;
-  IsDeleted: number;
+  IsDeleted: boolean;
   CreatedDateTime: string;
   ModifiedDateTime: string;
   CreatedById: string;
   ModifiedById: string;
+}
+
+export interface ViewMobilityAidList {
+  data: MobilityAid[];
+  pageNo: number;
+  pageSize: number;
+  totalRecords: number;
+  totalPages: number;
+}
+
+export interface MobilityAidTD extends TableRowData {
+  mobilityAids: string;
+  remark: string;
+  condition: string;
+  date: string;
+}
+
+export interface MobilityAidTDServer {
+  mobilityAids: MobilityAidTD[];
+  pagination: {
+    pageNo: number;
+    pageSize: number;
+    totalRecords: number;
+    totalPages: number;
+  };
+}
+
+export interface ViewMobilityAid {
+  data: MobilityAid;
 }
 
 export interface AddMobilityAid {
@@ -62,19 +91,30 @@ export const fetchMobilityList = async (): Promise<MobilityList[]> => {
 
 export const convertToMobilityAidTD = (
   mobilityList: MobilityList[],
-  mobilityAids: MobilityAid[]
-): MobilityAidTD[] => {
+  viewMobilityAidList: ViewMobilityAidList
+): MobilityAidTDServer => {
   if (!Array.isArray(mobilityList)) {
     console.error("mobilityList is not an array", mobilityList);
-    return [];
-  }
-  if (!Array.isArray(mobilityAids)) {
-    console.error("mobilityAids is not an array", mobilityAids);
-    return [];
   }
 
-  return mobilityAids
-    .filter((ma) => ma.IsDeleted === 0)
+  if (!Array.isArray(viewMobilityAidList.data)) {
+    console.error(
+      "viewMobilityAidList.data is not an array",
+      viewMobilityAidList.data
+    );
+    return {
+      mobilityAids: [],
+      pagination: {
+        pageNo: 0,
+        pageSize: 0,
+        totalRecords: 0,
+        totalPages: 0,
+      },
+    };
+  }
+
+  const mobilityAidsTransformed = viewMobilityAidList.data
+    .filter((ma) => !ma.IsDeleted)
     .map((ma) => ({
       id: ma.MobilityID,
       mobilityAids:
@@ -85,36 +125,57 @@ export const convertToMobilityAidTD = (
       condition: ma.IsRecovered ? "FULLY RECOVERED" : "NOT RECOVERED",
       date: ma.CreatedDateTime ? formatDateString(ma.CreatedDateTime) : "",
     }));
+
+  const updatedTD = {
+    mobilityAids: mobilityAidsTransformed,
+    pagination: {
+      pageNo: viewMobilityAidList.pageNo,
+      pageSize: viewMobilityAidList.pageSize,
+      totalRecords: viewMobilityAidList.totalRecords,
+      totalPages: viewMobilityAidList.totalPages,
+    },
+  };
+  console.log("convertToMobilityAidTD: ", updatedTD);
+
+  return updatedTD;
 };
 
 export const fetchMobilityAids = async (
-  patientId: number
-): Promise<MobilityAidTD[]> => {
+  patientId: number,
+  pageNo: number = 0,
+  pageSize: number = 10
+): Promise<MobilityAidTDServer> => {
   const token = retrieveAccessTokenFromCookie();
   if (!token) throw new Error("No token found.");
 
   try {
     const mobilityList = await fetchMobilityList();
 
-    const mobilityAidsResponse = await patientMobilityAPI.get<MobilityAid[]>(
-      `/${patientId}`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
+    const mobilityAidsResponse =
+      await patientMobilityAPI.get<ViewMobilityAidList>(
+        `/Patient/${patientId}?pageNo=${pageNo}&pageSize=${pageSize}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
     console.log("GET Patient Mobility Aids", mobilityAidsResponse.data);
 
-    return convertToMobilityAidTD(
-      mobilityList,
-      [mobilityAidsResponse.data].flat()
-    );
+    return convertToMobilityAidTD(mobilityList, mobilityAidsResponse.data);
   } catch (error) {
     if (error instanceof AxiosError) {
       if (error.response && error.response.status === 404) {
         console.warn("GET Patient Mobility Aids.", error);
-        return [];
+        return {
+          mobilityAids: [],
+          pagination: {
+            pageNo: 0,
+            pageSize: 0,
+            totalRecords: 0,
+            totalPages: 0,
+          },
+        };
       }
     }
     console.error("GET Patient Mobility Aids", error);
@@ -124,13 +185,13 @@ export const fetchMobilityAids = async (
 
 export const fetchMobilityAidById = async (
   mobiilityAidID: number
-): Promise<MobilityAid> => {
+): Promise<ViewMobilityAid> => {
   const token = retrieveAccessTokenFromCookie();
   if (!token) throw new Error("No token found.");
 
   try {
-    const mobilityAidsResponse = await patientMobilityAPI.get<MobilityAid>(
-      `/${mobiilityAidID}`,
+    const mobilityAidsResponse = await patientMobilityAPI.get<ViewMobilityAid>(
+      `/Mobility/${mobiilityAidID}`,
       {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -148,13 +209,13 @@ export const fetchMobilityAidById = async (
 
 export const addMobilityAid = async (
   addMobilityAid: AddMobilityAid
-): Promise<MobilityAid> => {
+): Promise<ViewMobilityAid> => {
   const token = retrieveAccessTokenFromCookie();
   if (!token) throw new Error("No token found.");
 
   try {
-    const response = await patientMobilityAPI.post<MobilityAid>(
-      "",
+    const response = await patientMobilityAPI.post<ViewMobilityAid>(
+      "/add",
       addMobilityAid,
       {
         headers: {
@@ -173,13 +234,13 @@ export const addMobilityAid = async (
 export const updateMobilityAid = async (
   mobilityAidID: number,
   updateMobilityAid: UpdateMobilityAid
-): Promise<MobilityAid> => {
+): Promise<ViewMobilityAid> => {
   const token = retrieveAccessTokenFromCookie();
   if (!token) throw new Error("No token found.");
 
   try {
-    const response = await patientMobilityAPI.put<MobilityAid>(
-      `/${mobilityAidID}`,
+    const response = await patientMobilityAPI.put<ViewMobilityAid>(
+      `/update/${mobilityAidID}`,
       updateMobilityAid,
       {
         headers: {
@@ -197,13 +258,13 @@ export const updateMobilityAid = async (
 
 export const deleteMobilityAid = async (
   mobilityAidID: number
-): Promise<MobilityAid> => {
+): Promise<ViewMobilityAid> => {
   const token = retrieveAccessTokenFromCookie();
   if (!token) throw new Error("No token found.");
 
   try {
-    const response = await patientMobilityAPI.delete<MobilityAid>(
-      `/${mobilityAidID}`,
+    const response = await patientMobilityAPI.delete<ViewMobilityAid>(
+      `/delete/${mobilityAidID}`,
       {
         headers: {
           Authorization: `Bearer ${token}`,

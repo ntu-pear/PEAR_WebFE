@@ -43,13 +43,6 @@ export interface MedicalDetails extends TableRowData {
   notes: string;
 }
 
-export interface MobilityAidTD extends TableRowData {
-  mobilityAids: string;
-  remark: string;
-  condition: string;
-  date: string;
-}
-
 export interface StaffAllocation extends TableRowData {
   staffRole: string;
   staffName: string;
@@ -335,16 +328,6 @@ export const mockMedicalDetails: MedicalDetails[] = [
     informationSource: "1",
     medicalEstimatedDate: "12 JUN 2024",
     notes: "Notes",
-  },
-];
-
-export const mockMobilityAidsTD: MobilityAidTD[] = [
-  {
-    id: 1,
-    mobilityAids: "CRUTCHES",
-    remark: "1",
-    condition: "FULLY RECOVERED",
-    date: "5 AUG 2024",
   },
 ];
 
