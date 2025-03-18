@@ -77,7 +77,7 @@ const PatientLogs: React.FC = () => {
 
   return (
     <div className="flex min-h-screen w-full container mx-auto static max-w-[1400px]">
-       <div className="w-1/6 p-6 border absolute left-0 h-full bg-white">
+      <div className="w-full sm:w-1/4 md:w-1/6 p-6 border absolute left-0 h-full bg-white">
         <div className="p-4 border-b items-center">
           <h3 className="text-2xl font-semibold leading-none tracking-tight">
             Filters
@@ -179,10 +179,11 @@ const PatientLogs: React.FC = () => {
           </div>
         </div>
       </div>
-      <div className="py-6 flex-1 justify-center">
+      {/* Patient Logs Section */}
+      <div className="py-6 flex-1 justify-center ml-[20%]"> {/* Adjust margin to push to the right */}
         <Card>
           <CardHeader>
-            <CardTitle>Account Logs</CardTitle>
+            <CardTitle>Patient Logs</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="overflow-x-auto">
@@ -206,8 +207,7 @@ const PatientLogs: React.FC = () => {
                         <TableCell>{log.patient_id || '-'}</TableCell>
                         <TableCell>{log.user}</TableCell>
                         <TableCell>
-                          {log.method.charAt(0).toUpperCase() +
-                            log.method.slice(1)}
+                          {log.method.charAt(0).toUpperCase() + log.method.slice(1)}
                         </TableCell>
                         <TableCell>{log.message}</TableCell>
                         <TableCell>
@@ -229,10 +229,8 @@ const PatientLogs: React.FC = () => {
                           <TableCell colSpan={7}>
                             <div className="flex gap-4 p-4 border-t bg-gray-100">
                               {/* Old State */}
-                              <div className="w-1/2 border rounded-md p-2 bg-white shadow-md">
-                                <h3 className="text-sm font-semibold mb-2">
-                                  Old State
-                                </h3>
+                              <div className="w-full sm:w-1/2 border rounded-md p-2 bg-white shadow-md">
+                                <h3 className="text-sm font-semibold mb-2">Old State</h3>
                                 <Table>
                                   <TableHeader>
                                     <TableRow>
@@ -244,20 +242,17 @@ const PatientLogs: React.FC = () => {
                                     {log.original_data ? (
                                       Object.entries(log.original_data).map(([key, value]) => {
                                         const isRowDeleted = log.updated_data && Object.keys(log.updated_data).length === 0;
-                                        const isRowUpdated = !isRowDeleted && log.updated_data?.[key] != value
+                                        const isRowUpdated = !isRowDeleted && log.updated_data?.[key] !== value;
                                         return (
-                                        <TableRow key={key}>
-                                          <TableCell className={`font-semibold ${isRowUpdated ? "text-yellow-600" : isRowDeleted ? "text-red-500" : "text-gray-500"}`}>{key}</TableCell>
-                                          <TableCell className={`${isRowUpdated ? "bg-yellow-200" : isRowDeleted ? "bg-red-200" : ""}`}>{value}</TableCell>
-                                        </TableRow>
+                                          <TableRow key={key}>
+                                            <TableCell className={`font-semibold ${isRowUpdated ? "text-yellow-600" : isRowDeleted ? "text-red-500" : "text-gray-500"}`}>{key}</TableCell>
+                                            <TableCell className={`${isRowUpdated ? "bg-yellow-200" : isRowDeleted ? "bg-red-200" : ""}`}>{value}</TableCell>
+                                          </TableRow>
                                         );
                                       })
                                     ) : (
                                       <TableRow>
-                                        <TableCell
-                                          colSpan={2}
-                                          className="text-gray-500 text-center"
-                                        >
+                                        <TableCell colSpan={2} className="text-gray-500 text-center">
                                           No previous data
                                         </TableCell>
                                       </TableRow>
@@ -267,10 +262,8 @@ const PatientLogs: React.FC = () => {
                               </div>
 
                               {/* New State */}
-                              <div className="w-1/2 border rounded-md p-2 bg-white shadow-md">
-                                <h3 className="text-sm font-semibold mb-2">
-                                  New State
-                                </h3>
+                              <div className="w-full sm:w-1/2 border rounded-md p-2 bg-white shadow-md">
+                                <h3 className="text-sm font-semibold mb-2">New State</h3>
                                 <Table>
                                   <TableHeader>
                                     <TableRow>
@@ -282,12 +275,12 @@ const PatientLogs: React.FC = () => {
                                     {log.updated_data &&
                                       Object.entries(log.updated_data).map(([key, value]) => {
                                         const isRowCreated = log.original_data && Object.keys(log.original_data).length === 0;
-                                        const isRowUpdated = !isRowCreated && log.original_data?.[key] != value
+                                        const isRowUpdated = !isRowCreated && log.original_data?.[key] !== value;
                                         return (
-                                        <TableRow key={key}>
-                                          <TableCell className={`font-semibold ${isRowUpdated ? "text-yellow-600" : isRowCreated ? "text-green-500" : "text-gray-500"}`}>{key}</TableCell>
-                                          <TableCell className={`${isRowUpdated ? "bg-yellow-200" : isRowCreated ? "bg-green-200" : ""}`}>{value}</TableCell>
-                                        </TableRow>
+                                          <TableRow key={key}>
+                                            <TableCell className={`font-semibold ${isRowUpdated ? "text-yellow-600" : isRowCreated ? "text-green-500" : "text-gray-500"}`}>{key}</TableCell>
+                                            <TableCell className={`${isRowUpdated ? "bg-yellow-200" : isRowCreated ? "bg-green-200" : ""}`}>{value}</TableCell>
+                                          </TableRow>
                                         );
                                       }
                                       )}
@@ -303,24 +296,6 @@ const PatientLogs: React.FC = () => {
                 </TableBody>
               </Table>
             </div>
-            {/* Pagination */}
-            {/* <div className="flex justify-between items-center mt-4">
-              <Button
-                className="bg-gray-300"
-                disabled={pageNo === 0}
-                onClick={() => setPageNo((prev: number) => Math.max(prev - 1, 0))}
-              >
-                Previous
-              </Button>
-              <span className="text-gray-600">Page {pageNo + 1} / {logsTDServer.pagination?.totalPages || 1}</span>
-              <Button
-                className="bg-gray-300"
-                disabled={pageNo >= (logsTDServer.pagination?.totalPages || 1) - 1}
-                onClick={() => setPageNo((prev: number) => prev + 1)}
-              >
-                Next
-              </Button>
-            </div> */}
           </CardContent>
         </Card>
       </div>
