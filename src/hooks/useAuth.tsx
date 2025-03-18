@@ -201,14 +201,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       );
 
       // Auto logout once the token starts to expire
-      expiryTimeout.current = setTimeout(async () => {
-        toast.dismiss();
-        toast.warning("Session expired. Logging out.");
-        setTimeout(async () => {
-          toast.dismiss();
-          await logout();
-        }, 1000);
-      }, timeLeft);
+      // expiryTimeout.current = setTimeout(async () => {
+      //   toast.dismiss();
+      //   toast.warning("Session expired. Logging out.");
+      //   setTimeout(async () => {
+      //     toast.dismiss();
+      //     await logout();
+      //   }, 1000);
+      // }, timeLeft);
 
       // else if more than 5mins, schedule the toast
     } else if (timeLeft >= 300000) {
