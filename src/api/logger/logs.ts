@@ -6,6 +6,7 @@ export interface LogsBase{
   table: string;
   message: string;
   user: string;
+  patient_id: number;
   user_full_name: string;
   original_data?: Record<string, any>;
   updated_data?: Record<string, any>
@@ -60,15 +61,17 @@ const convertToLogsTDServer = (
 
 export const fetchAllLogs= async (
   action: string,
-  user: string,
+  user: string| null,
   table: string,
+  patient: string | null,
   timestamp_order: string = "desc",
   pageNo: number = 0,
   pageSize: number = 10
 ): Promise<LogsTableDataServer> => {
   try {
+    console.log(patient, typeof(patient))
     const response = await loggerAPI.get<ViewLogsList>(
-      `?action=${action}&user=${user}&table=${table}&timestamp_order=${timestamp_order}&pageNo=${pageNo}&pageSize=${pageSize}`
+      `?patient=${patient}&action=${action}&user=${user}&table=${table}&timestamp_order=${timestamp_order}&pageNo=${pageNo}&pageSize=${pageSize}`
     );
     console.log('GET all Patients', response.data);
     return convertToLogsTDServer(response.data)
