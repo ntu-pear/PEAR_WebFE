@@ -155,17 +155,14 @@ const EditSocialHistoryModal: React.FC = () => {
       petListId: parseInt(formDataObj.petListId as string, 10),
       religionListId: parseInt(formDataObj.religionListId as string, 10),
       id: rowData.id,
-      modifiedById: parseInt(submitterId as string, 10),
+      modifiedById: submitterId as string,
       modifiedDate: dateTimeNow,
     };
 
     try {
       console.log("socialHistoryFormData", socialHistoryFormData);
 
-      await updateSocialHistory(
-        parseInt(patientId as string, 10),
-        socialHistoryFormData
-      );
+      await updateSocialHistory(socialHistoryFormData);
       closeModal();
       toast.success("Patient social history updated successfully.");
       refreshData();
