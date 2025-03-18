@@ -31,11 +31,6 @@ export interface PatientInformation extends TableRowData {
   profilePicture: string;
 }
 
-export interface DiagnosedDementiaTD extends TableRowData {
-  dementiaType: string;
-  dementiaDate: string;
-}
-
 export interface MedicalDetails extends TableRowData {
   medicalDetails: string;
   informationSource: string;
@@ -304,14 +299,6 @@ export const mockPreferredLanguageList: PreferredLanguage[] = [
     createdDate: "2024-10-05 21:49:04.863",
     modifiedDate: "2024-10-05 21:49:04.863",
     value: "Korean",
-  },
-];
-
-export const mockDiagnosedDementiaList: DiagnosedDementiaTD[] = [
-  {
-    id: 1,
-    dementiaType: "ALZHEIMER'S DISEASE",
-    dementiaDate: "12 JUN 2024",
   },
 ];
 
