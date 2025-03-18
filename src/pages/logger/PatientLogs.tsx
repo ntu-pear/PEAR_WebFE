@@ -14,11 +14,8 @@ import { format } from "date-fns";
 import { fetchAllLogs, LogsTableDataServer } from "@/api/logger/logs";
 
 const PatientLogs: React.FC = () => {
-  const [search /*setSearch*/] = useState("");
-  const [expandedRows, setExpandedRows] = useState<{ [key: number]: boolean }>(
-    {}
-  );
-  //const [pageNo] = useState(0); // Since we are using static data
+  const [expandedRows, setExpandedRows] = useState<{ [key: number]: boolean }>({});
+  const [pageNo, setPageNo] = useState(0); // Since we are using static data
   const [table, setTable] = useState("");
   const [user, setUser] = useState("");
   const [action, setAction] = useState("");
@@ -42,11 +39,13 @@ const PatientLogs: React.FC = () => {
 
   const handleLogs = async () => {
     console.log("Calling logger ", filters);
+    setExpandedRows({})
     try {
       const response = await fetchAllLogs(
         filters.action,
         filters.user,
         filters.table,
+        filters.patient,
         "desc"
       );
       setLogsTDServer(response);
@@ -59,8 +58,9 @@ const PatientLogs: React.FC = () => {
     setUser("");
     setPatient("");
     setTable("");
-    setFilters({ table: "", user: "", patient: "", action: "" });
-  };
+    setFilters({ table: "", user: "", patient: "", action: ""});
+    setExpandedRows({});
+   }
 
   // Toggle row expansion
   const toggleRow = (index: number) => {
@@ -70,21 +70,14 @@ const PatientLogs: React.FC = () => {
     }));
   };
 
-  // Filter logs based on search
-  const filteredData = logsTDServer.logs.filter(
-    (log) =>
-      log.user.toLowerCase().includes(search) ||
-      log.table.toLowerCase().includes(search) ||
-      log.method.toLowerCase().includes(search)
-  );
 
   useEffect(() => {
     handleLogs();
   }, [filters]);
 
   return (
-    <div className="flex min-h-screen w-full container mx-auto static">
-      <div className="w-1/6 p-6 border absolute left-0 h-full bg-white">
+    <div className="flex min-h-screen w-full container mx-auto static max-w-[1400px]">
+       <div className="w-1/6 p-6 border absolute left-0 h-full bg-white">
         <div className="p-4 border-b items-center">
           <h3 className="text-2xl font-semibold leading-none tracking-tight">
             Filters
@@ -206,13 +199,11 @@ const PatientLogs: React.FC = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredData.map((log, index) => (
+                  {logsTDServer.logs.map((log, index) => (
                     <React.Fragment key={index}>
                       <TableRow>
                         <TableCell>{index + 1}</TableCell>
-                        <TableCell>
-                          {log.updated_data?.patientId || "-"}
-                        </TableCell>
+                        <TableCell>{log.patient_id || '-'}</TableCell>
                         <TableCell>{log.user}</TableCell>
                         <TableCell>
                           {log.method.charAt(0).toUpperCase() +
@@ -251,18 +242,16 @@ const PatientLogs: React.FC = () => {
                                   </TableHeader>
                                   <TableBody>
                                     {log.original_data ? (
-                                      Object.entries(log.original_data).map(
-                                        ([key, value]) => (
-                                          <TableRow key={key}>
-                                            <TableCell className="font-semibold text-yellow-600">
-                                              {key}
-                                            </TableCell>
-                                            <TableCell className="bg-yellow-200">
-                                              {value}
-                                            </TableCell>
-                                          </TableRow>
-                                        )
-                                      )
+                                      Object.entries(log.original_data).map(([key, value]) => {
+                                        const isRowDeleted = log.updated_data && Object.keys(log.updated_data).length === 0;
+                                        const isRowUpdated = !isRowDeleted && log.updated_data?.[key] != value
+                                        return (
+                                        <TableRow key={key}>
+                                          <TableCell className={`font-semibold ${isRowUpdated ? "text-yellow-600" : isRowDeleted ? "text-red-500" : "text-gray-500"}`}>{key}</TableCell>
+                                          <TableCell className={`${isRowUpdated ? "bg-yellow-200" : isRowDeleted ? "bg-red-200" : ""}`}>{value}</TableCell>
+                                        </TableRow>
+                                        );
+                                      })
                                     ) : (
                                       <TableRow>
                                         <TableCell
@@ -291,17 +280,16 @@ const PatientLogs: React.FC = () => {
                                   </TableHeader>
                                   <TableBody>
                                     {log.updated_data &&
-                                      Object.entries(log.updated_data).map(
-                                        ([key, value]) => (
-                                          <TableRow key={key}>
-                                            <TableCell className="font-semibold text-green-600">
-                                              {key}
-                                            </TableCell>
-                                            <TableCell className="bg-green-200">
-                                              {value}
-                                            </TableCell>
-                                          </TableRow>
-                                        )
+                                      Object.entries(log.updated_data).map(([key, value]) => {
+                                        const isRowCreated = log.original_data && Object.keys(log.original_data).length === 0;
+                                        const isRowUpdated = !isRowCreated && log.original_data?.[key] != value
+                                        return (
+                                        <TableRow key={key}>
+                                          <TableCell className={`font-semibold ${isRowUpdated ? "text-yellow-600" : isRowCreated ? "text-green-500" : "text-gray-500"}`}>{key}</TableCell>
+                                          <TableCell className={`${isRowUpdated ? "bg-yellow-200" : isRowCreated ? "bg-green-200" : ""}`}>{value}</TableCell>
+                                        </TableRow>
+                                        );
+                                      }
                                       )}
                                   </TableBody>
                                 </Table>
@@ -320,15 +308,15 @@ const PatientLogs: React.FC = () => {
               <Button
                 className="bg-gray-300"
                 disabled={pageNo === 0}
-                onClick={() => pageNo((prev: number) => Math.max(prev - 1, 0))}
+                onClick={() => setPageNo((prev: number) => Math.max(prev - 1, 0))}
               >
                 Previous
               </Button>
-              <span className="text-gray-600">Page {pageNo + 1} / {data?.totalPages || 1}</span>
+              <span className="text-gray-600">Page {pageNo + 1} / {logsTDServer.pagination?.totalPages || 1}</span>
               <Button
                 className="bg-gray-300"
-                disabled={pageNo >= (data?.totalPages || 1) - 1}
-                onClick={() => pageNo((prev: number) => prev + 1)}
+                disabled={pageNo >= (logsTDServer.pagination?.totalPages || 1) - 1}
+                onClick={() => setPageNo((prev: number) => prev + 1)}
               >
                 Next
               </Button>
