@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 import { useForm, SubmitHandler } from "react-hook-form";
@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { InfoIcon, SaveIcon } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import RadioGroup from "@/components/Form/RadioGroup";
+import useGetRoles from "@/hooks/role/useGetRoles";
 
 type PrivacySetting = 'Sensitive' | 'Non-sensitive';
 
@@ -25,7 +26,7 @@ type PrivacySettingsForm = {
   tobaccoUse: PrivacySetting;
 };
 
-type PrivacyLevel = 'None' | 'Low' | 'Medium' | 'High';
+type PrivacyLevel = '0' | '1' | '2' | '3';
 
 type PrivacyLevelForm = {
   gameTherapist: PrivacyLevel;
@@ -68,8 +69,22 @@ const privacyLevelRows = [
 ]
 
 const ManageSocialHistory: React.FC = () => {
+  const roles = useGetRoles()
+  const rolesPrivacyLevel = useMemo(() =>
+    roles.data?.reduce((acc, role) => {
+      const privacyLevel = role.privacyLevelSensitive.toString() as '0' | '1' | '2' | '3'
+      switch (role.roleName) {
+        case 'GAME THERAPIST': acc.gameTherapist = privacyLevel; break;
+        case 'CAREGIVER': acc.caregiver = privacyLevel; break;
+        case 'DOCTOR': acc.doctor = privacyLevel; break;
+        case 'SUPERVISOR': acc.supervisor = privacyLevel; break;
+      }
+      return acc
+    }, {} as { [roleName: string]: '0' | '1' | '2' | '3' }), [roles.data]
+  )
+
   const privacySettingsForm = useForm<PrivacySettingsForm>();
-  const privacyLevelForm = useForm<PrivacyLevelForm>();
+  const privacyLevelForm = useForm<PrivacyLevelForm>({ defaultValues: rolesPrivacyLevel });
   const onSubmitPrivacySettings: SubmitHandler<PrivacySettingsForm> = (data) => console.log(data);
   const onSubmitPrivacyLevel: SubmitHandler<PrivacyLevelForm> = (data) => console.log(data);
   const [privacySettingsTooltipVisible, setPrivacySettingsTooltipVisible] = useState(false);
@@ -130,7 +145,10 @@ const ManageSocialHistory: React.FC = () => {
                               <RadioGroup
                                 form={privacySettingsForm}
                                 name={row.name as keyof PrivacySettingsForm}
-                                options={['Sensitive', 'Non-Sensitive']}
+                                options={[
+                                  { label: 'Sensitive', value: '1' },
+                                  { label: 'Non- Sensitive', value: '0' },
+                                ]}
                               />
                             </TableCell>
                           </TableRow>
@@ -156,9 +174,9 @@ const ManageSocialHistory: React.FC = () => {
                       <InfoIcon />
                     </div>
                     {privacyLevelTooltipVisible && (
-                      <div className="absolute bottom-full mb-2 w-96 bg-gray-700 text-white text-xs rounded py-1 px-2">
+                      <div className="absolute bottom-full mb-2 w-40 bg-gray-700 text-white text-xs rounded py-1 px-2">
                         <h1>
-                          Select the role(s) allowed to view sensitive and non-sensitive social history information for each privacy level.
+                          Select the privacy level of each role.
                         </h1>
                       </div>
                     )}
@@ -185,7 +203,12 @@ const ManageSocialHistory: React.FC = () => {
                               <RadioGroup
                                 form={privacyLevelForm}
                                 name={row.name as keyof PrivacyLevelForm}
-                                options={['None', 'Low', 'Medium', 'High']}
+                                options={[
+                                  { label: 'None', value: '0' },
+                                  { label: 'Low', value: '1' },
+                                  { label: 'Medium', value: '2' },
+                                  { label: 'High', value: '3' },
+                                ]}
                               />
                             </TableCell>
                           </TableRow>
