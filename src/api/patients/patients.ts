@@ -185,6 +185,8 @@ const toUpperCasePatient = (patient: PatientBase): PatientBase => {
 
 //Get All Patients with skip and limit
 export const fetchAllPatientTD = async (
+  name: string | null = "",
+  isActive: string | null = null,
   pageNo: number = 0,
   pageSize: number = 10
 ): Promise<PatientTableDataServer> => {
@@ -193,7 +195,7 @@ export const fetchAllPatientTD = async (
 
   try {
     const response = await patientsAPI.get<ViewPatientList>(
-      `?mask=true&pageNo=${pageNo}&pageSize=${pageSize}`,
+      `?name=${name}&isActive=${isActive}&mask=true&pageNo=${pageNo}&pageSize=${pageSize}`,
       {
         headers: {
           Authorization: `Bearer ${token}`,
