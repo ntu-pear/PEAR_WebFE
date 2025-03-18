@@ -1,13 +1,13 @@
-import { fetchDiagnosedDementia } from "@/api/patients/diagnosedDementia";
-import { useViewPatient } from "@/hooks/patient/useViewPatient";
 import {
   DiagnosedDementiaTD,
-  mockDiagnosedDementiaList,
-} from "@/mocks/mockPatientDetails";
+  DiagnosedDementiaTDServer,
+  fetchDiagnosedDementia,
+} from "@/api/patients/diagnosedDementia";
+import { useViewPatient } from "@/hooks/patient/useViewPatient";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
-import { DataTableClient } from "../Table/DataTable";
+import { DataTableServer } from "../Table/DataTable";
 import { useAuth } from "@/hooks/useAuth";
 import { useModal } from "@/hooks/useModal";
 import { Button } from "../ui/button";
@@ -17,19 +17,25 @@ const DiagnosedDementiaCard: React.FC = () => {
   const { id } = useViewPatient();
   const { currentUser } = useAuth();
   const { openModal } = useModal();
-  const [diagnosedDementia, setDiagnosedDementia] = useState<
-    DiagnosedDementiaTD[]
-  >([]);
+  const [diagnosedDementiaTDServer, setDiagnosedDementiaTDServer] =
+    useState<DiagnosedDementiaTDServer>({
+      diagnosedDementias: [],
+      pagination: {
+        pageNo: 0,
+        pageSize: 0,
+        totalRecords: 0,
+        totalPages: 0,
+      },
+    });
 
-  const handleFetchDiagnosedDementia = async () => {
+  const handleFetchDiagnosedDementia = async (pageNo: number) => {
     if (!id || isNaN(Number(id))) return;
     try {
-      const fetchedDiagnosedDementia: DiagnosedDementiaTD[] =
-        import.meta.env.MODE === "development" ||
-        import.meta.env.MODE === "production"
-          ? await fetchDiagnosedDementia(Number(id))
-          : mockDiagnosedDementiaList;
-      setDiagnosedDementia(fetchedDiagnosedDementia);
+      const response: DiagnosedDementiaTDServer = await fetchDiagnosedDementia(
+        Number(id),
+        pageNo
+      );
+      setDiagnosedDementiaTDServer(response);
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       toast.error("Failed to fetch patient diagnosed dementia");
@@ -37,8 +43,14 @@ const DiagnosedDementiaCard: React.FC = () => {
   };
 
   useEffect(() => {
-    handleFetchDiagnosedDementia();
+    refreshDiagnosedDementiaData();
   }, []);
+
+  const refreshDiagnosedDementiaData = () => {
+    handleFetchDiagnosedDementia(
+      diagnosedDementiaTDServer.pagination.pageNo || 0
+    );
+  };
 
   const dementiaColumns = [
     { key: "dementiaType", header: "Dementia Type" },
@@ -94,12 +106,14 @@ const DiagnosedDementiaCard: React.FC = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <DataTableClient
-            data={diagnosedDementia}
+          <DataTableServer
+            data={diagnosedDementiaTDServer.diagnosedDementias}
+            pagination={diagnosedDementiaTDServer.pagination}
             columns={dementiaColumns}
             viewMore={false}
             renderActions={renderActions}
             hideActionsHeader={currentUser?.roleName !== "DOCTOR"}
+            fetchData={handleFetchDiagnosedDementia}
           />
         </CardContent>
       </Card>
