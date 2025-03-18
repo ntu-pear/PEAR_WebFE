@@ -5,7 +5,7 @@ type Props<T extends FieldValues> = {
   name: Path<T>
   form: UseFormReturn<T>
   required?: boolean
-  options: string[]
+  options: { label: string, value: string }[]
 }
 
 export default function RadioGroup<T extends FieldValues>({
@@ -23,10 +23,10 @@ export default function RadioGroup<T extends FieldValues>({
         {label} {label && required && <span className="text-red-600">*</span>}
       </label>
       <div className="flex flex-row gap-4">
-        {options.map((value) => (
+        {options.map(({ label, value }) => (
           <label htmlFor={value} className="flex gap-1">
             <input {...register(name, { required })} type='radio' value={value} id={value} />
-            {value}
+            {label}
           </label>
         ))}
       </div>
