@@ -48,12 +48,6 @@ export interface StaffAllocation extends TableRowData {
   staffName: string;
 }
 
-export interface AllergyTD extends TableRowData {
-  allergicTo: string;
-  reaction: string;
-  notes: string;
-}
-
 export interface PersonalPreference extends TableRowData {
   dateCreated: string;
   authorName: string;
@@ -370,27 +364,6 @@ export const mockSocialHistoryTD: SocialHistoryTD = {
   sexuallyActive: "",
   tobaccoUse: "",
 };
-
-export const mockAllergyTD: AllergyTD[] = [
-  {
-    id: 1,
-    allergicTo: "FISH",
-    reaction: "RASHES",
-    notes: "Fish makes patient sick.",
-  },
-  {
-    id: 2,
-    allergicTo: "CORN",
-    reaction: "NAUSEA",
-    notes: "1",
-  },
-  {
-    id: 3,
-    allergicTo: "EGGS",
-    reaction: "VOMITTING",
-    notes: "test allergy, added at 1642 using webapp.",
-  },
-];
 
 export const mockVitalCheck: VitalCheckTD[] = [
   {

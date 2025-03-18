@@ -3,29 +3,39 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Button } from "../ui/button";
-import { AllergyTD, mockAllergyTD } from "@/mocks/mockPatientDetails";
 import { useModal } from "@/hooks/useModal";
 import { useAuth } from "@/hooks/useAuth";
-import { fetchPatientAllergy } from "@/api/patients/allergy";
+import {
+  AllergyTD,
+  AllergyTDServer,
+  fetchPatientAllergy,
+} from "@/api/patients/allergy";
 import { PlusCircle } from "lucide-react";
-import { DataTableClient } from "../Table/DataTable";
+import { DataTableServer } from "../Table/DataTable";
 
 const AllergyCard: React.FC = () => {
   const { id } = useViewPatient();
-  const [allergy, setAllergy] = useState<AllergyTD[]>([]);
+  const [allergyTDServer, setAllergyTDServer] = useState<AllergyTDServer>({
+    allergies: [],
+    pagination: {
+      pageNo: 0,
+      pageSize: 0,
+      totalRecords: 0,
+      totalPages: 0,
+    },
+  });
   const { openModal } = useModal();
   const { currentUser } = useAuth();
 
-  const handleFetchAllergy = async () => {
+  const handleFetchAllergy = async (pageNo: number) => {
     if (!id || isNaN(Number(id))) return;
     try {
-      const fetchedAllergy: AllergyTD[] =
-        import.meta.env.MODE === "development" ||
-        import.meta.env.MODE === "production"
-          ? await fetchPatientAllergy(Number(id))
-          : mockAllergyTD;
+      const fetchedAllergyTDServer: AllergyTDServer = await fetchPatientAllergy(
+        Number(id),
+        pageNo
+      );
 
-      setAllergy(fetchedAllergy);
+      setAllergyTDServer(fetchedAllergyTDServer);
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       toast.error("Failed to fetch allergy for patient");
@@ -34,11 +44,11 @@ const AllergyCard: React.FC = () => {
 
   useEffect(() => {
     console.log("patientId", id);
-    handleFetchAllergy();
+    refreshAllergyData();
   }, []);
 
   const refreshAllergyData = () => {
-    handleFetchAllergy();
+    handleFetchAllergy(allergyTDServer.pagination.pageNo || 0);
   };
 
   const allergyColumns = [
@@ -109,12 +119,14 @@ const AllergyCard: React.FC = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <DataTableClient
-            data={allergy}
+          <DataTableServer
+            data={allergyTDServer.allergies}
+            pagination={allergyTDServer.pagination}
             columns={allergyColumns}
             viewMore={false}
             renderActions={renderActions}
             hideActionsHeader={currentUser?.roleName !== "SUPERVISOR"}
+            fetchData={handleFetchAllergy}
           />
         </CardContent>
       </Card>
