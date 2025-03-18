@@ -14,8 +14,10 @@ import { format } from "date-fns";
 import { fetchAllLogs, LogsTableDataServer } from "@/api/logger/logs";
 
 const PatientLogs: React.FC = () => {
-  const [expandedRows, setExpandedRows] = useState<{ [key: number]: boolean }>({});
-  const [pageNo, setPageNo] = useState(0); // Since we are using static data
+  const [expandedRows, setExpandedRows] = useState<{ [key: number]: boolean }>(
+    {}
+  );
+  // const [pageNo, setPageNo] = useState(0); // Since we are using static data
   const [table, setTable] = useState("");
   const [user, setUser] = useState("");
   const [action, setAction] = useState("");
@@ -39,7 +41,7 @@ const PatientLogs: React.FC = () => {
 
   const handleLogs = async () => {
     console.log("Calling logger ", filters);
-    setExpandedRows({})
+    setExpandedRows({});
     try {
       const response = await fetchAllLogs(
         filters.action,
@@ -58,9 +60,9 @@ const PatientLogs: React.FC = () => {
     setUser("");
     setPatient("");
     setTable("");
-    setFilters({ table: "", user: "", patient: "", action: ""});
+    setFilters({ table: "", user: "", patient: "", action: "" });
     setExpandedRows({});
-   }
+  };
 
   // Toggle row expansion
   const toggleRow = (index: number) => {
@@ -69,7 +71,6 @@ const PatientLogs: React.FC = () => {
       [index]: !prev[index],
     }));
   };
-
 
   useEffect(() => {
     handleLogs();
@@ -180,7 +181,9 @@ const PatientLogs: React.FC = () => {
         </div>
       </div>
       {/* Patient Logs Section */}
-      <div className="py-6 flex-1 justify-center ml-[20%]"> {/* Adjust margin to push to the right */}
+      <div className="py-6 flex-1 justify-center ml-[20%]">
+        {" "}
+        {/* Adjust margin to push to the right */}
         <Card>
           <CardHeader>
             <CardTitle>Patient Logs</CardTitle>
@@ -204,10 +207,11 @@ const PatientLogs: React.FC = () => {
                     <React.Fragment key={index}>
                       <TableRow>
                         <TableCell>{index + 1}</TableCell>
-                        <TableCell>{log.patient_id || '-'}</TableCell>
+                        <TableCell>{log.patient_id || "-"}</TableCell>
                         <TableCell>{log.user}</TableCell>
                         <TableCell>
-                          {log.method.charAt(0).toUpperCase() + log.method.slice(1)}
+                          {log.method.charAt(0).toUpperCase() +
+                            log.method.slice(1)}
                         </TableCell>
                         <TableCell>{log.message}</TableCell>
                         <TableCell>
@@ -230,7 +234,9 @@ const PatientLogs: React.FC = () => {
                             <div className="flex gap-4 p-4 border-t bg-gray-100">
                               {/* Old State */}
                               <div className="w-full sm:w-1/2 border rounded-md p-2 bg-white shadow-md">
-                                <h3 className="text-sm font-semibold mb-2">Old State</h3>
+                                <h3 className="text-sm font-semibold mb-2">
+                                  Old State
+                                </h3>
                                 <Table>
                                   <TableHeader>
                                     <TableRow>
@@ -240,19 +246,49 @@ const PatientLogs: React.FC = () => {
                                   </TableHeader>
                                   <TableBody>
                                     {log.original_data ? (
-                                      Object.entries(log.original_data).map(([key, value]) => {
-                                        const isRowDeleted = log.updated_data && Object.keys(log.updated_data).length === 0;
-                                        const isRowUpdated = !isRowDeleted && log.updated_data?.[key] !== value;
-                                        return (
-                                          <TableRow key={key}>
-                                            <TableCell className={`font-semibold ${isRowUpdated ? "text-yellow-600" : isRowDeleted ? "text-red-500" : "text-gray-500"}`}>{key}</TableCell>
-                                            <TableCell className={`${isRowUpdated ? "bg-yellow-200" : isRowDeleted ? "bg-red-200" : ""}`}>{value}</TableCell>
-                                          </TableRow>
-                                        );
-                                      })
+                                      Object.entries(log.original_data).map(
+                                        ([key, value]) => {
+                                          const isRowDeleted =
+                                            log.updated_data &&
+                                            Object.keys(log.updated_data)
+                                              .length === 0;
+                                          const isRowUpdated =
+                                            !isRowDeleted &&
+                                            log.updated_data?.[key] !== value;
+                                          return (
+                                            <TableRow key={key}>
+                                              <TableCell
+                                                className={`font-semibold ${
+                                                  isRowUpdated
+                                                    ? "text-yellow-600"
+                                                    : isRowDeleted
+                                                    ? "text-red-500"
+                                                    : "text-gray-500"
+                                                }`}
+                                              >
+                                                {key}
+                                              </TableCell>
+                                              <TableCell
+                                                className={`${
+                                                  isRowUpdated
+                                                    ? "bg-yellow-200"
+                                                    : isRowDeleted
+                                                    ? "bg-red-200"
+                                                    : ""
+                                                }`}
+                                              >
+                                                {value}
+                                              </TableCell>
+                                            </TableRow>
+                                          );
+                                        }
+                                      )
                                     ) : (
                                       <TableRow>
-                                        <TableCell colSpan={2} className="text-gray-500 text-center">
+                                        <TableCell
+                                          colSpan={2}
+                                          className="text-gray-500 text-center"
+                                        >
                                           No previous data
                                         </TableCell>
                                       </TableRow>
@@ -263,7 +299,9 @@ const PatientLogs: React.FC = () => {
 
                               {/* New State */}
                               <div className="w-full sm:w-1/2 border rounded-md p-2 bg-white shadow-md">
-                                <h3 className="text-sm font-semibold mb-2">New State</h3>
+                                <h3 className="text-sm font-semibold mb-2">
+                                  New State
+                                </h3>
                                 <Table>
                                   <TableHeader>
                                     <TableRow>
@@ -273,16 +311,42 @@ const PatientLogs: React.FC = () => {
                                   </TableHeader>
                                   <TableBody>
                                     {log.updated_data &&
-                                      Object.entries(log.updated_data).map(([key, value]) => {
-                                        const isRowCreated = log.original_data && Object.keys(log.original_data).length === 0;
-                                        const isRowUpdated = !isRowCreated && log.original_data?.[key] !== value;
-                                        return (
-                                          <TableRow key={key}>
-                                            <TableCell className={`font-semibold ${isRowUpdated ? "text-yellow-600" : isRowCreated ? "text-green-500" : "text-gray-500"}`}>{key}</TableCell>
-                                            <TableCell className={`${isRowUpdated ? "bg-yellow-200" : isRowCreated ? "bg-green-200" : ""}`}>{value}</TableCell>
-                                          </TableRow>
-                                        );
-                                      }
+                                      Object.entries(log.updated_data).map(
+                                        ([key, value]) => {
+                                          const isRowCreated =
+                                            log.original_data &&
+                                            Object.keys(log.original_data)
+                                              .length === 0;
+                                          const isRowUpdated =
+                                            !isRowCreated &&
+                                            log.original_data?.[key] !== value;
+                                          return (
+                                            <TableRow key={key}>
+                                              <TableCell
+                                                className={`font-semibold ${
+                                                  isRowUpdated
+                                                    ? "text-yellow-600"
+                                                    : isRowCreated
+                                                    ? "text-green-500"
+                                                    : "text-gray-500"
+                                                }`}
+                                              >
+                                                {key}
+                                              </TableCell>
+                                              <TableCell
+                                                className={`${
+                                                  isRowUpdated
+                                                    ? "bg-yellow-200"
+                                                    : isRowCreated
+                                                    ? "bg-green-200"
+                                                    : ""
+                                                }`}
+                                              >
+                                                {value}
+                                              </TableCell>
+                                            </TableRow>
+                                          );
+                                        }
                                       )}
                                   </TableBody>
                                 </Table>
