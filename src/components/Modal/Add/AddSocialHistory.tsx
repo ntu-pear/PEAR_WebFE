@@ -121,17 +121,14 @@ const AddSocialHistoryModal: React.FC = () => {
       religionListId: parseInt(formDataObj.religionListId as string, 10),
       createdDate: dateTimeNow,
       modifiedDate: dateTimeNow,
-      createdById: parseInt(submitterId as string, 10),
-      modifiedById: parseInt(submitterId as string, 10),
+      createdById: submitterId as string,
+      modifiedById: submitterId as string,
     };
 
     try {
       console.log("socialHistoryFormData", socialHistoryFormData);
 
-      await addSocialHistory(
-        parseInt(patientId as string, 10),
-        socialHistoryFormData
-      );
+      await addSocialHistory(socialHistoryFormData);
       closeModal();
       toast.success("Patient social history added successfully.");
       refreshData();
