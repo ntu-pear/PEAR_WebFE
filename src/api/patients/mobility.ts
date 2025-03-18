@@ -52,10 +52,6 @@ export interface MobilityAidTDServer {
   };
 }
 
-export interface ViewMobilityAid {
-  data: MobilityAid;
-}
-
 export interface AddMobilityAid {
   PatientID: number;
   MobilityListId: number;
@@ -185,12 +181,12 @@ export const fetchMobilityAids = async (
 
 export const fetchMobilityAidById = async (
   mobiilityAidID: number
-): Promise<ViewMobilityAid> => {
+): Promise<MobilityAid> => {
   const token = retrieveAccessTokenFromCookie();
   if (!token) throw new Error("No token found.");
 
   try {
-    const mobilityAidsResponse = await patientMobilityAPI.get<ViewMobilityAid>(
+    const mobilityAidsResponse = await patientMobilityAPI.get<MobilityAid[]>(
       `/Mobility/${mobiilityAidID}`,
       {
         headers: {
@@ -198,9 +194,8 @@ export const fetchMobilityAidById = async (
         },
       }
     );
-    console.log("GET Patient Mobility Aids", mobilityAidsResponse.data);
 
-    return mobilityAidsResponse.data;
+    return mobilityAidsResponse.data[0];
   } catch (error) {
     console.error("GET Patient Mobility Aids", error);
     throw error;
@@ -209,12 +204,12 @@ export const fetchMobilityAidById = async (
 
 export const addMobilityAid = async (
   addMobilityAid: AddMobilityAid
-): Promise<ViewMobilityAid> => {
+): Promise<MobilityAid> => {
   const token = retrieveAccessTokenFromCookie();
   if (!token) throw new Error("No token found.");
 
   try {
-    const response = await patientMobilityAPI.post<ViewMobilityAid>(
+    const response = await patientMobilityAPI.post<MobilityAid>(
       "/add",
       addMobilityAid,
       {
@@ -234,12 +229,12 @@ export const addMobilityAid = async (
 export const updateMobilityAid = async (
   mobilityAidID: number,
   updateMobilityAid: UpdateMobilityAid
-): Promise<ViewMobilityAid> => {
+): Promise<MobilityAid> => {
   const token = retrieveAccessTokenFromCookie();
   if (!token) throw new Error("No token found.");
 
   try {
-    const response = await patientMobilityAPI.put<ViewMobilityAid>(
+    const response = await patientMobilityAPI.put<MobilityAid>(
       `/update/${mobilityAidID}`,
       updateMobilityAid,
       {
@@ -258,12 +253,12 @@ export const updateMobilityAid = async (
 
 export const deleteMobilityAid = async (
   mobilityAidID: number
-): Promise<ViewMobilityAid> => {
+): Promise<MobilityAid> => {
   const token = retrieveAccessTokenFromCookie();
   if (!token) throw new Error("No token found.");
 
   try {
-    const response = await patientMobilityAPI.delete<ViewMobilityAid>(
+    const response = await patientMobilityAPI.delete<MobilityAid>(
       `/delete/${mobilityAidID}`,
       {
         headers: {

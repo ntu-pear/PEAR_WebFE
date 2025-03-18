@@ -9,7 +9,6 @@ import {
   MobilityList,
   updateMobilityAid,
   UpdateMobilityAid,
-  ViewMobilityAid,
 } from "@/api/patients/mobility";
 
 const EditMobilityAid: React.FC = () => {
@@ -26,9 +25,11 @@ const EditMobilityAid: React.FC = () => {
     >
   ) => {
     const { name, value } = e.target;
-    if (rowData) {
-      setRowData({ ...rowData, [name]: value });
-    }
+
+    setRowData((prevData) => ({
+      ...prevData!,
+      [name]: name === "IsRecovered" ? value === "true" : value,
+    }));
   };
   const handleEditMobilityAid = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -40,7 +41,7 @@ const EditMobilityAid: React.FC = () => {
 
     const MobilityAidFormData: UpdateMobilityAid = {
       MobilityRemarks: formDataObj.MobilityRemarks as string,
-      IsRecovered: formDataObj.IsRecovered === "1" ? true : false,
+      IsRecovered: formDataObj.IsRecovered === "true" ? true : false,
     };
     try {
       console.log("MobilityAidFormData: ", MobilityAidFormData);
@@ -61,13 +62,15 @@ const EditMobilityAid: React.FC = () => {
     }
 
     try {
-      const response: ViewMobilityAid = await fetchMobilityAidById(
+      const response: MobilityAid = await fetchMobilityAidById(
         Number(mobilityAidId)
       );
-      setRowData(response.data);
+      console.log("fetch autofill for edit mobility aid response", response);
+      setRowData(response);
 
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
+      console.log("error", error);
       toast.error("Failed to fetch Mobility Aid");
     }
   };
@@ -127,14 +130,14 @@ const EditMobilityAid: React.FC = () => {
             </label>
             <select
               name="IsRecovered"
-              value={rowData?.IsRecovered ? "1" : "0"}
+              value={rowData?.IsRecovered ? "true" : "false"}
               onChange={handleChange}
               className="mt-1 block w-full p-2 border rounded-md text-gray-900"
               required
             >
               <option value="">Please select a option</option>
-              <option value="0">Not Recovered</option>
-              <option value="1">Fully Recovered</option>
+              <option value="false">Not Recovered</option>
+              <option value="true">Fully Recovered</option>
             </select>
           </div>
           <div className="col-span-2 mt-6 flex justify-end space-x-2">
