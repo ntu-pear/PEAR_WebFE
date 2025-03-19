@@ -117,6 +117,14 @@ export const highlightTypesAPI = axios.create({
   baseURL: `${VITE_PATIENT_SERVICE_URL}/get_highlight_types`,
 });
 
+export const getPatientPrivacyLevelAPI = axios.create({
+  baseURL: `${VITE_PATIENT_SERVICE_URL}/privacy_level_patient`,
+});
+
+export const writePatientPrivacyLevelAPI = axios.create({
+  baseURL: `${VITE_PATIENT_SERVICE_URL}/privacy_levels`,
+});
+
 //geocode
 export const geocodeAPI = axios.create({
   baseURL: `${VITE_GEOCODE_SERVICE_URL}/geocode`,

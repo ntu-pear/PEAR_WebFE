@@ -5,12 +5,17 @@ import { PatientInformation } from "@/mocks/mockPatientDetails";
 import { useAuth } from "@/hooks/useAuth";
 import { useModal } from "@/hooks/useModal";
 import { useViewPatient } from "@/hooks/patient/useViewPatient";
+import { useEffect, useState } from "react";
+import { fetchPatientPrivacyLevel } from "@/api/patients/privacyLevel";
 
 const PatientInfoCard: React.FC = () => {
   const { id, patientInfo, nricData, handleNRICToggle, refreshPatientData } =
     useViewPatient();
   const { currentUser } = useAuth();
   const { openModal } = useModal();
+  const [privacyLevelSensitive, setPrivacyLevelSensitive] = useState<
+    number | null
+  >(null);
 
   const patientInformationColumns = [
     { key: "name", header: "Name" },
@@ -23,12 +28,26 @@ const PatientInfoCard: React.FC = () => {
     { key: "handphoneNo", header: "Handphone No" },
     { key: "preferredName", header: "Preferred Name" },
     { key: "preferredLanguage", header: "Preferred Language" },
-    { key: "privacyLevel", header: "Privacy Level" },
+    {
+      key: "privacyLevelSensitive",
+      header: "Privacy Level",
+      customValue: privacyLevelSensitive,
+    },
     { key: "underRespiteCare", header: "Under Respite Care" },
     { key: "startDate", header: "Start Date" },
     { key: "endDate", header: "End Date" },
     { key: "inactiveDate", header: "Inactive Date" },
   ];
+
+  const refreshPatientPrivacyLevel = async () => {
+    if (isNaN(Number(id))) return;
+    const response = await fetchPatientPrivacyLevel(Number(id));
+    setPrivacyLevelSensitive(response.privacyLevelSensitive);
+  };
+
+  useEffect(() => {
+    refreshPatientPrivacyLevel();
+  }, []);
 
   return (
     <Card>
@@ -44,6 +63,7 @@ const PatientInfoCard: React.FC = () => {
                   patientId: String(id),
                   submitterId: currentUser?.userId,
                   refreshPatientData,
+                  refreshPatientPrivacyLevel,
                 })
               }
             >
@@ -65,9 +85,13 @@ const PatientInfoCard: React.FC = () => {
                 <p className="text-sm font-medium">{column.header}</p>
                 <div className="text-sm text-muted-foreground flex items-center space-x-2">
                   {column.key === "nric"
-                    ? nricData.nric || "-"
+                    ? nricData.nric || "-" //check if nric field
+                    : column.key === "privacyLevelSensitive" //check if privacy level field
+                    ? column.customValue !== null
+                      ? String(column.customValue)
+                      : "-"
                     : patientInfo?.[
-                        column.key as keyof PatientInformation // else if key is not nric
+                        column.key as keyof PatientInformation // else if key is not nric or privacy level field
                       ] || "-"}
                   {column.key === "nric" && (
                     <Button
@@ -96,9 +120,13 @@ const PatientInfoCard: React.FC = () => {
                 <p className="text-sm font-medium">{column.header}</p>
                 <div className="text-sm text-muted-foreground flex items-center space-x-2">
                   {column.key === "nric"
-                    ? nricData.nric || "-"
+                    ? nricData.nric || "-" //check if nric field
+                    : column.key === "privacyLevelSensitive" //check if privacy level field
+                    ? column.customValue !== null
+                      ? String(column.customValue)
+                      : "-"
                     : patientInfo?.[
-                        column.key as keyof PatientInformation // else if key is not nric
+                        column.key as keyof PatientInformation // else if key is not nric or privacy level field
                       ] || "-"}
                   {column.key === "nric" && (
                     <Button
