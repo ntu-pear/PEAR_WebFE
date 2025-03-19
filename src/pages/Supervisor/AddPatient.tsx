@@ -19,8 +19,8 @@ import RetrieveAddressModal from "@/components/Modal/Get/RetrieveAddressModal";
 import ProfilePhotoSet from "@/components/ProfilePhotoSet";
 import useUploadPatientPhoto from "@/hooks/patient/useUploadPatientPhoto";
 import { AddPatientSection } from "@/api/patients/patients";
-import { AddPatientPrivacyLevel } from "@/api/patients/privacyLevel";
 import useAddPatientPrivacyLevel from "@/hooks/patient/useAddPatientPrivacyLevel";
+import { AddPatientPrivacyLevel } from "@/api/patients/privacyLevel";
 
 const patientInfoSchema = z
   .object({

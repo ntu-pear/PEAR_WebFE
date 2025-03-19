@@ -23,6 +23,13 @@ export interface AddPatientPrivacyLevel {
   modifiedDate: string;
 }
 
+export interface UpdatePatientPrivacyLevel {
+  privacyLevelSensitive: number;
+  active: boolean;
+  modifiedById: string;
+  modifiedDate: string;
+}
+
 export const fetchPatientPrivacyLevel = async (
   patientId: number
 ): Promise<PatientPrivacyLevel> => {
@@ -73,7 +80,8 @@ export const addPatientPrivacyLevel = async (
 };
 
 export const updatePatientPrivacyLevel = async (
-  patientId: number
+  patientId: number,
+  updatePatientPrivacyLevel: UpdatePatientPrivacyLevel
 ): Promise<PatientPrivacyLevel> => {
   const token = retrieveAccessTokenFromCookie();
   if (!token) throw new Error("No token found.");
@@ -81,6 +89,7 @@ export const updatePatientPrivacyLevel = async (
   try {
     const response = await writePatientPrivacyLevelAPI.put<PatientPrivacyLevel>(
       `/update/${patientId}`,
+      updatePatientPrivacyLevel,
       {
         headers: {
           Authorization: `Bearer ${token}`,

@@ -20,13 +20,25 @@ import {
   PreferredLanguage,
 } from "@/api/patients/preferredLanguage";
 import dayjs from "dayjs";
+import {
+  fetchPatientPrivacyLevel,
+  PatientPrivacyLevel,
+  UpdatePatientPrivacyLevel,
+  updatePatientPrivacyLevel,
+} from "@/api/patients/privacyLevel";
 
 const EditPatientInfoModal: React.FC = () => {
   const { modalRef, activeModal, closeModal } = useModal();
-  const { patientId, submitterId, refreshPatientData } = activeModal.props as {
+  const {
+    patientId,
+    submitterId,
+    refreshPatientData,
+    refreshPatientPrivacyLevel,
+  } = activeModal.props as {
     patientId: string;
     submitterId: string;
-    refreshPatientData: () => void;
+    refreshPatientData: () => Promise<void>;
+    refreshPatientPrivacyLevel: () => Promise<void>;
   };
   const [isEditingPermanentAddr, setIsEditingPermanentAddr] = useState(false);
   const [isEditingTemporaryAddr, setIsEditingTemporaryAddr] = useState(false);
@@ -49,6 +61,8 @@ const EditPatientInfoModal: React.FC = () => {
   });
 
   const [patient, setPatient] = useState<PatientBase | null>(null);
+  const [patientPrivacyLevel, setPatientPrivacyLevel] =
+    useState<PatientPrivacyLevel | null>(null);
   const [preferredLanguage, setPreferredLanguage] = useState<
     PreferredLanguage[]
   >([]);
@@ -68,6 +82,12 @@ const EditPatientInfoModal: React.FC = () => {
         ? getDateForDatePicker(response.inActiveDate)
         : "",
     });
+  };
+
+  const handleFetchPatientPrivacyLevel = async (patientId: string) => {
+    if (!patientId || isNaN(Number(patientId))) return;
+    const response = await fetchPatientPrivacyLevel(Number(patientId));
+    setPatientPrivacyLevel(response);
   };
 
   const handleFetchPreferredLanguage = async () => {
@@ -245,13 +265,27 @@ const EditPatientInfoModal: React.FC = () => {
       ModifiedById: submitterId as string,
     };
 
+    const editedPatientPrivacyLevel: UpdatePatientPrivacyLevel = {
+      privacyLevelSensitive: patientPrivacyLevel?.privacyLevelSensitive || 2, // default to initial value 2,
+      active: true,
+      modifiedDate: getDateTimeNowInUTC(),
+      modifiedById: submitterId as string,
+    };
+
     console.log("editedPatient", editedPatient);
+    console.log("editedPatientPrivacyLevel", editedPatientPrivacyLevel);
 
     try {
       await updatePatient(Number(patientId), editedPatient);
+      await updatePatientPrivacyLevel(
+        Number(patientId),
+        editedPatientPrivacyLevel
+      );
+
       closeModal();
       toast.success("Patient Information updated successfully.");
-      refreshPatientData();
+      await refreshPatientData();
+      await refreshPatientPrivacyLevel();
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       closeModal();
@@ -304,7 +338,8 @@ const EditPatientInfoModal: React.FC = () => {
   const validateAdditionalInfo = () => {
     if (!patient) return false;
     if (
-      !patient.privacyLevel ||
+      !patientPrivacyLevel?.privacyLevelSensitive ||
+      // !patient.privacyLevel ||
       !patient.preferredLanguageId ||
       !patient.isRespiteCare ||
       !patient.isActive ||
@@ -317,6 +352,7 @@ const EditPatientInfoModal: React.FC = () => {
 
   useEffect(() => {
     handleFetchPatientInfo(patientId);
+    handleFetchPatientPrivacyLevel(patientId);
     handleFetchPreferredLanguage();
   }, []);
 
@@ -725,15 +761,23 @@ const EditPatientInfoModal: React.FC = () => {
                 </label>
                 <select
                   name="privacyLevel"
-                  value={patient?.privacyLevel || ""}
-                  onChange={(e) => handleChange(e)}
+                  value={patientPrivacyLevel?.privacyLevelSensitive || ""}
+                  onChange={(e) =>
+                    setPatientPrivacyLevel((prev) => {
+                      if (!prev) return prev; // Prevent updating null state
+                      return {
+                        ...prev,
+                        privacyLevelSensitive: Number(e.target.value), // Convert string to number
+                      };
+                    })
+                  }
                   className="mt-1 block w-full p-2 border rounded-md text-gray-900"
                   required
                 >
                   <option value="">Please select an option</option>
-                  <option value="1">1</option>
-                  <option value="2">2</option>
-                  <option value="3">3</option>
+                  <option value="1">Low</option>
+                  <option value="2">Medium</option>
+                  <option value="3">High</option>
                 </select>
               </div>
 

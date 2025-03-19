@@ -1,6 +1,6 @@
 import {
-  AddPatientPrivacyLevel,
   addPatientPrivacyLevel,
+  AddPatientPrivacyLevel,
 } from "@/api/patients/privacyLevel";
 import { queryClient } from "@/App";
 import { useMutation } from "@tanstack/react-query";
