@@ -19,6 +19,8 @@ import RetrieveAddressModal from "@/components/Modal/Get/RetrieveAddressModal";
 import ProfilePhotoSet from "@/components/ProfilePhotoSet";
 import useUploadPatientPhoto from "@/hooks/patient/useUploadPatientPhoto";
 import { AddPatientSection } from "@/api/patients/patients";
+import { AddPatientPrivacyLevel } from "@/api/patients/privacyLevel";
+import useAddPatientPrivacyLevel from "@/hooks/patient/useAddPatientPrivacyLevel";
 
 const patientInfoSchema = z
   .object({
@@ -156,6 +158,7 @@ const AddPatient: React.FC = () => {
   //addPatient -> uploadProfilePhotoFile -> addPatientGuardian
   const preferredLanguageListObj = useGetPreferredLanguageList();
   const { mutateAsync: addPatient } = useAddPatient();
+  const { mutateAsync: addPatientPrivacyLevel } = useAddPatientPrivacyLevel();
   const { mutateAsync: updatePatientProfilePhoto } = useUploadPatientPhoto();
   const { currentUser } = useAuth();
   const { activeModal, openModal } = useModal();
@@ -227,6 +230,23 @@ const AddPatient: React.FC = () => {
     console.log("addPatient formData", patientFormData);
     const response = await addPatient(patientFormData);
     const patientId = response.data.id;
+
+    if (patientId) {
+      const addPatientPrivacyLevelForm: AddPatientPrivacyLevel = {
+        privacyLevelSensitive: 2,
+        active: true,
+        createdById: currentUser?.userId,
+        modifiedById: currentUser?.userId,
+        createdDate: getDateTimeNowInUTC(),
+        modifiedDate: getDateTimeNowInUTC(),
+      };
+      console.log("patientId", patientId);
+      console.log("addPatientPrivacyLevelForm", addPatientPrivacyLevelForm);
+      await addPatientPrivacyLevel({
+        patientId,
+        formData: addPatientPrivacyLevelForm,
+      });
+    }
 
     if (patientId && profilePhotoFile) {
       const photoFileFormData = new FormData();
