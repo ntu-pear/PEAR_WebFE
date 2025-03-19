@@ -55,7 +55,7 @@ export const createRole = async (roleName: string) => {
     const token = retrieveAccessTokenFromCookie();
     if (!token) throw new Error("Token not found");
     const response = await roleAPI.post<Role>(
-      "/",
+      "/create",
       { roleName },
       { headers: { Authorization: `Bearer ${token}` } }
     );
