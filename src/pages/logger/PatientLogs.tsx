@@ -22,11 +22,15 @@ const PatientLogs: React.FC = () => {
   const [user, setUser] = useState("");
   const [action, setAction] = useState("");
   const [patient, setPatient] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
   const [filters, setFilters] = useState({
     table: "",
     user: "",
     patient: "",
     action: "",
+    startDate: "",
+    endDate: "",
   });
   const [logsTDServer, setLogsTDServer] = useState<LogsTableDataServer>({
     logs: [],
@@ -48,6 +52,8 @@ const PatientLogs: React.FC = () => {
         filters.user,
         filters.table,
         filters.patient,
+        filters.startDate,
+        filters.endDate,
         "desc"
       );
       setLogsTDServer(response);
@@ -60,7 +66,14 @@ const PatientLogs: React.FC = () => {
     setUser("");
     setPatient("");
     setTable("");
-    setFilters({ table: "", user: "", patient: "", action: "" });
+    setFilters({
+      table: "",
+      user: "",
+      patient: "",
+      action: "",
+      startDate: "",
+      endDate: "",
+    });
     setExpandedRows({});
   };
 
@@ -90,11 +103,21 @@ const PatientLogs: React.FC = () => {
             <div className="space-y-2">
               <div>
                 <span className="text-xs text-gray-500">Start Date</span>
-                <Input type="date" className="w-full mt-1" />
+                <Input
+                  type="date"
+                  className="w-full mt-1"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                />
               </div>
               <div>
                 <span className="text-xs text-gray-500">End Date</span>
-                <Input type="date" className="w-full mt-1" />
+                <Input
+                  type="date"
+                  className="w-full mt-1"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                />
               </div>
             </div>
           </div>
@@ -103,7 +126,7 @@ const PatientLogs: React.FC = () => {
             <label className="block text-sm font-medium">Patient</label>
             <Input
               type="text"
-              placeholder="Search accounts..."
+              placeholder="Search patients..."
               className="w-full"
               value={patient}
               onChange={(e) => setPatient(e.target.value)}
@@ -166,7 +189,9 @@ const PatientLogs: React.FC = () => {
           <div className="pt-2">
             <Button
               className="w-full"
-              onClick={() => setFilters({ table, user, patient, action })}
+              onClick={() =>
+                setFilters({ table, user, patient, action, startDate, endDate })
+              }
             >
               Apply Filters
             </Button>
