@@ -7,7 +7,7 @@ import {
   religionListAPI,
   socialHistoryAPI,
 } from "../apiConfig";
-import { convertToYesNo } from "@/utils/convertToYesNo";
+import { convertSocialHistoryYesNo } from "@/utils/convertToYesNo";
 import { TableRowData } from "@/components/Table/DataTable";
 import { retrieveAccessTokenFromCookie } from "../users/auth";
 
@@ -113,19 +113,19 @@ export const convertToSocialHistoryTD = (
 ): SocialHistoryTD => {
   return {
     id: socialHistory.id,
-    alcoholUse: convertToYesNo(socialHistory.alcoholUse),
-    caffeineUse: convertToYesNo(socialHistory.caffeineUse),
+    alcoholUse: convertSocialHistoryYesNo(socialHistory.alcoholUse),
+    caffeineUse: convertSocialHistoryYesNo(socialHistory.caffeineUse),
     diet: socialHistory.dietValue.toUpperCase(),
-    drugUse: convertToYesNo(socialHistory.drugUse),
+    drugUse: convertSocialHistoryYesNo(socialHistory.drugUse),
     education: socialHistory.educationValue.toUpperCase(),
-    exercise: convertToYesNo(socialHistory.exercise),
+    exercise: convertSocialHistoryYesNo(socialHistory.exercise),
     liveWith: socialHistory.liveWithValue.toUpperCase(),
     occupation: socialHistory.occupationValue.toUpperCase(),
     pet: socialHistory.petValue.toUpperCase(),
     religion: socialHistory.religionValue.toUpperCase(),
-    secondhandSmoker: convertToYesNo(socialHistory.secondHandSmoker),
-    sexuallyActive: convertToYesNo(socialHistory.sexuallyActive),
-    tobaccoUse: convertToYesNo(socialHistory.tobaccoUse),
+    secondhandSmoker: convertSocialHistoryYesNo(socialHistory.secondHandSmoker),
+    sexuallyActive: convertSocialHistoryYesNo(socialHistory.sexuallyActive),
+    tobaccoUse: convertSocialHistoryYesNo(socialHistory.tobaccoUse),
   };
 };
 
