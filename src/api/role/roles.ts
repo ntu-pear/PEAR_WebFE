@@ -25,6 +25,7 @@ export const fetchRoles = async () => {
     if (!token) throw new Error("Token not found");
     const response = await roleAPI.get<{ roles: Role[] }>("/", {
       headers: { Authorization: `Bearer ${token}` },
+      params: { page_size: 100 },
     });
     console.log("GET all roles", response.data);
     return response.data.roles;
@@ -73,6 +74,7 @@ export const getUsersFromRole = async (roleName: string) => {
     if (!token) throw new Error("Token not found");
     const response = await roleAPI.get<{ users: User[] }>(`/users/${roleName}`, {
       headers: { Authorization: `Bearer ${token}` },
+      params: { page_size: 100 },
     });
     console.log("Get users from role", response.data);
     return response.data.users;
