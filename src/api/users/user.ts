@@ -60,9 +60,9 @@ export interface UserEmail {
 }
 
 export interface UserPasswordForm {
-  currentPassword: string;
   newPassword: string;
   confirmPassword: string;
+  currentPassword: string;
 }
 
 export interface VerifyUserForm {
