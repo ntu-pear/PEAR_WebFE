@@ -7,7 +7,10 @@ const UserSettings: React.FC = () => {
   const { currentUser } = useAuth();
 
   const basePath = (() => {
-    switch (currentUser?.roleName) {
+    if (!currentUser?.roleName) {
+      return "/login";
+    }
+    switch (currentUser.roleName) {
       case "ADMIN":
         return "/admin/settings";
       case "SUPERVISOR":
@@ -19,7 +22,7 @@ const UserSettings: React.FC = () => {
       case "GUARDIAN":
         return "/guardian/settings";
       default:
-        return "/login";
+        return `/${currentUser.roleName.toLowerCase().replace(/\s+/g, "-")}/settings`; //lowercase then replace space with -
     }
   })();
 

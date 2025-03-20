@@ -24,7 +24,7 @@ const Login: React.FC = () => {
   };
 
   useEffect(() => {
-    if (currentUser) {
+    if (currentUser?.roleName) {
       switch (currentUser.roleName) {
         case "ADMIN":
           // navigate("/admin/temp-page", { replace: true });
@@ -48,6 +48,10 @@ const Login: React.FC = () => {
           navigate("/supervisor/manage-patients", { replace: true });
           break;
         default:
+          navigate(
+            `/${currentUser.roleName.toLowerCase().replace(/\s+/g, "-")}/temp-page`,
+            { replace: true }
+          );
           break;
       }
     }

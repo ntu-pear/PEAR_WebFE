@@ -75,7 +75,9 @@ const Navbar: React.FC = () => {
 
   const handleUserSettings = () => {
     const settingsBaseLink = (() => {
-      switch (currentUser?.roleName) {
+      if (!currentUser?.roleName) return "/login";
+
+      switch (currentUser.roleName) {
         case "ADMIN":
           return "/admin/settings/profile";
         case "SUPERVISOR":
@@ -87,7 +89,7 @@ const Navbar: React.FC = () => {
         case "GUARDIAN":
           return "/guardian/settings/profile";
         default:
-          return "/login";
+          return `/${currentUser.roleName.toLowerCase().replace(/\s+/g, "-")}/settings/profile`; //lowercase then replace space with -
       }
     })();
 
@@ -100,7 +102,9 @@ const Navbar: React.FC = () => {
   };
 
   const linkPath = (() => {
-    switch (currentUser?.roleName) {
+    if (!currentUser?.roleName) return "/login";
+
+    switch (currentUser.roleName) {
       case "ADMIN":
         return "/admin/manage-accounts";
       case "SUPERVISOR":
@@ -113,7 +117,7 @@ const Navbar: React.FC = () => {
       case "GUARDIAN":
         return "/guardian/temp-page";
       default:
-        return "/login";
+        return `/${currentUser.roleName.toLowerCase().replace(/\s+/g, "-")}/temp-page`;
     }
   })();
 
