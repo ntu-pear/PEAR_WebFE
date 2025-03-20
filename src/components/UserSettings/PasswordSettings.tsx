@@ -19,10 +19,10 @@ const PasswordSettings: React.FC = () => {
 
     // Check pattern validity
     const passwordPattern =
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*[\W_])[A-Za-z\d\W_]{8,}$/;
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*[\W_])[A-Za-z\d\W_]{12,}$/;
     if (newPassword && !passwordPattern.test(newPassword)) {
       newPasswordRef.current.setCustomValidity(
-        "New password should have minimum of 8 characters with at least 1 uppercase, 1 lowercase and 1 special character."
+        "New password should have minimum of 12 characters with at least 1 uppercase, 1 lowercase and 1 special character."
       );
       isValid = false;
     }
