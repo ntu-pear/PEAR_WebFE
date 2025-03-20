@@ -41,6 +41,7 @@ export const fetchUsers = async () => {
     const token = retrieveAccessTokenFromCookie();
     if (!token) throw new Error("Token not found");
     const response = await adminAPI.get<{ users: User[] }>("/", {
+      params: { page_size: 100 },
       headers: { Authorization: `Bearer ${token}` },
     });
     console.log("GET all users", response.data);
