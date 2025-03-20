@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
+import { formatRoleName } from "@/utils/formatRoleName";
 import { useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -28,6 +29,7 @@ export const Login2FA = () => {
 
   useEffect(() => {
     if (currentUser?.roleName) {
+      const formattedRoleName = formatRoleName(currentUser.roleName);
       switch (currentUser.roleName) {
         case "ADMIN":
           // navigate("/admin/temp-page", { replace: true });
@@ -51,10 +53,7 @@ export const Login2FA = () => {
           navigate("/supervisor/manage-patients", { replace: true });
           break;
         default:
-          navigate(
-            `/${currentUser.roleName.toLowerCase().replace(/\s+/g, "-")}/temp-page`,
-            { replace: true }
-          );
+          navigate(`/${formattedRoleName}/temp-page`, { replace: true });
           break;
       }
     }

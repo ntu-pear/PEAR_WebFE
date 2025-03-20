@@ -2,6 +2,7 @@ import { useAuth } from "@/hooks/useAuth";
 import SettingsNav from "../../components/UserSettings/SettingsNav";
 
 import { Outlet } from "react-router-dom";
+import { formatRoleName } from "@/utils/formatRoleName";
 
 const UserSettings: React.FC = () => {
   const { currentUser } = useAuth();
@@ -10,6 +11,7 @@ const UserSettings: React.FC = () => {
     if (!currentUser?.roleName) {
       return "/login";
     }
+    const formattedRoleName = formatRoleName(currentUser.roleName);
     switch (currentUser.roleName) {
       case "ADMIN":
         return "/admin/settings";
@@ -22,7 +24,7 @@ const UserSettings: React.FC = () => {
       case "GUARDIAN":
         return "/guardian/settings";
       default:
-        return `/${currentUser.roleName.toLowerCase().replace(/\s+/g, "-")}/settings`; //lowercase then replace space with -
+        return `/${formattedRoleName}/settings`; //lowercase then replace space with -
     }
   })();
 
