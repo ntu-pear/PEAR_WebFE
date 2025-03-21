@@ -4,11 +4,16 @@ import { useMutation } from "@tanstack/react-query";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
 
+type Variables = {
+  roleName: string;
+  privacyLevel: 0 | 1 | 2 | 3;
+}
+
 const useCreateRole = () => {
   const navigate = useNavigate();
 
   return useMutation({
-    mutationFn: (roleName: string) => createRole(roleName),
+    mutationFn: ({ roleName, privacyLevel }: Variables) => createRole(roleName, privacyLevel),
     onSuccess: () => {
       navigate(-1);
       toast.success("Role created successfully");

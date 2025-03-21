@@ -40,7 +40,7 @@ export const deleteRole = async (id: string) => {
   try {
     const token = retrieveAccessTokenFromCookie();
     if (!token) throw new Error("Token not found");
-    const response = await roleAPI.delete(`/${id}`, {
+    const response = await roleAPI.delete(`/delete/${id}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     console.log("DELETE role", response.data);
@@ -51,13 +51,13 @@ export const deleteRole = async (id: string) => {
   }
 };
 
-export const createRole = async (roleName: string) => {
+export const createRole = async (roleName: string, privacyLevelSensitive: 0 | 1 | 2 | 3) => {
   try {
     const token = retrieveAccessTokenFromCookie();
     if (!token) throw new Error("Token not found");
     const response = await roleAPI.post<Role>(
       "/create",
-      { roleName },
+      { roleName, privacyLevelSensitive },
       { headers: { Authorization: `Bearer ${token}` } }
     );
     console.log("Create role", response.data);
@@ -84,3 +84,18 @@ export const getUsersFromRole = async (roleName: string) => {
     throw error;
   }
 };
+
+export const updateRole = async (roleId: string, roleName: string, active: boolean, privacyLevelSensitive: 0 | 1 | 2 | 3) => {
+  try {
+    const token = retrieveAccessTokenFromCookie();
+    if (!token) throw new Error("Token not found");
+    const response = await roleAPI.put<Role>(`/update/${roleId}`, { roleName, active, privacyLevelSensitive }, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    console.log("Update role", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("Update role", error);
+    throw error;
+  }
+}
