@@ -7,6 +7,8 @@ import { InfoIcon, SaveIcon } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import RadioGroup from "@/components/Form/RadioGroup";
 import useGetRoles from "@/hooks/role/useGetRoles";
+import useUpdateRolePrivacyLevel from "@/hooks/role/useUpdateRolesPrivacyLevel";
+import { toast } from "sonner";
 
 type PrivacySetting = 'Sensitive' | 'Non-sensitive';
 
@@ -29,10 +31,7 @@ type PrivacySettingsForm = {
 type PrivacyLevel = '0' | '1' | '2' | '3';
 
 type PrivacyLevelForm = {
-  gameTherapist: PrivacyLevel;
-  caregiver: PrivacyLevel;
-  doctor: PrivacyLevel;
-  supervisor: PrivacyLevel;
+  [roleName: string]: PrivacyLevel;
 };
 
 const privacySettingsHeaderCols = [
@@ -61,34 +60,47 @@ const privacyLevelHeaderCols = [
   "Privacy Level",
 ]
 
-const privacyLevelRows = [
-  { name: 'gameTherapist', label: 'Game Therapist' },
-  { name: 'caregiver', label: 'Caregiver' },
-  { name: 'doctor', label: 'Doctor' },
-  { name: 'supervisor', label: 'Supervisor' },
-]
-
 const ManageSocialHistory: React.FC = () => {
   const roles = useGetRoles()
+  const privacyLevelRows = useMemo(() =>
+    roles.data
+      ?.filter(role => role.roleName !== 'ADMIN' && role.roleName !== 'GUARDIAN')
+      .map(role => ({
+        name: role.roleName,
+        label: role.roleName,
+        id: role.id, privacyLevel:
+          role.privacyLevelSensitive
+      })), [roles.data]
+  );
   const rolesPrivacyLevel = useMemo(() =>
     roles.data?.reduce((acc, role) => {
-      const privacyLevel = role.privacyLevelSensitive.toString() as '0' | '1' | '2' | '3'
-      switch (role.roleName) {
-        case 'GAME THERAPIST': acc.gameTherapist = privacyLevel; break;
-        case 'CAREGIVER': acc.caregiver = privacyLevel; break;
-        case 'DOCTOR': acc.doctor = privacyLevel; break;
-        case 'SUPERVISOR': acc.supervisor = privacyLevel; break;
-      }
+      acc[role.roleName] = role.privacyLevelSensitive.toString() as '0' | '1' | '2' | '3'
       return acc
     }, {} as { [roleName: string]: '0' | '1' | '2' | '3' }), [roles.data]
   )
-
   const privacySettingsForm = useForm<PrivacySettingsForm>();
-  const privacyLevelForm = useForm<PrivacyLevelForm>({ defaultValues: rolesPrivacyLevel });
-  const onSubmitPrivacySettings: SubmitHandler<PrivacySettingsForm> = (data) => console.log(data);
-  const onSubmitPrivacyLevel: SubmitHandler<PrivacyLevelForm> = (data) => console.log(data);
+  const privacyLevelForm = useForm<PrivacyLevelForm>({ values: rolesPrivacyLevel as PrivacyLevelForm });
+  const updateRolePrivacyLevel = useUpdateRolePrivacyLevel();
   const [privacySettingsTooltipVisible, setPrivacySettingsTooltipVisible] = useState(false);
   const [privacyLevelTooltipVisible, setPrivacyLevelTooltipVisible] = useState(false);
+  const onSubmitPrivacySettings: SubmitHandler<PrivacySettingsForm> = (data) => console.log(data);
+
+  const onSubmitPrivacyLevel: SubmitHandler<PrivacyLevelForm> = (data) => {
+    if (!privacyLevelRows) return
+    let isChanged = false
+    for (const row of privacyLevelRows) {
+      const newPrivacyLevel = Number(data[row.name])
+      if (newPrivacyLevel !== row.privacyLevel) {
+        isChanged = true
+        updateRolePrivacyLevel.mutate({
+          roleId: row.id,
+          roleName: row.name,
+          privacyLevelSensitive: newPrivacyLevel as 0 | 1 | 2 | 3
+        })
+      }
+    }
+    if (!isChanged) toast.error('No changes made to role privacy levels')
+  };
 
   return (
     <div className="flex min-h-screen w-full flex-col container mx-auto px-0 sm:px-4">
@@ -139,7 +151,7 @@ const ManageSocialHistory: React.FC = () => {
                       </TableHeader>
                       <TableBody>
                         {privacySettingsRows.map((row) => (
-                          <TableRow key={row.name} className="odd:bg-slate-100">
+                          <TableRow key={row.name} className="odd:bg-slate-100 odd:dark:bg-slate-700">
                             <TableCell className='border'>{row.label}</TableCell>
                             <TableCell>
                               <RadioGroup
@@ -196,13 +208,13 @@ const ManageSocialHistory: React.FC = () => {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {privacyLevelRows.map((row) => (
-                          <TableRow key={row.name} className="odd:bg-slate-100">
+                        {privacyLevelRows?.map((row) => (
+                          <TableRow key={row.name} className="odd:bg-slate-100 odd:dark:bg-slate-700">
                             <TableCell className='border'>{row.label}</TableCell>
                             <TableCell>
                               <RadioGroup
                                 form={privacyLevelForm}
-                                name={row.name as keyof PrivacyLevelForm}
+                                name={row.name}
                                 options={[
                                   { label: 'None', value: '0' },
                                   { label: 'Low', value: '1' },
