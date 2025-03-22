@@ -1,5 +1,6 @@
 import { toast } from "sonner";
 import { socialHistorySensitiveMappingAPI } from "../apiConfig";
+import { retrieveAccessTokenFromCookie } from "../users/auth";
 
 type SocialHistoryMapping = {
   socialHistoryItem: string
@@ -17,3 +18,22 @@ export const fetchSocialHistorySensitiveMapping = async () => {
     throw error;
   }
 };
+
+export const updateSocialHistorySensitiveMapping = async (
+  socialHistoryMappings: { socialHistoryItem: string, isSensitive: boolean }[]
+) => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+  try {
+    const response = await socialHistorySensitiveMappingAPI.put<SocialHistoryMapping>(
+      `/update`,
+      socialHistoryMappings,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    console.log("PUT social history sensitive mapping", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("PUT social history sensitive mapping", error);
+    throw error;
+  }
+}

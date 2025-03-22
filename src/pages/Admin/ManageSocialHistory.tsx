@@ -11,6 +11,7 @@ import useUpdateRolePrivacyLevel from "@/hooks/role/useUpdateRolesPrivacyLevel";
 import { toast } from "sonner";
 import useGetSocialHistorySensitiveMapping from "@/hooks/socialHistorySensitiveMapping/useGetSocialHistorySensitiveMapping";
 import { convertCamelCaseToLabel } from "@/utils/convertCamelCasetoLabel";
+import useUpdateSocialHistorySensitiveMapping from "@/hooks/socialHistorySensitiveMapping/useUpdateSocialHistorySensitiveMapping";
 
 type PrivacySettingsForm = {
   [socialHistory: string]: '0' | '1';
@@ -70,9 +71,17 @@ const ManageSocialHistory: React.FC = () => {
   const privacySettingsForm = useForm<PrivacySettingsForm>({ values: socialHistoryPrivacySettings as PrivacySettingsForm });
   const privacyLevelForm = useForm<PrivacyLevelForm>({ values: rolesPrivacyLevel as PrivacyLevelForm });
   const updateRolePrivacyLevel = useUpdateRolePrivacyLevel();
+  const updateSocialHistorySensitiveMapping = useUpdateSocialHistorySensitiveMapping();
   const [privacySettingsTooltipVisible, setPrivacySettingsTooltipVisible] = useState(false);
   const [privacyLevelTooltipVisible, setPrivacyLevelTooltipVisible] = useState(false);
-  const onSubmitPrivacySettings: SubmitHandler<PrivacySettingsForm> = (data) => console.log(data);
+
+  const onSubmitPrivacySettings: SubmitHandler<PrivacySettingsForm> = (data) => {
+    const socialHistoryMappings = Object.entries(data).map(([socialHistoryItem, isSensitive]) => ({
+      socialHistoryItem,
+      isSensitive: isSensitive === '1'
+    }))
+    updateSocialHistorySensitiveMapping.mutate(socialHistoryMappings)
+  };
 
   const onSubmitPrivacyLevel: SubmitHandler<PrivacyLevelForm> = (data) => {
     if (!privacyLevelRows) return
