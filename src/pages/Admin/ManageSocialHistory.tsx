@@ -9,23 +9,11 @@ import RadioGroup from "@/components/Form/RadioGroup";
 import useGetRoles from "@/hooks/role/useGetRoles";
 import useUpdateRolePrivacyLevel from "@/hooks/role/useUpdateRolesPrivacyLevel";
 import { toast } from "sonner";
-
-type PrivacySetting = 'Sensitive' | 'Non-sensitive';
+import useGetSocialHistorySensitiveMapping from "@/hooks/socialHistorySensitiveMapping/useGetSocialHistorySensitiveMapping";
+import { convertCamelCaseToLabel } from "@/utils/convertCamelCasetoLabel";
 
 type PrivacySettingsForm = {
-  alcoholUse: PrivacySetting;
-  caffeineUse: PrivacySetting;
-  diet: PrivacySetting;
-  drugUse: PrivacySetting;
-  education: PrivacySetting;
-  exercise: PrivacySetting;
-  liveWith: PrivacySetting;
-  occupation: PrivacySetting;
-  pet: PrivacySetting;
-  religion: PrivacySetting;
-  secondhandSmoker: PrivacySetting;
-  sexuallyActive: PrivacySetting;
-  tobaccoUse: PrivacySetting;
+  [socialHistory: string]: '0' | '1';
 };
 
 type PrivacyLevel = '0' | '1' | '2' | '3';
@@ -37,22 +25,6 @@ type PrivacyLevelForm = {
 const privacySettingsHeaderCols = [
   "Social History",
   "Privacy Setting",
-]
-
-const privacySettingsRows = [
-  { name: 'alcoholUse', label: 'Alcohol Use' },
-  { name: 'caffeineUse', label: 'Caffeine Use' },
-  { name: 'diet', label: 'Diet' },
-  { name: 'drugUse', label: 'Drug Use' },
-  { name: 'education', label: 'Education' },
-  { name: 'exercise', label: 'Exercise' },
-  { name: 'liveWith', label: 'Live With' },
-  { name: 'occupation', label: 'Occupation' },
-  { name: 'pet', label: 'Pet' },
-  { name: 'religion', label: 'Religion' },
-  { name: 'secondhandSmoker', label: 'Secondhand Smoker' },
-  { name: 'sexuallyActive', label: 'Sexually Active' },
-  { name: 'tobaccoUse', label: 'Tobacco Use' },
 ]
 
 const privacyLevelHeaderCols = [
@@ -78,7 +50,24 @@ const ManageSocialHistory: React.FC = () => {
       return acc
     }, {} as { [roleName: string]: '0' | '1' | '2' | '3' }), [roles.data]
   )
-  const privacySettingsForm = useForm<PrivacySettingsForm>();
+
+  const socialHistorySensitiveMapping = useGetSocialHistorySensitiveMapping()
+  const privacySettingsRows = useMemo(() =>
+    socialHistorySensitiveMapping.data
+      ?.map(item => ({
+        name: item.socialHistoryItem,
+        label: convertCamelCaseToLabel(item.socialHistoryItem),
+        privacySetting: item.isSensitive ? '1' : '0'
+      })), [socialHistorySensitiveMapping.data]
+  );
+  const socialHistoryPrivacySettings = useMemo(() =>
+    socialHistorySensitiveMapping.data?.reduce((acc, item) => {
+      acc[item.socialHistoryItem] = item.isSensitive ? '1' : '0'
+      return acc
+    }, {} as { [roleName: string]: '0' | '1' | '2' | '3' }), [socialHistorySensitiveMapping.data]
+  )
+
+  const privacySettingsForm = useForm<PrivacySettingsForm>({ values: socialHistoryPrivacySettings as PrivacySettingsForm });
   const privacyLevelForm = useForm<PrivacyLevelForm>({ values: rolesPrivacyLevel as PrivacyLevelForm });
   const updateRolePrivacyLevel = useUpdateRolePrivacyLevel();
   const [privacySettingsTooltipVisible, setPrivacySettingsTooltipVisible] = useState(false);
@@ -150,13 +139,13 @@ const ManageSocialHistory: React.FC = () => {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {privacySettingsRows.map((row) => (
+                        {privacySettingsRows?.map((row) => (
                           <TableRow key={row.name} className="odd:bg-slate-100 odd:dark:bg-slate-700">
                             <TableCell className='border'>{row.label}</TableCell>
                             <TableCell>
                               <RadioGroup
                                 form={privacySettingsForm}
-                                name={row.name as keyof PrivacySettingsForm}
+                                name={row.name}
                                 options={[
                                   { label: 'Sensitive', value: '1' },
                                   { label: 'Non- Sensitive', value: '0' },
