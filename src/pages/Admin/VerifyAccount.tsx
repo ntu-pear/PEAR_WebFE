@@ -100,7 +100,10 @@ const VerifyAccount: React.FC = () => {
                       label="Gender"
                       name="gender"
                       form={form}
-                      options={['Male', 'Female']}
+                      options={[
+                        { value: 'M', label: 'Male' },
+                        { value: 'F', label: 'Female' }
+                      ]}
                     />
                     <DateInput
                       label="Date of Birth"

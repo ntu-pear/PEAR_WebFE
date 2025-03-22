@@ -41,6 +41,10 @@ export const socialHistoryAPI = axios.create({
   baseURL: `${VITE_PATIENT_SERVICE_URL}/SocialHistory`,
 });
 
+export const socialHistorySensitiveMappingAPI = axios.create({
+  baseURL: `${VITE_PATIENT_SERVICE_URL}/social_history_sensitive_mapping`,
+});
+
 export const dietListAPI = axios.create({
   baseURL: `${VITE_PATIENT_SERVICE_URL}/get_diet_types`,
 });

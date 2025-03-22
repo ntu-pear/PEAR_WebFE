@@ -18,7 +18,7 @@ type Inputs = {
   nric: string;
   address: string;
   contactNo: string;
-  gender: "Male" | "Female";
+  gender: "M" | "F";
   dateOfBirth: string;
   email: string;
   role: string;
@@ -35,7 +35,7 @@ const RegisterAccount: React.FC = () => {
       nric_FullName: data.fullName,
       nric_Address: data.address,
       nric_DateOfBirth: data.dateOfBirth,
-      nric_Gender: data.gender.charAt(0) as "F" | "M",
+      nric_Gender: data.gender,
       contactNo: data.contactNo,
       email: data.email,
       roleName: data.role,
@@ -102,7 +102,10 @@ const RegisterAccount: React.FC = () => {
                       label="Gender"
                       name="gender"
                       form={form}
-                      options={["Male", "Female"]}
+                      options={[
+                        { label: 'Male', value: 'M' },
+                        { label: 'Female', value: 'F' }
+                      ]}
                     />
                     <DateInput
                       label="Date of Birth"
