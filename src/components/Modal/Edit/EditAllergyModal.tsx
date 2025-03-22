@@ -10,6 +10,8 @@ import {
   fetchAllAllergyTypes,
   fetchPatientAllergyById,
   updatePatientAllergy,
+  ViewAllergyReactionTypeList,
+  ViewAllergyTypeList,
 } from "@/api/patients/allergy";
 import { toast } from "sonner";
 
@@ -43,8 +45,8 @@ const EditAllergyModal: React.FC = () => {
 
   const handleFetchAllergyType = async () => {
     try {
-      const fetchedAllergyTypes: AllergyType[] = await fetchAllAllergyTypes();
-      setAllergyTypes(fetchedAllergyTypes);
+      const response: ViewAllergyTypeList = await fetchAllAllergyTypes();
+      setAllergyTypes(response.data);
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       toast.error("Failed to fetch Allergy Types List");
@@ -53,9 +55,9 @@ const EditAllergyModal: React.FC = () => {
 
   const handleFetchAllergyReactionType = async () => {
     try {
-      const fetchedAllergyReactionTypes: AllergyReactionType[] =
+      const response: ViewAllergyReactionTypeList =
         await fetchAllAllergyReactionTypes();
-      setAllergyReactionTypes(fetchedAllergyReactionTypes);
+      setAllergyReactionTypes(response.data);
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       toast.error("Failed to fetch Allergy Reaction Types List");

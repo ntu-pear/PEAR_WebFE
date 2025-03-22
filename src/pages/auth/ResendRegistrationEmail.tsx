@@ -3,11 +3,13 @@ import {
   resendRegistrationEmail,
 } from "@/api/users/user";
 import { Button } from "@/components/ui/button";
+import useGetRoles from "@/hooks/role/useGetRoles";
 import { useState } from "react";
 import { toast } from "sonner";
 
 const ResendRegistrationEmail: React.FC = () => {
   const [nric, setNRIC] = useState<string>("");
+  const roles = useGetRoles();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { value } = e.target;
@@ -137,12 +139,9 @@ const ResendRegistrationEmail: React.FC = () => {
                 required
               >
                 <option value="">Select Role</option>
-                <option value="ADMIN">Administrator</option>
-                <option value="CAREGIVER">Caregiver</option>
-                <option value="DOCTOR">Doctor</option>
-                <option value="GAME THERAPIST">Game Therapist</option>
-                <option value="GUARDIAN">Guardian</option>
-                <option value="SUPERVISOR">Supervisor</option>
+                {roles.data?.map((role) => (
+                  <option value={role.roleName}>{role.roleName}</option>
+                ))}
               </select>
             </div>
           </div>

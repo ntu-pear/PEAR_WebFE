@@ -1,4 +1,3 @@
-import { AllergyTD } from "@/mocks/mockPatientDetails";
 import {
   allergyReactionTypeAPI,
   allergyTypeAPI,
@@ -9,6 +8,7 @@ import {
 } from "../apiConfig";
 import { retrieveAccessTokenFromCookie } from "../users/auth";
 import { AxiosError } from "axios";
+import { TableRowData } from "@/components/Table/DataTable";
 
 export interface Allergy {
   AllergyRemarks: string;
@@ -41,6 +41,46 @@ export interface AllergyReactionType {
   ModifiedById: string;
 }
 
+export interface ViewAllergyTypeList {
+  data: AllergyType[];
+  pageNo: number;
+  pageSize: number;
+  totalRecords: number;
+  totalPages: number;
+}
+
+export interface ViewAllergyReactionTypeList {
+  data: AllergyReactionType[];
+  pageNo: number;
+  pageSize: number;
+  totalRecords: number;
+  totalPages: number;
+}
+
+export interface ViewAllergyList {
+  data: Allergy[];
+  pageNo: number;
+  pageSize: number;
+  totalRecords: number;
+  totalPages: number;
+}
+
+export interface AllergyTD extends TableRowData {
+  allergicTo: string;
+  reaction: string;
+  notes: string;
+}
+
+export interface AllergyTDServer {
+  allergies: AllergyTD[];
+  pagination: {
+    pageNo: number;
+    pageSize: number;
+    totalRecords: number;
+    totalPages: number;
+  };
+}
+
 export interface AllergyAutoFill {
   AllergyRemarks?: string;
   AllergyTypeID?: number;
@@ -65,56 +105,84 @@ export interface AllergyUpdateFormData {
   AllergyReactionTypeID: number;
 }
 
-export const convertToAllergyTD = (allergies: Allergy[]): AllergyTD[] => {
-  if (!Array.isArray(allergies)) {
-    console.log("allergies is not an array", allergies);
-    return [];
+export const convertToAllergyTD = (
+  viewAllergyList: ViewAllergyList
+): AllergyTDServer => {
+  if (!Array.isArray(viewAllergyList.data)) {
+    console.log("viewAllergyList.data is not an array", viewAllergyList.data);
+    return {
+      allergies: [],
+      pagination: {
+        pageNo: 0,
+        pageSize: 0,
+        totalRecords: 0,
+        totalPages: 0,
+      },
+    };
   }
-
-  return allergies
+  const allergiesTransformed = viewAllergyList.data
     .filter((a) => a.IsDeleted === "0")
-    .sort((a, b) => b.Patient_AllergyID - a.Patient_AllergyID) // Descending order
     .map((a) => ({
       id: a.Patient_AllergyID,
       allergicTo: a.AllergyTypeValue?.toUpperCase(),
       reaction: a.AllergyReactionTypeValue?.toUpperCase(),
       notes: a.AllergyRemarks || "",
     }));
+
+  const updatedTD = {
+    allergies: allergiesTransformed,
+    pagination: {
+      pageNo: viewAllergyList.pageNo,
+      pageSize: viewAllergyList.pageSize,
+      totalRecords: viewAllergyList.totalRecords,
+      totalPages: viewAllergyList.totalPages,
+    },
+  };
+
+  return updatedTD;
 };
 
 export const convertToAllergyAutoFill = (
   allergyTD: AllergyTD,
-  allergyTypes: AllergyType[],
-  allergyReactionTypes: AllergyReactionType[]
+  viewAllergyTypeList: ViewAllergyTypeList,
+  ViewAllergyReactionTypeList: ViewAllergyReactionTypeList
 ): AllergyAutoFill => {
-  if (!Array.isArray(allergyTypes)) {
-    console.error("allergyTypes is not an array", allergyTypes);
+  if (!Array.isArray(viewAllergyTypeList.data)) {
+    console.error(
+      "viewAllergyTypeList.data is not an array",
+      viewAllergyTypeList.data
+    );
   }
 
-  if (!Array.isArray(allergyReactionTypes)) {
-    console.error("allergyReactionType is not an array", allergyReactionTypes);
+  if (!Array.isArray(ViewAllergyReactionTypeList.data)) {
+    console.error(
+      "ViewAllergyReactionTypeList.data is not an array",
+      ViewAllergyReactionTypeList.data
+    );
   }
 
   return {
     AllergyRemarks: allergyTD.notes,
-    AllergyTypeID: allergyTypes.find(
+    AllergyTypeID: viewAllergyTypeList.data.find(
       (at) => at.Value.toUpperCase() === allergyTD?.allergicTo.toUpperCase()
     )?.AllergyTypeID,
-    AllergyReactionTypeID: allergyReactionTypes.find(
+    AllergyReactionTypeID: ViewAllergyReactionTypeList.data.find(
       (art) => art.Value.toUpperCase() === allergyTD?.reaction.toUpperCase()
     )?.AllergyReactionTypeID,
   };
 };
 
 export const fetchPatientAllergy = async (
-  patient_id: number
-): Promise<AllergyTD[]> => {
+  patient_id: number,
+  pageNo: number = 0,
+  pageSize: number = 10
+): Promise<AllergyTDServer> => {
   const token = retrieveAccessTokenFromCookie();
   if (!token) throw new Error("No token found.");
 
   try {
-    const response = await patientAllergyAPI.get<Allergy[]>(
-      `/${patient_id}?require_auth=true`,
+    const response = await patientAllergyAPI.get<ViewAllergyList>(
+      `/${patient_id}?pageNo=${pageNo}&pageSize=${pageSize}`,
       {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -127,10 +195,18 @@ export const fetchPatientAllergy = async (
     if (error instanceof AxiosError) {
       if (error.response && error.response.status === 404) {
         console.warn("Get Patient Allergy", error);
-        return [];
+        return {
+          allergies: [],
+          pagination: {
+            pageNo: 0,
+            pageSize: 0,
+            totalRecords: 0,
+            totalPages: 0,
+          },
+        };
       }
+      console.error("Get Patient Allergy", error);
     }
-    console.error("Get Patient Allergy", error);
     throw error;
   }
 };
@@ -144,7 +220,7 @@ export const fetchPatientAllergyById = async (
     const r2 = await fetchAllAllergyTypes();
     const r3 = await fetchAllAllergyReactionTypes();
 
-    const filteredR1 = r1.filter((p) => p.id === allergy_id)[0];
+    const filteredR1 = r1.allergies.filter((p) => p.id === allergy_id)[0];
     return convertToAllergyAutoFill(filteredR1, r2, r3);
   } catch (error) {
     console.error("Get Patient Allergy", error);
@@ -152,41 +228,49 @@ export const fetchPatientAllergyById = async (
   }
 };
 
-export const fetchAllAllergyTypes = async (): Promise<AllergyType[]> => {
+export const fetchAllAllergyTypes = async (
+  pageNo: number = 0,
+  pageSize: number = 25
+): Promise<ViewAllergyTypeList> => {
   const token = retrieveAccessTokenFromCookie();
   if (!token) throw new Error("No token found.");
 
   try {
-    const response = await allergyTypeAPI.get<AllergyType[]>("", {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-    console.log("GET all Allergy Reaction Types", response.data);
-    return response.data?.sort((a, b) => a.Value.localeCompare(b.Value));
-  } catch (error) {
-    console.error("GET all Allergy Reaction Types", error);
-    throw error;
-  }
-};
-
-export const fetchAllAllergyReactionTypes = async (): Promise<
-  AllergyReactionType[]
-> => {
-  const token = retrieveAccessTokenFromCookie();
-  if (!token) throw new Error("No token found.");
-
-  try {
-    const response = await allergyReactionTypeAPI.get<AllergyReactionType[]>(
-      "",
+    const response = await allergyTypeAPI.get<ViewAllergyTypeList>(
+      `?pageNo=${pageNo}&pageSize=${pageSize}`,
       {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       }
     );
+    console.log("GET all Allergy Reaction Types", response.data.data);
+    return response.data;
+  } catch (error) {
+    console.error("GET all Allergy Reaction Types", error);
+    throw error;
+  }
+};
+
+export const fetchAllAllergyReactionTypes = async (
+  pageNo: number = 0,
+  pageSize: number = 25
+): Promise<ViewAllergyReactionTypeList> => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+
+  try {
+    const response =
+      await allergyReactionTypeAPI.get<ViewAllergyReactionTypeList>(
+        `?pageNo=${pageNo}&pageSize=${pageSize}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
     console.log("GET all Allergy Reaction Types", response.data);
-    return response.data?.sort((a, b) => a.Value.localeCompare(b.Value));
+    return response.data;
   } catch (error) {
     console.error("GET all Allergy Reaction Types", error);
     throw error;

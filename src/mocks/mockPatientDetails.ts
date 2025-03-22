@@ -31,11 +31,6 @@ export interface PatientInformation extends TableRowData {
   profilePicture: string;
 }
 
-export interface DiagnosedDementiaTD extends TableRowData {
-  dementiaType: string;
-  dementiaDate: string;
-}
-
 export interface MedicalDetails extends TableRowData {
   medicalDetails: string;
   informationSource: string;
@@ -43,22 +38,9 @@ export interface MedicalDetails extends TableRowData {
   notes: string;
 }
 
-export interface MobilityAidTD extends TableRowData {
-  mobilityAids: string;
-  remark: string;
-  condition: string;
-  date: string;
-}
-
 export interface StaffAllocation extends TableRowData {
   staffRole: string;
   staffName: string;
-}
-
-export interface AllergyTD extends TableRowData {
-  allergicTo: string;
-  reaction: string;
-  notes: string;
 }
 
 export interface PersonalPreference extends TableRowData {
@@ -320,14 +302,6 @@ export const mockPreferredLanguageList: PreferredLanguage[] = [
   },
 ];
 
-export const mockDiagnosedDementiaList: DiagnosedDementiaTD[] = [
-  {
-    id: 1,
-    dementiaType: "ALZHEIMER'S DISEASE",
-    dementiaDate: "12 JUN 2024",
-  },
-];
-
 export const mockMedicalDetails: MedicalDetails[] = [
   {
     id: 1,
@@ -335,16 +309,6 @@ export const mockMedicalDetails: MedicalDetails[] = [
     informationSource: "1",
     medicalEstimatedDate: "12 JUN 2024",
     notes: "Notes",
-  },
-];
-
-export const mockMobilityAidsTD: MobilityAidTD[] = [
-  {
-    id: 1,
-    mobilityAids: "CRUTCHES",
-    remark: "1",
-    condition: "FULLY RECOVERED",
-    date: "5 AUG 2024",
   },
 ];
 
@@ -387,27 +351,6 @@ export const mockSocialHistoryTD: SocialHistoryTD = {
   sexuallyActive: "",
   tobaccoUse: "",
 };
-
-export const mockAllergyTD: AllergyTD[] = [
-  {
-    id: 1,
-    allergicTo: "FISH",
-    reaction: "RASHES",
-    notes: "Fish makes patient sick.",
-  },
-  {
-    id: 2,
-    allergicTo: "CORN",
-    reaction: "NAUSEA",
-    notes: "1",
-  },
-  {
-    id: 3,
-    allergicTo: "EGGS",
-    reaction: "VOMITTING",
-    notes: "test allergy, added at 1642 using webapp.",
-  },
-];
 
 export const mockVitalCheck: VitalCheckTD[] = [
   {

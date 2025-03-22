@@ -6,11 +6,6 @@ import {
   verifyOTP,
 } from "../apiConfig";
 import Cookies from "js-cookie";
-import {
-  addAuthInterceptor,
-  clearAuthHeaders,
-  ejectAuthInterceptor,
-} from "../interceptors";
 
 export interface Token {
   access_token: string;
@@ -94,7 +89,6 @@ export const sendLogin = async (
       response.data.refresh_token,
       response.data.access_token_expires_at
     );
-    addAuthInterceptor();
     return response.data;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
@@ -173,8 +167,6 @@ export const sendLogout = async () => {
     Cookies.remove(ACCESS_TOKEN_COOKIE_NAME);
     Cookies.remove(REFRESH_TOKEN_COOKIE_NAME);
     Cookies.remove(ACCESS_TOKEN_EXPIRY_COOKIE_NAME);
-    ejectAuthInterceptor();
-    clearAuthHeaders();
 
     const response = await logoutAPI.delete(`/`, {
       headers: {

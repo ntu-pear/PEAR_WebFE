@@ -121,17 +121,14 @@ const AddSocialHistoryModal: React.FC = () => {
       religionListId: parseInt(formDataObj.religionListId as string, 10),
       createdDate: dateTimeNow,
       modifiedDate: dateTimeNow,
-      createdById: parseInt(submitterId as string, 10),
-      modifiedById: parseInt(submitterId as string, 10),
+      createdById: submitterId as string,
+      modifiedById: submitterId as string,
     };
 
     try {
       console.log("socialHistoryFormData", socialHistoryFormData);
 
-      await addSocialHistory(
-        parseInt(patientId as string, 10),
-        socialHistoryFormData
-      );
+      await addSocialHistory(socialHistoryFormData);
       closeModal();
       toast.success("Patient social history added successfully.");
       refreshData();
@@ -203,7 +200,6 @@ const AddSocialHistoryModal: React.FC = () => {
               className="mt-1 block w-full p-2 border rounded-md text-gray-900"
               required
             >
-              <option value="-1">Not to tell</option>
               {occupationList.map((ol) => (
                 <option key={ol.Id} value={ol.Id}>
                   {ol.Value}
@@ -219,7 +215,6 @@ const AddSocialHistoryModal: React.FC = () => {
               className="mt-1 block w-full p-2 border rounded-md text-gray-900"
               required
             >
-              <option value="-1">Not to tell</option>
               {dietList.map((dl) => (
                 <option key={dl.Id} value={dl.Id}>
                   {dl.Value}
@@ -238,7 +233,6 @@ const AddSocialHistoryModal: React.FC = () => {
               className="mt-1 block w-full p-2 border rounded-md text-gray-900"
               required
             >
-              <option value="-1">Not to tell</option>
               {petList.map((pl) => (
                 <option key={pl.Id} value={pl.Id}>
                   {pl.Value}
@@ -273,7 +267,6 @@ const AddSocialHistoryModal: React.FC = () => {
               className="mt-1 block w-full p-2 border rounded-md text-gray-900"
               required
             >
-              <option value="-1">Not to tell</option>
               {religionList.map((rl) => (
                 <option key={rl.Id} value={rl.Id}>
                   {rl.Value}
@@ -291,7 +284,6 @@ const AddSocialHistoryModal: React.FC = () => {
               className="mt-1 block w-full p-2 border rounded-md text-gray-900"
               required
             >
-              <option value="-1">Not to tell</option>
               {educationList.map((el) => (
                 <option key={el.Id} value={el.Id}>
                   {el.Value}
@@ -356,7 +348,6 @@ const AddSocialHistoryModal: React.FC = () => {
               className="mt-1 block w-full p-2 border rounded-md text-gray-900"
               required
             >
-              <option value="-1">Not to tell</option>
               {liveWithList.map((lwl) => (
                 <option key={lwl.Id} value={lwl.Id}>
                   {lwl.Value}

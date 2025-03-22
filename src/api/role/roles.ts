@@ -21,10 +21,7 @@ export interface User {
 
 export const fetchRoles = async () => {
   try {
-    const token = retrieveAccessTokenFromCookie();
-    if (!token) throw new Error("Token not found");
     const response = await roleAPI.get<{ roles: Role[] }>("/", {
-      headers: { Authorization: `Bearer ${token}` },
       params: { page_size: 100 },
     });
     console.log("GET all roles", response.data);

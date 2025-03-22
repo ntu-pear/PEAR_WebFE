@@ -18,6 +18,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 
 import { useUserProfile } from "@/hooks/user/useUserProfile";
 import { toast } from "sonner";
+import { formatRoleName } from "@/utils/formatRoleName";
 
 const Navbar: React.FC = () => {
   const navigate = useNavigate();
@@ -75,7 +76,10 @@ const Navbar: React.FC = () => {
 
   const handleUserSettings = () => {
     const settingsBaseLink = (() => {
-      switch (currentUser?.roleName) {
+      if (!currentUser?.roleName) return "/login";
+      const formattedRoleName = formatRoleName(currentUser.roleName);
+
+      switch (currentUser.roleName) {
         case "ADMIN":
           return "/admin/settings/profile";
         case "SUPERVISOR":
@@ -87,7 +91,7 @@ const Navbar: React.FC = () => {
         case "GUARDIAN":
           return "/guardian/settings/profile";
         default:
-          return "/login";
+          return `/${formattedRoleName}/settings/profile`; //lowercase then replace space with -
       }
     })();
 
@@ -100,7 +104,10 @@ const Navbar: React.FC = () => {
   };
 
   const linkPath = (() => {
-    switch (currentUser?.roleName) {
+    if (!currentUser?.roleName) return "/login";
+    const formattedRoleName = formatRoleName(currentUser.roleName);
+
+    switch (currentUser.roleName) {
       case "ADMIN":
         return "/admin/manage-accounts";
       case "SUPERVISOR":
@@ -113,7 +120,7 @@ const Navbar: React.FC = () => {
       case "GUARDIAN":
         return "/guardian/temp-page";
       default:
-        return "/login";
+        return `/${formattedRoleName}/temp-page`;
     }
   })();
 

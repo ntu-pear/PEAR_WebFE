@@ -49,6 +49,7 @@ import { ViewPatientProvider } from "./hooks/patient/useViewPatient";
 import PatientLogs from "./pages/logger/PatientLogs";
 import AccountTable from "./pages/Admin/AccountTable";
 import ManageSocialHistory from "./pages/Admin/ManageSocialHistory";
+import CustomRoleProtectedRoute from "./components/CustomRoleProtectedRoute";
 
 export const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: false, staleTime: Infinity } },
@@ -219,6 +220,19 @@ const App: React.FC = () => {
                       element={
                         <ProtectedRoute allowedRoles={["GAME THERAPIST"]} />
                       }
+                    >
+                      <Route path="temp-page" element={<TempPage />} />
+                      <Route path="settings/*" element={<UserSettings />}>
+                        {settingsRoutes.map(({ path, element }) => (
+                          <Route key={path} path={path} element={element} />
+                        ))}
+                      </Route>
+                    </Route>
+
+                    {/* Routes for Dynamically Created Role*/}
+                    <Route
+                      path=":role/*"
+                      element={<CustomRoleProtectedRoute />}
                     >
                       <Route path="temp-page" element={<TempPage />} />
                       <Route path="settings/*" element={<UserSettings />}>

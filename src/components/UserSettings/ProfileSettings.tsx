@@ -55,7 +55,6 @@ const ProfileSettings: React.FC = () => {
     }
 
     console.log("handle update user profile");
-    toast.success("Update user profile successfully");
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
