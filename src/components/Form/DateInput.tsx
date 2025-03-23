@@ -23,7 +23,7 @@ export default function DateInput<T extends FieldValues>({
       <input
         id={name}
         type="date"
-        className="border border-gray-300 rounded-md p-2"
+        className="border border-gray-300 rounded-md p-2 dark:bg-slate-700"
         {...register(name, { required })}
       />
       {errors.firstName && (
