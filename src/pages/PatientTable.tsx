@@ -22,10 +22,7 @@ import { Badge } from "@/components/ui/badge";
 import Searchbar from "@/components/Searchbar";
 import { DataTableServer } from "@/components/Table/DataTable";
 
-import {
-  mockCaregiverID,
-  mockPatientTDList,
-} from "@/mocks/mockPatientTableData";
+import { mockCaregiverID } from "@/mocks/mockPatientTableData";
 
 import useDebounce from "@/hooks/useDebounce";
 import AvatarModalWrapper from "@/components/AvatarModalWrapper";
@@ -96,32 +93,19 @@ const PatientTable: React.FC = () => {
   const handleFilter = async (pageNo: number) => {
     try {
       const fetchedPatientTDServer: PatientTableDataServer =
-        import.meta.env.MODE === "development" ||
-        import.meta.env.MODE === "production"
-          ? await fetchAllPatientTD(
-              searchItem,
-              activeStatus === "All"
-                ? null
-                : activeStatus === "Active"
-                ? "1"
-                : "0",
-              pageNo
-            )
-          : mockPatientTDList;
+        await fetchAllPatientTD(
+          debouncedSearch,
+          debouncedActiveStatus === "All"
+            ? null
+            : debouncedActiveStatus === "Active"
+              ? "1"
+              : "0",
+          pageNo
+        );
 
-      let filteredPatientTDList = fetchedPatientTDServer.patients.filter(
+      const filteredPatientTDList = fetchedPatientTDServer.patients.filter(
         (ptd: PatientTableData) =>
-          ptd.name.toLowerCase().includes(searchItem.toLowerCase())
-      );
-
-      filteredPatientTDList = filteredPatientTDList.filter(
-        (ptd: PatientTableData) =>
-          activeStatus === "All" ? true : ptd.status === activeStatus
-      );
-
-      filteredPatientTDList = filteredPatientTDList.filter(
-        (ptd: PatientTableData) =>
-          tabValue === "my_patients" && mockCaregiverID !== null
+          debounceTabValue === "my_patients" && mockCaregiverID !== null
             ? ptd.supervisorId === mockCaregiverID
             : true
       );
@@ -139,6 +123,7 @@ const PatientTable: React.FC = () => {
     handleFilter(patientTDServer.pagination.pageNo || 0);
   };
 
+  // when debounced active, search or tab changes, run refreshData which calls handlefilter
   useEffect(() => {
     refreshData();
   }, [debouncedActiveStatus, debouncedSearch, debounceTabValue]);
@@ -169,8 +154,8 @@ const PatientTable: React.FC = () => {
             value === "Active"
               ? "default"
               : value === "Inactive"
-              ? "secondary"
-              : "outline"
+                ? "secondary"
+                : "outline"
           }
         >
           {value}
