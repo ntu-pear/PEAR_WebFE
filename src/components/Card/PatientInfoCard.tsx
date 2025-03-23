@@ -7,6 +7,7 @@ import { useModal } from "@/hooks/useModal";
 import { useViewPatient } from "@/hooks/patient/useViewPatient";
 import { useEffect, useState } from "react";
 import { fetchPatientPrivacyLevel } from "@/api/patients/privacyLevel";
+import { convertPrivacyLevel } from "@/utils/convertPrivacyLevel";
 
 const PatientInfoCard: React.FC = () => {
   const { id, patientInfo, nricData, handleNRICToggle, refreshPatientData } =
@@ -87,12 +88,12 @@ const PatientInfoCard: React.FC = () => {
                   {column.key === "nric"
                     ? nricData.nric || "-" //check if nric field
                     : column.key === "privacyLevelSensitive" //check if privacy level field
-                    ? column.customValue !== null
-                      ? String(column.customValue)
-                      : "-"
-                    : patientInfo?.[
-                        column.key as keyof PatientInformation // else if key is not nric or privacy level field
-                      ] || "-"}
+                      ? column.customValue !== null
+                        ? convertPrivacyLevel(column.customValue)
+                        : "-"
+                      : patientInfo?.[
+                          column.key as keyof PatientInformation // else if key is not nric or privacy level field
+                        ] || "-"}
                   {column.key === "nric" && (
                     <Button
                       size="icon"
@@ -122,12 +123,12 @@ const PatientInfoCard: React.FC = () => {
                   {column.key === "nric"
                     ? nricData.nric || "-" //check if nric field
                     : column.key === "privacyLevelSensitive" //check if privacy level field
-                    ? column.customValue !== null
-                      ? String(column.customValue)
-                      : "-"
-                    : patientInfo?.[
-                        column.key as keyof PatientInformation // else if key is not nric or privacy level field
-                      ] || "-"}
+                      ? column.customValue !== null
+                        ? convertPrivacyLevel(column.customValue)
+                        : "-"
+                      : patientInfo?.[
+                          column.key as keyof PatientInformation // else if key is not nric or privacy level field
+                        ] || "-"}
                   {column.key === "nric" && (
                     <Button
                       size="icon"
