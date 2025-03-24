@@ -47,6 +47,7 @@ const EditRoles: React.FC = () => {
                             Edit
                           </Button>
                           <Button
+                            disabled={role.roleName === "ADMIN"}
                             className="border-red-500 bg-transparent text-red-500 border-2"
                             onClick={() => openModal("deleteRole", { role })}
                           >
