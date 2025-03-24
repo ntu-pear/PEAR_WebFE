@@ -39,3 +39,10 @@ export const getDateForDatePicker = (isoDateTime: string) => {
 export const convertToUTCISOString = (date: string) => {
   return dayjs.utc(date, "YYYY-MM-DD").toISOString();
 };
+
+// get time diff using the server as reference point
+export const getTimeDiffFromServer = (serverDateTime: string) => {
+  const serverInUTC = dayjs.utc(serverDateTime);
+  const clientInUTC = dayjs.utc();
+  return serverInUTC.diff(clientInUTC);
+};

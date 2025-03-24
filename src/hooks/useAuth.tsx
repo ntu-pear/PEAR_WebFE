@@ -4,6 +4,7 @@ import {
   refreshAccessToken,
   retrieveAccessTokenExpiryFromCookie,
   retrieveAccessTokenFromCookie,
+  retrieveTimeDiffFromServerFromCookie,
   sendLogin,
   sendLogin2FA,
   sendLogout,
@@ -96,10 +97,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   };
 
   const logout = async () => {
+    const roleName = currentUser?.roleName;
     setCurrentUser(null);
     await sendLogout();
 
-    if (currentUser?.roleName !== "CAREGIVER") {
+    if (roleName !== "CAREGIVER") {
       toast.success("Logout successful.");
     }
 
@@ -110,20 +112,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   const fetchUser = async () => {
     try {
       setIsLoading(true);
-
-      const expiresAt = retrieveAccessTokenExpiryFromCookie();
-      if (expiresAt) {
-        const expiryTime = dayjs.utc(expiresAt);
-        const timeLeft = expiryTime.diff(dayjs.utc());
-
-        // When token has already past expired, logout immediately when user try refresh
-        if (timeLeft <= 0) {
-          setIsLoading(false);
-          toast.warning("Session expired. Logging out.");
-          await logout();
-          return;
-        }
-      }
 
       const user = await getCurrentUser();
       if (user?.roleName === "CAREGIVER") {
@@ -143,11 +131,23 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
 
   const checkAccessTokenExpiry = () => {
     const expiresAt = retrieveAccessTokenExpiryFromCookie();
+    const clientServerTimeDiffString = retrieveTimeDiffFromServerFromCookie();
     if (!expiresAt) {
       return;
     }
 
-    const expiryTime = dayjs.utc(expiresAt);
+    let expiryTime = dayjs.utc(expiresAt);
+
+    // if the time diff is valid, add the time diff to sync client to server time
+    /*3 scenarios 
+     1. if client time is behind of server, add positive value to client time to sync to server time
+     2. if client time is same as server, 
+     3. if client time is ahead of server, add negative value to client time to sync to server time
+    */
+    expiryTime = !isNaN(Number(clientServerTimeDiffString))
+      ? expiryTime.add(Number(clientServerTimeDiffString), "milliseconds")
+      : expiryTime;
+
     const timeLeft = expiryTime.diff(dayjs.utc());
 
     // Clear previous timeout if exists
@@ -155,8 +155,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       clearTimeout(expiryTimeout.current);
     }
 
-    if (timeLeft > 10000 && timeLeft < 300000) {
-      //if (timeLeft > 10000) {
+    if (timeLeft >= 10000 && timeLeft <= 300000) {
+      // if (timeLeft >= 10000) {
       toast.dismiss();
       toast.warning(
         <div className="flex flex-col">
@@ -200,15 +200,15 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         { duration: timeLeft }
       );
 
-      // Auto logout once the token starts to expire
-      // expiryTimeout.current = setTimeout(async () => {
-      //   toast.dismiss();
-      //   toast.warning("Session expired. Logging out.");
-      //   setTimeout(async () => {
-      //     toast.dismiss();
-      //     await logout();
-      //   }, 1000);
-      // }, timeLeft);
+      //Auto logout once the token starts to expire
+      expiryTimeout.current = setTimeout(async () => {
+        toast.dismiss();
+        toast.warning("Session expired. Logging out.");
+        setTimeout(async () => {
+          toast.dismiss();
+          await logout();
+        }, 1000);
+      }, timeLeft);
 
       // else if more than 5mins, schedule the toast
     } else if (timeLeft >= 300000) {
@@ -224,6 +224,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     } else if (currentUser) {
       // If user is authenticated, start checking for access token expiry
       checkAccessTokenExpiry();
+    } else {
+      setIsLoading(false); // Stop loading immediately if no token is found
     }
 
     // Cleanup timeout when currentUser changes or on unmount
