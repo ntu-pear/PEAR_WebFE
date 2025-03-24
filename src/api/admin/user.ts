@@ -31,8 +31,8 @@ export interface User {
 
 export interface AccountTableDataServer {
   users: User[];
-  pageNo: number;
-  pageSize: number;
+  page: number;
+  page_size: number;
   total: number;
 }
 

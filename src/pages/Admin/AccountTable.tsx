@@ -34,8 +34,8 @@ import { mockAccountTDList } from "@/mocks/mockAccountTableData";
 const AccountTable: React.FC = () => {
   const [accountTDServer, setAccountTDServer] =
     useState<AccountTableDataServer>({
-      pageNo: 1,
-      pageSize: 10,
+      page: 0,
+      page_size: 10,
       total: 0,
       users: [],
     });
@@ -53,16 +53,6 @@ const AccountTable: React.FC = () => {
     },
     []
   );
-
-  // const sortByName = (data: User[], direction: "asc" | "desc") => {
-  //   return [...data].sort((a, b) => {
-  //     if (a.nric_FullName < b.nric_FullName)
-  //       return direction === "asc" ? -1 : 1;
-  //     if (a.nric_FullName > b.nric_FullName)
-  //       return direction === "asc" ? 1 : -1;
-  //     return 0;
-  //   });
-  // };
 
   const handleFilter = async (pageNo: number, pageSize: number) => {
     try {
@@ -94,7 +84,7 @@ const AccountTable: React.FC = () => {
       //let filteredAccountTDList = fetchedAccountTDServer.users;
 
       //const sortedAccountTDList = sortByName(filteredAccountTDList, "asc");
-
+      console.log("fetchedAccountTDServer", fetchedAccountTDServer);
       setAccountTDServer(fetchedAccountTDServer);
     } catch (error) {
       console.error("Error fetching accounts:", error);
@@ -102,7 +92,7 @@ const AccountTable: React.FC = () => {
   };
 
   useEffect(() => {
-    handleFilter(accountTDServer.pageNo, accountTDServer.pageSize);
+    handleFilter(accountTDServer.page, accountTDServer.page_size);
   }, [debouncedActiveStatus, debouncedSearch]);
 
   const renderLoginTimeStamp = (loginTimeStamp: string | null) => {
@@ -190,10 +180,10 @@ const AccountTable: React.FC = () => {
                   <DataTableServer
                     data={accountTDServer.users}
                     pagination={{
-                      pageNo: 0,
-                      pageSize: 0,
-                      totalRecords: 0,
-                      totalPages: 0,
+                      pageNo: accountTDServer.page,
+                      pageSize: accountTDServer.page_size,
+                      totalRecords: accountTDServer.total,
+                      totalPages: Math.ceil(accountTDServer.total / accountTDServer.page_size),
                     }}
                     columns={columns}
                     viewMore={true}
