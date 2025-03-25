@@ -24,7 +24,6 @@ import { DataTableServer } from "@/components/Table/DataTable";
 import useDebounce from "@/hooks/useDebounce";
 import {
   AccountTableDataServer,
-  //fetchUsers,
   fetchUsersByFields,
   User,
 } from "@/api/admin/user";
@@ -188,7 +187,7 @@ const AccountTable: React.FC = () => {
                     columns={columns}
                     viewMore={true}
                     viewMoreBaseLink={"/admin/view-account"}
-                    activeTab={"information"}
+                    activeTab={""}
                     fetchData={handleFilter}
                   />
                 </CardContent>

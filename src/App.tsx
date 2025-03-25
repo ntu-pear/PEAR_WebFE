@@ -48,6 +48,8 @@ import VerifyAccount from "./pages/Admin/VerifyAccount";
 import { ViewPatientProvider } from "./hooks/patient/useViewPatient";
 import PatientLogs from "./pages/logger/PatientLogs";
 import AccountTable from "./pages/Admin/AccountTable";
+import ViewAccount from "./pages/Admin/ViewAccount";
+import { ViewAccountProvider } from "./hooks/admin/useViewAccount";
 
 export const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: false, staleTime: Infinity } },
@@ -68,6 +70,14 @@ const ViewPatientWrapper: React.FC = () => {
     <ViewPatientProvider>
       <ViewPatient />
     </ViewPatientProvider>
+  );
+};
+
+const ViewAccountWrapper: React.FC = () => {
+  return (
+    <ViewAccountProvider>
+      <ViewAccount />
+    </ViewAccountProvider>
   );
 };
 
@@ -157,6 +167,10 @@ const App: React.FC = () => {
                       <Route
                         path="manage-accounts"
                         element={<AccountTable />}
+                      />
+                      <Route
+                        path="view-account/:id"
+                        element={<ViewAccountWrapper />}
                       />
 
                       <Route

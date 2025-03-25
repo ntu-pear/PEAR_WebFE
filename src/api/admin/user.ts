@@ -79,6 +79,27 @@ export const fetchUsersByFields = async (
   }
 };
 
+export const fetchUserById = async (id: string) : Promise<User> => {
+    const token = retrieveAccessTokenFromCookie();
+    if (!token) throw new Error("No token found.");
+  
+    try {
+      const response = await adminAPI.get<User>(
+        `/${id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      console.log("GET account by id", response.data);
+      return response.data;
+    } catch (error) {
+      console.error("GET accounts by id", error);
+      throw error;
+    }
+  };
+
 export const updateUsersRole = async (role: string, users_Id: string[]) => {
   try {
     const token = retrieveAccessTokenFromCookie();
