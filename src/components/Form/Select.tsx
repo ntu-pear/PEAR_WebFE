@@ -25,7 +25,7 @@ export default function Select<T extends FieldValues>({
       <select
         {...register(name)}
         id={name}
-        className="border border-gray-300 rounded-md p-2 bg-white"
+        className="border border-gray-300 rounded-md p-2 bg-white dark:bg-slate-700"
       >
         <option value="">--Select a Role--</option>
         {options.map((value) => (

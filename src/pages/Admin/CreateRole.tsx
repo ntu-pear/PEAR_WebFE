@@ -5,20 +5,20 @@ import { useForm, SubmitHandler } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router";
 import useCreateRole from "@/hooks/role/useCreateRole";
+import Input from "@/components/Form/Input";
+import RadioGroup from "@/components/Form/RadioGroup";
 
 type RoleForm = {
   name: string;
+  privacyLevel: '0' | '1' | '2' | '3';
 };
 
 const CreateRole: React.FC = () => {
   const navigate = useNavigate();
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<RoleForm>();
+  const form = useForm<RoleForm>();
   const { mutate } = useCreateRole();
-  const onSubmit: SubmitHandler<RoleForm> = (data) => mutate(data.name);
+  const onSubmit: SubmitHandler<RoleForm> = (data) =>
+    mutate({ roleName: data.name, privacyLevel: Number(data.privacyLevel) as 0 | 1 | 2 | 3 });
 
   return (
     <div className="flex min-h-screen w-full flex-col container mx-auto px-0 sm:px-4">
@@ -29,23 +29,24 @@ const CreateRole: React.FC = () => {
               <CardTitle>Create New Role</CardTitle>
             </CardHeader>
             <CardContent className="flex flex-col align-middle">
-              <form onSubmit={handleSubmit(onSubmit)}>
-                <div className="flex justify-between mb-4">
-                  <label>Role Name</label>
-                  <div className="w-5/6 flex flex-col">
-                    <input
-                      type="text"
-                      className="border border-gray-300 rounded-md p-1"
-                      {...register("name", { required: true })}
-                    />
-                    {errors.name && (
-                      <p role="alert" className="text-red-600 text-sm">
-                        The Role Name field is required.
-                      </p>
-                    )}
-                  </div>
-                </div>
-                <Button type="submit" className="bg-blue-500 mr-1">
+              <form onSubmit={form.handleSubmit(onSubmit)}>
+                <Input
+                  formReturn={form}
+                  label="Role Name"
+                  name="name"
+                />
+                <RadioGroup
+                  form={form}
+                  label="Privacy Level"
+                  name="privacyLevel"
+                  options={[
+                    { label: "None", value: "0" },
+                    { label: "Low", value: "1" },
+                    { label: "Medium", value: "2" },
+                    { label: "High", value: "3" },
+                  ]}
+                />
+                <Button type="submit" className="bg-blue-500 mr-1 mt-3">
                   Create Role
                 </Button>
                 <Button

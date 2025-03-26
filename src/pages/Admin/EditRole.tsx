@@ -26,7 +26,7 @@ const EditRole: React.FC = () => {
                 <label>Id</label>
                 <input
                   type="text"
-                  className="border border-gray-300 rounded-md px-3 w-5/6 bg-slate-200 h-full"
+                  className="border border-gray-300 rounded-md px-3 w-5/6 bg-slate-200 h-full dark:bg-slate-700"
                   value={role.id}
                   readOnly
                 />
@@ -35,7 +35,7 @@ const EditRole: React.FC = () => {
                 <label>Role Name</label>
                 <input
                   type="text"
-                  className="border border-gray-300 rounded-md px-3 w-5/6 bg-slate-200 h-full"
+                  className="border border-gray-300 rounded-md px-3 w-5/6 bg-slate-200 h-full dark:bg-slate-700"
                   value={role.roleName}
                   readOnly
                 />
@@ -58,7 +58,7 @@ const EditRole: React.FC = () => {
                       </li>
                     ))}
                   </ul>
-                  <div className="bg-slate-200 py-2 px-4 border-t-2 border-slate-300">
+                  <div className="bg-slate-200 py-2 px-4 border-t-2 border-slate-300 dark:bg-slate-700">
                     <Button
                       className="bg-blue-500"
                       onClick={() =>

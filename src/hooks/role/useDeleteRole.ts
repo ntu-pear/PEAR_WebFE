@@ -10,7 +10,8 @@ const useDeleteRole = () => {
       toast.success("Role deleted successfully");
       queryClient.invalidateQueries({ queryKey: ["roles"] });
     },
-    onError: () => toast.error("Failed to delete role"),
+    onError: (error: { response: { data: { detail: string } } }) =>
+      toast.error(`Failed to delete role. ${error.response.data.detail}`),
   });
 };
 

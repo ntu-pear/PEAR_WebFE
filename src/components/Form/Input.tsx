@@ -30,7 +30,7 @@ export default function Input<T extends FieldValues>({
       </label>
       <input
         id={name}
-        className="border border-gray-300 rounded-md p-2"
+        className="border border-gray-300 rounded-md p-2 dark:bg-slate-700"
         placeholder={label}
         {...register(name, { required: true, ...validation })}
         {...props}

@@ -5,6 +5,7 @@ import { EyeIcon, EyeOffIcon, UserIcon } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
+import { formatRoleName } from "@/utils/formatRoleName";
 
 const Login: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -24,7 +25,8 @@ const Login: React.FC = () => {
   };
 
   useEffect(() => {
-    if (currentUser) {
+    if (currentUser?.roleName) {
+      const formattedRoleName = formatRoleName(currentUser.roleName);
       switch (currentUser.roleName) {
         case "ADMIN":
           // navigate("/admin/temp-page", { replace: true });
@@ -48,6 +50,7 @@ const Login: React.FC = () => {
           navigate("/supervisor/manage-patients", { replace: true });
           break;
         default:
+          navigate(`/${formattedRoleName}/temp-page`, { replace: true });
           break;
       }
     }

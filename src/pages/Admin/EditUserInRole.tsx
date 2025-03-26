@@ -59,7 +59,7 @@ const EditUserInRole: React.FC = () => {
                         </li>
                       ))}
                     </ul>
-                    <div className="px-4 py-2 bg-slate-200 border-t-2 border-slate-300">
+                    <div className="px-4 py-2 bg-slate-200 border-t-2 border-slate-300 dark:bg-slate-700">
                       <Button className="bg-blue-500 mr-1">Update</Button>
                       <Button
                         type="button"

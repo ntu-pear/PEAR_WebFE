@@ -1,31 +1,42 @@
-import { fetchMobilityAids } from "@/api/patients/mobility";
+import {
+  fetchMobilityAids,
+  MobilityAidTD,
+  MobilityAidTDServer,
+} from "@/api/patients/mobility";
 import { useViewPatient } from "@/hooks/patient/useViewPatient";
 import { useAuth } from "@/hooks/useAuth";
 import { useModal } from "@/hooks/useModal";
-import { MobilityAidTD, mockMobilityAidsTD } from "@/mocks/mockPatientDetails";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Button } from "../ui/button";
 import { PlusCircle } from "lucide-react";
-import { DataTableClient } from "../Table/DataTable";
+import { DataTableServer } from "../Table/DataTable";
 
 const MobilityAidsCard: React.FC = () => {
   const { currentUser } = useAuth();
   const { id } = useViewPatient();
   const { openModal } = useModal();
-  const [mobilityAids, setMobilityAids] = useState<MobilityAidTD[]>([]);
+  const [mobilityAidsTDServer, setMobilityAidsTDServer] =
+    useState<MobilityAidTDServer>({
+      mobilityAids: [],
+      pagination: {
+        pageNo: 0,
+        pageSize: 0,
+        totalRecords: 0,
+        totalPages: 0,
+      },
+    });
 
-  const handleFetchMobilityAids = async () => {
+  const handleFetchMobilityAids = async (pageNo: number) => {
     if (!id || isNaN(Number(id))) return;
     try {
-      const fetchedMobilityAids: MobilityAidTD[] =
-        import.meta.env.MODE === "development" ||
-        import.meta.env.MODE === "production"
-          ? await fetchMobilityAids(Number(id))
-          : mockMobilityAidsTD;
+      const fetchedData: MobilityAidTDServer = await fetchMobilityAids(
+        Number(id),
+        pageNo
+      );
 
-      setMobilityAids(fetchedMobilityAids);
+      setMobilityAidsTDServer(fetchedData);
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       toast.error("Failed to fetch patient mobility aids");
@@ -33,11 +44,11 @@ const MobilityAidsCard: React.FC = () => {
   };
 
   useEffect(() => {
-    handleFetchMobilityAids();
+    refreshMobilityData();
   }, []);
 
   const refreshMobilityData = () => {
-    handleFetchMobilityAids();
+    handleFetchMobilityAids(mobilityAidsTDServer.pagination.pageNo || 0);
   };
 
   const mobilityAidsColumns = [
@@ -108,12 +119,14 @@ const MobilityAidsCard: React.FC = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <DataTableClient
-            data={mobilityAids}
+          <DataTableServer
+            data={mobilityAidsTDServer.mobilityAids}
+            pagination={mobilityAidsTDServer.pagination}
             columns={mobilityAidsColumns}
             viewMore={false}
             renderActions={renderActions}
             hideActionsHeader={currentUser?.roleName !== "SUPERVISOR"}
+            fetchData={handleFetchMobilityAids}
           />
         </CardContent>
       </Card>
