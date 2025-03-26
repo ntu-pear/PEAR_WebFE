@@ -12,8 +12,8 @@ export interface AccountTableData extends TableRowData {
 
 export const mockAccountTDList: AccountTableDataServer = {
   total: 8,
-  pageNo: 1,
-  pageSize: 10,
+  page: 1,
+  page_size: 10,
   users: [
     {
       id: "U01d447fkcfe",
