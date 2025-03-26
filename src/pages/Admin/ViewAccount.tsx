@@ -1,16 +1,16 @@
-import React, { Suspense } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import React from "react";
+// import { useNavigate, useLocation } from "react-router-dom";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useModal } from "@/hooks/useModal";
-import { useAuth } from "@/hooks/useAuth";
+// import { useModal } from "@/hooks/useModal";
+// import { useAuth } from "@/hooks/useAuth";
 import { useViewAccount } from "@/hooks/admin/useViewAccount";
 
 const ViewAccount: React.FC = () => {
-  const navigate = useNavigate();
-  const location = useLocation();
+  // const navigate = useNavigate();
+  // const location = useLocation();
 
-  const { currentUser } = useAuth();
-  const { id, accountInfo, refreshAccountData } = useViewAccount();
+  // const { currentUser } = useAuth();
+  const { accountInfo } = useViewAccount();
 
   return (
     <>
