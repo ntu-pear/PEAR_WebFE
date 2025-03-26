@@ -287,8 +287,8 @@ const PatientLogs: React.FC = () => {
                                                   isRowUpdated
                                                     ? "text-yellow-600"
                                                     : isRowDeleted
-                                                    ? "text-red-500"
-                                                    : "text-gray-500"
+                                                      ? "text-red-500"
+                                                      : "text-gray-500"
                                                 }`}
                                               >
                                                 {key}
@@ -298,8 +298,8 @@ const PatientLogs: React.FC = () => {
                                                   isRowUpdated
                                                     ? "bg-yellow-200"
                                                     : isRowDeleted
-                                                    ? "bg-red-200"
-                                                    : ""
+                                                      ? "bg-red-200"
+                                                      : ""
                                                 }`}
                                               >
                                                 {value}
@@ -352,8 +352,8 @@ const PatientLogs: React.FC = () => {
                                                   isRowUpdated
                                                     ? "text-yellow-600"
                                                     : isRowCreated
-                                                    ? "text-green-500"
-                                                    : "text-gray-500"
+                                                      ? "text-green-500"
+                                                      : "text-gray-500"
                                                 }`}
                                               >
                                                 {key}
@@ -363,8 +363,8 @@ const PatientLogs: React.FC = () => {
                                                   isRowUpdated
                                                     ? "bg-yellow-200"
                                                     : isRowCreated
-                                                    ? "bg-green-200"
-                                                    : ""
+                                                      ? "bg-green-200"
+                                                      : ""
                                                 }`}
                                               >
                                                 {value}

@@ -10,13 +10,14 @@ const useCreateUser = () => {
   return useMutation({
     mutationFn: (user: Partial<User>) => createUser(user),
     onSuccess: () => {
-      navigate('/admin/manage-accounts');
-      toast.success("New user successfully registered. Confirmation link has been sent to registered email");
+      navigate("/admin/manage-accounts");
+      toast.success(
+        "New user successfully registered. Confirmation link has been sent to registered email"
+      );
       queryClient.invalidateQueries({ queryKey: ["accounts"] });
     },
-    onError: (error: { response: { data: { detail: string } } }) => toast.error(
-      "Failed to create user. " + error.response.data.detail
-    ),
+    onError: (error: { response: { data: { detail: string } } }) =>
+      toast.error("Failed to create user. " + error.response.data.detail),
   });
 };
 

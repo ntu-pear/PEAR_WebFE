@@ -1,11 +1,17 @@
-import { InputHTMLAttributes } from "react"
-import { FieldValues, Path, RegisterOptions, UseFormReturn } from "react-hook-form"
+import { InputHTMLAttributes } from "react";
+import {
+  FieldValues,
+  Path,
+  RegisterOptions,
+  UseFormReturn,
+} from "react-hook-form";
 
-interface Props<T extends FieldValues> extends InputHTMLAttributes<HTMLInputElement> {
-  label: string
-  name: Path<T>
-  formReturn: UseFormReturn<T>
-  validation?: RegisterOptions<T>
+interface Props<T extends FieldValues>
+  extends InputHTMLAttributes<HTMLInputElement> {
+  label: string;
+  name: Path<T>;
+  formReturn: UseFormReturn<T>;
+  validation?: RegisterOptions<T>;
 }
 
 export default function Input<T extends FieldValues>({
@@ -15,18 +21,18 @@ export default function Input<T extends FieldValues>({
   validation,
   ...props
 }: Props<T>) {
-  const { register, formState: { errors } } = formReturn
+  const {
+    register,
+    formState: { errors },
+  } = formReturn;
 
   return (
-    <div className='pb-2 flex flex-col'>
-      <label className='mb-1' htmlFor={name}>
+    <div className="pb-2 flex flex-col">
+      <label className="mb-1" htmlFor={name}>
         {label}
-        {
-          (!validation ||
-            validation.required == undefined ||
-            validation.required) &&
-          <span className="text-red-600"> *</span>
-        }
+        {(!validation ||
+          validation.required == undefined ||
+          validation.required) && <span className="text-red-600"> *</span>}
       </label>
       <input
         id={name}
@@ -37,9 +43,9 @@ export default function Input<T extends FieldValues>({
       />
       {errors[name] && (
         <p role="alert" className="text-red-600 text-sm">
-          {errors[name].message as string || `The ${label} field is required`}
+          {(errors[name].message as string) || `The ${label} field is required`}
         </p>
       )}
     </div>
-  )
+  );
 }

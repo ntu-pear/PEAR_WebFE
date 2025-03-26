@@ -82,11 +82,7 @@ const RegisterAccount: React.FC = () => {
                         },
                       }}
                     />
-                    <Input
-                      label="Address"
-                      name="address"
-                      formReturn={form}
-                    />
+                    <Input label="Address" name="address" formReturn={form} />
                     <Input
                       label="Contact No."
                       name="contactNo"
@@ -94,8 +90,9 @@ const RegisterAccount: React.FC = () => {
                       validation={{
                         pattern: {
                           value: /^[689]\d{7}$/,
-                          message: 'Contact No. must have 8 digits in length and start with digit 6, 8 or 9'
-                        }
+                          message:
+                            "Contact No. must have 8 digits in length and start with digit 6, 8 or 9",
+                        },
                       }}
                     />
                     <RadioGroup
@@ -103,8 +100,8 @@ const RegisterAccount: React.FC = () => {
                       name="gender"
                       form={form}
                       options={[
-                        { label: 'Male', value: 'M' },
-                        { label: 'Female', value: 'F' }
+                        { label: "Male", value: "M" },
+                        { label: "Female", value: "F" },
                       ]}
                     />
                     <DateInput

@@ -26,7 +26,7 @@ export interface User {
   createdById: string;
   createdDate: string;
   modifiedById: string;
-  modifiedDate: string
+  modifiedDate: string;
 }
 
 export interface AccountTableDataServer {
@@ -47,7 +47,9 @@ export const fetchUsers = async () => {
     console.log("GET all users", response.data);
     return response.data.users;
   } catch (error) {
-    toast.error(`Failed to fetch users. ${(error as { response: { data: { detail: string } } }).response.data.detail}`);
+    toast.error(
+      `Failed to fetch users. ${(error as { response: { data: { detail: string } } }).response.data.detail}`
+    );
     console.error("GET all users", error);
     throw error;
   }
@@ -80,26 +82,23 @@ export const fetchUsersByFields = async (
   }
 };
 
-export const fetchUserById = async (id: string) : Promise<User> => {
-    const token = retrieveAccessTokenFromCookie();
-    if (!token) throw new Error("No token found.");
-  
-    try {
-      const response = await adminAPI.get<User>(
-        `/${id}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      console.log("GET account by id", response.data);
-      return response.data;
-    } catch (error) {
-      console.error("GET accounts by id", error);
-      throw error;
-    }
-  };
+export const fetchUserById = async (id: string): Promise<User> => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+
+  try {
+    const response = await adminAPI.get<User>(`/${id}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    console.log("GET account by id", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("GET accounts by id", error);
+    throw error;
+  }
+};
 
 export const updateUsersRole = async (role: string, users_Id: string[]) => {
   try {
@@ -133,7 +132,7 @@ export const createUser = async (user: Partial<User>) => {
     console.error("Create user", error);
     throw error;
   }
-}
+};
 
 export const getGuardian = async (nric: string) => {
   try {

@@ -6,20 +6,20 @@ import { toast } from "sonner";
 type Variables = {
   user: VerifyUserForm;
   token: string;
-}
+};
 
 const useVerifyUser = () => {
   const navigate = useNavigate();
 
   return useMutation({
-    mutationFn: (variables: Variables) => verifyUser(variables.user, variables.token),
+    mutationFn: (variables: Variables) =>
+      verifyUser(variables.user, variables.token),
     onSuccess: () => {
-      navigate('/');
+      navigate("/");
       toast.success("Account successfully verified.");
     },
-    onError: (error: { response: { data: { detail: string } } }) => toast.error(
-      "Failed to verify user. " + error.response.data.detail
-    ),
+    onError: (error: { response: { data: { detail: string } } }) =>
+      toast.error("Failed to verify user. " + error.response.data.detail),
   });
 };
 

@@ -23,16 +23,12 @@ export const ViewAccountProvider: React.FC<{ children: ReactNode }> = ({
   children,
 }) => {
   const { id } = useParams<{ id: string }>();
-  const [accountInfo, setAccountInfo] = useState<User | null>(
-    null
-  );
+  const [accountInfo, setAccountInfo] = useState<User | null>(null);
 
   const refreshAccountData = async () => {
     if (!id) return;
     try {
-      const fetchedAccountInfo: User = await fetchUserById(
-        id
-      );
+      const fetchedAccountInfo: User = await fetchUserById(id);
 
       setAccountInfo(fetchedAccountInfo);
     } catch (error) {

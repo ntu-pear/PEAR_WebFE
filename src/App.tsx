@@ -186,7 +186,10 @@ const App: React.FC = () => {
                         path="edit-user-in-role/:id"
                         element={<EditUserInRole />}
                       />
-                      <Route path="manage-social-history" element={<ManageSocialHistory />} />
+                      <Route
+                        path="manage-social-history"
+                        element={<ManageSocialHistory />}
+                      />
                       <Route path="settings/*" element={<UserSettings />}>
                         {settingsRoutes.map(({ path, element }) => (
                           <Route key={path} path={path} element={element} />

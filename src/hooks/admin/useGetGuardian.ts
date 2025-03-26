@@ -5,9 +5,8 @@ const useGetGuardian = (nric: string) => {
   return useQuery({
     enabled: !!nric,
     queryKey: ["users"],
-    queryFn: () => getGuardian(nric)
+    queryFn: () => getGuardian(nric),
   });
 };
 
 export default useGetGuardian;
-
