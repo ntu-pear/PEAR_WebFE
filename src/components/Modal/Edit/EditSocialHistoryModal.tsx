@@ -155,17 +155,14 @@ const EditSocialHistoryModal: React.FC = () => {
       petListId: parseInt(formDataObj.petListId as string, 10),
       religionListId: parseInt(formDataObj.religionListId as string, 10),
       id: rowData.id,
-      modifiedById: parseInt(submitterId as string, 10),
+      modifiedById: submitterId as string,
       modifiedDate: dateTimeNow,
     };
 
     try {
       console.log("socialHistoryFormData", socialHistoryFormData);
 
-      await updateSocialHistory(
-        parseInt(patientId as string, 10),
-        socialHistoryFormData
-      );
+      await updateSocialHistory(socialHistoryFormData);
       closeModal();
       toast.success("Patient social history updated successfully.");
       refreshData();
@@ -198,7 +195,7 @@ const EditSocialHistoryModal: React.FC = () => {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
       <div ref={modalRef} className="bg-background p-8 rounded-md w-[600px]">
-        <h3 className="text-lg font-medium mb-5">Add Social History</h3>
+        <h3 className="text-lg font-medium mb-5">Edit Social History</h3>
         <form
           onSubmit={handleEditSocialHistory}
           className="grid grid-cols-2 gap-4"
@@ -248,7 +245,6 @@ const EditSocialHistoryModal: React.FC = () => {
               onChange={handleChange}
               required
             >
-              <option value="-1">Not to tell</option>
               {occupationList.map((ol) => (
                 <option key={ol.Id} value={ol.Id}>
                   {ol.Value}
@@ -266,7 +262,6 @@ const EditSocialHistoryModal: React.FC = () => {
               onChange={handleChange}
               required
             >
-              <option value="-1">Not to tell</option>
               {dietList.map((dl) => (
                 <option key={dl.Id} value={dl.Id}>
                   {dl.Value}
@@ -287,7 +282,6 @@ const EditSocialHistoryModal: React.FC = () => {
               onChange={handleChange}
               required
             >
-              <option value="-1">Not to tell</option>
               {petList.map((pl) => (
                 <option key={pl.Id} value={pl.Id}>
                   {pl.Value}
@@ -326,7 +320,6 @@ const EditSocialHistoryModal: React.FC = () => {
               onChange={handleChange}
               required
             >
-              <option value="-1">Not to tell</option>
               {religionList.map((rl) => (
                 <option key={rl.Id} value={rl.Id}>
                   {rl.Value}
@@ -346,7 +339,6 @@ const EditSocialHistoryModal: React.FC = () => {
               onChange={handleChange}
               required
             >
-              <option value="-1">Not to tell</option>
               {educationList.map((el) => (
                 <option key={el.Id} value={el.Id}>
                   {el.Value}
@@ -419,7 +411,6 @@ const EditSocialHistoryModal: React.FC = () => {
               onChange={handleChange}
               required
             >
-              <option value="-1">Not to tell</option>
               {liveWithList.map((lwl) => (
                 <option key={lwl.Id} value={lwl.Id}>
                   {lwl.Value}

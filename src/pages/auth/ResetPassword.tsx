@@ -73,8 +73,8 @@ const ForgotPassword: React.FC = () => {
                 name="newPassword"
                 type="password"
                 placeholder="New Password"
-                pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*[\W_])[A-Za-z\d\W_]{8,}$"
-                title="Must contain at least one lowercase letter, one uppercase letter, one non-alphanumeric character, no spaces, and at least 8 characters."
+                pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*[\W_])[A-Za-z\d\W_]{12,}$"
+                title="New password should have minimum of 12 characters with at least 1 uppercase, 1 lowercase and 1 special character."
                 className="mt-1 block w-full p-2 border rounded-md text-gray-900"
                 required
               />

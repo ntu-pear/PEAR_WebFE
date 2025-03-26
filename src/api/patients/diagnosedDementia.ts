@@ -1,13 +1,8 @@
-import { DiagnosedDementiaTD } from "@/mocks/mockPatientDetails";
 import { formatDateString } from "@/utils/formatDate";
-import {
-  createPatientAssignedDementiaAPI,
-  deletePatientAssignedDementiaAPI,
-  dementiaListAPI,
-  getPatientAssignedDementiaAPI,
-} from "../apiConfig";
+import { dementiaListAPI, patientAssignedDementiaAPI } from "../apiConfig";
 import { AxiosError } from "axios";
 import { retrieveAccessTokenFromCookie } from "../users/auth";
+import { TableRowData } from "@/components/Table/DataTable";
 
 export interface DiagnosedDementia {
   IsDeleted: string;
@@ -26,6 +21,29 @@ export interface DementiaType {
   DementiaTypeListId: number;
   CreatedDate: string;
   ModifiedDate: string;
+}
+
+export interface ViewDiagnosedDementiaList {
+  data: DiagnosedDementia[];
+  pageNo: 0;
+  pageSize: 0;
+  totalRecords: 0;
+  totalPages: 0;
+}
+
+export interface DiagnosedDementiaTD extends TableRowData {
+  dementiaType: string;
+  dementiaDate: string;
+}
+
+export interface DiagnosedDementiaTDServer {
+  diagnosedDementias: DiagnosedDementiaTD[];
+  pagination: {
+    pageNo: number;
+    pageSize: number;
+    totalRecords: number;
+    totalPages: number;
+  };
 }
 
 export interface AddDementiaForm {
@@ -58,19 +76,29 @@ export const fetchDementiaTypeList = async (): Promise<DementiaType[]> => {
 
 export const convertToDiagnosedDementiaTD = (
   dementiaList: DementiaType[],
-  diagnosedDementias: DiagnosedDementia[]
-): DiagnosedDementiaTD[] => {
+  viewDiagnosedDementiaList: ViewDiagnosedDementiaList
+): DiagnosedDementiaTDServer => {
   if (!Array.isArray(dementiaList)) {
     console.log("Diagnosed Dementia is not an array", dementiaList);
-    return [];
   }
 
-  if (!Array.isArray(diagnosedDementias)) {
-    console.log("Diagnosed Dementia is not an array", diagnosedDementias);
-    return [];
+  if (!Array.isArray(viewDiagnosedDementiaList.data)) {
+    console.log(
+      "Diagnosed Dementia is not an array",
+      viewDiagnosedDementiaList.data
+    );
+    return {
+      diagnosedDementias: [],
+      pagination: {
+        pageNo: 0,
+        pageSize: 0,
+        totalRecords: 0,
+        totalPages: 0,
+      },
+    };
   }
 
-  return diagnosedDementias
+  const diagnosedDementiaTransformed = viewDiagnosedDementiaList.data
     .filter((dd) => dd.IsDeleted === "0")
     .map((dd) => ({
       id: dd.id,
@@ -80,24 +108,40 @@ export const convertToDiagnosedDementiaTD = (
           (dl) => dl.DementiaTypeListId === dd.DementiaTypeListId
         )?.Value || "",
     }));
+
+  const updatedTD = {
+    diagnosedDementias: diagnosedDementiaTransformed,
+    pagination: {
+      pageNo: viewDiagnosedDementiaList.pageNo,
+      pageSize: viewDiagnosedDementiaList.pageSize,
+      totalRecords: viewDiagnosedDementiaList.totalRecords,
+      totalPages: viewDiagnosedDementiaList.totalPages,
+    },
+  };
+
+  return updatedTD;
 };
 
 export const fetchDiagnosedDementia = async (
-  patientId: number
-): Promise<DiagnosedDementiaTD[]> => {
+  patientId: number,
+  pageNo: number = 0,
+  pageSize: number = 10
+): Promise<DiagnosedDementiaTDServer> => {
   const token = retrieveAccessTokenFromCookie();
   if (!token) throw new Error("No token found.");
 
   try {
     const dlResponse = await fetchDementiaTypeList();
 
-    const ddResponse = await getPatientAssignedDementiaAPI.get<
-      DiagnosedDementia[]
-    >(`/${patientId}`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    const ddResponse =
+      await patientAssignedDementiaAPI.get<ViewDiagnosedDementiaList>(
+        `/Patient/${patientId}?pageNo=${pageNo}&pageSize=${pageSize}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
     console.log("GET all patient assigned dementia", ddResponse);
 
     return convertToDiagnosedDementiaTD(dlResponse, ddResponse.data);
@@ -107,7 +151,15 @@ export const fetchDiagnosedDementia = async (
         console.warn(
           "Patient assigned dementia not found, returning empty array."
         );
-        return [];
+        return {
+          diagnosedDementias: [],
+          pagination: {
+            pageNo: 0,
+            pageSize: 0,
+            totalRecords: 0,
+            totalPages: 0,
+          },
+        };
       }
     }
     console.error("GET all dementia List/ patient assigned dementia", error);
@@ -122,16 +174,15 @@ export const addDiagnosedDementa = async (
   if (!token) throw new Error("No token found.");
 
   try {
-    const response =
-      await createPatientAssignedDementiaAPI.post<DiagnosedDementia>(
-        "",
-        formData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+    const response = await patientAssignedDementiaAPI.post<DiagnosedDementia>(
+      "/add",
+      formData,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
     console.log("POST add diagnosed dementia", response.data);
     return response.data;
   } catch (error) {
@@ -147,15 +198,14 @@ export const deleteDiagnosedDementa = async (
   if (!token) throw new Error("No token found.");
 
   try {
-    const response =
-      await deletePatientAssignedDementiaAPI.delete<DiagnosedDementia>(
-        `/${dementiaId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+    const response = await patientAssignedDementiaAPI.delete<DiagnosedDementia>(
+      `/delete/${dementiaId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
     console.log("Delete delete diagnosed dementia", response.data);
     return response.data;
   } catch (error) {

@@ -40,13 +40,14 @@ export const fetchUsers = async () => {
   try {
     const token = retrieveAccessTokenFromCookie();
     if (!token) throw new Error("Token not found");
-    const response = await adminAPI.get<User[]>("/", {
+    const response = await adminAPI.get<{ users: User[] }>("/", {
+      params: { page_size: 100 },
       headers: { Authorization: `Bearer ${token}` },
     });
     console.log("GET all users", response.data);
-    return response.data;
+    return response.data.users;
   } catch (error) {
-    toast.error("Failed to fetch users");
+    toast.error(`Failed to fetch users. ${(error as { response: { data: { detail: string } } }).response.data.detail}`);
     console.error("GET all users", error);
     throw error;
   }

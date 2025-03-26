@@ -25,9 +25,11 @@ const EditMobilityAid: React.FC = () => {
     >
   ) => {
     const { name, value } = e.target;
-    if (rowData) {
-      setRowData({ ...rowData, [name]: value });
-    }
+
+    setRowData((prevData) => ({
+      ...prevData!,
+      [name]: name === "IsRecovered" ? value === "true" : value,
+    }));
   };
   const handleEditMobilityAid = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -39,7 +41,7 @@ const EditMobilityAid: React.FC = () => {
 
     const MobilityAidFormData: UpdateMobilityAid = {
       MobilityRemarks: formDataObj.MobilityRemarks as string,
-      IsRecovered: formDataObj.IsRecovered === "1" ? true : false,
+      IsRecovered: formDataObj.IsRecovered === "true" ? true : false,
     };
     try {
       console.log("MobilityAidFormData: ", MobilityAidFormData);
@@ -60,13 +62,15 @@ const EditMobilityAid: React.FC = () => {
     }
 
     try {
-      const fetchedMobilityAid: MobilityAid = await fetchMobilityAidById(
+      const response: MobilityAid = await fetchMobilityAidById(
         Number(mobilityAidId)
       );
-      setRowData(fetchedMobilityAid);
+      console.log("fetch autofill for edit mobility aid response", response);
+      setRowData(response);
 
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
+      console.log("error", error);
       toast.error("Failed to fetch Mobility Aid");
     }
   };
@@ -89,59 +93,60 @@ const EditMobilityAid: React.FC = () => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-      <div ref={modalRef} className="bg-background p-8 rounded-md w-[600px]">
+      <div ref={modalRef} className="bg-background p-8 rounded-md w-[400px]">
         <h3 className="text-lg font-medium mb-5">Edit Mobility Aid</h3>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="col-span-2 mb-4">
+          <label className="block text-sm font-medium">Mobility Aids</label>
+          <input
+            name="MobilityAids"
+            value={
+              mobilityList.find(
+                (ml) => ml.MobilityListId === rowData?.MobilityListId
+              )?.Value || ""
+            }
+            className="mt-1 block w-full p-2 border rounded-md text-gray-900"
+            readOnly
+          />
+        </div>
+        <form
+          onSubmit={handleEditMobilityAid}
+          className="grid grid-cols-2 gap-4"
+        >
           <div className="col-span-2">
-            <label className="block text-sm font-medium">Mobility Aids</label>
-            <input
-              name="MobilityAids"
-              value={
-                mobilityList.find(
-                  (ml) => ml.MobilityListId === rowData?.MobilityListId
-                )?.Value || ""
-              }
+            <label className="block text-sm font-medium">
+              Mobility Remark<span className="text-red-600">*</span>
+            </label>
+            <textarea
+              name="MobilityRemarks"
+              value={rowData?.MobilityRemarks || ""}
+              onChange={handleChange}
               className="mt-1 block w-full p-2 border rounded-md text-gray-900"
-              readOnly
+              required
             />
           </div>
-          <form onSubmit={handleEditMobilityAid}>
-            <div className="col-span-2 ">
-              <label className="block text-sm font-medium">
-                Mobility Remark<span className="text-red-600">*</span>
-              </label>
-              <textarea
-                name="MobilityRemarks"
-                value={rowData?.MobilityRemarks || ""}
-                onChange={handleChange}
-                className="mt-1 block w-full p-2 border rounded-md text-gray-900"
-                required
-              />
-            </div>
-            <div className="col-span-1">
-              <label className="block text-sm font-medium">
-                Condition<span className="text-red-600">*</span>
-              </label>
-              <select
-                name="IsRecovered"
-                value={rowData?.IsRecovered ? "1" : "0"}
-                onChange={handleChange}
-                className="mt-1 block w-full p-2 border rounded-md text-gray-900"
-                required
-              >
-                <option value="">Please select a option</option>
-                <option value="0">Not Recovered</option>
-                <option value="1">Fully Recovered</option>
-              </select>
-            </div>
-            <div className="col-span-2 mt-6 flex justify-end space-x-2">
-              <Button variant="outline" onClick={closeModal}>
-                Cancel
-              </Button>
-              <Button type="submit">Update</Button>
-            </div>
-          </form>
-        </div>
+          <div className="col-span-2">
+            <label className="block text-sm font-medium">
+              Condition<span className="text-red-600">*</span>
+            </label>
+            <select
+              name="IsRecovered"
+              value={rowData?.IsRecovered ? "true" : "false"}
+              onChange={handleChange}
+              className="mt-1 block w-full p-2 border rounded-md text-gray-900"
+              required
+            >
+              <option value="">Please select a option</option>
+              <option value="false">Not Recovered</option>
+              <option value="true">Fully Recovered</option>
+            </select>
+          </div>
+          <div className="col-span-2 mt-6 flex justify-end space-x-2">
+            <Button variant="outline" onClick={closeModal}>
+              Cancel
+            </Button>
+            <Button type="submit">Update</Button>
+          </div>
+        </form>
       </div>
     </div>
   );

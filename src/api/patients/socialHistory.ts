@@ -7,7 +7,7 @@ import {
   religionListAPI,
   socialHistoryAPI,
 } from "../apiConfig";
-import { convertToYesNo } from "@/utils/convertToYesNo";
+import { convertSocialHistoryYesNo } from "@/utils/convertToYesNo";
 import { TableRowData } from "@/components/Table/DataTable";
 import { retrieveAccessTokenFromCookie } from "../users/auth";
 
@@ -36,8 +36,8 @@ export interface SocialHistory {
   religionValue: string;
   createdDate: string;
   modifiedDate: string;
-  createdById: number | string;
-  modifiedById: number | string;
+  createdById: string;
+  modifiedById: string;
 }
 
 export interface SocialHistoryTD extends TableRowData {
@@ -74,8 +74,8 @@ export interface AddSocialHistory {
   religionListId: number;
   createdDate: string;
   modifiedDate: string;
-  createdById: number | string;
-  modifiedById: number | string;
+  createdById: string;
+  modifiedById: string;
 }
 
 export interface UpdateSocialHistory {
@@ -94,7 +94,7 @@ export interface UpdateSocialHistory {
   petListId: number;
   religionListId: number;
   id: number;
-  modifiedById: number | string;
+  modifiedById: string;
   modifiedDate: string;
 }
 
@@ -104,8 +104,8 @@ export interface SocialHistoryDDItem {
   Id: number;
   CreatedDateTime: string;
   UpdatedDateTime: string;
-  CreatedById: number | string;
-  ModifiedById: number | string;
+  CreatedById: string;
+  ModifiedById: string;
 }
 
 export const convertToSocialHistoryTD = (
@@ -113,19 +113,19 @@ export const convertToSocialHistoryTD = (
 ): SocialHistoryTD => {
   return {
     id: socialHistory.id,
-    alcoholUse: convertToYesNo(socialHistory.alcoholUse),
-    caffeineUse: convertToYesNo(socialHistory.caffeineUse),
+    alcoholUse: convertSocialHistoryYesNo(socialHistory.alcoholUse),
+    caffeineUse: convertSocialHistoryYesNo(socialHistory.caffeineUse),
     diet: socialHistory.dietValue.toUpperCase(),
-    drugUse: convertToYesNo(socialHistory.drugUse),
+    drugUse: convertSocialHistoryYesNo(socialHistory.drugUse),
     education: socialHistory.educationValue.toUpperCase(),
-    exercise: convertToYesNo(socialHistory.exercise),
+    exercise: convertSocialHistoryYesNo(socialHistory.exercise),
     liveWith: socialHistory.liveWithValue.toUpperCase(),
     occupation: socialHistory.occupationValue.toUpperCase(),
     pet: socialHistory.petValue.toUpperCase(),
     religion: socialHistory.religionValue.toUpperCase(),
-    secondhandSmoker: convertToYesNo(socialHistory.secondHandSmoker),
-    sexuallyActive: convertToYesNo(socialHistory.sexuallyActive),
-    tobaccoUse: convertToYesNo(socialHistory.tobaccoUse),
+    secondhandSmoker: convertSocialHistoryYesNo(socialHistory.secondHandSmoker),
+    sexuallyActive: convertSocialHistoryYesNo(socialHistory.sexuallyActive),
+    tobaccoUse: convertSocialHistoryYesNo(socialHistory.tobaccoUse),
   };
 };
 
@@ -176,7 +176,6 @@ export const fetchSocialHistory = async (
 };
 
 export const addSocialHistory = async (
-  patientId: number,
   addSocialHistory: AddSocialHistory
 ): Promise<SocialHistory> => {
   const token = retrieveAccessTokenFromCookie();
@@ -184,7 +183,7 @@ export const addSocialHistory = async (
 
   try {
     const response = await socialHistoryAPI.post<SocialHistory>(
-      `/add?patient_id=${patientId}`,
+      `/add`,
       addSocialHistory,
       {
         headers: {
@@ -201,7 +200,6 @@ export const addSocialHistory = async (
 };
 
 export const updateSocialHistory = async (
-  patientId: number,
   updateSocialHistory: UpdateSocialHistory
 ): Promise<SocialHistory> => {
   const token = retrieveAccessTokenFromCookie();
@@ -209,7 +207,7 @@ export const updateSocialHistory = async (
 
   try {
     const response = await socialHistoryAPI.put<SocialHistory>(
-      `/update?patient_id=${patientId}`,
+      `/update`,
       updateSocialHistory,
       {
         headers: {

@@ -141,7 +141,6 @@ const convertToPrescriptionTDServer = (
 
   const prescriptionsTransformed = prescriptionViewList.data
     .filter((p) => p.IsDeleted === "0")
-    .sort((a, b) => b.Id - a.Id) // Descending order
     .map((p) => ({
       id: p.Id,
       drugName:
