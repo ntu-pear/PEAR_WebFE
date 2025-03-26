@@ -1,25 +1,28 @@
-import { FieldValues, Path, UseFormReturn } from "react-hook-form"
+import { FieldValues, Path, UseFormReturn } from "react-hook-form";
 
 type Props<T extends FieldValues> = {
-  label: string
-  name: Path<T>
-  form: UseFormReturn<T>
-  required?: boolean
-  options: string[]
-}
+  label: string;
+  name: Path<T>;
+  form: UseFormReturn<T>;
+  required?: boolean;
+  options: string[];
+};
 
 export default function Select<T extends FieldValues>({
   label,
   name,
   form,
   required = true,
-  options
+  options,
 }: Props<T>) {
-  const { register, formState: { errors } } = form
+  const {
+    register,
+    formState: { errors },
+  } = form;
 
   return (
-    <div className='pb-2 flex flex-col'>
-      <label className='mb-1' htmlFor={name}>
+    <div className="pb-2 flex flex-col">
+      <label className="mb-1" htmlFor={name}>
         {label} {required && <span className="text-red-600">*</span>}
       </label>
       <select
@@ -40,5 +43,5 @@ export default function Select<T extends FieldValues>({
         </p>
       )}
     </div>
-  )
+  );
 }

@@ -10,7 +10,7 @@ import RadioGroup from "@/components/Form/RadioGroup";
 
 type RoleForm = {
   name: string;
-  privacyLevel: '0' | '1' | '2' | '3';
+  privacyLevel: "0" | "1" | "2" | "3";
 };
 
 const CreateRole: React.FC = () => {
@@ -18,7 +18,10 @@ const CreateRole: React.FC = () => {
   const form = useForm<RoleForm>();
   const { mutate } = useCreateRole();
   const onSubmit: SubmitHandler<RoleForm> = (data) =>
-    mutate({ roleName: data.name, privacyLevel: Number(data.privacyLevel) as 0 | 1 | 2 | 3 });
+    mutate({
+      roleName: data.name,
+      privacyLevel: Number(data.privacyLevel) as 0 | 1 | 2 | 3,
+    });
 
   return (
     <div className="flex min-h-screen w-full flex-col container mx-auto px-0 sm:px-4">
@@ -30,11 +33,7 @@ const CreateRole: React.FC = () => {
             </CardHeader>
             <CardContent className="flex flex-col align-middle">
               <form onSubmit={form.handleSubmit(onSubmit)}>
-                <Input
-                  formReturn={form}
-                  label="Role Name"
-                  name="name"
-                />
+                <Input formReturn={form} label="Role Name" name="name" />
                 <RadioGroup
                   form={form}
                   label="Privacy Level"

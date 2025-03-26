@@ -3,13 +3,13 @@ import {
   RequestResetPasswordForm,
 } from "@/api/users/user";
 import { Button } from "@/components/ui/button";
-import useGetRoles from "@/hooks/role/useGetRoles";
+import useGetRoleNames from "@/hooks/role/useGetRoleNames";
 import { useState } from "react";
 import { toast } from "sonner";
 
 const ForgotPassword: React.FC = () => {
   const [nric, setNRIC] = useState<string>("");
-  const roles = useGetRoles();
+  const roles = useGetRoleNames();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { value } = e.target;

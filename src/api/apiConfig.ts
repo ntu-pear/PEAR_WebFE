@@ -167,6 +167,10 @@ export const roleAPI = axios.create({
   baseURL: `${VITE_USER_SERVICE_URL}/roles`,
 });
 
+export const roleNameAPI = axios.create({
+  baseURL: `${VITE_USER_SERVICE_URL}/roles_name`,
+});
+
 export const adminAPI = axios.create({
   baseURL: `${VITE_USER_SERVICE_URL}/admin`,
 });

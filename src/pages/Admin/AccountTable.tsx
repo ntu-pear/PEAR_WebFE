@@ -182,7 +182,9 @@ const AccountTable: React.FC = () => {
                       pageNo: accountTDServer.page,
                       pageSize: accountTDServer.page_size,
                       totalRecords: accountTDServer.total,
-                      totalPages: Math.ceil(accountTDServer.total / accountTDServer.page_size),
+                      totalPages: Math.ceil(
+                        accountTDServer.total / accountTDServer.page_size
+                      ),
                     }}
                     columns={columns}
                     viewMore={true}

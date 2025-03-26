@@ -264,8 +264,8 @@ export const fetchPatientInfo = async (
         p.gender?.toUpperCase() === "F"
           ? "FEMALE"
           : p.gender?.toUpperCase() === "M"
-          ? "MALE"
-          : "",
+            ? "MALE"
+            : "",
       address: p.address?.toUpperCase(),
       tempAddress: p.tempAddress?.toUpperCase() || "-",
       homeNo: p.homeNo || "-",

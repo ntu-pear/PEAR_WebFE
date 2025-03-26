@@ -34,7 +34,9 @@ const ViewAccount: React.FC = () => {
               </Avatar>
             </div>
             <div>
-              <h1 className="text-2xl font-bold">{accountInfo?.nric_FullName}</h1>
+              <h1 className="text-2xl font-bold">
+                {accountInfo?.nric_FullName}
+              </h1>
               <p className="text-gray-600">{accountInfo?.roleName}</p>
               <p className="text-gray-600">{accountInfo?.email}</p>
             </div>

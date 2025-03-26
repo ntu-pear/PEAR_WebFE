@@ -2,7 +2,10 @@ import { fetchSocialHistorySensitiveMapping } from "@/api/patients/socialHistory
 import { useQuery } from "@tanstack/react-query";
 
 const useGetSocialHistorySensitiveMapping = () => {
-  return useQuery({ queryKey: ["socialHistorySensitiveMapping"], queryFn: fetchSocialHistorySensitiveMapping });
+  return useQuery({
+    queryKey: ["socialHistorySensitiveMapping"],
+    queryFn: fetchSocialHistorySensitiveMapping,
+  });
 };
 
 export default useGetSocialHistorySensitiveMapping;
