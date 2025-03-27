@@ -113,7 +113,7 @@ const App: React.FC = () => {
                       element={<ConfirmNewEmail />}
                     />
                     <Route
-                      path="verify-account/:token"
+                      path="/user/register_account/:token"
                       element={<VerifyAccount />}
                     />
 
