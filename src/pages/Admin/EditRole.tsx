@@ -51,13 +51,15 @@ const EditRole: React.FC = () => {
                   <CardTitle>Users in this role</CardTitle>
                 </CardHeader>
                 <CardContent className="p-0">
-                  <ul className="p-4">
-                    {data?.map((user) => (
-                      <li key={user.id} className="text-xl">
-                        {user.FullName}
-                      </li>
-                    ))}
-                  </ul>
+                  {data?.length === 0 ? <h1 className="p-4">No users in this role</h1>
+                    : <ul className="p-4">
+                      {data?.map((user) => (
+                        <li key={user.id} className="text-xl">
+                          {user.FullName}
+                        </li>
+                      ))}
+                    </ul>
+                  }
                   <div className="bg-slate-200 py-2 px-4 border-t-2 border-slate-300 dark:bg-slate-700">
                     <Button
                       className="bg-blue-500"
