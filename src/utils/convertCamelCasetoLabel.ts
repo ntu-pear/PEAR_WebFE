@@ -5,5 +5,5 @@ export const convertCamelCaseToLabel = (camelCase: string) => {
 };
 
 const removeListIDSuffix = (text: string) => {
-  return text.endsWith("ListID") ? text.slice(0, text.length - 6) : text;
+  return text.endsWith("ListId") ? text.slice(0, text.length - 6) : text
 };

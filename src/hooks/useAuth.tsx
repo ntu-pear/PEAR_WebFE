@@ -10,6 +10,7 @@ import {
   sendLogout,
 } from "@/api/users/auth";
 import { Button } from "@/components/ui/button";
+import { AxiosError } from "axios";
 import dayjs from "dayjs";
 import { AlertTriangle } from "lucide-react";
 import {
@@ -85,8 +86,21 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         toast.success("Login successful.");
       }
     } catch (error) {
-      if (error instanceof Error) {
-        toast.error(`Failed to Login. ${error.message}`);
+      if (error instanceof AxiosError) {
+        console.log("error for 2FA", error);
+        if (
+          error.response &&
+          error.status === 404 &&
+          error.response.data?.detail ==
+            "Exceeded number of tries possible. Please request for a new OTP"
+        ) {
+          toast.error(
+            "Failed to Login. Exceeded number of tries possible. Please re-login again."
+          );
+          navigate("/login", { replace: true });
+        } else {
+          toast.error(`Failed to Login. ${error.message}`);
+        }
       } else {
         // Fallback error handling for unknown error types
         toast.error("Failed to Login. An unknown error occurred.");
