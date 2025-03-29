@@ -38,7 +38,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   children,
 }) => {
   const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const expiryTimeout = useRef<NodeJS.Timeout | null>(null);
 
@@ -67,8 +67,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         // Fallback error handling for unknown error types
         toast.error("Failed to Login. An unknown error occurred.");
       }
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -105,8 +103,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         // Fallback error handling for unknown error types
         toast.error("Failed to Login. An unknown error occurred.");
       }
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -120,7 +116,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     }
 
     navigate("/login", { replace: true });
-    setIsLoading(false);
   };
 
   const fetchUser = async () => {
@@ -238,8 +233,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     } else if (currentUser) {
       // If user is authenticated, start checking for access token expiry
       checkAccessTokenExpiry();
-    } else {
-      setIsLoading(false); // Stop loading immediately if no token is found
     }
 
     // Cleanup timeout when currentUser changes or on unmount
