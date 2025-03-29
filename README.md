@@ -48,3 +48,43 @@ export default tseslint.config({
   },
 });
 ```
+## Setup and install dependencies
+
+```
+git clone https://github.com/ntu-pear/PEAR_WebFE.git
+npm i
+```
+
+## Environment Configuration
+Make sure to create a .env file in the PEAR_WebFE folder. For instructions on how to configure this file, refer to the Confluence page:
+
+Click on the link to be redirect to the confluence page --> [Confluence Page](https://fyppear.atlassian.net/wiki/spaces/FP/pages/112754944/PEAR+Web+Pages+Frontend)
+
+## Running the Application
+Before running, make sure to connect to NTU VPN first using GlobalProtect. If not, the web application would not be able to access any of the microservices.
+
+```
+npm run dev
+```
+
+## Before Commiting and Pushing to Github
+
+To check if can build successfully, and resolve any error before commiting
+```
+npm run build 
+```
+To format the code with prettier
+```
+npm run format 
+```
+
+
+
+
+
+
+
+
+
+
+
