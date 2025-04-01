@@ -1,16 +1,26 @@
 import React from "react";
 // import { useNavigate, useLocation } from "react-router-dom";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-// import { useModal } from "@/hooks/useModal";
-// import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/hooks/useAuth";
+import { useModal } from "@/hooks/useModal";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
+import { Trash2, Upload } from "lucide-react";
+import UploadProfilePhotoModal from "@/components/Modal/UploadProfilePhotoModal";
 import { useViewAccount } from "@/hooks/admin/useViewAccount";
 
 const ViewAccount: React.FC = () => {
   // const navigate = useNavigate();
   // const location = useLocation();
 
-  // const { currentUser } = useAuth();
-  const { accountInfo } = useViewAccount();
+  const { currentUser } = useAuth();
+  const { id, accountInfo, refreshAccountData } = useViewAccount();
+  const { activeModal, openModal } = useModal();
 
   return (
     <>
@@ -32,6 +42,46 @@ const ViewAccount: React.FC = () => {
                   </p>
                 </AvatarFallback>
               </Avatar>
+              {currentUser?.roleName === "ADMIN" && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button size="sm" className="absolute bottom-2 left-2">
+                      Edit
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start" className="w-48">
+                    <DropdownMenuItem
+                      onClick={() =>
+                        openModal("uploadProfilePhoto", {
+                          refreshProfile: refreshAccountData,
+                          isUser: false,
+                          patientId: id,
+                        })
+                      }
+                    >
+                      <Upload className="mr-2 h-4 w-4" />
+                      Upload Photo
+                    </DropdownMenuItem>
+                    {accountInfo?.profilePicture?.includes(
+                      "https://res.cloudinary.com"
+                    ) && (
+                      <DropdownMenuItem
+                        className="text-destructive focus:text-destructive"
+                        onClick={() =>
+                          openModal("deleteProfilePhoto", {
+                            refreshProfile: refreshAccountData,
+                            isUser: false,
+                            patientId: id,
+                          })
+                        }
+                      >
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        Remove Photo
+                      </DropdownMenuItem>
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
             </div>
             <div>
               <h1 className="text-2xl font-bold">
@@ -42,6 +92,10 @@ const ViewAccount: React.FC = () => {
             </div>
           </div>
         </div>
+
+        {activeModal.name === "uploadProfilePhoto" && (
+          <UploadProfilePhotoModal />
+        )}
       </div>
     </>
   );
