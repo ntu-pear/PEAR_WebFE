@@ -1,5 +1,6 @@
-import React from "react";
-// import { useNavigate, useLocation } from "react-router-dom";
+import React, { Suspense } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/hooks/useAuth";
 import { useModal } from "@/hooks/useModal";
@@ -13,10 +14,22 @@ import { Button } from "@/components/ui/button";
 import { Trash2, Upload } from "lucide-react";
 import UploadProfilePhotoModal from "@/components/Modal/UploadProfilePhotoModal";
 import { useViewAccount } from "@/hooks/admin/useViewAccount";
+import AccountInfoTab from "@/components/Tab/AccountInfoTab";
 
 const ViewAccount: React.FC = () => {
-  // const navigate = useNavigate();
+  const navigate = useNavigate();
   // const location = useLocation();
+
+  const activeTab =
+    new URLSearchParams(location.search).get("tab") || "information";
+
+  const handleTabChange = (value: string) => {
+    // Update the URL with the new tab
+    navigate({
+      pathname: location.pathname,
+      search: `?tab=${value}`, // Set the selected tab in the URL query
+    });
+  };
 
   const { currentUser } = useAuth();
   const { id, accountInfo, refreshAccountData } = useViewAccount();
@@ -91,6 +104,9 @@ const ViewAccount: React.FC = () => {
               <p className="text-gray-600">{accountInfo?.email}</p>
             </div>
           </div>
+          
+            <AccountInfoTab />
+
         </div>
 
         {activeModal.name === "uploadProfilePhoto" && (
