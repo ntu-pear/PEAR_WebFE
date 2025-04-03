@@ -2,7 +2,7 @@ import { useViewAccount } from "@/hooks/admin/useViewAccount";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const AccountInfoTab: React.FC = () => {
-  const { accountInfo } = useViewAccount();
+  const { accountInfo, createdByAccount, modifiedByAccount } = useViewAccount();
 
   return (
     <>
@@ -93,7 +93,7 @@ const AccountInfoTab: React.FC = () => {
           </div>
           <div className="space-y-2">
             <p className="text-sm font-medium">Created By</p>
-            {accountInfo?.createdById || "NA"}
+            {createdByAccount?.nric_FullName || "NA"}
           </div>
           <div className="space-y-2">
             <p className="text-sm font-medium">Created Date</p>
@@ -101,7 +101,7 @@ const AccountInfoTab: React.FC = () => {
           </div>
           <div className="space-y-2">
             <p className="text-sm font-medium">Modified By</p>
-            {accountInfo?.modifiedById || "NA"}
+            {modifiedByAccount?.nric_FullName || "NA"}
           </div>
           <div className="space-y-2">
             <p className="text-sm font-medium">Modified Date</p>
