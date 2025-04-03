@@ -5,7 +5,7 @@ const AccountInfoTab: React.FC = () => {
   const { accountInfo, createdByAccount, modifiedByAccount } = useViewAccount();
 
   return (
-    <>
+    <div className="flex flex-col gap-4">
       <Card>
         <CardHeader>
           <CardTitle className="text-lg">Personal Information</CardTitle>
@@ -109,7 +109,7 @@ const AccountInfoTab: React.FC = () => {
           </div>
         </CardContent>
       </Card>
-    </>
+    </div>
   );
 };
 
