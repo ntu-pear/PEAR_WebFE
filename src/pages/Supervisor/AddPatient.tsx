@@ -24,8 +24,11 @@ import { AddPatientPrivacyLevel } from "@/api/patients/privacyLevel";
 
 const patientInfoSchema = z
   .object({
-    name: z.string().min(1, { message: "Name is required" }),
-    preferredName: z.string().min(1, { message: "Preferred name is required" }),
+    name: z.string().trim().min(1, { message: "Name is required" }),
+    preferredName: z
+      .string()
+      .trim()
+      .min(1, { message: "Preferred name is required" }),
     nric: z
       .string()
       .min(1, { message: "NRIC is required" })
@@ -67,8 +70,8 @@ const patientInfoSchema = z
       })
       .optional()
       .or(z.literal("")),
-    address: z.string().min(1, { message: "Address is required" }),
-    tempAddress: z.string().optional(),
+    address: z.string().trim().min(1, { message: "Address is required" }),
+    tempAddress: z.string().trim().optional(),
     preferredLanguageId: z
       .number()
       .min(1, { message: "Preferred Language is required" }),

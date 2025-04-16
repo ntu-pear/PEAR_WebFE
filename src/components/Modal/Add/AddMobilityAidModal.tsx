@@ -41,7 +41,7 @@ const AddMobilityAidModal: React.FC = () => {
     const allergyFormData: AddMobilityAid = {
       PatientID: parseInt(patientId as string, 10),
       MobilityListId: parseInt(formDataObj.MobilityListId as string, 10),
-      MobilityRemarks: formDataObj.MobilityRemarks as string,
+      MobilityRemarks: (formDataObj.MobilityRemarks as string).trim(),
       IsRecovered: formDataObj.IsRecovered === "true",
       CreatedById: submitterId as string,
       ModifiedById: submitterId as string,
