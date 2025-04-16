@@ -40,7 +40,7 @@ const EditMobilityAid: React.FC = () => {
     const formDataObj = Object.fromEntries(formData.entries());
 
     const MobilityAidFormData: UpdateMobilityAid = {
-      MobilityRemarks: formDataObj.MobilityRemarks as string,
+      MobilityRemarks: (formDataObj.MobilityRemarks as string).trim(),
       IsRecovered: formDataObj.IsRecovered === "true" ? true : false,
     };
     try {

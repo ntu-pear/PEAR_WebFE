@@ -49,7 +49,7 @@ const EditVitalModal: React.FC = () => {
       HeartRate: parseInt(formDataObj.HeartRate as string, 10),
       SpO2: parseFloat(formDataObj.SpO2 as string),
       BloodSugarLevel: parseFloat(formDataObj.BloodSugarLevel as string),
-      VitalRemarks: formDataObj.VitalRemarks as string,
+      VitalRemarks: (formDataObj.VitalRemarks as string).trim(),
       IsAfterMeal: formDataObj.IsAfterMeal as string,
       ModifiedById: submitterId as string,
     };

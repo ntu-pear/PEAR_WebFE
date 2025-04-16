@@ -23,7 +23,7 @@ const AddDoctorNoteModal: React.FC = () => {
       isDeleted: "0",
       patientId: parseInt(patientId as string, 10),
       doctorId: submitterId as string,
-      doctorRemarks: formDataObj.notes as string,
+      doctorRemarks: (formDataObj.notes as string).trim(),
       CreatedById: submitterId as string,
       ModifiedById: submitterId as string,
     };

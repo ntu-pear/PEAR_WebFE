@@ -251,8 +251,10 @@ const EditPatientInfoModal: React.FC = () => {
 
     const editedPatient: PatientBase = {
       ...patient,
-      address: updatedPermAddr || "",
-      tempAddress: updatedTempAddr || undefined,
+      name: (patient.name as string).trim(),
+      preferredName: (patient.preferredName as string).trim(),
+      address: (updatedPermAddr as string).trim() || "",
+      tempAddress: (updatedTempAddr as string).trim() || undefined,
       dateOfBirth: convertToUTCISOString(patient.dateOfBirth),
       startDate: convertToUTCISOString(patient.startDate),
       endDate: patient.endDate
