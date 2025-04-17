@@ -5,7 +5,7 @@ import {
 import { retrieveAccessTokenFromCookie } from "../users/auth";
 
 export interface PatientPrivacyLevel {
-  privacyLevelSensitive: number;
+  accessLevelSensitive: number;
   patientId: number;
   active: boolean;
   createdById: string;
@@ -15,7 +15,7 @@ export interface PatientPrivacyLevel {
 }
 
 export interface AddPatientPrivacyLevel {
-  privacyLevelSensitive: number;
+  accessLevelSensitive: number;
   active: boolean;
   createdById: string;
   modifiedById: string;
@@ -24,7 +24,7 @@ export interface AddPatientPrivacyLevel {
 }
 
 export interface UpdatePatientPrivacyLevel {
-  privacyLevelSensitive: number;
+  accessLevelSensitive: number;
   active: boolean;
   modifiedById: string;
   modifiedDate: string;

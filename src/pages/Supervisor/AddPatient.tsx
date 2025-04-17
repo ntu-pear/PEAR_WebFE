@@ -236,7 +236,7 @@ const AddPatient: React.FC = () => {
 
     if (patientId) {
       const addPatientPrivacyLevelForm: AddPatientPrivacyLevel = {
-        privacyLevelSensitive: 2,
+        accessLevelSensitive: 2,
         active: true,
         createdById: currentUser?.userId,
         modifiedById: currentUser?.userId,

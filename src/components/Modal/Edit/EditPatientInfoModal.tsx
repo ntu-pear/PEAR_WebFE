@@ -268,7 +268,7 @@ const EditPatientInfoModal: React.FC = () => {
     };
 
     const editedPatientPrivacyLevel: UpdatePatientPrivacyLevel = {
-      privacyLevelSensitive: patientPrivacyLevel?.privacyLevelSensitive || 2, // default to initial value 2,
+      accessLevelSensitive: patientPrivacyLevel?.accessLevelSensitive || 2, // default to initial value 2,
       active: true,
       modifiedDate: getDateTimeNowInUTC(),
       modifiedById: submitterId as string,
@@ -340,7 +340,7 @@ const EditPatientInfoModal: React.FC = () => {
   const validateAdditionalInfo = () => {
     if (!patient) return false;
     if (
-      !patientPrivacyLevel?.privacyLevelSensitive ||
+      !patientPrivacyLevel?.accessLevelSensitive ||
       // !patient.privacyLevel ||
       !patient.preferredLanguageId ||
       !patient.isRespiteCare ||
@@ -763,13 +763,13 @@ const EditPatientInfoModal: React.FC = () => {
                 </label>
                 <select
                   name="privacyLevel"
-                  value={patientPrivacyLevel?.privacyLevelSensitive || ""}
+                  value={patientPrivacyLevel?.accessLevelSensitive || ""}
                   onChange={(e) =>
                     setPatientPrivacyLevel((prev) => {
                       if (!prev) return prev; // Prevent updating null state
                       return {
                         ...prev,
-                        privacyLevelSensitive: Number(e.target.value), // Convert string to number
+                        accessLevelSensitive: Number(e.target.value), // Convert string to number
                       };
                     })
                   }
