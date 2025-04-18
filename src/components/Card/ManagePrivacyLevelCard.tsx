@@ -74,9 +74,9 @@ const ManageAccessLevelCard = () => {
             <InfoIcon />
           </div>
           {tooltipVisible && (
-            <div className="absolute bottom-full mb-2 w-40 bg-gray-700 text-white text-xs rounded py-1 px-2">
+            <div className="absolute bottom-full mb-2 w-96 bg-gray-700 text-white text-xs rounded py-1 px-2">
               <h1>
-                Select the access level of each role.
+                Select the access level of each role. The access level will allow a role to view senstive informaton of patients of equal or lower privacy level.
               </h1>
             </div>
           )}
