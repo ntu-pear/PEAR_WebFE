@@ -6,7 +6,7 @@ export interface Role {
   roleName: string;
   id: string;
   active: string;
-  privacyLevelSensitive: 0 | 1 | 2 | 3;
+  accessLevelSensitive: 0 | 1 | 2 | 3;
   createdById: string;
   createdDate: string;
   modifiedById: string;

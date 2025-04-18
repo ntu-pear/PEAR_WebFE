@@ -2,7 +2,7 @@ import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 import ManagePrivacySettingsCard from "@/components/Card/ManagePrivacySettingsCard";
-import ManagePrivacyLevelCard from "@/components/Card/ManagePrivacyLevelCard";
+import ManageAccessLevelCard from "@/components/Card/ManagePrivacyLevelCard";
 
 const ManageSocialHistory: React.FC = () => {
   return (
@@ -15,7 +15,7 @@ const ManageSocialHistory: React.FC = () => {
             </CardHeader>
             <CardContent className="flex flex-col align-middle">
               <ManagePrivacySettingsCard />
-              <ManagePrivacyLevelCard />
+              <ManageAccessLevelCard />
             </CardContent>
           </Card>
         </main>
