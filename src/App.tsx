@@ -44,7 +44,7 @@ import TwoFactorAuthSettings from "./components/UserSettings/TwoFactorAuthSettin
 import ConfirmNewEmail from "./pages/auth/ConfirmNewEmail";
 import Login2FA from "./pages/auth/Login2FA";
 import HighlightTable from "./pages/Supervisor/HighlightTable";
-import VerifyAccount from "./pages/Admin/VerifyAccount";
+import VerifyAccount from "./pages/VerifyAccount";
 import { ViewPatientProvider } from "./hooks/patient/useViewPatient";
 import PatientLogs from "./pages/logger/PatientLogs";
 import AccountTable from "./pages/Admin/AccountTable";
