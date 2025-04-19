@@ -27,11 +27,10 @@ export interface UserDetails {
   allowNotification: boolean;
   profilePicture: string | null;
   lockoutReason: string | null;
-  status: string;
   email: string;
   emailConfirmed: boolean;
   verified: boolean;
-  active: boolean;
+  isDeleted: boolean;
   twoFactorEnabled: boolean;
   createdById: string;
   createdDate: string;
