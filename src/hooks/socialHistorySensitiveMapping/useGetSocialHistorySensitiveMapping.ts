@@ -5,6 +5,7 @@ const useGetSocialHistorySensitiveMapping = () => {
   return useQuery({
     queryKey: ["socialHistorySensitiveMapping"],
     queryFn: fetchSocialHistorySensitiveMapping,
+    select: (data) => data.sort((a, b) => a.socialHistoryItem.localeCompare(b.socialHistoryItem)),
   });
 };
 

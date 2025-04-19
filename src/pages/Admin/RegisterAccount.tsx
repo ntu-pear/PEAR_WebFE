@@ -66,12 +66,12 @@ const RegisterAccount: React.FC = () => {
                   </CardHeader>
                   <CardContent className="py-4 flex flex-col">
                     <Input
-                      label="Full Name"
+                      label="Full Name according to NRIC"
                       name="fullName"
                       formReturn={form}
                     />
                     <Input
-                      label="NRIC"
+                      label="NRIC Number"
                       name="nric"
                       formReturn={form}
                       validation={{
