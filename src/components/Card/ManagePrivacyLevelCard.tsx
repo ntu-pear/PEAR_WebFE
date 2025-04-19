@@ -10,18 +10,18 @@ import { InfoIcon, SaveIcon } from "lucide-react";
 import RadioGroup from "../Form/RadioGroup";
 import { Button } from "../ui/button";
 
-type PrivacyLevel = '0' | '1' | '2' | '3';
+type AccessLevel = '0' | '1' | '2' | '3';
 
-type PrivacyLevelForm = {
-  [roleName: string]: PrivacyLevel;
+type AccessLevelForm = {
+  [roleName: string]: AccessLevel;
 };
 
 const privacyLevelHeaderCols = [
   "Role",
-  "Privacy Level",
+  "Access Level",
 ]
 
-const ManagePrivacyLevelCard = () => {
+const ManageAccessLevelCard = () => {
   const { data } = useGetRoles()
   const rows = useMemo(() =>
     data
@@ -30,21 +30,21 @@ const ManagePrivacyLevelCard = () => {
         name: role.roleName,
         label: role.roleName,
         id: role.id, privacyLevel:
-          role.privacyLevelSensitive
+          role.accessLevelSensitive
       })), [data]
   );
   const formValues = useMemo(() =>
     data?.reduce((acc, role) => {
-      acc[role.roleName] = role.privacyLevelSensitive.toString() as PrivacyLevel
+      acc[role.roleName] = role.accessLevelSensitive.toString() as AccessLevel
       return acc
-    }, {} as { [roleName: string]: PrivacyLevel }), [data]
+    }, {} as { [roleName: string]: AccessLevel }), [data]
   )
 
-  const form = useForm<PrivacyLevelForm>({ values: formValues as PrivacyLevelForm });
+  const form = useForm<AccessLevelForm>({ values: formValues as AccessLevelForm });
   const updateRolePrivacyLevel = useUpdateRolePrivacyLevel();
   const [tooltipVisible, setTooltipVisible] = useState(false);
 
-  const onSubmitPrivacyLevel: SubmitHandler<PrivacyLevelForm> = (data) => {
+  const onSubmitPrivacyLevel: SubmitHandler<AccessLevelForm> = (data) => {
     if (!rows) return
     let isChanged = false
     for (const row of rows) {
@@ -64,7 +64,7 @@ const ManagePrivacyLevelCard = () => {
   return (
     <Card className="m-3">
       <CardHeader className="bg-sky-400 py-3 text-white font-semibold flex flex-row gap-2">
-        Manage Privacy Level
+        Manage Access Level
         <div className="relative flex items-center">
           <div
             className="cursor-pointer"
@@ -74,9 +74,9 @@ const ManagePrivacyLevelCard = () => {
             <InfoIcon />
           </div>
           {tooltipVisible && (
-            <div className="absolute bottom-full mb-2 w-40 bg-gray-700 text-white text-xs rounded py-1 px-2">
+            <div className="absolute bottom-full mb-2 w-96 bg-gray-700 text-white text-xs rounded py-1 px-2">
               <h1>
-                Select the privacy level of each role.
+                Select the access level of each role. The access level will allow a role to view senstive informaton of patients of equal or lower privacy level.
               </h1>
             </div>
           )}
@@ -127,4 +127,4 @@ const ManagePrivacyLevelCard = () => {
   )
 }
 
-export default ManagePrivacyLevelCard;
+export default ManageAccessLevelCard;
