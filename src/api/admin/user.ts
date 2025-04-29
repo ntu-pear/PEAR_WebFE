@@ -17,6 +17,7 @@ export interface User {
   email: string;
   emailConfirmed: boolean;
   verified: boolean;
+  isDeleted: boolean;
   twoFactorEnabled: boolean;
   lockoutEnabled: boolean;
   lockoutReason: string | null;
