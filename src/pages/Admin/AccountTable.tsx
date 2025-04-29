@@ -27,8 +27,7 @@ import {
   fetchUsersByFields,
   User,
 } from "@/api/admin/user";
-
-import { mockAccountTDList } from "@/mocks/mockAccountTableData";
+import { Badge } from "@/components/ui/badge";
 
 const AccountTable: React.FC = () => {
   const [accountTDServer, setAccountTDServer] =
@@ -75,10 +74,7 @@ const AccountTable: React.FC = () => {
       );
 
       const fetchedAccountTDServer: AccountTableDataServer =
-        import.meta.env.MODE === "development" ||
-        import.meta.env.MODE === "production"
-          ? await fetchUsersByFields(pageNo, pageSize, filteredJsonList)
-          : mockAccountTDList;
+        await fetchUsersByFields(pageNo, pageSize, filteredJsonList);
 
       //let filteredAccountTDList = fetchedAccountTDServer.users;
 
@@ -105,7 +101,23 @@ const AccountTable: React.FC = () => {
   }[] = [
     { key: "id", header: "ID" },
     { key: "nric_FullName", header: "Name" },
-    { key: "status", header: "Status" },
+    {
+      key: "isDeleted",
+      header: "Status",
+      render: (value: boolean | undefined) => {
+        const status =
+          value === false ? "Active" : value === true ? "Inactive" : "";
+
+        const variant =
+          status === "Active"
+            ? "default"
+            : status === "Inactive"
+              ? "secondary"
+              : "outline";
+
+        return <Badge variant={variant}>{status}</Badge>;
+      },
+    },
     { key: "email", header: "Email" },
     {
       key: "loginTimeStamp",
