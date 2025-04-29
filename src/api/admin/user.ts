@@ -14,11 +14,9 @@ export interface User {
   contactNo: string;
   allowNotification: boolean;
   profilePicture: string;
-  status: "ACTIVE" | "INACTIVE";
   email: string;
   emailConfirmed: boolean;
   verified: boolean;
-  active: boolean;
   twoFactorEnabled: boolean;
   lockoutEnabled: boolean;
   lockoutReason: string | null;
