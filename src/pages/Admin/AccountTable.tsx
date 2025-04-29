@@ -57,16 +57,16 @@ const AccountTable: React.FC = () => {
     try {
       const apiFilterJson = {
         nric_FullName: debouncedSearch,
-        active: debouncedActiveStatus,
+        isDeleted: "",
       };
 
       // map the active field to actual values
-      if (apiFilterJson.active === "All") {
-        apiFilterJson.active = "";
-      } else if (apiFilterJson.active === "Active") {
-        apiFilterJson.active = "true";
-      } else if (apiFilterJson.active === "Inactive") {
-        apiFilterJson.active = "false";
+      if (debouncedActiveStatus === "All") {
+        apiFilterJson.isDeleted = "";
+      } else if (debouncedActiveStatus === "Active") {
+        apiFilterJson.isDeleted = "false";
+      } else if (debouncedActiveStatus === "Inactive") {
+        apiFilterJson.isDeleted = "true";
       }
 
       // remove items that is empty
