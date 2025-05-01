@@ -10,8 +10,8 @@ import Input from "@/components/Form/Input";
 import RadioGroup from "@/components/Form/RadioGroup";
 import DateInput from "@/components/Form/DateInput";
 import Select from "@/components/Form/Select";
-import useGetRoles from "@/hooks/role/useGetRoles";
 import useCreateUser from "@/hooks/admin/useCreateUser";
+import useGetRoleNames from "@/hooks/role/useGetRoleNames";
 
 type Inputs = {
   fullName: string;
@@ -28,7 +28,7 @@ const RegisterAccount: React.FC = () => {
   const { activeModal /*openModal*/ } = useModal();
   const form = useForm<Inputs>();
   const { mutate } = useCreateUser();
-  const roles = useGetRoles();
+  const { data } = useGetRoleNames();
 
   const onSubmit: SubmitHandler<Inputs> = (data) => {
     mutate({
@@ -133,7 +133,7 @@ const RegisterAccount: React.FC = () => {
                       label="Role"
                       name="role"
                       form={form}
-                      options={roles.data?.map((role) => role.roleName) || []}
+                      options={data?.map((role) => role.roleName) || []}
                     />
                   </CardContent>
                 </Card>
