@@ -79,12 +79,9 @@ export interface VerifyUserForm {
 
 export const verifyUser = async (user: VerifyUserForm, UrlToken: string) => {
   try {
-    const token = retrieveAccessTokenFromCookie();
-    if (!token) throw new Error("Token not found");
     const response = await userAPI.post(
       `/verify_account/${UrlToken}`,
       { ...user },
-      { headers: { Authorization: `Bearer ${token}` } }
     );
     console.log("Verify user", response.data);
     return response.data;
