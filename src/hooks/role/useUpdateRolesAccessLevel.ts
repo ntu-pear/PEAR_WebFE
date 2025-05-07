@@ -6,13 +6,13 @@ import { toast } from "sonner";
 type Variables = {
   roleId: string;
   roleName: string;
-  privacyLevelSensitive: 0 | 1 | 2 | 3;
+  accessLevelSensitive: 0 | 1 | 2 | 3;
 };
 
-const useUpdateRolePrivacyLevel = () => {
+const useUpdateRoleAccessLevel = () => {
   return useMutation({
-    mutationFn: ({ roleId, roleName, privacyLevelSensitive }: Variables) =>
-      updateRole(roleId, roleName, true, privacyLevelSensitive),
+    mutationFn: ({ roleId, roleName, accessLevelSensitive }: Variables) =>
+      updateRole(roleId, roleName, true, accessLevelSensitive),
     onSuccess: ({ roleName }) => {
       toast.success(`Privacy level of ${roleName} updated successfully`);
       queryClient.refetchQueries({ queryKey: ["roles"] });
@@ -22,9 +22,9 @@ const useUpdateRolePrivacyLevel = () => {
       { roleName }
     ) =>
       toast.error(
-        `Failed to update privacy level of ${roleName}. ${error.response.data.detail}`
+        `Failed to update access level of ${roleName}. ${error.response.data.detail}`
       ),
   });
 };
 
-export default useUpdateRolePrivacyLevel;
+export default useUpdateRoleAccessLevel;
