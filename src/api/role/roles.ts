@@ -85,7 +85,7 @@ export const createRole = async (
     const token = retrieveAccessTokenFromCookie();
     if (!token) throw new Error("Token not found");
     const response = await roleAPI.post<Role>(
-      "/create",
+      "/create/",
       { roleName, accessLevelSensitive },
       { headers: { Authorization: `Bearer ${token}` } }
     );
@@ -123,14 +123,14 @@ export const updateRole = async (
   roleId: string,
   roleName: string,
   active: boolean,
-  privacyLevelSensitive: 0 | 1 | 2 | 3
+  accessLevelSensitive: 0 | 1 | 2 | 3
 ) => {
   try {
     const token = retrieveAccessTokenFromCookie();
     if (!token) throw new Error("Token not found");
     const response = await roleAPI.put<Role>(
       `/update/${roleId}`,
-      { roleName, active, privacyLevelSensitive },
+      { roleName, active, accessLevelSensitive },
       {
         headers: { Authorization: `Bearer ${token}` },
       }

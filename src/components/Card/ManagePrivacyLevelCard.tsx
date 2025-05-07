@@ -1,5 +1,5 @@
 import useGetRoles from "@/hooks/role/useGetRoles";
-import useUpdateRolePrivacyLevel from "@/hooks/role/useUpdateRolesPrivacyLevel";
+import useUpdateRolePrivacyLevel from "@/hooks/role/useUpdateRolesAccessLevel";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 import { useMemo, useState } from "react";
@@ -54,7 +54,7 @@ const ManageAccessLevelCard = () => {
         updateRolePrivacyLevel.mutate({
           roleId: row.id,
           roleName: row.name,
-          privacyLevelSensitive: newPrivacyLevel as 0 | 1 | 2 | 3
+          accessLevelSensitive: newPrivacyLevel as 0 | 1 | 2 | 3
         })
       }
     }
