@@ -14,7 +14,7 @@ const PatientInfoCard: React.FC = () => {
     useViewPatient();
   const { currentUser } = useAuth();
   const { openModal } = useModal();
-  const [privacyLevelSensitive, setPrivacyLevelSensitive] = useState<
+  const [accessLevelSensitive, setAccessLevelSensitive] = useState<
     number | null
   >(null);
 
@@ -30,9 +30,9 @@ const PatientInfoCard: React.FC = () => {
     { key: "preferredName", header: "Preferred Name" },
     { key: "preferredLanguage", header: "Preferred Language" },
     {
-      key: "privacyLevelSensitive",
+      key: "accessLevelSensitive",
       header: "Privacy Level",
-      customValue: privacyLevelSensitive,
+      customValue: accessLevelSensitive,
     },
     { key: "underRespiteCare", header: "Under Respite Care" },
     { key: "startDate", header: "Start Date" },
@@ -43,7 +43,7 @@ const PatientInfoCard: React.FC = () => {
   const refreshPatientPrivacyLevel = async () => {
     if (isNaN(Number(id))) return;
     const response = await fetchPatientPrivacyLevel(Number(id));
-    setPrivacyLevelSensitive(response.privacyLevelSensitive);
+    setAccessLevelSensitive(response.accessLevelSensitive);
   };
 
   useEffect(() => {
@@ -87,7 +87,7 @@ const PatientInfoCard: React.FC = () => {
                 <div className="text-sm text-muted-foreground flex items-center space-x-2">
                   {column.key === "nric"
                     ? nricData.nric || "-" //check if nric field
-                    : column.key === "privacyLevelSensitive" //check if privacy level field
+                    : column.key === "accessLevelSensitive" //check if privacy level field
                       ? column.customValue !== null
                         ? convertPrivacyLevel(column.customValue)
                         : "-"
@@ -122,7 +122,7 @@ const PatientInfoCard: React.FC = () => {
                 <div className="text-sm text-muted-foreground flex items-center space-x-2">
                   {column.key === "nric"
                     ? nricData.nric || "-" //check if nric field
-                    : column.key === "privacyLevelSensitive" //check if privacy level field
+                    : column.key === "accessLevelSensitive" //check if privacy level field
                       ? column.customValue !== null
                         ? convertPrivacyLevel(column.customValue)
                         : "-"

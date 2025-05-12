@@ -211,7 +211,7 @@ const EditSocialHistoryModal: React.FC = () => {
               onChange={handleChange}
               required
             >
-              <option value="2">Not to Tell</option>
+              <option value="2">Not Available</option>
               <option value="0">No</option>
               <option value="1">Yes</option>
             </select>
@@ -228,7 +228,7 @@ const EditSocialHistoryModal: React.FC = () => {
               onChange={handleChange}
               required
             >
-              <option value="2">Not to Tell</option>
+              <option value="2">Not Available</option>
               <option value="0">No</option>
               <option value="1">Yes</option>
             </select>
@@ -302,7 +302,7 @@ const EditSocialHistoryModal: React.FC = () => {
               onChange={handleChange}
               required
             >
-              <option value="2">Not to Tell</option>
+              <option value="2">Not Available</option>
               <option value="0">No</option>
               <option value="1">Yes</option>
             </select>
@@ -358,7 +358,7 @@ const EditSocialHistoryModal: React.FC = () => {
               onChange={handleChange}
               required
             >
-              <option value="2">Not to Tell</option>
+              <option value="2">Not Available</option>
               <option value="0">No</option>
               <option value="1">Yes</option>
             </select>
@@ -375,7 +375,7 @@ const EditSocialHistoryModal: React.FC = () => {
               onChange={handleChange}
               required
             >
-              <option value="2">Not to Tell</option>
+              <option value="2">Not Available</option>
               <option value="0">No</option>
               <option value="1">Yes</option>
             </select>
@@ -393,7 +393,7 @@ const EditSocialHistoryModal: React.FC = () => {
               onChange={handleChange}
               required
             >
-              <option value="2">Not to Tell</option>
+              <option value="2">Not Available</option>
               <option value="0">No</option>
               <option value="1">Yes</option>
             </select>
@@ -431,7 +431,7 @@ const EditSocialHistoryModal: React.FC = () => {
               onChange={handleChange}
               required
             >
-              <option value="2">Not to Tell</option>
+              <option value="2">Not Available</option>
               <option value="0">No</option>
               <option value="1">Yes</option>
             </select>

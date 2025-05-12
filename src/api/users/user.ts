@@ -27,11 +27,10 @@ export interface UserDetails {
   allowNotification: boolean;
   profilePicture: string | null;
   lockoutReason: string | null;
-  status: string;
   email: string;
   emailConfirmed: boolean;
   verified: boolean;
-  active: boolean;
+  isDeleted: boolean;
   twoFactorEnabled: boolean;
   createdById: string;
   createdDate: string;
@@ -80,12 +79,9 @@ export interface VerifyUserForm {
 
 export const verifyUser = async (user: VerifyUserForm, UrlToken: string) => {
   try {
-    const token = retrieveAccessTokenFromCookie();
-    if (!token) throw new Error("Token not found");
     const response = await userAPI.post(
       `/verify_account/${UrlToken}`,
       { ...user },
-      { headers: { Authorization: `Bearer ${token}` } }
     );
     console.log("Verify user", response.data);
     return response.data;

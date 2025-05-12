@@ -46,7 +46,7 @@ const EditDoctorNoteModal: React.FC = () => {
       isDeleted: "0",
       patientId: parseInt(patientId as string, 10),
       doctorId: doctorNote?.doctorId as string,
-      doctorRemarks: formDataObj.doctorRemarks as string,
+      doctorRemarks: (formDataObj.doctorRemarks as string).trim(),
       ModifiedById: submitterId as string,
     };
 

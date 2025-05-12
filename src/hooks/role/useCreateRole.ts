@@ -6,15 +6,15 @@ import { toast } from "sonner";
 
 type Variables = {
   roleName: string;
-  privacyLevel: 0 | 1 | 2 | 3;
+  accessLevel: 0 | 1 | 2 | 3;
 };
 
 const useCreateRole = () => {
   const navigate = useNavigate();
 
   return useMutation({
-    mutationFn: ({ roleName, privacyLevel }: Variables) =>
-      createRole(roleName, privacyLevel),
+    mutationFn: ({ roleName, accessLevel }: Variables) =>
+      createRole(roleName, accessLevel),
     onSuccess: () => {
       navigate(-1);
       toast.success("Role created successfully");

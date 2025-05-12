@@ -6,7 +6,7 @@ export interface Role {
   roleName: string;
   id: string;
   active: string;
-  privacyLevelSensitive: 0 | 1 | 2 | 3;
+  accessLevelSensitive: 0 | 1 | 2 | 3;
   createdById: string;
   createdDate: string;
   modifiedById: string;
@@ -79,14 +79,14 @@ export const deleteRole = async (id: string) => {
 
 export const createRole = async (
   roleName: string,
-  privacyLevelSensitive: 0 | 1 | 2 | 3
+  accessLevelSensitive: 0 | 1 | 2 | 3
 ) => {
   try {
     const token = retrieveAccessTokenFromCookie();
     if (!token) throw new Error("Token not found");
     const response = await roleAPI.post<Role>(
-      "/create",
-      { roleName, privacyLevelSensitive },
+      "/create/",
+      { roleName, accessLevelSensitive },
       { headers: { Authorization: `Bearer ${token}` } }
     );
     console.log("Create role", response.data);
@@ -123,14 +123,14 @@ export const updateRole = async (
   roleId: string,
   roleName: string,
   active: boolean,
-  privacyLevelSensitive: 0 | 1 | 2 | 3
+  accessLevelSensitive: 0 | 1 | 2 | 3
 ) => {
   try {
     const token = retrieveAccessTokenFromCookie();
     if (!token) throw new Error("Token not found");
     const response = await roleAPI.put<Role>(
       `/update/${roleId}`,
-      { roleName, active, privacyLevelSensitive },
+      { roleName, active, accessLevelSensitive },
       {
         headers: { Authorization: `Bearer ${token}` },
       }
