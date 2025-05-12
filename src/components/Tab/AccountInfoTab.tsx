@@ -61,7 +61,7 @@ const AccountInfoTab: React.FC = () => {
         <CardContent className="grid gap-2 md:grid-cols-2">
           <div className="space-y-2">
             <p className="text-sm font-medium">Account Status</p>
-            {accountInfo?.status || "NA"}
+            {accountInfo?.isDeleted ? "Inactive" : "Active"}
           </div>
           <div className="space-y-2">
             <p className="text-sm font-medium">Account Verified</p>
