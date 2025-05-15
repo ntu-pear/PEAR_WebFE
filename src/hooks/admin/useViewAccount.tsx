@@ -12,6 +12,8 @@ import { toast } from "sonner";
 export interface ViewAccountContextType {
   id: string | undefined;
   accountInfo: User | null;
+  createdByAccount: User | null;
+  modifiedByAccount: User | null;
   refreshAccountData: () => Promise<void>;
 }
 
@@ -24,13 +26,32 @@ export const ViewAccountProvider: React.FC<{ children: ReactNode }> = ({
 }) => {
   const { id } = useParams<{ id: string }>();
   const [accountInfo, setAccountInfo] = useState<User | null>(null);
+  const [createdByAccount, setCreatedByAccount] = useState<User | null>(null);
+  const [modifiedByAccount, setModifiedByAccount] = useState<User | null>(null);
 
   const refreshAccountData = async () => {
     if (!id) return;
     try {
       const fetchedAccountInfo: User = await fetchUserById(id);
-
       setAccountInfo(fetchedAccountInfo);
+
+      if (fetchedAccountInfo.createdById) {
+        const fetchedCreatedByAccount = await fetchUserById(
+          fetchedAccountInfo.createdById
+        );
+        setCreatedByAccount(fetchedCreatedByAccount);
+      } else {
+        setCreatedByAccount(null);
+      }
+
+      if (fetchedAccountInfo.modifiedById) {
+        const fetchedModifiedByAccount = await fetchUserById(
+          fetchedAccountInfo.modifiedById
+        );
+        setModifiedByAccount(fetchedModifiedByAccount);
+      } else {
+        setModifiedByAccount(null);
+      }
     } catch (error) {
       toast.error("Failed to fetch account information");
     }
@@ -45,6 +66,8 @@ export const ViewAccountProvider: React.FC<{ children: ReactNode }> = ({
       value={{
         id,
         accountInfo,
+        createdByAccount,
+        modifiedByAccount,
         refreshAccountData,
       }}
     >
