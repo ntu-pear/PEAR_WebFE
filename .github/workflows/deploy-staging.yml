@@ -1,0 +1,40 @@
+name: Deploy to Staging
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    name: Deploy to Staging
+    runs-on: [self-hosted, Linux, x64, webfe, staging]
+    environment: staging
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Get short commit SHA
+        id: get_sha
+        run: echo "sha=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Create .env file from GitHub Secrets
+        run: |
+
+          echo "VITE_PATIENT_SERVICE_URL=${{ vars.VITE_PATIENT_SERVICE_URL }}" >> .env
+          echo "VITE_GEOCODE_SERVICE_URL=${{ vars.VITE_GEOCODE_SERVICE_URL }}" >> .env
+          echo "VITE_USER_SERVICE_URL=${{ vars.VITE_USER_SERVICE_URL }}" >> .env
+
+      - name: Build and push Docker image
+        run: |
+          docker build -t localhost:5000/pear_webfe:${{ steps.get_sha.outputs.sha }} .
+          docker push localhost:5000/pear_webfe:${{ steps.get_sha.outputs.sha }}
+          docker rmi localhost:5000/pear_webfe:${{ steps.get_sha.outputs.sha }}
+
+      - name: Deploy to Minikube
+        run: |
+          sed -i "s|^\(\s*image:\)\s*.*|\1 host.minikube.internal:5000/pear_webfe:${{ steps.get_sha.outputs.sha }}|" pear_webfe.yaml
+          cat pear_webfe.yaml
+          minikube kubectl -- apply -f pear_webfe.yaml
+          minikube kubectl get pods
