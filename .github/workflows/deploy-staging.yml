@@ -3,7 +3,7 @@ name: Deploy to Staging
 on:
   push:
     branches:
-      - deployment/owen
+      - main
 
 jobs:
   deploy:
@@ -14,11 +14,6 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
-
-      - name: Print working directory debug
-        run: |
-          pwd
-          ls
 
       - name: Get short commit SHA
         id: get_sha
