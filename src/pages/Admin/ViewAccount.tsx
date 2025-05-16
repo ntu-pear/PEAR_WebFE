@@ -13,24 +13,12 @@ import {
 import { Button } from "@/components/ui/button";
 import { Trash2, Upload } from "lucide-react";
 import UploadProfilePhotoModal from "@/components/Modal/UploadProfilePhotoModal";
+import EditAccountInfoModal from "@/components/Modal/Edit/EditAccountInfoModal";
+import DeleteAccountModal from "@/components/Modal/Delete/DeleteAccountModal";
 import { useViewAccount } from "@/hooks/admin/useViewAccount";
 import AccountInfoTab from "@/components/Tab/AccountInfoTab";
 
 const ViewAccount: React.FC = () => {
-  const navigate = useNavigate();
-  // const location = useLocation();
-
-  const activeTab =
-    new URLSearchParams(location.search).get("tab") || "information";
-
-  const handleTabChange = (value: string) => {
-    // Update the URL with the new tab
-    navigate({
-      pathname: location.pathname,
-      search: `?tab=${value}`, // Set the selected tab in the URL query
-    });
-  };
-
   const { currentUser } = useAuth();
   const { id, accountInfo, refreshAccountData } = useViewAccount();
   const { activeModal, openModal } = useModal();
@@ -103,15 +91,42 @@ const ViewAccount: React.FC = () => {
               <p className="text-gray-600">{accountInfo?.roleName}</p>
               <p className="text-gray-600">{accountInfo?.email}</p>
             </div>
+            <div className="!ml-auto space-x-2">
+              <Button
+                variant="default"
+                onClick={() =>
+                  openModal("editAccountInfo", {
+                    accountId: id,
+                    refreshAccountData,
+                  })
+                }
+              >
+                Edit Account
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={() =>
+                  openModal("deleteAccount", {
+                    accountId: id,
+                    refreshAccountData,
+                  })
+                }
+              >
+                Delete
+              </Button>
+            </div>
           </div>
-          
-            <AccountInfoTab />
 
+          <AccountInfoTab />
         </div>
 
         {activeModal.name === "uploadProfilePhoto" && (
           <UploadProfilePhotoModal />
         )}
+        {activeModal.name === "editAccountInfo" && (
+          <EditAccountInfoModal />
+        )}
+        {activeModal.name === "deleteAccount" && <DeleteAccountModal />}
       </div>
     </>
   );
