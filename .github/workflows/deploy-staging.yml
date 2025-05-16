@@ -25,6 +25,7 @@ jobs:
           echo "VITE_PATIENT_SERVICE_URL=${{ vars.VITE_PATIENT_SERVICE_URL }}" >> .env
           echo "VITE_GEOCODE_SERVICE_URL=${{ vars.VITE_GEOCODE_SERVICE_URL }}" >> .env
           echo "VITE_USER_SERVICE_URL=${{ vars.VITE_USER_SERVICE_URL }}" >> .env
+          echo "VITE_LOGGER_SERVICE_URL=${{ vars.VITE_LOGGER_SERVICE_URL }}" >> .env
 
       - name: Build and push Docker image
         run: |
