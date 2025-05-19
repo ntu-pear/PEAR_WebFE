@@ -77,13 +77,13 @@ const EditAccountInfoModal: React.FC = () => {
         ) {
           if (field === "nric") {
             if (account["nric"].includes("*")) {
-              toast.error("NRIC cannot contain * character.");
+              toast.error("Input Error: NRIC cannot contain * character.");
               return acc;
             } else if (account["nric"].length !== 9) {
-              toast.error("NRIC must be 9 characters long.");
+              toast.error("Input Error: NRIC must be 9 characters long.");
               return acc;
             } else if (account["nric"] === originalAccount.unmaskedNric) {
-              toast.error("NRIC cannot be the same as unmasked NRIC.");
+              toast.error("Input Error: NRIC cannot be the same as unmasked NRIC.");
               return acc;
             }
           }
@@ -107,7 +107,7 @@ const EditAccountInfoModal: React.FC = () => {
       await refreshAccountData();
     } catch (error: any) {
       if (error?.response?.data?.detail) {
-        toast.error(error?.response?.data?.detail);
+        toast.error("Error: " + error?.response?.data?.detail);
       } else {
         toast.error("Failed to update account information.");
       }
