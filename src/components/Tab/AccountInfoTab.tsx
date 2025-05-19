@@ -93,7 +93,10 @@ const AccountInfoTab: React.FC = () => {
           </div>
           <div className="space-y-2">
             <p className="text-sm font-medium">Created By</p>
-            {createdByAccount?.nric_FullName || "NA"}
+            {createdByAccount ? 
+              `${createdByAccount.nric_FullName} (Account ID: ${createdByAccount.id})` :
+              `${"Account ID: " + accountInfo?.createdById || "NA"}`
+             }
           </div>
           <div className="space-y-2">
             <p className="text-sm font-medium">Created Date</p>
@@ -101,7 +104,10 @@ const AccountInfoTab: React.FC = () => {
           </div>
           <div className="space-y-2">
             <p className="text-sm font-medium">Modified By</p>
-            {modifiedByAccount?.nric_FullName || "NA"}
+            {modifiedByAccount ? 
+              `${modifiedByAccount.nric_FullName} (Account ID: ${modifiedByAccount.id})` :
+              `${"Account ID: " + accountInfo?.modifiedById || "NA"}`
+             }
           </div>
           <div className="space-y-2">
             <p className="text-sm font-medium">Modified Date</p>
