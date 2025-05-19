@@ -1,19 +1,19 @@
 import { Button } from "../../ui/button";
 import { useModal } from "@/hooks/useModal";
-import { deleteUserById } from "@/api/admin/user";
+import { deleteUserById, User } from "@/api/admin/user";
 
 const DeleteAccountModal: React.FC = () => {
   const { modalRef, activeModal, closeModal } = useModal();
   const { accountId, refreshAccountData } = activeModal.props as {
     accountId: string;
-    refreshAccountData: () => Promise<void>;
+    refreshAccountData: (updatedUser: User) => Promise<void>;
   };
 
   const handleDelete = async () => {
     try {
-      await deleteUserById(accountId);
+      const updatedUser = await deleteUserById(accountId);
       closeModal();
-      await refreshAccountData();
+      await refreshAccountData(updatedUser);
     } catch (error) {
       console.error("Failed to delete account", error);
     }

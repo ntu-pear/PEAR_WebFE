@@ -192,8 +192,19 @@ export const createUser = async (user: Partial<User>) => {
   }
 };
 
-export const deleteUserById = async (id: string) => {
-  return;
+export const deleteUserById = async (userId: string) => {
+  try {
+    const token = retrieveAccessTokenFromCookie();
+    if (!token) throw new Error("Token not found");
+    const response = await adminAPI.delete<User>(
+      `/${userId}`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Delete user", error);
+    throw error;
+  }
 }
 
 export const getGuardian = async (nric: string) => {
