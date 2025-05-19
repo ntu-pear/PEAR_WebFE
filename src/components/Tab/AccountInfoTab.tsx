@@ -1,8 +1,17 @@
+import { EyeIcon, EyeOffIcon } from "lucide-react";
 import { useViewAccount } from "@/hooks/admin/useViewAccount";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "../ui/button";
 
 const AccountInfoTab: React.FC = () => {
-  const { accountInfo, createdByAccount, modifiedByAccount } = useViewAccount();
+  const {
+    accountInfo,
+    createdByAccount,
+    nricData,
+    modifiedByAccount,
+    getNRIC,
+    handleNRICToggle,
+  } = useViewAccount();
 
   return (
     <div className="flex flex-col gap-4">
@@ -21,7 +30,21 @@ const AccountInfoTab: React.FC = () => {
           </div>
           <div className="space-y-2">
             <p className="text-sm font-medium">NRIC</p>
-            {accountInfo?.nric || "NA"}
+            <div className="flex">
+              {getNRIC() || "NA"}
+              <Button
+                size="icon"
+                variant="ghost"
+                onClick={handleNRICToggle}
+                className="h-6 w-6 flex items-center justify-center ml-1"
+              >
+                {nricData.isMasked ? (
+                  <EyeOffIcon className="h-5 w-5" /> // Masked
+                ) : (
+                  <EyeIcon className="h-5 w-5" /> // Unmasked
+                )}
+              </Button>
+            </div>
           </div>
           <div className="space-y-2">
             <p className="text-sm font-medium">Gender</p>
@@ -93,10 +116,9 @@ const AccountInfoTab: React.FC = () => {
           </div>
           <div className="space-y-2">
             <p className="text-sm font-medium">Created By</p>
-            {createdByAccount ? 
-              `${createdByAccount.nric_FullName} (Account ID: ${createdByAccount.id})` :
-              `${"Account ID: " + accountInfo?.createdById || "NA"}`
-             }
+            {createdByAccount
+              ? `${createdByAccount.nric_FullName} (Account ID: ${createdByAccount.id})`
+              : `${"Account ID: " + accountInfo?.createdById || "NA"}`}
           </div>
           <div className="space-y-2">
             <p className="text-sm font-medium">Created Date</p>
@@ -104,10 +126,9 @@ const AccountInfoTab: React.FC = () => {
           </div>
           <div className="space-y-2">
             <p className="text-sm font-medium">Modified By</p>
-            {modifiedByAccount ? 
-              `${modifiedByAccount.nric_FullName} (Account ID: ${modifiedByAccount.id})` :
-              `${"Account ID: " + accountInfo?.modifiedById || "NA"}`
-             }
+            {modifiedByAccount
+              ? `${modifiedByAccount.nric_FullName} (Account ID: ${modifiedByAccount.id})`
+              : `${"Account ID: " + accountInfo?.modifiedById || "NA"}`}
           </div>
           <div className="space-y-2">
             <p className="text-sm font-medium">Modified Date</p>

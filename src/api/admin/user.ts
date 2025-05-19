@@ -54,6 +54,24 @@ export const fetchUsers = async () => {
   }
 };
 
+export const fetchUserNRIC = async (userid: string) => {
+  try {
+    const token = retrieveAccessTokenFromCookie();
+    if (!token) throw new Error("Token not found");
+    const response = await adminAPI.get<string>(`/get_nric/${userid}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    console.log("GET user nric", response.data);
+    return response.data;
+  } catch (error) {
+    toast.error(
+      `Failed to fetch user nric. ${(error as { response: { data: { detail: string } } }).response.data.detail}`
+    );
+    console.error("GET user nric", error);
+    throw error;
+  }
+}
+
 //Get All Patients with skip and limit
 export const fetchUsersByFields = async (
   pageNo: number = 0,
