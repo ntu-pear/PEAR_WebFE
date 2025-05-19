@@ -1,15 +1,16 @@
 import { useModal } from "@/hooks/useModal";
 import { Button } from "../../ui/button";
 import { useEffect, useState } from "react";
-import { fetchUserById, updateUser, User } from "@/api/admin/user";
+import { updateUser, User } from "@/api/admin/user";
 import { toast } from "sonner";
 import classNames from "classnames";
 import { fetchRoleNames } from "@/api/role/roles";
 
+// Accept accountInfo as a prop via modal props
 const EditAccountInfoModal: React.FC = () => {
   const { modalRef, activeModal, closeModal } = useModal();
-  const { accountId, refreshAccountData } = activeModal.props as {
-    accountId: string;
+  const { accountInfo, refreshAccountData } = activeModal.props as {
+    accountInfo: User;
     refreshAccountData: () => Promise<void>;
   };
 
@@ -30,15 +31,13 @@ const EditAccountInfoModal: React.FC = () => {
     fetchRoles();
   }, []);
 
-  const handleFetchAccountInfo = async (id: string) => {
-    try {
-      const fetchedAccount = await fetchUserById(id);
-      setAccount(fetchedAccount);
-      setOriginalAccount(fetchedAccount);
-    } catch {
-      toast.error("Failed to fetch account information.");
+  // Initialize account and originalAccount from props, only once
+  useEffect(() => {
+    if (accountInfo) {
+      setAccount(accountInfo);
+      setOriginalAccount(accountInfo);
     }
-  };
+  }, [accountInfo]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -56,7 +55,6 @@ const EditAccountInfoModal: React.FC = () => {
     e.preventDefault();
     if (!account || !originalAccount) return;
 
-    // List of editable fields
     const fields = [
       "preferredName",
       "contactNo",
@@ -72,13 +70,19 @@ const EditAccountInfoModal: React.FC = () => {
       "roleName",
     ];
 
-    // Only send changed fields
     const changedFields = fields.reduce(
       (acc, field) => {
         if (
           account[field as keyof User] !== originalAccount[field as keyof User]
-        )
+        ) {
+          if (field === "nric") {
+            if (account["nric"].includes("*")) {
+              toast.error("NRIC cannot contain * character.");
+              return acc;
+            }
+          }
           acc[field] = account[field as keyof User];
+        }
         return acc;
       },
       {} as Record<string, any>
@@ -107,10 +111,6 @@ const EditAccountInfoModal: React.FC = () => {
       }
     }
   };
-
-  useEffect(() => {
-    if (accountId) handleFetchAccountInfo(accountId);
-  }, [accountId]);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">

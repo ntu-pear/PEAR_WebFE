@@ -20,7 +20,7 @@ import AccountInfoTab from "@/components/Tab/AccountInfoTab";
 
 const ViewAccount: React.FC = () => {
   const { currentUser } = useAuth();
-  const { id, accountInfo, refreshAccountData } = useViewAccount();
+  const { id, accountInfo, getNRIC, refreshAccountData } = useViewAccount();
   const { activeModal, openModal } = useModal();
 
   return (
@@ -96,7 +96,10 @@ const ViewAccount: React.FC = () => {
                 variant="default"
                 onClick={() =>
                   openModal("editAccountInfo", {
-                    accountId: id,
+                    accountInfo:{
+                      ...accountInfo,
+                      nric: getNRIC(),
+                    },
                     refreshAccountData,
                   })
                 }
