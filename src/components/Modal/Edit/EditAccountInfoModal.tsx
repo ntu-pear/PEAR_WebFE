@@ -1,8 +1,10 @@
 import { useModal } from "@/hooks/useModal";
 import { Button } from "../../ui/button";
 import { useEffect, useState } from "react";
-import { fetchUserById, User } from "@/api/admin/user";
+import { fetchUserById, updateUser, User } from "@/api/admin/user";
 import { toast } from "sonner";
+import classNames from "classnames";
+import { fetchRoleNames } from "@/api/role/roles";
 
 const EditAccountInfoModal: React.FC = () => {
   const { modalRef, activeModal, closeModal } = useModal();
@@ -12,6 +14,21 @@ const EditAccountInfoModal: React.FC = () => {
   };
 
   const [account, setAccount] = useState<User | null>(null);
+  const [emailError, setEmailError] = useState(false);
+  const [roles, setRoles] = useState<{ roleName: string }[]>([]);
+
+  // Fetch roles from API using the existing function
+  useEffect(() => {
+    const fetchRoles = async () => {
+      try {
+        const rolesData = await fetchRoleNames();
+        setRoles(rolesData || []);
+      } catch {
+        setRoles([]);
+      }
+    };
+    fetchRoles();
+  }, []);
 
   const handleFetchAccountInfo = async (id: string) => {
     try {
@@ -22,10 +39,21 @@ const EditAccountInfoModal: React.FC = () => {
     }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
+    const { name, value, type, checked } = e.target;
     if (account) {
-      setAccount({ ...account, [name]: value });
+      setAccount({
+        ...account,
+        [name]:
+          type === "checkbox"
+            ? checked
+            : name === "isDeleted" || name === "lockOutEnabled"
+              ? value === "true" || value === true
+              : value,
+      });
+      if (name === "email") setEmailError(false);
     }
   };
 
@@ -34,13 +62,35 @@ const EditAccountInfoModal: React.FC = () => {
     if (!account) return;
 
     try {
-      // Call API to update account information (API function not provided in the prompt)
-      // await updateAccount(account.id, account);
+      await updateUser(account.id, {
+        preferredName: account.preferredName,
+        contactNo: account.contactNo,
+        email: account.email,
+        nric: account.nric,
+        nric_FullName: account.nric_FullName,
+        nric_Address: account.nric_Address,
+        nric_DateOfBirth: account.nric_DateOfBirth,
+        nric_Gender: account.nric_Gender,
+        lockOutReason: account.lockoutReason ?? "",
+        lockOutEnabled: account.lockoutEnabled,
+        lockOutEnd: null, // You may want to support editing this if needed
+        isDeleted: account.isDeleted,
+        roleName: account.roleName,
+      });
       toast.success("Account information updated successfully.");
       closeModal();
       await refreshAccountData();
-    } catch (error) {
-      toast.error("Failed to update account information.");
+    } catch (error: any) {
+      if (
+        error?.response?.status === 400 &&
+        error?.response?.data?.detail ===
+          "A user with this email already exists."
+      ) {
+        toast.error("A user with this email already exists.");
+        setEmailError(true);
+      } else {
+        toast.error("Failed to update account information.");
+      }
     }
   };
 
@@ -61,6 +111,18 @@ const EditAccountInfoModal: React.FC = () => {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium">
+                Preferred Name
+              </label>
+              <input
+                type="text"
+                name="preferredName"
+                value={account?.preferredName || ""}
+                onChange={handleChange}
+                className="mt-1 block w-full p-2 border rounded-md text-gray-900"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium">
                 Full Name <span className="text-red-600">*</span>
               </label>
               <input
@@ -74,15 +136,74 @@ const EditAccountInfoModal: React.FC = () => {
             </div>
             <div>
               <label className="block text-sm font-medium">
-                Email <span className="text-red-600">*</span>
+                NRIC <span className="text-red-600">*</span>
               </label>
               <input
-                type="email"
-                name="email"
-                value={account?.email || ""}
+                type="text"
+                name="nric"
+                value={account?.nric || ""}
                 onChange={handleChange}
                 className="mt-1 block w-full p-2 border rounded-md text-gray-900"
                 required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium">NRIC Address</label>
+              <input
+                type="text"
+                name="nric_Address"
+                value={account?.nric_Address || ""}
+                onChange={handleChange}
+                className="mt-1 block w-full p-2 border rounded-md text-gray-900"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium">Date of Birth</label>
+              <input
+                type="date"
+                name="nric_DateOfBirth"
+                value={account?.nric_DateOfBirth || ""}
+                onChange={handleChange}
+                className="mt-1 block w-full p-2 border rounded-md text-gray-900"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium">Gender</label>
+              <select
+                name="nric_Gender"
+                value={account?.nric_Gender || ""}
+                onChange={handleChange}
+                className="mt-1 block w-full p-2 border rounded-md text-gray-900"
+              >
+                <option value="">Select</option>
+                <option value="M">Male</option>
+                <option value="F">Female</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium">
+                Lockout Enabled
+              </label>
+              <select
+                name="lockoutEnabled"
+                value={account?.lockoutEnabled ? "true" : "false"}
+                onChange={handleChange}
+                className="mt-1 block w-full p-2 border rounded-md text-gray-900"
+              >
+                <option value="false">No</option>
+                <option value="true">Yes</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium">
+                Lockout Reason
+              </label>
+              <input
+                type="text"
+                name="lockoutReason"
+                value={account?.lockoutReason || ""}
+                onChange={handleChange}
+                className="mt-1 block w-full p-2 border rounded-md text-gray-900"
               />
             </div>
             <div>
@@ -96,9 +217,12 @@ const EditAccountInfoModal: React.FC = () => {
                 className="mt-1 block w-full p-2 border rounded-md text-gray-900"
                 required
               >
-                <option value="ADMIN">Admin</option>
-                <option value="USER">User</option>
-                {/* Add other roles as needed */}
+                <option value="">Select Role</option>
+                {roles.map((role) => (
+                  <option key={role.roleName} value={role.roleName}>
+                    {role.roleName}
+                  </option>
+                ))}
               </select>
             </div>
             <div>
@@ -113,6 +237,28 @@ const EditAccountInfoModal: React.FC = () => {
                 className="mt-1 block w-full p-2 border rounded-md text-gray-900"
               />
             </div>
+            <div>
+              <label className="block text-sm font-medium">
+                Email <span className="text-red-600">*</span>
+              </label>
+              <input
+                type="email"
+                name="email"
+                value={account?.email || ""}
+                onChange={handleChange}
+                className={classNames(
+                  "mt-1 block w-full p-2 border rounded-md text-gray-900",
+                  { "border-red-500": emailError }
+                )}
+                required
+              />
+              {emailError && (
+                <p className="text-xs text-red-600 mt-1">
+                  A user with this email already exists.
+                </p>
+              )}
+            </div>
+            {/* Optionally add lockOutEnd if you want to support editing it */}
           </div>
           <div className="mt-6 flex justify-end space-x-2">
             <Button variant="outline" onClick={closeModal}>

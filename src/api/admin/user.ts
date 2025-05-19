@@ -116,6 +116,47 @@ export const updateUsersRole = async (role: string, users_Id: string[]) => {
   }
 };
 
+export const updateUser = async (
+  userId: string,
+  userData: {
+    preferredName?: string;
+    contactNo?: string;
+    email?: string;
+    nric?: string;
+    nric_FullName?: string;
+    nric_Address?: string;
+    nric_DateOfBirth?: string;
+    nric_Gender?: "M" | "F";
+    lockOutReason?: string;
+    lockOutEnabled?: boolean;
+    lockOutEnd?: string | null;
+    isDeleted?: boolean;
+    roleName?: string;
+  }
+): Promise<User> => {
+  try {
+    const token = retrieveAccessTokenFromCookie();
+    if (!token) throw new Error("Token not found");
+    const response = await adminAPI.put<User>(
+      `/${userId}`,
+      userData,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    console.log("Update user", response.data);
+    return response.data;
+  } catch (error: any) {
+    if (error.response?.status === 422) {
+      toast.error("Validation error: " + JSON.stringify(error.response.data));
+    } else if (error.response?.status === 404) {
+      toast.error("User not found.");
+    } else {
+      toast.error("Failed to update user.");
+    }
+    console.error("Update user", error);
+    throw error;
+  }
+};
+
 export const createUser = async (user: Partial<User>) => {
   try {
     const token = retrieveAccessTokenFromCookie();
@@ -132,6 +173,10 @@ export const createUser = async (user: Partial<User>) => {
     throw error;
   }
 };
+
+export const deleteUserById = async (id: string) => {
+  return;
+}
 
 export const getGuardian = async (nric: string) => {
   try {
