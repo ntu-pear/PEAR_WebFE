@@ -20,7 +20,7 @@ import AccountInfoTab from "@/components/Tab/AccountInfoTab";
 
 const ViewAccount: React.FC = () => {
   const { currentUser } = useAuth();
-  const { id, accountInfo, getNRIC, refreshAccountData } = useViewAccount();
+  const { id, accountInfo, nricData, getNRIC, refreshAccountData } = useViewAccount();
   const { activeModal, openModal } = useModal();
 
   return (
@@ -99,6 +99,7 @@ const ViewAccount: React.FC = () => {
                     accountInfo:{
                       ...accountInfo,
                       nric: getNRIC(),
+                      unmaskedNRIC: nricData.nric,
                     },
                     refreshAccountData,
                   })

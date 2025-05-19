@@ -10,12 +10,14 @@ import { fetchRoleNames } from "@/api/role/roles";
 const EditAccountInfoModal: React.FC = () => {
   const { modalRef, activeModal, closeModal } = useModal();
   const { accountInfo, refreshAccountData } = activeModal.props as {
-    accountInfo: User;
+    accountInfo: User & { unmaskedNric: string };
     refreshAccountData: () => Promise<void>;
   };
 
   const [account, setAccount] = useState<User | null>(null);
-  const [originalAccount, setOriginalAccount] = useState<User | null>(null);
+  const [originalAccount, setOriginalAccount] = useState<
+    (User & { unmaskedNric: string }) | null
+  >(null);
   const [roles, setRoles] = useState<{ roleName: string }[]>([]);
 
   useEffect(() => {
@@ -45,7 +47,7 @@ const EditAccountInfoModal: React.FC = () => {
     if (!account) return;
     setAccount({
       ...account,
-      [name]: name === "lockOutEnabled" ? value === "true" : value,
+      [name]: name === "lockoutEnabled" ? value === "true" : value,
     });
   };
 
@@ -62,9 +64,9 @@ const EditAccountInfoModal: React.FC = () => {
       "nric_Address",
       "nric_DateOfBirth",
       "nric_Gender",
-      "lockOutReason",
-      "lockOutEnabled",
-      "lockOutEnd",
+      "lockoutReason",
+      "lockoutEnabled",
+      "lockoutEnd",
       "roleName",
     ];
 
@@ -77,8 +79,15 @@ const EditAccountInfoModal: React.FC = () => {
             if (account["nric"].includes("*")) {
               toast.error("NRIC cannot contain * character.");
               return acc;
+            } else if (account["nric"].length !== 9) {
+              toast.error("NRIC must be 9 characters long.");
+              return acc;
+            } else if (account["nric"] === originalAccount.unmaskedNric) {
+              toast.error("NRIC cannot be the same as unmasked NRIC.");
+              return acc;
             }
           }
+
           acc[field] = account[field as keyof User];
         }
         return acc;
@@ -97,9 +106,7 @@ const EditAccountInfoModal: React.FC = () => {
       closeModal();
       await refreshAccountData();
     } catch (error: any) {
-      if (
-        error?.response?.data?.detail
-      ) {
+      if (error?.response?.data?.detail) {
         toast.error(error?.response?.data?.detail);
       } else {
         toast.error("Failed to update account information.");

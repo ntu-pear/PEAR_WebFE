@@ -92,7 +92,7 @@ export const ViewAccountProvider: React.FC<{ children: ReactNode }> = ({
 
   const handleNRICToggle = async () => {
     if (!id) return;
-    if (!nricData.isMasked) {
+    if (!nricData.isMasked || nricData.nric) {
       setNricData((prevState) => ({
         nric: prevState.nric,
         maskedNric: prevState.maskedNric,
