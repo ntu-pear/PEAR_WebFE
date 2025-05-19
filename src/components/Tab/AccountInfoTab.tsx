@@ -13,8 +13,6 @@ const AccountInfoTab: React.FC = () => {
     handleNRICToggle,
   } = useViewAccount();
 
-  console.log("Account Info Tab", accountInfo);
-
   return (
     <div className="flex flex-col gap-4">
       <Card>
@@ -23,7 +21,7 @@ const AccountInfoTab: React.FC = () => {
         </CardHeader>
         <CardContent className="grid gap-2 md:grid-cols-2">
           <div className="space-y-2">
-            <p className="text-sm font-medium">Full Name</p>
+            <p className="text-sm font-medium">NRIC Full Name</p>
             {accountInfo?.nric_FullName || "NA"}
           </div>
           <div className="space-y-2">
@@ -73,7 +71,7 @@ const AccountInfoTab: React.FC = () => {
             {accountInfo?.allowNotification ? "Yes" : "No"}
           </div>
           <div className="space-y-2">
-            <p className="text-sm font-medium">Address</p>
+            <p className="text-sm font-medium">NRIC Address</p>
             {accountInfo?.nric_Address || "NA"}
           </div>
         </CardContent>
