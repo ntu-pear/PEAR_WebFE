@@ -14,10 +14,10 @@ const EditAccountInfoModal: React.FC = () => {
   };
 
   const [account, setAccount] = useState<User | null>(null);
+  const [originalAccount, setOriginalAccount] = useState<User | null>(null);
   const [emailError, setEmailError] = useState(false);
   const [roles, setRoles] = useState<{ roleName: string }[]>([]);
 
-  // Fetch roles from API using the existing function
   useEffect(() => {
     const fetchRoles = async () => {
       try {
@@ -34,7 +34,8 @@ const EditAccountInfoModal: React.FC = () => {
     try {
       const fetchedAccount = await fetchUserById(id);
       setAccount(fetchedAccount);
-    } catch (error) {
+      setOriginalAccount(fetchedAccount);
+    } catch {
       toast.error("Failed to fetch account information.");
     }
   };
@@ -42,41 +43,54 @@ const EditAccountInfoModal: React.FC = () => {
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
-    const { name, value, type, checked } = e.target;
-    if (account) {
-      setAccount({
-        ...account,
-        [name]:
-          type === "checkbox"
-            ? checked
-            : name === "isDeleted" || name === "lockOutEnabled"
-              ? value === "true" || value === true
-              : value,
-      });
-      if (name === "email") setEmailError(false);
-    }
+    const { name, value } = e.target;
+    if (!account) return;
+    setAccount({
+      ...account,
+      [name]: name === "lockOutEnabled" ? value === "true" : value,
+    });
+    if (name === "email") setEmailError(false);
   };
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!account) return;
+    if (!account || !originalAccount) return;
+
+    // List of editable fields
+    const fields = [
+      "preferredName",
+      "contactNo",
+      "email",
+      "nric",
+      "nric_FullName",
+      "nric_Address",
+      "nric_DateOfBirth",
+      "nric_Gender",
+      "lockOutReason",
+      "lockOutEnabled",
+      "lockOutEnd",
+      "roleName",
+    ];
+
+    // Only send changed fields
+    const changedFields = fields.reduce(
+      (acc, field) => {
+        if (
+          account[field as keyof User] !== originalAccount[field as keyof User]
+        )
+          acc[field] = account[field as keyof User];
+        return acc;
+      },
+      {} as Record<string, any>
+    );
+
+    if (Object.keys(changedFields).length === 0) {
+      toast.info("No changes detected.");
+      return;
+    }
 
     try {
-      await updateUser(account.id, {
-        preferredName: account.preferredName,
-        contactNo: account.contactNo,
-        email: account.email,
-        nric: account.nric,
-        nric_FullName: account.nric_FullName,
-        nric_Address: account.nric_Address,
-        nric_DateOfBirth: account.nric_DateOfBirth,
-        nric_Gender: account.nric_Gender,
-        lockOutReason: account.lockoutReason ?? "",
-        lockOutEnabled: account.lockoutEnabled,
-        lockOutEnd: null, // You may want to support editing this if needed
-        isDeleted: account.isDeleted,
-        roleName: account.roleName,
-      });
+      await updateUser(account.id, changedFields);
       toast.success("Account information updated successfully.");
       closeModal();
       await refreshAccountData();
@@ -95,9 +109,7 @@ const EditAccountInfoModal: React.FC = () => {
   };
 
   useEffect(() => {
-    if (accountId) {
-      handleFetchAccountInfo(accountId);
-    }
+    if (accountId) handleFetchAccountInfo(accountId);
   }, [accountId]);
 
   return (
@@ -175,7 +187,6 @@ const EditAccountInfoModal: React.FC = () => {
                 onChange={handleChange}
                 className="mt-1 block w-full p-2 border rounded-md text-gray-900"
               >
-                <option value="">Select</option>
                 <option value="M">Male</option>
                 <option value="F">Female</option>
               </select>
@@ -217,7 +228,6 @@ const EditAccountInfoModal: React.FC = () => {
                 className="mt-1 block w-full p-2 border rounded-md text-gray-900"
                 required
               >
-                <option value="">Select Role</option>
                 {roles.map((role) => (
                   <option key={role.roleName} value={role.roleName}>
                     {role.roleName}
