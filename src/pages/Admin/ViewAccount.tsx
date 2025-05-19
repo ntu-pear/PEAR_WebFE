@@ -101,7 +101,6 @@ const ViewAccount: React.FC = () => {
                       nric: getNRIC(),
                       unmaskedNRIC: nricData.nric,
                     },
-                    refreshAccountData,
                   })
                 }
               >

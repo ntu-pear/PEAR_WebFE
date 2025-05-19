@@ -19,8 +19,8 @@ export interface User {
   verified: boolean;
   isDeleted: boolean;
   twoFactorEnabled: boolean;
-  lockoutEnabled: boolean;
-  lockoutReason: string | null;
+  lockOutEnabled: boolean;
+  lockOutReason: string | null;
   loginTimeStamp: string;
   createdById: string;
   createdDate: string;

@@ -20,6 +20,7 @@ export interface ViewAccountContextType {
     isMasked: boolean;
   };
   getNRIC: () => string;
+  setAccountInfo: React.Dispatch<React.SetStateAction<User | null>>;
   refreshAccountData: () => Promise<void>;
   handleNRICToggle: () => Promise<void>;
 }
@@ -127,6 +128,7 @@ export const ViewAccountProvider: React.FC<{ children: ReactNode }> = ({
         modifiedByAccount,
         nricData,
         getNRIC,
+        setAccountInfo,
         refreshAccountData,
         handleNRICToggle,
       }}

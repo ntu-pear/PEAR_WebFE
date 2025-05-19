@@ -13,6 +13,8 @@ const AccountInfoTab: React.FC = () => {
     handleNRICToggle,
   } = useViewAccount();
 
+  console.log("Account Info Tab", accountInfo);
+
   return (
     <div className="flex flex-col gap-4">
       <Card>
@@ -104,11 +106,11 @@ const AccountInfoTab: React.FC = () => {
           </div>
           <div className="space-y-2">
             <p className="text-sm font-medium">Lockout Enabled</p>
-            {accountInfo?.lockoutEnabled ? "Yes" : "No"}
+            {accountInfo?.lockOutEnabled ? "Yes" : "No"}
           </div>
           <div className="space-y-2">
             <p className="text-sm font-medium">Lockout Reason</p>
-            {accountInfo?.lockoutReason || "NA"}
+            {accountInfo?.lockOutReason || "NA"}
           </div>
           <div className="space-y-2">
             <p className="text-sm font-medium">Login Timestamp</p>

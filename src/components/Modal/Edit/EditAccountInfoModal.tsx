@@ -5,14 +5,16 @@ import { updateUser, User } from "@/api/admin/user";
 import { toast } from "sonner";
 import classNames from "classnames";
 import { fetchRoleNames } from "@/api/role/roles";
+import { useViewAccount } from "@/hooks/admin/useViewAccount";
 
 // Accept accountInfo as a prop via modal props
 const EditAccountInfoModal: React.FC = () => {
   const { modalRef, activeModal, closeModal } = useModal();
-  const { accountInfo, refreshAccountData } = activeModal.props as {
+  const { accountInfo } = activeModal.props as {
     accountInfo: User & { unmaskedNric: string };
-    refreshAccountData: () => Promise<void>;
   };
+
+  const {setAccountInfo} = useViewAccount();
 
   const [account, setAccount] = useState<User | null>(null);
   const [originalAccount, setOriginalAccount] = useState<
@@ -47,7 +49,7 @@ const EditAccountInfoModal: React.FC = () => {
     if (!account) return;
     setAccount({
       ...account,
-      [name]: name === "lockoutEnabled" ? value === "true" : value,
+      [name]: name === "lockOutEnabled" ? value === "true" : value,
     });
   };
 
@@ -64,9 +66,9 @@ const EditAccountInfoModal: React.FC = () => {
       "nric_Address",
       "nric_DateOfBirth",
       "nric_Gender",
-      "lockoutReason",
-      "lockoutEnabled",
-      "lockoutEnd",
+      "lockOutReason",
+      "lockOutEnabled",
+      "lockOutEnd",
       "roleName",
     ];
 
@@ -101,10 +103,10 @@ const EditAccountInfoModal: React.FC = () => {
     }
 
     try {
-      await updateUser(account.id, changedFields);
+      const updatedUser = await updateUser(account.id, changedFields);
       toast.success("Account information updated successfully.");
       closeModal();
-      await refreshAccountData();
+      setAccountInfo(updatedUser);
     } catch (error: any) {
       if (error?.response?.data?.detail) {
         toast.error("Error: " + error?.response?.data?.detail);
@@ -198,8 +200,8 @@ const EditAccountInfoModal: React.FC = () => {
                 Lockout Enabled
               </label>
               <select
-                name="lockoutEnabled"
-                value={account?.lockoutEnabled ? "true" : "false"}
+                name="lockOutEnabled"
+                value={account?.lockOutEnabled ? "true" : "false"}
                 onChange={handleChange}
                 className="mt-1 block w-full p-2 border rounded-md text-gray-900"
               >
@@ -213,8 +215,9 @@ const EditAccountInfoModal: React.FC = () => {
               </label>
               <input
                 type="text"
-                name="lockoutReason"
-                value={account?.lockoutReason || ""}
+                name="lockOutReason"
+                value={account?.lockOutReason || ""}
+                required={account?.lockOutEnabled}
                 onChange={handleChange}
                 className="mt-1 block w-full p-2 border rounded-md text-gray-900"
               />
