@@ -36,19 +36,27 @@ export const ViewAccountProvider: React.FC<{ children: ReactNode }> = ({
       setAccountInfo(fetchedAccountInfo);
 
       if (fetchedAccountInfo.createdById) {
-        const fetchedCreatedByAccount = await fetchUserById(
-          fetchedAccountInfo.createdById
-        );
-        setCreatedByAccount(fetchedCreatedByAccount);
+        try {
+          const fetchedCreatedByAccount = await fetchUserById(
+            fetchedAccountInfo.createdById
+          );
+          setCreatedByAccount(fetchedCreatedByAccount);
+        } catch {
+          setCreatedByAccount(null);
+        }
       } else {
         setCreatedByAccount(null);
       }
 
       if (fetchedAccountInfo.modifiedById) {
-        const fetchedModifiedByAccount = await fetchUserById(
-          fetchedAccountInfo.modifiedById
-        );
-        setModifiedByAccount(fetchedModifiedByAccount);
+        try {
+          const fetchedModifiedByAccount = await fetchUserById(
+            fetchedAccountInfo.modifiedById
+          );
+          setModifiedByAccount(fetchedModifiedByAccount);
+        } catch {
+          setModifiedByAccount(null);
+        }
       } else {
         setModifiedByAccount(null);
       }
