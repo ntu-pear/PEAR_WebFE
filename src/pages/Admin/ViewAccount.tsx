@@ -1,6 +1,4 @@
-import React, { Suspense } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import React from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/hooks/useAuth";
 import { useModal } from "@/hooks/useModal";
@@ -20,7 +18,7 @@ import AccountInfoTab from "@/components/Tab/AccountInfoTab";
 
 const ViewAccount: React.FC = () => {
   const { currentUser } = useAuth();
-  const { id, accountInfo, nricData, getNRIC, refreshAccountData } = useViewAccount();
+  const { id, accountInfo, nricData, getNRIC, setAccountInfo, refreshAccountData } = useViewAccount();
   const { activeModal, openModal } = useModal();
 
   return (
@@ -101,6 +99,7 @@ const ViewAccount: React.FC = () => {
                       nric: getNRIC(),
                       unmaskedNRIC: nricData.nric,
                     },
+                    refreshAccountData: setAccountInfo,
                   })
                 }
               >

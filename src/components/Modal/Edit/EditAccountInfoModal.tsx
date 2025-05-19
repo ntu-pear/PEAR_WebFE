@@ -5,16 +5,14 @@ import { updateUser, User } from "@/api/admin/user";
 import { toast } from "sonner";
 import classNames from "classnames";
 import { fetchRoleNames } from "@/api/role/roles";
-import { useViewAccount } from "@/hooks/admin/useViewAccount";
 
 // Accept accountInfo as a prop via modal props
 const EditAccountInfoModal: React.FC = () => {
   const { modalRef, activeModal, closeModal } = useModal();
-  const { accountInfo } = activeModal.props as {
+  const { accountInfo, refreshAccountData } = activeModal.props as {
     accountInfo: User & { unmaskedNric: string };
+    refreshAccountData: (updatedUser: User) => Promise<void>;
   };
-
-  const {setAccountInfo} = useViewAccount();
 
   const [account, setAccount] = useState<User | null>(null);
   const [originalAccount, setOriginalAccount] = useState<
@@ -106,7 +104,7 @@ const EditAccountInfoModal: React.FC = () => {
       const updatedUser = await updateUser(account.id, changedFields);
       toast.success("Account information updated successfully.");
       closeModal();
-      setAccountInfo(updatedUser);
+      refreshAccountData(updatedUser);
     } catch (error: any) {
       if (error?.response?.data?.detail) {
         toast.error("Error: " + error?.response?.data?.detail);
