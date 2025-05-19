@@ -16,7 +16,6 @@ const EditAccountInfoModal: React.FC = () => {
 
   const [account, setAccount] = useState<User | null>(null);
   const [originalAccount, setOriginalAccount] = useState<User | null>(null);
-  const [emailError, setEmailError] = useState(false);
   const [roles, setRoles] = useState<{ roleName: string }[]>([]);
 
   useEffect(() => {
@@ -48,7 +47,6 @@ const EditAccountInfoModal: React.FC = () => {
       ...account,
       [name]: name === "lockOutEnabled" ? value === "true" : value,
     });
-    if (name === "email") setEmailError(false);
   };
 
   const handleSave = async (e: React.FormEvent) => {
@@ -100,12 +98,9 @@ const EditAccountInfoModal: React.FC = () => {
       await refreshAccountData();
     } catch (error: any) {
       if (
-        error?.response?.status === 400 &&
-        error?.response?.data?.detail ===
-          "A user with this email already exists."
+        error?.response?.data?.detail
       ) {
-        toast.error("A user with this email already exists.");
-        setEmailError(true);
+        toast.error(error?.response?.data?.detail);
       } else {
         toast.error("Failed to update account information.");
       }
@@ -257,16 +252,10 @@ const EditAccountInfoModal: React.FC = () => {
                 value={account?.email || ""}
                 onChange={handleChange}
                 className={classNames(
-                  "mt-1 block w-full p-2 border rounded-md text-gray-900",
-                  { "border-red-500": emailError }
+                  "mt-1 block w-full p-2 border rounded-md text-gray-900"
                 )}
                 required
               />
-              {emailError && (
-                <p className="text-xs text-red-600 mt-1">
-                  A user with this email already exists.
-                </p>
-              )}
             </div>
             {/* Optionally add lockOutEnd if you want to support editing it */}
           </div>
