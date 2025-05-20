@@ -3,8 +3,8 @@ import { Button } from "../../ui/button";
 import { useEffect, useState } from "react";
 import { updateUser, User } from "@/api/admin/user";
 import { toast } from "sonner";
-import classNames from "classnames";
 import { fetchRoleNames } from "@/api/role/roles";
+import { AxiosError } from "axios";
 
 // Accept accountInfo as a prop via modal props
 const EditAccountInfoModal: React.FC = () => {
@@ -83,7 +83,9 @@ const EditAccountInfoModal: React.FC = () => {
               toast.error("Input Error: NRIC must be 9 characters long.");
               return acc;
             } else if (account["nric"] === originalAccount.unmaskedNric) {
-              toast.error("Input Error: NRIC cannot be the same as unmasked NRIC.");
+              toast.error(
+                "Input Error: NRIC cannot be the same as unmasked NRIC."
+              );
               return acc;
             }
           }
@@ -106,10 +108,14 @@ const EditAccountInfoModal: React.FC = () => {
       closeModal();
       refreshAccountData(updatedUser);
     } catch (error: any) {
-      if (error?.response?.data?.detail) {
-        toast.error("Error: " + error?.response?.data?.detail);
-      } else {
-        toast.error("Failed to update account information.");
+      if (error instanceof AxiosError) {
+        if (error.response && error.response.data.detail) {
+          toast.error(
+            `Error ${error.response.status}: ${error.response.data.detail}`
+          );
+        } else {
+          toast.error("Error: Failed to update account information.");
+        }
       }
     }
   };
@@ -259,9 +265,7 @@ const EditAccountInfoModal: React.FC = () => {
                 name="email"
                 value={account?.email || ""}
                 onChange={handleChange}
-                className={classNames(
-                  "mt-1 block w-full p-2 border rounded-md text-gray-900"
-                )}
+                className="mt-1 block w-full p-2 border rounded-md text-gray-900"
                 required
               />
             </div>

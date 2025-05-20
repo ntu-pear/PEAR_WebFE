@@ -1,5 +1,7 @@
+import { AxiosError } from "axios";
 import { Button } from "../../ui/button";
 import { useModal } from "@/hooks/useModal";
+import { toast } from "sonner";
 import { deleteUserById, User } from "@/api/admin/user";
 
 const DeleteAccountModal: React.FC = () => {
@@ -14,8 +16,16 @@ const DeleteAccountModal: React.FC = () => {
       const updatedUser = await deleteUserById(accountId);
       closeModal();
       await refreshAccountData(updatedUser);
-    } catch (error) {
-      console.error("Failed to delete account", error);
+    } catch (error: any) {
+      if (error instanceof AxiosError) {
+        if (error.response && error.response.data.detail) {
+          toast.error(
+            `Error ${error.response.status}: ${error.response.data.detail}`
+          );
+        } else {
+          toast.error("Error: Failed to delete account");
+        }
+      }
     }
   };
 
