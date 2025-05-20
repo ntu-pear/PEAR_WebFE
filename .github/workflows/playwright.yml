@@ -1,13 +1,17 @@
 name: Playwright Tests
 on:
   push:
-    branches: [ main, master ]
+    branches: [ main ]
   pull_request:
-    branches: [ main, master ]
+    branches: [ main ]
+  workflow_dispatch:
+
 jobs:
   test:
     timeout-minutes: 60
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, x64, webfe, staging]
+    environment: test-staging
+
     steps:
     - uses: actions/checkout@v4
     - uses: actions/setup-node@v4
@@ -17,6 +21,10 @@ jobs:
       run: npm ci
     - name: Install Playwright Browsers
       run: npx playwright install --with-deps
+
+    - name: Write test.env file
+      run: echo "${{ secrets.TEST_ENV_FILE }}" > tests/e2e/test.env
+
     - name: Run Playwright tests
       run: npx playwright test
     - uses: actions/upload-artifact@v4
