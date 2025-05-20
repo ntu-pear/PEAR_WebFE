@@ -9,11 +9,25 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 dotenv.config({ path: path.resolve(__dirname, 'test.env') });
 
+// these are the variables used in the test to be included in the .env file
 const baseUrl = process.env.BASE_URL as string;
 const adminAccountEmail = process.env.ADMIN_ACCOUNT_EMAIL as string;
 const adminAccountPassword = process.env.ADMIN_ACCOUNT_PASSWORD as string;
 
-test('test edit account modal and check unmask nric', async ({ page }) => {
+/*
+Test Case: Edit Account Modal Functionality
+This test performs an end-to-end check on the "Edit Account" functionality in the admin panel.
+
+Validate that:
+The preferred name is updated in the account view.
+The modified date has changed, but the created date remains the same.
+Click the "Unmask NRIC" button:
+Confirm that the NRIC is revealed.
+Reopen the "Edit Account" modal to ensure the NRIC matches the unmasked value.
+  */
+test('Edit account modal updates preferred name and unmasks NRIC', async ({ page }) => {
+  // test account id to be used in the test
+  const editTestAccountID = 'Ud3a7b1b8cc';
   // timeout used during search for the test account row
   const searchTimeout = 30000;
 
@@ -22,14 +36,14 @@ test('test edit account modal and check unmask nric', async ({ page }) => {
     await page.getByRole('textbox', { name: 'Enter a valid email address.' }).fill(adminAccountEmail);
     await page.getByRole('textbox', { name: 'Password' }).fill(adminAccountPassword);
     await page.getByRole('button', { name: 'LOGIN' }).click();
-
+    // check that login was successful and the admin page is loaded
     await expect(page.getByText('Login successful.')).toBeVisible();
     await expect(page.locator('[id="radix-\\:rf\\:-content-all"] div').filter({ hasText: 'IDNameStatusEmailLast' }).nth(1)).toBeVisible();
   });
 
   await test.step('Search for the test account', async () => {
-    var testAccountRow = page.getByRole('row', { name: 'Ud3a7b1b8cc Test Account (' });
-    
+    var testAccountRow = page.getByRole('row', { name: `${editTestAccountID} Test Account (` });
+
     const startTime = Date.now();
     // click next until the test account row is found or timeout, attempts to click every second
     while (await testAccountRow.count() === 0 && (Date.now() - startTime < searchTimeout)) {
@@ -42,9 +56,10 @@ test('test edit account modal and check unmask nric', async ({ page }) => {
           throw error; // Re-throw other errors
         }
       }
-      testAccountRow = page.getByRole('row', { name: 'Ud3a7b1b8cc Test Account (' });
+      testAccountRow = page.getByRole('row', { name: `${editTestAccountID} Test Account (` });
     }
-    await page.getByRole('row', { name: 'Ud3a7b1b8cc Test Account (' }).getByLabel('View more').click();
+
+    await page.getByRole('row', { name: `${editTestAccountID} Test Account (` }).getByLabel('View more').click();
   });
 
   var unmaskNricBtn;
@@ -57,7 +72,7 @@ test('test edit account modal and check unmask nric', async ({ page }) => {
     // check the unmask nric eye button
     unmaskNricBtn = page.locator('div').filter({ hasText: /^\*\*\*\*\*\d+[A-Z]$/ }).getByRole('button');
     await expect(unmaskNricBtn).toBeVisible();
-    nricLocator = await page.locator("#accountinfo-nric");
+    nricLocator = page.locator("#accountinfo-nric");
     await expect(nricLocator).toBeVisible();
     maskedNRIC = await nricLocator.innerText();
 
@@ -103,6 +118,11 @@ test('test edit account modal and check unmask nric', async ({ page }) => {
 
     // check nric in edit modal
     await page.getByRole('button', { name: 'Edit Account' }).click();
-    await expect(page.locator('input[name="nric"]')).toHaveValue(unmaskedNRIC);
+    await expect(page.locator('input[name="nric"]')).toHaveValue(unmaskedNRIC)
+  });
+
+  await test.step('Check no changes behaviour', async () => {
+    await page.getByRole('button', { name: 'Save' }).click();
+    await expect(page.getByText('No changes detected.')).toBeVisible();
   });
 });
