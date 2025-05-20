@@ -23,7 +23,7 @@ jobs:
       run: npx playwright install
 
     - name: Write test.env file
-      run: echo "${{ secrets.TEST_ENV_FILE }}" > tests/e2e/test.env
+      run: echo "${{ secrets.TEST_ENV_FILE }}" > ./tests/e2e/test.env
 
     - name: Run Playwright tests
       run: npx playwright test
