@@ -16,14 +16,11 @@ const adminAccountPassword = process.env.ADMIN_ACCOUNT_PASSWORD as string;
 
 /*
 Test Case: Edit Account Modal Functionality
-This test performs an end-to-end check on the "Edit Account" functionality in the admin panel.
-
 Validate that:
 The preferred name is updated in the account view.
+The date of birth is updated in the account view.
 The modified date has changed, but the created date remains the same.
-Click the "Unmask NRIC" button:
-Confirm that the NRIC is revealed.
-Reopen the "Edit Account" modal to ensure the NRIC matches the unmasked value.
+The NRIC can be unmasked. The "Edit Account" modal shows the unmasked value.
   */
 test('Edit account modal updates preferred name and unmasks NRIC', async ({ page }) => {
   // test account id to be used in the test
@@ -65,9 +62,9 @@ test('Edit account modal updates preferred name and unmasks NRIC', async ({ page
   var unmaskNricBtn;
   var nricLocator;
   var maskedNRIC = '';
-  var newPreferredName = '';
   var createdDate = '';
   var modifiedDate = '';
+  var nric_DateOfBirth = '';
   await test.step('Check the test account initial values', async () => {
     // check the unmask nric eye button
     unmaskNricBtn = page.locator('div').filter({ hasText: /^\*\*\*\*\*\d+[A-Z]$/ }).getByRole('button');
@@ -79,20 +76,28 @@ test('Edit account modal updates preferred name and unmasks NRIC', async ({ page
     // get the created and modified date
     createdDate = await page.locator("#accountinfo-created-date").innerText();
     modifiedDate = await page.locator("#accountinfo-modified-date").innerText();
-    console.log("created and modified date " + createdDate + " " + modifiedDate);
+
+    // get nric date of birth
+    nric_DateOfBirth = await page.locator("#accountinfo-dob").innerText();
   });
 
+  var newPreferredName = '';
+  var newDateOfBirth = '';
   await test.step('Check edit modal prefilled values and make changes', async () => {
     // check edit account modal
     await page.getByRole('button', { name: 'Edit Account' }).click();
     await expect(page.locator('input[name="nric"]')).toHaveValue(maskedNRIC);
 
     const originalPreferredName = await page.locator('input[name="preferredName"]').inputValue();
-    console.log("original preferred name " + originalPreferredName);
     // increment last digit of preferred name
     const lastDigit = parseInt(originalPreferredName.slice(-1)) + 1;
-    const newPreferredName = originalPreferredName.slice(0, -1) + lastDigit;
+    newPreferredName = originalPreferredName.slice(0, -1) + lastDigit;
     await page.locator('input[name="preferredName"]').fill(newPreferredName);
+
+    newDateOfBirth = getRandDate(nric_DateOfBirth);
+    console.log("new date of birth " + newDateOfBirth);
+    await page.locator('input[name="nric_DateOfBirth"]').fill(newDateOfBirth);
+
     await page.getByRole('button', { name: 'Save' }).click();
     // wait for modal to close
     await expect(page.getByRole('heading', { name: 'Edit Account Information' })).not.toBeVisible();
@@ -100,6 +105,7 @@ test('Edit account modal updates preferred name and unmasks NRIC', async ({ page
 
   await test.step('Check view account ui is updated', async () => {
     await expect(page.locator("#accountinfo-preferred-name")).toContainText(newPreferredName);
+    await expect(page.locator("#accountinfo-dob")).toContainText(newDateOfBirth);
 
     // check dates, created date should be the same, modified date should be different
     const newCreatedDate = await page.locator("#accountinfo-created-date").innerText();
@@ -126,3 +132,28 @@ test('Edit account modal updates preferred name and unmasks NRIC', async ({ page
     await expect(page.getByText('No changes detected.')).toBeVisible();
   });
 });
+
+function getRandDate(excludeDate: string): string {
+  // Generate a random time between 100 and 20 years ago
+  const today = new Date();
+  const hundredYearsAgo = new Date(today.getFullYear() - 100, today.getMonth(), today.getDate());
+  const twentyYearsAgo = new Date(today.getFullYear() - 20, today.getMonth(), today.getDate());
+
+  let newDate: Date;
+  let newDateString: string;
+
+  do {
+    const timeDiff = twentyYearsAgo.getTime() - hundredYearsAgo.getTime();
+    const randomTime = hundredYearsAgo.getTime() + Math.random() * timeDiff;
+    newDate = new Date(randomTime);
+
+    // Format date as YYYY-MM-DD
+    const year = newDate.getFullYear();
+    const month = String(newDate.getMonth() + 1).padStart(2, '0');
+    const day = String(newDate.getDate()).padStart(2, '0');
+    newDateString = `${year}-${month}-${day}`;
+
+  } while (newDateString === excludeDate); // avoid same date
+
+  return newDateString;
+}
