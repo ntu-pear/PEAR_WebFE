@@ -2,9 +2,12 @@ import { test, expect } from '@playwright/test';
 import { defineConfig } from '@playwright/test';
 import dotenv from 'dotenv';
 import path from 'path';
+import { fileURLToPath } from 'url';
 
 // Read from ".env" file.
-dotenv.config({ path: 'test.env' });
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+dotenv.config({ path: path.resolve(__dirname, 'test.env') });
 
 const baseUrl = process.env.BASE_URL as string;
 const adminAccountEmail = process.env.ADMIN_ACCOUNT_EMAIL as string;
