@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { ListFilter, File } from "lucide-react";
+import { toast } from "sonner";
 import {
   Card,
   CardContent,
@@ -82,7 +83,11 @@ const AccountTable: React.FC = () => {
       console.log("fetchedAccountTDServer", fetchedAccountTDServer);
       setAccountTDServer(fetchedAccountTDServer);
     } catch (error) {
-      console.error("Error fetching accounts:", error);
+      if (error instanceof Error) {
+        toast.error("Error fetching accounts: " + error.message);
+      } else {
+        toast.error("Error fetching accounts");
+      }
     }
   };
 
