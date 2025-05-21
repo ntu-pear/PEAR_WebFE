@@ -55,6 +55,22 @@ const EditAccountInfoModal: React.FC = () => {
     e.preventDefault();
     if (!account || !originalAccount) return;
 
+    // Validate NRIC before checking for changes
+    if (account.nric !== originalAccount.nric) {
+      if (account.nric.includes("*")) {
+        toast.error("Input Error: NRIC cannot contain * character.");
+        return;
+      } else if (account.nric.length !== 9) {
+        toast.error("Input Error: NRIC must be 9 characters long.");
+        return;
+      } else if (account.nric === originalAccount.unmaskedNric) {
+        toast.error(
+          "Input Error: NRIC cannot be the same as unmasked NRIC."
+        );
+        return;
+      }
+    }
+
     const fields = [
       "preferredName",
       "contactNo",
@@ -75,21 +91,6 @@ const EditAccountInfoModal: React.FC = () => {
         if (
           account[field as keyof User] !== originalAccount[field as keyof User]
         ) {
-          if (field === "nric") {
-            if (account["nric"].includes("*")) {
-              toast.error("Input Error: NRIC cannot contain * character.");
-              return acc;
-            } else if (account["nric"].length !== 9) {
-              toast.error("Input Error: NRIC must be 9 characters long.");
-              return acc;
-            } else if (account["nric"] === originalAccount.unmaskedNric) {
-              toast.error(
-                "Input Error: NRIC cannot be the same as unmasked NRIC."
-              );
-              return acc;
-            }
-          }
-
           acc[field] = account[field as keyof User];
         }
         return acc;
