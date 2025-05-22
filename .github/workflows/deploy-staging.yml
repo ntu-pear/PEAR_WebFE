@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
 
 jobs:
   deploy:
@@ -38,4 +39,12 @@ jobs:
           sed -i "s|^\(\s*image:\)\s*.*|\1 host.minikube.internal:5000/pear_webfe:${{ steps.get_sha.outputs.sha }}|" pear_webfe.yaml
           cat pear_webfe.yaml
           minikube kubectl -- apply -f pear_webfe.yaml
+
+      - name: Patch command to redeploy pods with same image tag
+        run: |
+          minikube kubectl -- patch deployment pear-webfe-deployment \
+            -p "{\"spec\":{\"template\":{\"metadata\":{\"annotations\":{\"deploy-date\":\"$(date +'%s')\"}}}}}"
+
+      - name: Log pod status
+        run: |
           minikube kubectl get pods
