@@ -15,10 +15,19 @@ import EditAccountInfoModal from "@/components/Modal/Edit/EditAccountInfoModal";
 import DeleteAccountModal from "@/components/Modal/Delete/DeleteAccountModal";
 import { useViewAccount } from "@/hooks/admin/useViewAccount";
 import AccountInfoTab from "@/components/Tab/AccountInfoTab";
+import ConfirmProfilePhotoModal from "@/components/Modal/ConfirmProfilePhotoModal";
+import DeleteProfilePhotoModal from "@/components/Modal/Delete/DeleteProfilePhotoModal";
 
 const ViewAccount: React.FC = () => {
   const { currentUser } = useAuth();
-  const { id, accountInfo, nricData, getNRIC, setAccountInfo, refreshAccountData } = useViewAccount();
+  const {
+    id,
+    accountInfo,
+    nricData,
+    getNRIC,
+    setAccountInfo,
+    refreshAccountData,
+  } = useViewAccount();
   const { activeModal, openModal } = useModal();
 
   return (
@@ -94,7 +103,7 @@ const ViewAccount: React.FC = () => {
                 variant="default"
                 onClick={() =>
                   openModal("editAccountInfo", {
-                    accountInfo:{
+                    accountInfo: {
                       ...accountInfo,
                       nric: getNRIC(),
                       unmaskedNRIC: nricData.nric,
@@ -125,9 +134,13 @@ const ViewAccount: React.FC = () => {
         {activeModal.name === "uploadProfilePhoto" && (
           <UploadProfilePhotoModal />
         )}
-        {activeModal.name === "editAccountInfo" && (
-          <EditAccountInfoModal />
+        {activeModal.name === "confirmProfilePhoto" && (
+          <ConfirmProfilePhotoModal />
         )}
+        {activeModal.name === "deleteProfilePhoto" && (
+          <DeleteProfilePhotoModal />
+        )}
+        {activeModal.name === "editAccountInfo" && <EditAccountInfoModal />}
         {activeModal.name === "deleteAccount" && <DeleteAccountModal />}
       </div>
     </>
