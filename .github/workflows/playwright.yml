@@ -1,6 +1,8 @@
 name: Playwright Tests
 on:
-  push:
+  workflow_run:
+    workflows: [ 'Deploy to Staging' ]
+    types: [ completed ]
     branches: [ main ]
   workflow_dispatch:
 
@@ -8,6 +10,7 @@ jobs:
   test:
     timeout-minutes: 60
     runs-on: [self-hosted, Linux, x64, webfe, staging]
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
     environment: test-staging
 
     steps:
