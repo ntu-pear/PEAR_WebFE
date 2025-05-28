@@ -360,6 +360,24 @@ export const updateUserProfilePhoto = async (formData: FormData) => {
   }
 };
 
+export const deleteUserProfilePhotoByAdmin = async (userId: String) => {
+  try {
+    const token = retrieveAccessTokenFromCookie();
+    if (!token) throw new Error("No token found.");
+
+    const response = await adminAPI.delete(`/user/${userId}/delete_profile_pic/`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    return response.data;
+  } catch (error) {
+    console.error("DELETE delete user profile photo by admin", error);
+    throw error;
+  }
+};
+
 export const deleteUserProfilePhoto = async () => {
   try {
     const token = retrieveAccessTokenFromCookie();

@@ -17,6 +17,7 @@ import { useViewAccount } from "@/hooks/admin/useViewAccount";
 import AccountInfoTab from "@/components/Tab/AccountInfoTab";
 import ConfirmProfilePhotoModalAdmin from "@/components/Modal/ConfirmProfilePhotoModalAdmin";
 import DeleteProfilePhotoModal from "@/components/Modal/Delete/DeleteProfilePhotoModal";
+import DeleteProfilePhotoModalAdmin from "@/components/Modal/Delete/DeleteProfilePhotoModalAdmin";
 
 const ViewAccount: React.FC = () => {
   const { currentUser } = useAuth();
@@ -77,8 +78,7 @@ const ViewAccount: React.FC = () => {
                         onClick={() =>
                           openModal("deleteProfilePhoto", {
                             refreshProfile: refreshAccountData,
-                            isUser: false,
-                            patientId: id,
+                            userId: id,
                           })
                         }
                       >
@@ -137,7 +137,7 @@ const ViewAccount: React.FC = () => {
           <ConfirmProfilePhotoModalAdmin />
         )}
         {activeModal.name === "deleteProfilePhoto" && (
-          <DeleteProfilePhotoModal />
+          <DeleteProfilePhotoModalAdmin />
         )}
         {activeModal.name === "editAccountInfo" && <EditAccountInfoModal />}
         {activeModal.name === "deleteAccount" && <DeleteAccountModal />}
