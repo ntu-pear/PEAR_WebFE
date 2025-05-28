@@ -10,12 +10,12 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { Trash2, Upload } from "lucide-react";
-import UploadProfilePhotoModal from "@/components/Modal/UploadProfilePhotoModal";
+import UploadProfilePhotoModalAdmin from "@/components/Modal/UploadProfilePhotoModalAdmin";
 import EditAccountInfoModal from "@/components/Modal/Edit/EditAccountInfoModal";
 import DeleteAccountModal from "@/components/Modal/Delete/DeleteAccountModal";
 import { useViewAccount } from "@/hooks/admin/useViewAccount";
 import AccountInfoTab from "@/components/Tab/AccountInfoTab";
-import ConfirmProfilePhotoModal from "@/components/Modal/ConfirmProfilePhotoModal";
+import ConfirmProfilePhotoModalAdmin from "@/components/Modal/ConfirmProfilePhotoModalAdmin";
 import DeleteProfilePhotoModal from "@/components/Modal/Delete/DeleteProfilePhotoModal";
 
 const ViewAccount: React.FC = () => {
@@ -62,8 +62,7 @@ const ViewAccount: React.FC = () => {
                       onClick={() =>
                         openModal("uploadProfilePhoto", {
                           refreshProfile: refreshAccountData,
-                          isUser: false,
-                          patientId: id,
+                          userId: id,
                         })
                       }
                     >
@@ -132,10 +131,10 @@ const ViewAccount: React.FC = () => {
         </div>
 
         {activeModal.name === "uploadProfilePhoto" && (
-          <UploadProfilePhotoModal />
+          <UploadProfilePhotoModalAdmin />
         )}
         {activeModal.name === "confirmProfilePhoto" && (
-          <ConfirmProfilePhotoModal />
+          <ConfirmProfilePhotoModalAdmin />
         )}
         {activeModal.name === "deleteProfilePhoto" && (
           <DeleteProfilePhotoModal />

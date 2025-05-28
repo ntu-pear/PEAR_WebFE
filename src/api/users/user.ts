@@ -1,5 +1,5 @@
 import axios from "axios";
-import { getDoctorNameAPI, userAPI } from "../apiConfig";
+import { adminAPI, getDoctorNameAPI, userAPI } from "../apiConfig";
 import { retrieveAccessTokenFromCookie } from "./auth";
 
 export interface RequestResetPasswordForm {
@@ -316,6 +316,26 @@ export const fetchUserProfilePhoto = async () => {
     return response?.data?.image_url;
   } catch (error) {
     console.error("GET fetch user profile photo", error);
+    throw error;
+  }
+};
+
+export const updateUserProfilePhotoByAdmin = async (userId: String, formData: FormData) => {
+  try {
+    const token = retrieveAccessTokenFromCookie();
+    if (!token) throw new Error("No token found.");
+
+    const response = await adminAPI.post(`/user/${userId}/upload_profile_pic/`, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    console.log("POST update user profile photo by admin", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("POST update user profile photo by admin", error);
     throw error;
   }
 };
