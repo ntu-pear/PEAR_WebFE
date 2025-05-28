@@ -13,6 +13,7 @@ dotenv.config({ path: path.resolve(__dirname, 'test.env') });
 const baseUrl = process.env.BASE_URL as string;
 const adminAccountEmail = process.env.ADMIN_ACCOUNT_EMAIL as string;
 const adminAccountPassword = process.env.ADMIN_ACCOUNT_PASSWORD as string;
+const editTestAccountID = process.env.EDIT_TEST_ACCOUNT_ID as string;
 
 /*
 Test Case: Edit Account Modal Functionality
@@ -24,7 +25,6 @@ The NRIC can be unmasked. The "Edit Account" modal shows the unmasked value.
   */
 test('Edit account modal updates preferred name and unmasks NRIC', async ({ page }) => {
   // test account id to be used in the test
-  const editTestAccountID = 'Ud3a7b1b8cc';
   // timeout used during search for the test account row
   const searchTimeout = 30000;
 
@@ -33,6 +33,7 @@ test('Edit account modal updates preferred name and unmasks NRIC', async ({ page
     await page.getByRole('textbox', { name: 'Enter a valid email address.' }).fill(adminAccountEmail);
     await page.getByRole('textbox', { name: 'Password' }).fill(adminAccountPassword);
     await page.getByRole('button', { name: 'LOGIN' }).click();
+    await page.waitForResponse(resp => resp.url().includes('/login')); // wait for login api to return
     // check that login was successful and the admin page is loaded
     await expect(page.getByText('Login successful.')).toBeVisible();
     await expect(page.locator('[id="radix-\\:rf\\:-content-all"] div').filter({ hasText: 'IDNameStatusEmailLast' }).nth(1)).toBeVisible();
