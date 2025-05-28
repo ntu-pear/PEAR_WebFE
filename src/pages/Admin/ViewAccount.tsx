@@ -51,44 +51,42 @@ const ViewAccount: React.FC = () => {
                   </p>
                 </AvatarFallback>
               </Avatar>
-              {currentUser?.roleName === "ADMIN" && (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button size="sm" className="absolute bottom-2 left-2">
-                      Edit
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="start" className="w-48">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button size="sm" className="absolute bottom-2 left-2">
+                    Edit
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-48">
+                  <DropdownMenuItem
+                    onClick={() =>
+                      openModal("uploadProfilePhoto", {
+                        refreshProfile: refreshAccountData,
+                        userId: id,
+                      })
+                    }
+                  >
+                    <Upload className="mr-2 h-4 w-4" />
+                    Upload Photo
+                  </DropdownMenuItem>
+                  {accountInfo?.profilePicture?.includes(
+                    "https://res.cloudinary.com"
+                  ) && (
                     <DropdownMenuItem
+                      className="text-destructive focus:text-destructive"
                       onClick={() =>
-                        openModal("uploadProfilePhoto", {
+                        openModal("deleteProfilePhoto", {
                           refreshProfile: refreshAccountData,
                           userId: id,
                         })
                       }
                     >
-                      <Upload className="mr-2 h-4 w-4" />
-                      Upload Photo
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      Remove Photo
                     </DropdownMenuItem>
-                    {accountInfo?.profilePicture?.includes(
-                      "https://res.cloudinary.com"
-                    ) && (
-                      <DropdownMenuItem
-                        className="text-destructive focus:text-destructive"
-                        onClick={() =>
-                          openModal("deleteProfilePhoto", {
-                            refreshProfile: refreshAccountData,
-                            userId: id,
-                          })
-                        }
-                      >
-                        <Trash2 className="mr-2 h-4 w-4" />
-                        Remove Photo
-                      </DropdownMenuItem>
-                    )}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              )}
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
             <div>
               <h1 className="text-2xl font-bold">
@@ -96,6 +94,7 @@ const ViewAccount: React.FC = () => {
               </h1>
               <p className="text-gray-600">{accountInfo?.roleName}</p>
               <p className="text-gray-600">{accountInfo?.email}</p>
+              <p className="text-gray-600">{accountInfo?.id}</p>
             </div>
             <div className="!ml-auto space-x-2">
               <Button
