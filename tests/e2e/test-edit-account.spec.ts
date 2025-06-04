@@ -36,11 +36,12 @@ test('Edit account modal updates preferred name and unmasks NRIC', async ({ page
     await page.waitForResponse(resp => resp.url().includes('/login')); // wait for login api to return
     // check that login was successful and the admin page is loaded
     await expect(page.getByText('Login successful.')).toBeVisible();
-    await expect(page.locator('[id="radix-\\:rf\\:-content-all"] div').filter({ hasText: 'IDNameStatusEmailLast' }).nth(1)).toBeVisible();
+    await expect(page.getByRole("tabpanel").filter({ hasText: 'IDNameStatusEmailLast' })).toBeVisible();
   });
 
   await test.step('Search for the test account', async () => {
-    var testAccountRow = page.getByRole('row', { name: `${editTestAccountID} Test Account (` });
+    const getTestAccountRow = () => page.getByRole('row', { name: `${editTestAccountID} Test` });
+    let testAccountRow = getTestAccountRow();
 
     const startTime = Date.now();
     // click next until the test account row is found or timeout, attempts to click every second
@@ -54,10 +55,10 @@ test('Edit account modal updates preferred name and unmasks NRIC', async ({ page
           throw error; // Re-throw other errors
         }
       }
-      testAccountRow = page.getByRole('row', { name: `${editTestAccountID} Test Account (` });
+      testAccountRow = getTestAccountRow();
     }
 
-    await page.getByRole('row', { name: `${editTestAccountID} Test Account (` }).getByLabel('View more').click();
+    await testAccountRow.getByLabel('View more').click();
   });
 
   var unmaskNricBtn;
