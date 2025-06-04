@@ -13,10 +13,11 @@ import {
 
 const ConfirmProfilePhotoModalAdmin: React.FC = () => {
   const { modalRef, activeModal, closeModal } = useModal();
-  const { tempPhoto, refreshProfile, userId } = activeModal.props as {
+  const { tempPhoto, refreshProfile, userId, accountName } = activeModal.props as {
     tempPhoto?: string;
     refreshProfile: () => void;
     userId: string;
+    accountName: string;
   };
   const [isLoading, setIsLoading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -81,7 +82,7 @@ const ConfirmProfilePhotoModalAdmin: React.FC = () => {
       clearInterval(uploadSimulation);
       setUploadProgress(100);
       closeModal();
-      toast.success(`Update ${userId} profile photo successfully`);
+      toast.success(`Updated profile photo for ${accountName} successfully`);
 
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
@@ -90,15 +91,15 @@ const ConfirmProfilePhotoModalAdmin: React.FC = () => {
       if (error instanceof AxiosError) {
         if (error.response?.status && error.response?.data?.detail) {
           toast.error(
-            `Failed to update ${userId} profile photo. Error ${error.response?.status}: ${error.response?.data?.detail}`
+            `Failed to update profile photo for ${accountName}. Error ${error.response?.status}: ${error.response?.data?.detail}`
           );
         } else {
           toast.error(
-            `Error ${error.response?.status}: Failed to update ${userId} profile photo.`
+            `Error ${error.response?.status}: Failed to update profile photo for ${accountName}.`
           );
         }
       } else {
-        toast.error(`Failed to update ${userId} profile photo.`);
+        toast.error(`Failed to update profile photo for ${accountName}.`);
       }
     } finally {
       setIsLoading(false);

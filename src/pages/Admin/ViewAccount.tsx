@@ -60,6 +60,7 @@ const ViewAccount: React.FC = () => {
                       openModal("uploadProfilePhoto", {
                         refreshProfile: refreshAccountData,
                         userId: id,
+                        accountName: accountInfo?.nric_FullName,
                       })
                     }
                   >
@@ -75,6 +76,7 @@ const ViewAccount: React.FC = () => {
                         openModal("deleteProfilePhoto", {
                           refreshProfile: refreshAccountData,
                           userId: id,
+                          accountName: accountInfo?.nric_FullName,
                         })
                       }
                     >

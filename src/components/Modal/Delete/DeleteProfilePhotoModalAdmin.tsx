@@ -6,9 +6,10 @@ import { AxiosError } from "axios";
 
 const DeleteProfilePhotoModalAdmin: React.FC = () => {
   const { modalRef, activeModal, closeModal } = useModal();
-  const { refreshProfile, userId } = activeModal.props as {
+  const { refreshProfile, userId, accountName } = activeModal.props as {
     refreshProfile: () => void;
     userId: string;
+    accountName: string;
   };
 
   const handleDeletePhoto = async (event: React.FormEvent) => {
@@ -18,22 +19,22 @@ const DeleteProfilePhotoModalAdmin: React.FC = () => {
       await deleteUserProfilePhotoByAdmin(userId);
       refreshProfile();
       closeModal();
-      toast.success("User profile photo deleted successfully.");
+      toast.success(`Deleted profile photo for ${accountName} successfully.`);
     } catch (error) {
       closeModal();
 
       if (error instanceof AxiosError) {
         if (error.response?.status && error.response?.data?.detail) {
           toast.error(
-            `Failed to update ${userId} profile photo. Error ${error.response?.status}: ${error.response?.data?.detail}`
+            `Failed to delete profile photo for ${accountName}. Error ${error.response?.status}: ${error.response?.data?.detail}`
           );
         } else {
           toast.error(
-            `Error ${error.response?.status}: Failed to update ${userId} profile photo.`
+            `Error ${error.response?.status}: Failed to delete profile photo for ${accountName}.`
           );
         }
       } else {
-        toast.error(`Failed to update ${userId} profile photo.`);
+        toast.error(`Failed to delete profile photo for ${accountName}.`);
       }
     }
   };

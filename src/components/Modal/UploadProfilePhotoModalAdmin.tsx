@@ -5,9 +5,10 @@ import { useState } from "react";
 
 const ProfilePhotoInputModalAdmin: React.FC = () => {
   const { modalRef, activeModal, openModal, closeModal } = useModal();
-  const { refreshProfile, userId } = activeModal.props as {
+  const { refreshProfile, userId, accountName } = activeModal.props as {
     refreshProfile: () => void;
     userId: string;
+    accountName: string;
   };
 
   const [error, setError] = useState("");
@@ -38,6 +39,7 @@ const ProfilePhotoInputModalAdmin: React.FC = () => {
           tempPhoto: reader.result as string,
           refreshProfile,
           userId,
+          accountName,
         });
       };
       reader.readAsDataURL(file);
