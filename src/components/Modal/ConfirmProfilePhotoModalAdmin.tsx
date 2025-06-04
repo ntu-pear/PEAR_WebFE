@@ -8,10 +8,8 @@ import { toast } from "sonner";
 import { useState } from "react";
 import { Progress } from "../ui/progress";
 import {
-  updateUserProfilePhoto,
   updateUserProfilePhotoByAdmin,
 } from "@/api/users/user";
-import { updatePatientProfilePhoto } from "@/api/patients/patients";
 
 const ConfirmProfilePhotoModalAdmin: React.FC = () => {
   const { modalRef, activeModal, closeModal } = useModal();

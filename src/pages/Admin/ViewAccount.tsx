@@ -1,6 +1,5 @@
 import React from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useAuth } from "@/hooks/useAuth";
 import { useModal } from "@/hooks/useModal";
 import {
   DropdownMenu,
@@ -16,11 +15,9 @@ import DeleteAccountModal from "@/components/Modal/Delete/DeleteAccountModal";
 import { useViewAccount } from "@/hooks/admin/useViewAccount";
 import AccountInfoTab from "@/components/Tab/AccountInfoTab";
 import ConfirmProfilePhotoModalAdmin from "@/components/Modal/ConfirmProfilePhotoModalAdmin";
-import DeleteProfilePhotoModal from "@/components/Modal/Delete/DeleteProfilePhotoModal";
 import DeleteProfilePhotoModalAdmin from "@/components/Modal/Delete/DeleteProfilePhotoModalAdmin";
 
 const ViewAccount: React.FC = () => {
-  const { currentUser } = useAuth();
   const {
     id,
     accountInfo,
