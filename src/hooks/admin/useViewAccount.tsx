@@ -20,6 +20,7 @@ export interface ViewAccountContextType {
     isMasked: boolean;
   };
   getNRIC: () => string;
+  resetUnmaskedNRICData: () => void;
   setAccountInfo: React.Dispatch<React.SetStateAction<User | null>>;
   refreshAccountData: () => Promise<void>;
   handleNRICToggle: () => Promise<void>;
@@ -41,6 +42,16 @@ export const ViewAccountProvider: React.FC<{ children: ReactNode }> = ({
     maskedNric: string;
     isMasked: boolean;
   }>({ nric: "", maskedNric: "", isMasked: false });
+
+  const resetUnmaskedNRICData = () => {
+    // reset the unmasked nric when the account info changes
+    setNricData((prevState) => ({
+      ...prevState,
+      nric: "",
+      maskedNric: accountInfo?.nric ? accountInfo.nric : "",
+      isMasked: true,
+    }));
+  };
 
   const refreshAccountData = async () => {
     if (!id) return;
@@ -89,7 +100,7 @@ export const ViewAccountProvider: React.FC<{ children: ReactNode }> = ({
       return nricData.maskedNric;
     }
     return nricData.nric;
-  }
+  };
 
   const handleNRICToggle = async () => {
     if (!id) return;
@@ -128,6 +139,7 @@ export const ViewAccountProvider: React.FC<{ children: ReactNode }> = ({
         modifiedByAccount,
         nricData,
         getNRIC,
+        resetUnmaskedNRICData,
         setAccountInfo,
         refreshAccountData,
         handleNRICToggle,

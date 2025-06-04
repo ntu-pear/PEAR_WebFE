@@ -16,6 +16,7 @@ import { useViewAccount } from "@/hooks/admin/useViewAccount";
 import AccountInfoTab from "@/components/Tab/AccountInfoTab";
 import ConfirmProfilePhotoModalAdmin from "@/components/Modal/ConfirmProfilePhotoModalAdmin";
 import DeleteProfilePhotoModalAdmin from "@/components/Modal/Delete/DeleteProfilePhotoModalAdmin";
+import { User } from "@/api/admin/user";
 
 const ViewAccount: React.FC = () => {
   const {
@@ -23,6 +24,7 @@ const ViewAccount: React.FC = () => {
     accountInfo,
     nricData,
     getNRIC,
+    resetUnmaskedNRICData,
     setAccountInfo,
     refreshAccountData,
   } = useViewAccount();
@@ -105,7 +107,10 @@ const ViewAccount: React.FC = () => {
                       nric: getNRIC(),
                       unmaskedNRIC: nricData.nric,
                     },
-                    refreshAccountData: setAccountInfo,
+                    refreshAccountData: (user: User) => {
+                      setAccountInfo(user);
+                      resetUnmaskedNRICData();
+                    },
                   })
                 }
               >
