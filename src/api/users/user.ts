@@ -1,5 +1,5 @@
 import axios from "axios";
-import { getDoctorNameAPI, userAPI } from "../apiConfig";
+import { adminAPI, getDoctorNameAPI, userAPI } from "../apiConfig";
 import { retrieveAccessTokenFromCookie } from "./auth";
 
 export interface RequestResetPasswordForm {
@@ -320,6 +320,26 @@ export const fetchUserProfilePhoto = async () => {
   }
 };
 
+export const updateUserProfilePhotoByAdmin = async (userId: String, formData: FormData) => {
+  try {
+    const token = retrieveAccessTokenFromCookie();
+    if (!token) throw new Error("No token found.");
+
+    const response = await adminAPI.post(`/user/${userId}/upload_profile_pic/`, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    console.log("POST update user profile photo by admin", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("POST update user profile photo by admin", error);
+    throw error;
+  }
+};
+
 export const updateUserProfilePhoto = async (formData: FormData) => {
   try {
     const token = retrieveAccessTokenFromCookie();
@@ -336,6 +356,24 @@ export const updateUserProfilePhoto = async (formData: FormData) => {
     return response.data;
   } catch (error) {
     console.error("POST update user profile photo", error);
+    throw error;
+  }
+};
+
+export const deleteUserProfilePhotoByAdmin = async (userId: String) => {
+  try {
+    const token = retrieveAccessTokenFromCookie();
+    if (!token) throw new Error("No token found.");
+
+    const response = await adminAPI.delete(`/user/${userId}/delete_profile_pic/`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    return response.data;
+  } catch (error) {
+    console.error("DELETE delete user profile photo by admin", error);
     throw error;
   }
 };

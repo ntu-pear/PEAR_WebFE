@@ -1,6 +1,5 @@
 import React from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useAuth } from "@/hooks/useAuth";
 import { useModal } from "@/hooks/useModal";
 import {
   DropdownMenu,
@@ -10,15 +9,23 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { Trash2, Upload } from "lucide-react";
-import UploadProfilePhotoModal from "@/components/Modal/UploadProfilePhotoModal";
+import UploadProfilePhotoModalAdmin from "@/components/Modal/UploadProfilePhotoModalAdmin";
 import EditAccountInfoModal from "@/components/Modal/Edit/EditAccountInfoModal";
 import DeleteAccountModal from "@/components/Modal/Delete/DeleteAccountModal";
 import { useViewAccount } from "@/hooks/admin/useViewAccount";
 import AccountInfoTab from "@/components/Tab/AccountInfoTab";
+import ConfirmProfilePhotoModalAdmin from "@/components/Modal/ConfirmProfilePhotoModalAdmin";
+import DeleteProfilePhotoModalAdmin from "@/components/Modal/Delete/DeleteProfilePhotoModalAdmin";
 
 const ViewAccount: React.FC = () => {
-  const { currentUser } = useAuth();
-  const { id, accountInfo, nricData, getNRIC, setAccountInfo, refreshAccountData } = useViewAccount();
+  const {
+    id,
+    accountInfo,
+    nricData,
+    getNRIC,
+    setAccountInfo,
+    refreshAccountData,
+  } = useViewAccount();
   const { activeModal, openModal } = useModal();
 
   return (
@@ -41,46 +48,44 @@ const ViewAccount: React.FC = () => {
                   </p>
                 </AvatarFallback>
               </Avatar>
-              {currentUser?.roleName === "ADMIN" && (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button size="sm" className="absolute bottom-2 left-2">
-                      Edit
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="start" className="w-48">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button size="sm" className="absolute bottom-2 left-2">
+                    Edit
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-48">
+                  <DropdownMenuItem
+                    onClick={() =>
+                      openModal("uploadProfilePhoto", {
+                        refreshProfile: refreshAccountData,
+                        userId: id,
+                        accountName: accountInfo?.nric_FullName,
+                      })
+                    }
+                  >
+                    <Upload className="mr-2 h-4 w-4" />
+                    Upload Photo
+                  </DropdownMenuItem>
+                  {accountInfo?.profilePicture?.includes(
+                    "https://res.cloudinary.com"
+                  ) && (
                     <DropdownMenuItem
+                      className="text-destructive focus:text-destructive"
                       onClick={() =>
-                        openModal("uploadProfilePhoto", {
+                        openModal("deleteProfilePhoto", {
                           refreshProfile: refreshAccountData,
-                          isUser: false,
-                          patientId: id,
+                          userId: id,
+                          accountName: accountInfo?.nric_FullName,
                         })
                       }
                     >
-                      <Upload className="mr-2 h-4 w-4" />
-                      Upload Photo
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      Remove Photo
                     </DropdownMenuItem>
-                    {accountInfo?.profilePicture?.includes(
-                      "https://res.cloudinary.com"
-                    ) && (
-                      <DropdownMenuItem
-                        className="text-destructive focus:text-destructive"
-                        onClick={() =>
-                          openModal("deleteProfilePhoto", {
-                            refreshProfile: refreshAccountData,
-                            isUser: false,
-                            patientId: id,
-                          })
-                        }
-                      >
-                        <Trash2 className="mr-2 h-4 w-4" />
-                        Remove Photo
-                      </DropdownMenuItem>
-                    )}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              )}
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
             <div>
               <h1 className="text-2xl font-bold">
@@ -88,13 +93,14 @@ const ViewAccount: React.FC = () => {
               </h1>
               <p className="text-gray-600">{accountInfo?.roleName}</p>
               <p className="text-gray-600">{accountInfo?.email}</p>
+              <p className="text-gray-600">{accountInfo?.id}</p>
             </div>
             <div className="!ml-auto space-x-2">
               <Button
                 variant="default"
                 onClick={() =>
                   openModal("editAccountInfo", {
-                    accountInfo:{
+                    accountInfo: {
                       ...accountInfo,
                       nric: getNRIC(),
                       unmaskedNRIC: nricData.nric,
@@ -123,11 +129,15 @@ const ViewAccount: React.FC = () => {
         </div>
 
         {activeModal.name === "uploadProfilePhoto" && (
-          <UploadProfilePhotoModal />
+          <UploadProfilePhotoModalAdmin />
         )}
-        {activeModal.name === "editAccountInfo" && (
-          <EditAccountInfoModal />
+        {activeModal.name === "confirmProfilePhoto" && (
+          <ConfirmProfilePhotoModalAdmin />
         )}
+        {activeModal.name === "deleteProfilePhoto" && (
+          <DeleteProfilePhotoModalAdmin />
+        )}
+        {activeModal.name === "editAccountInfo" && <EditAccountInfoModal />}
         {activeModal.name === "deleteAccount" && <DeleteAccountModal />}
       </div>
     </>
