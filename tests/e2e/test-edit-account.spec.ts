@@ -10,10 +10,17 @@ const __dirname = path.dirname(__filename);
 dotenv.config({ path: path.resolve(__dirname, 'test.env') });
 
 // these are the variables used in the test to be included in the .env file
-const baseUrl = process.env.BASE_URL as string;
+const frontendUrl = process.env.FRONTEND_URL as string;
 const adminAccountEmail = process.env.ADMIN_ACCOUNT_EMAIL as string;
 const adminAccountPassword = process.env.ADMIN_ACCOUNT_PASSWORD as string;
 const editTestAccountID = process.env.EDIT_TEST_ACCOUNT_ID as string;
+
+const hostServerIP = process.env.HOST_SERVER_IP as string; // Optional IP address of the host server, used to rewrite requests to localhost
+
+// Ensure all required environment variables are set
+if (!frontendUrl || !adminAccountEmail || !adminAccountPassword || !editTestAccountID) {
+  throw new Error('Missing required environment variables in test.env');
+}
 
 /*
 Test Case: Edit Account Modal Functionality
@@ -27,9 +34,28 @@ test('Edit account modal updates preferred name and unmasks NRIC', async ({ page
   // test account id to be used in the test
   // timeout used during search for the test account row
   const searchTimeout = 30000;
+  test.step('intercepts and rewrites requests to localhost if on the same server', async () => {
+    // App is unable to reach the backend api when it is running on the same server, 
+    // so we need to rewrite the requests to localhost instead.
+
+    // Intercept ALL requests before the page makes them
+    await page.route('**', async (route) => {
+      const request = route.request();
+      let url = request.url();
+
+      if (hostServerIP && url.includes(hostServerIP)) {
+        const prevUrl = url;
+        url = url.replace(hostServerIP, 'localhost');
+        console.log(`Rewrote URL: ${prevUrl} to ${url}`);
+        await route.continue({ url });
+      } else {
+        await route.continue();
+      }
+    });
+  });
 
   await test.step('Navigate and login to admin', async () => {
-    await page.goto(baseUrl);
+    await page.goto(frontendUrl);
     await page.getByRole('textbox', { name: 'Enter a valid email address.' }).fill(adminAccountEmail);
     await page.getByRole('textbox', { name: 'Password' }).fill(adminAccountPassword);
     await page.getByRole('button', { name: 'LOGIN' }).click();
