@@ -197,7 +197,7 @@ export const deleteUserById = async (userId: string) => {
     const token = retrieveAccessTokenFromCookie();
     if (!token) throw new Error("Token not found");
     const response = await adminAPI.delete<User>(
-      `/${userId}`,
+      `/soft_delete/${userId}`,
       { headers: { Authorization: `Bearer ${token}` } }
     );
     return response.data;
