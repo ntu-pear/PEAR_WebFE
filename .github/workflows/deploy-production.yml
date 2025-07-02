@@ -1,0 +1,63 @@
+name: Deploy to Production
+
+on:
+  workflow_dispatch:
+    inputs:
+      git_ref:
+        description: 'Commit SHA to deploy (default: main branch)'
+        required: false
+
+  workflow_run:
+    workflows: ['Deploy to Staging']
+    types: [completed]
+    branches: [main]
+
+jobs:
+  deploy:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    name: Deploy to Production
+    runs-on: [self-hosted, Linux, x64, webfe, production]
+    environment:
+      name: production
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.git_ref || github.event.workflow_run.head_sha || 'main' }}
+
+      - name: Get short commit SHA
+        id: get_sha
+        run: echo "sha=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
+              
+      - name: Print commit being deployed
+        run: |
+          echo "Deploying commit: ${{ steps.get_sha.outputs.sha }}"
+
+      - name: Create .env file from GitHub Secrets
+        run: |
+          echo "VITE_PATIENT_SERVICE_URL=${{ vars.VITE_PATIENT_SERVICE_URL }}" >> .env
+          echo "VITE_GEOCODE_SERVICE_URL=${{ vars.VITE_GEOCODE_SERVICE_URL }}" >> .env
+          echo "VITE_USER_SERVICE_URL=${{ vars.VITE_USER_SERVICE_URL }}" >> .env
+          echo "VITE_LOGGER_SERVICE_URL=${{ vars.VITE_LOGGER_SERVICE_URL }}" >> .env
+
+      - name: Build and push Docker image
+        run: |
+          docker build -t localhost:5000/pear_webfe:${{ steps.get_sha.outputs.sha }} .
+          docker push localhost:5000/pear_webfe:${{ steps.get_sha.outputs.sha }}
+          docker rmi localhost:5000/pear_webfe:${{ steps.get_sha.outputs.sha }}
+
+      - name: Deploy to Minikube
+        run: |
+          sed -i "s|^\(\s*image:\)\s*.*|\1 host.minikube.internal:5000/pear_webfe:${{ steps.get_sha.outputs.sha }}|" pear_webfe.yaml
+          cat pear_webfe.yaml
+          minikube kubectl -- apply -f pear_webfe.yaml
+
+      - name: Patch command to redeploy pods with same image tag
+        run: |
+          minikube kubectl -- patch deployment pear-webfe-deployment \
+            -p "{\"spec\":{\"template\":{\"metadata\":{\"annotations\":{\"deploy-date\":\"$(date +'%s')\"}}}}}"
+
+      - name: Log pod status
+        run: |
+          minikube kubectl get pods
