@@ -107,7 +107,7 @@ const EditAccountInfoModal: React.FC = () => {
       const updatedUser = await updateUser(account.id, changedFields);
       toast.success("Account information updated successfully.");
       closeModal();
-      refreshAccountData(updatedUser);
+      await refreshAccountData(updatedUser);
     } catch (error: any) {
       if (error instanceof AxiosError) {
         if (error.response && error.response.data.detail) {
