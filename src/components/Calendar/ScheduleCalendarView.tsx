@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { format, startOfWeek, addDays, startOfMonth, endOfMonth, endOfWeek, isSameMonth, isSameDay, addMonths, subMonths, addWeeks, subWeeks, getHours, getMinutes, setHours, setMinutes, parse, parseISO, set } from 'date-fns';
-import { enUS } from 'date-fns/locale'; // Import locale for date-fns
+import { de, enUS } from 'date-fns/locale'; // Import locale for date-fns
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { toast } from 'sonner';
-import { ActivityExclusion, ActivityTemplate, getActivityExclusions, getActivityTemplates, getPatients, getScheduledActivities, Patient, ScheduledActivity } from '@/api/activity/activity';
+import { ActivityExclusion, ActivityTemplate, deleteActivity, getActivityExclusions, getActivityTemplates, getPatients, getScheduledActivities, Patient, ScheduledActivity } from '@/api/activity/activity';
 
 // Time slot definitions for Week/Day view (7 AM to 7 PM)
 const TIME_SLOTS = Array.from({ length: 13 }, (_, i) => `${7 + i}:00`);
@@ -151,13 +151,12 @@ const ScheduleCalendarView: React.FC = () => {
   }, []);
 
   const handleDeleteActivity = useCallback((activityId: string) => {
-    openConfirmation("Are you sure you want to delete this scheduled activity?", () => {
-      scheduledActivities = scheduledActivities.filter(a => a.id !== activityId);
+    openConfirmation("Are you sure you want to delete this scheduled activity?", async () => {
+      const updatedActivity = await deleteActivity(activityId);
+      setScheduledActivities(updatedActivity);
       setSelectedActivityForDetails(null);
       setIsActivityDetailsModalOpen(false);
       toast("Activity Deleted", { description: "The scheduled activity has been removed." });
-      // Force re-render of filtered activities
-      scheduledActivities = [...scheduledActivities];
     });
   }, []);
 

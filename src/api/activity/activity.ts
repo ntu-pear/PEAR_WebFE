@@ -54,3 +54,10 @@ export const getScheduledActivities = async () => {
 export const getActivityExclusions = async () => {
   return mockExclusions;
 };
+
+// TODO change when actual API is implemented
+export const deleteActivity = async (activityId: string) => {
+  // Simulate deletion by filtering out the activity
+  const updatedActivities = mockScheduledActivities.filter(activity => activity.id !== activityId);
+  return updatedActivities;
+}
