@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { toast } from 'sonner';
-import { ActivityExclusion, ActivityTemplate, deleteActivity, getActivityExclusions, getActivityTemplates, getPatients, getScheduledActivities, Patient, ScheduledActivity } from '@/api/activity/activity';
+import { ActivityExclusion, ActivityTemplate, addActivityExclusion, addScheduledActivity, deleteScheduledActivity, getActivityExclusions, getActivityTemplates, getPatients, getScheduledActivities, Patient, ScheduledActivity, updateActivityExclusion, updateScheduledActivity } from '@/api/activity/activity';
 
 // Time slot definitions for Week/Day view (7 AM to 7 PM)
 const TIME_SLOTS = Array.from({ length: 13 }, (_, i) => `${7 + i}:00`);
@@ -152,7 +152,7 @@ const ScheduleCalendarView: React.FC = () => {
 
   const handleDeleteActivity = useCallback((activityId: string) => {
     openConfirmation("Are you sure you want to delete this scheduled activity?", async () => {
-      const updatedActivity = await deleteActivity(activityId);
+      const updatedActivity = await deleteScheduledActivity(activityId);
       setScheduledActivities(updatedActivity);
       setSelectedActivityForDetails(null);
       setIsActivityDetailsModalOpen(false);
@@ -160,20 +160,19 @@ const ScheduleCalendarView: React.FC = () => {
     });
   }, []);
 
-  const handleSaveActivity = useCallback((activity: ScheduledActivity) => {
+  const handleSaveActivity = useCallback(async (activity: ScheduledActivity) => {
     if (activity.id) {
       // Edit existing
-      scheduledActivities = scheduledActivities.map(a => a.id === activity.id ? activity : a);
+      const updatedActivity = await updateScheduledActivity(activity);
+      setScheduledActivities([...scheduledActivities, updatedActivity]);
       toast("Activity Updated", { description: "The scheduled activity has been updated." });
     } else {
       // Add new
-      const newId = `s${scheduledActivities.length + 1}`;
-      scheduledActivities.push({ ...activity, id: newId });
+      const newActivity = await addScheduledActivity(activity);
+      setScheduledActivities([...scheduledActivities, newActivity]);
       toast("Activity Added", { description: "A new activity has been scheduled." });
     }
     setIsAddEditActivityModalOpen(false);
-    // Force re-render of filtered activities
-    scheduledActivities = [...scheduledActivities];
   }, []);
 
   const handleCreateExclusionFromActivity = useCallback((activity: ScheduledActivity) => {
@@ -190,29 +189,27 @@ const ScheduleCalendarView: React.FC = () => {
   }, []);
 
   // Exclusion Management Handlers
-  const handleSaveExclusion = useCallback((exclusion: ActivityExclusion) => {
+  const handleSaveExclusion = useCallback(async (exclusion: ActivityExclusion) => {
     if (exclusion.id) {
-      activityExclusions = activityExclusions.map(e => e.id === exclusion.id ? exclusion : e);
+      // Update existing exclusion
+      await updateActivityExclusion(exclusion);
+      setActivityExclusions(activityExclusions.map(e => e.id === exclusion.id ? exclusion : e));
       toast("Exclusion Updated", { description: "The exclusion has been updated." });
     } else {
-      const newId = `e${activityExclusions.length + 1}`;
-      activityExclusions.push({ ...exclusion, id: newId });
+      // Add new exclusion
+      const newExclusion = await addActivityExclusion(exclusion);
+      setActivityExclusions([...activityExclusions, newExclusion]);
       toast("Exclusion Added", { description: "A new exclusion has been added." });
     }
     setIsExclusionManagementModalOpen(false);
-    // Force re-render of filtered activities and exclusions
-    activityExclusions = [...activityExclusions];
-    scheduledActivities = [...scheduledActivities]; // Re-trigger activity filter to apply new exclusions
   }, []);
 
   const handleDeleteExclusion = useCallback((exclusionId: string) => {
-    openConfirmation("Are you sure you want to delete this exclusion?", () => {
-      activityExclusions = activityExclusions.filter(e => e.id !== exclusionId);
+    openConfirmation("Are you sure you want to delete this exclusion?", async () => {
+      await deleteScheduledActivity(exclusionId);
+      setActivityExclusions(activityExclusions.filter(e => e.id !== exclusionId));
       setIsExclusionManagementModalOpen(false);
       toast("Exclusion Deleted", { description: "The exclusion has been removed." });
-      // Force re-render of filtered activities and exclusions
-      activityExclusions = [...activityExclusions];
-      scheduledActivities = [...scheduledActivities]; // Re-trigger activity filter to remove old exclusions
     });
   }, []);
 
