@@ -1,5 +1,5 @@
-import React, { useState, useMemo, useCallback } from 'react';
-import { format, startOfWeek, addDays, startOfMonth, endOfMonth, endOfWeek, isSameMonth, isSameDay, addMonths, subMonths, addWeeks, subWeeks, getHours, getMinutes, setHours, setMinutes, parse, parseISO } from 'date-fns';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
+import { format, startOfWeek, addDays, startOfMonth, endOfMonth, endOfWeek, isSameMonth, isSameDay, addMonths, subMonths, addWeeks, subWeeks, getHours, getMinutes, setHours, setMinutes, parse, parseISO, set } from 'date-fns';
 import { enUS } from 'date-fns/locale'; // Import locale for date-fns
 
 import { Button } from '@/components/ui/button';
@@ -9,91 +9,21 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { toast } from 'sonner';
-
-// Define types for mock data
-interface Patient {
-  id: string;
-  name: string;
-  isActive: boolean;
-}
-
-interface ActivityTemplate {
-  id: string;
-  name: string;
-  type: 'routine' | 'free_easy';
-  isRarelyScheduled: boolean; // Backend-determined
-}
-
-interface ScheduledActivity {
-  id: string;
-  activityTemplateId: string;
-  patientId: string;
-  startTime: string; // 'HH:mm'
-  endTime: string; // 'HH:mm'
-  date: string; // 'YYYY-MM-DD'
-  isOverridden: boolean; // Manually adjusted by supervisor
-  isExcluded: boolean; // Overridden by an exclusion
-  exclusionReason?: string;
-  notes?: string;
-}
-
-interface ActivityExclusion {
-  id: string;
-  activityTemplateId: string;
-  patientId: string;
-  startDate: string; // 'YYYY-MM-DD'
-  endDate: string; // 'YYYY-MM-DD'
-  reason?: string;
-}
-
-// Mock Data (replace with actual data fetching in a real app)
-// Using `let` to allow re-assignment for demonstration purposes to simulate data changes.
-let mockPatients: Patient[] = [
-  { id: 'p1', name: 'John Doe', isActive: true },
-  { id: 'p2', name: 'Jane Smith', isActive: true },
-  { id: 'p3', name: 'Peter Jones', isActive: false },
-];
-
-let mockActivityTemplates: ActivityTemplate[] = [
-  { id: 'a1', name: 'Walking Exercise', type: 'routine', isRarelyScheduled: false },
-  { id: 'a2', name: 'Arts & Crafts', type: 'routine', isRarelyScheduled: true }, // Example of rarely scheduled
-  { id: 'a3', name: 'Lunch', type: 'routine', isRarelyScheduled: false },
-  { id: 'a4', name: 'Story Time', type: 'routine', isRarelyScheduled: false },
-  { id: 'a5', name: 'Music Therapy', type: 'routine', isRarelyScheduled: false },
-  { id: 'a6', name: 'Free & Easy', type: 'free_easy', isRarelyScheduled: false },
-];
-
-let mockScheduledActivities: ScheduledActivity[] = [
-  { id: 's1', activityTemplateId: 'a1', patientId: 'p1', date: '2025-07-28', startTime: '09:00', endTime: '10:00', isOverridden: false, isExcluded: false },
-  { id: 's2', activityTemplateId: 'a3', patientId: 'p1', date: '2025-07-28', startTime: '12:00', endTime: '13:00', isOverridden: false, isExcluded: false },
-  { id: 's3', activityTemplateId: 'a2', patientId: 'p2', date: '2025-07-28', startTime: '10:30', endTime: '11:30', isOverridden: false, isExcluded: false },
-  { id: 's4', activityTemplateId: 'a6', patientId: 'p1', date: '2025-07-29', startTime: '14:00', endTime: '16:00', isOverridden: false, isExcluded: false },
-  { id: 's5', activityTemplateId: 'a4', patientId: 'p2', date: '2025-07-29', startTime: '09:30', endTime: '10:30', isOverridden: false, isExcluded: false },
-  { id: 's6', activityTemplateId: 'a1', patientId: 'p1', date: '2025-07-30', startTime: '09:00', endTime: '10:00', isOverridden: false, isExcluded: false },
-  { id: 's7', activityTemplateId: 'a3', patientId: 'p1', date: '2025-07-30', startTime: '12:00', endTime: '13:00', isOverridden: false, isExcluded: false },
-  { id: 's8', activityTemplateId: 'a2', patientId: 'p2', date: '2025-07-30', startTime: '10:30', endTime: '11:30', isOverridden: false, isExcluded: false },
-  { id: 's9', activityTemplateId: 'a5', patientId: 'p1', date: '2025-08-01', startTime: '11:00', endTime: '12:00', isOverridden: true, notes: 'Supervisor adjusted time', isExcluded: false },
-  { id: 's10', activityTemplateId: 'a1', patientId: 'p2', date: '2025-08-01', startTime: '09:00', endTime: '10:00', isOverridden: false, isExcluded: true, exclusionReason: 'Patient feeling unwell' }, // Example of excluded
-];
-
-let mockExclusions: ActivityExclusion[] = [
-  { id: 'e1', activityTemplateId: 'a1', patientId: 'p2', startDate: '2025-08-01', endDate: '2025-08-03', reason: 'Patient unwell' },
-  { id: 'e2', activityTemplateId: 'a3', patientId: 'p1', startDate: '2025-08-05', endDate: '2025-08-05', reason: 'Doctor appointment' },
-];
-
-// Helper to get activity template details
-const getActivityTemplate = (id: string) => mockActivityTemplates.find(a => a.id === id);
-const getPatient = (id: string) => mockPatients.find(p => p.id === id);
+import { ActivityExclusion, ActivityTemplate, getActivityExclusions, getActivityTemplates, getPatients, getScheduledActivities, Patient, ScheduledActivity } from '@/api/activity/activity';
 
 // Time slot definitions for Week/Day view (7 AM to 7 PM)
 const TIME_SLOTS = Array.from({ length: 13 }, (_, i) => `${7 + i}:00`);
 
 // Main ActivityCalendarView component
-const ActivityCalendarView: React.FC = () => {
+const ScheduleCalendarView: React.FC = () => {
+  const [patientsData, setPatientsData] = useState<Patient[]>([]);
+  const [activityTemplates, setActivityTemplates] = useState<ActivityTemplate[]>([]);
+  const [scheduledActivities, setScheduledActivities] = useState<ScheduledActivity[]>([]);
+  const [activityExclusions, setActivityExclusions] = useState<ActivityExclusion[]>([]);
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
   const [viewMode, setViewMode] = useState<'month' | 'week' | 'day'>('month');
-  const [selectedPatients, setSelectedPatients] = useState<string[]>(mockPatients.filter(p => p.isActive).map(p => p.id));
-  const [selectedActivities, setSelectedActivities] = useState<string[]>(mockActivityTemplates.map(a => a.id));
+  const [selectedPatients, setSelectedPatients] = useState<string[]>([]);
+  const [selectedActivities, setSelectedActivities] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState<string>('');
 
   // Modals state
@@ -111,18 +41,41 @@ const ActivityCalendarView: React.FC = () => {
   const [confirmAction, setConfirmAction] = useState<(() => void) | null>(null);
   const [confirmMessage, setConfirmMessage] = useState('');
 
+  const getPatient = (id: string) => patientsData.find(p => p.id === id);
+  const getActivityTemplate = (id: string) => activityTemplates.find(a => a.id === id);
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const patients = await getPatients();
+        setPatientsData(patients);
+        setSelectedPatients(patients.filter(p => p.isActive).map(p => p.id));
+
+        const activityTemplates = await getActivityTemplates();
+        setActivityTemplates(activityTemplates);
+        setSelectedActivities(activityTemplates.map(a => a.id));
+
+        const scheduledActivities = await getScheduledActivities();
+        setScheduledActivities(scheduledActivities);
+
+        const exclusions = await getActivityExclusions();
+        setActivityExclusions(exclusions);
+      } catch (error) {
+        console.error("Failed to fetch data:", error);
+      }
+    };
+
+    fetchData();
+  }, []);
+
   // Filtered scheduled activities based on selected patients, activities, and search term
   // Memoize to prevent unnecessary re-renders
   const filteredScheduledActivities = useMemo(() => {
-    // A trick to force re-evaluation when mock data changes, as `let` variables don't trigger React updates directly.
-    const currentScheduledActivities = [...mockScheduledActivities];
-
-    return currentScheduledActivities.filter(activity => {
+    return scheduledActivities.filter(activity => {
       const patient = getPatient(activity.patientId);
       const activityTemplate = getActivityTemplate(activity.activityTemplateId);
 
       // Check if the activity is covered by any exclusion
-      const isCurrentlyExcluded = mockExclusions.some(ex =>
+      const isCurrentlyExcluded = activityExclusions.some(ex =>
         ex.activityTemplateId === activity.activityTemplateId &&
         ex.patientId === activity.patientId &&
         activity.date >= ex.startDate && activity.date <= ex.endDate
@@ -141,7 +94,7 @@ const ActivityCalendarView: React.FC = () => {
 
       return matchesPatient && matchesActivity && matchesSearch;
     });
-  }, [selectedPatients, selectedActivities, searchTerm, mockScheduledActivities, mockExclusions]); // Depend on mock data arrays to re-run memoization
+  }, [selectedPatients, selectedActivities, searchTerm, scheduledActivities, activityExclusions]); // Depend on mock data arrays to re-run memoization
 
   // Add this new memoized calculation after the existing useMemo for filteredScheduledActivities
   const calendarDays = useMemo(() => {
@@ -199,29 +152,29 @@ const ActivityCalendarView: React.FC = () => {
 
   const handleDeleteActivity = useCallback((activityId: string) => {
     openConfirmation("Are you sure you want to delete this scheduled activity?", () => {
-      mockScheduledActivities = mockScheduledActivities.filter(a => a.id !== activityId);
+      scheduledActivities = scheduledActivities.filter(a => a.id !== activityId);
       setSelectedActivityForDetails(null);
       setIsActivityDetailsModalOpen(false);
       toast("Activity Deleted", { description: "The scheduled activity has been removed." });
       // Force re-render of filtered activities
-      mockScheduledActivities = [...mockScheduledActivities];
+      scheduledActivities = [...scheduledActivities];
     });
   }, []);
 
   const handleSaveActivity = useCallback((activity: ScheduledActivity) => {
     if (activity.id) {
       // Edit existing
-      mockScheduledActivities = mockScheduledActivities.map(a => a.id === activity.id ? activity : a);
+      scheduledActivities = scheduledActivities.map(a => a.id === activity.id ? activity : a);
       toast("Activity Updated", { description: "The scheduled activity has been updated." });
     } else {
       // Add new
-      const newId = `s${mockScheduledActivities.length + 1}`;
-      mockScheduledActivities.push({ ...activity, id: newId });
+      const newId = `s${scheduledActivities.length + 1}`;
+      scheduledActivities.push({ ...activity, id: newId });
       toast("Activity Added", { description: "A new activity has been scheduled." });
     }
     setIsAddEditActivityModalOpen(false);
     // Force re-render of filtered activities
-    mockScheduledActivities = [...mockScheduledActivities];
+    scheduledActivities = [...scheduledActivities];
   }, []);
 
   const handleCreateExclusionFromActivity = useCallback((activity: ScheduledActivity) => {
@@ -240,27 +193,27 @@ const ActivityCalendarView: React.FC = () => {
   // Exclusion Management Handlers
   const handleSaveExclusion = useCallback((exclusion: ActivityExclusion) => {
     if (exclusion.id) {
-      mockExclusions = mockExclusions.map(e => e.id === exclusion.id ? exclusion : e);
+      activityExclusions = activityExclusions.map(e => e.id === exclusion.id ? exclusion : e);
       toast("Exclusion Updated", { description: "The exclusion has been updated." });
     } else {
-      const newId = `e${mockExclusions.length + 1}`;
-      mockExclusions.push({ ...exclusion, id: newId });
+      const newId = `e${activityExclusions.length + 1}`;
+      activityExclusions.push({ ...exclusion, id: newId });
       toast("Exclusion Added", { description: "A new exclusion has been added." });
     }
     setIsExclusionManagementModalOpen(false);
     // Force re-render of filtered activities and exclusions
-    mockExclusions = [...mockExclusions];
-    mockScheduledActivities = [...mockScheduledActivities]; // Re-trigger activity filter to apply new exclusions
+    activityExclusions = [...activityExclusions];
+    scheduledActivities = [...scheduledActivities]; // Re-trigger activity filter to apply new exclusions
   }, []);
 
   const handleDeleteExclusion = useCallback((exclusionId: string) => {
     openConfirmation("Are you sure you want to delete this exclusion?", () => {
-      mockExclusions = mockExclusions.filter(e => e.id !== exclusionId);
+      activityExclusions = activityExclusions.filter(e => e.id !== exclusionId);
       setIsExclusionManagementModalOpen(false);
       toast("Exclusion Deleted", { description: "The exclusion has been removed." });
       // Force re-render of filtered activities and exclusions
-      mockExclusions = [...mockExclusions];
-      mockScheduledActivities = [...mockScheduledActivities]; // Re-trigger activity filter to remove old exclusions
+      activityExclusions = [...activityExclusions];
+      scheduledActivities = [...scheduledActivities]; // Re-trigger activity filter to remove old exclusions
     });
   }, []);
 
@@ -383,7 +336,7 @@ const ActivityCalendarView: React.FC = () => {
             <div className="mb-6">
               <h3 className="text-lg font-semibold mb-2 flex items-center">👥 Patients</h3> {/* Users icon */}
               <div className="space-y-2">
-                {mockPatients.map(patient => (
+                {patientsData.map(patient => (
                   <div key={patient.id} className="flex items-center space-x-2">
                     <input
                       type="checkbox"
@@ -405,7 +358,7 @@ const ActivityCalendarView: React.FC = () => {
             <div className="mb-6">
               <h3 className="text-lg font-semibold mb-2 flex items-center">🏃 Activities</h3> {/* Activity icon */}
               <div className="space-y-2">
-                {mockActivityTemplates.map(activity => (
+                {activityTemplates.map(activity => (
                   <div key={activity.id} className="flex items-center space-x-2">
                     <input
                       type="checkbox"
@@ -426,8 +379,8 @@ const ActivityCalendarView: React.FC = () => {
             <div className="mb-6">
               <h3 className="text-lg font-semibold mb-2 flex items-center">🚫 Exclusions</h3> {/* X icon */}
               <ul className="text-sm text-gray-600 space-y-1">
-                {mockExclusions.length > 0 ? (
-                  mockExclusions.map(exclusion => {
+                {activityExclusions.length > 0 ? (
+                  activityExclusions.map(exclusion => {
                     const patient = getPatient(exclusion.patientId);
                     const activity = getActivityTemplate(exclusion.activityTemplateId);
                     return (
@@ -701,8 +654,8 @@ const ActivityCalendarView: React.FC = () => {
           activity={activityToEdit}
           onSave={handleSaveActivity}
           onCancel={() => setIsAddEditActivityModalOpen(false)}
-          patients={mockPatients}
-          activityTemplates={mockActivityTemplates}
+          patients={patientsData}
+          activityTemplates={activityTemplates}
         />
       </Modal>
 
@@ -717,8 +670,8 @@ const ActivityCalendarView: React.FC = () => {
           exclusion={exclusionToManage}
           onSave={handleSaveExclusion}
           onCancel={() => setIsExclusionManagementModalOpen(false)}
-          patients={mockPatients}
-          activityTemplates={mockActivityTemplates}
+          patients={patientsData}
+          activityTemplates={activityTemplates}
         />
       </Modal>
 
@@ -963,4 +916,4 @@ const ExclusionForm: React.FC<ExclusionFormProps> = ({ exclusion, onSave, onCanc
   );
 };
 
-export default ActivityCalendarView;
+export default ScheduleCalendarView;

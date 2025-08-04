@@ -52,7 +52,6 @@ import ViewAccount from "./pages/Admin/ViewAccount";
 import { ViewAccountProvider } from "./hooks/admin/useViewAccount";
 import ManageSocialHistory from "./pages/Admin/ManageSocialHistory";
 import CustomRoleProtectedRoute from "./components/CustomRoleProtectedRoute";
-import ActivityTable from "./pages/Supervisor/ActivityCalendarView";
 import CentreActivity from "./pages/Supervisor/CentreActivity";
 
 export const queryClient = new QueryClient({

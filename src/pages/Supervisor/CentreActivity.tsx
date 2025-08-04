@@ -1,4 +1,4 @@
-import ActivityTable from "./ActivityCalendarView";
+import ActivityTable from "./ScheduleCalendarView";
 
 const CentreActivity = () => {
   return (
