@@ -94,6 +94,11 @@ const supervisorMenu: MenuSection[] = [
         icon: "Calendar",
         path: "/supervisor/display-schedule",
       },
+      {
+        title: "Display Centre Activity",
+        icon: "Calendar",
+        path: "/supervisor/centre-activity",
+      },
     ],
   },
   {
