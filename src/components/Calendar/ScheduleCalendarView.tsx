@@ -6,10 +6,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { toast } from 'sonner';
 import { ActivityExclusion, ActivityTemplate, addActivityExclusion, addScheduledActivity, deleteScheduledActivity, getActivityExclusions, getActivityTemplates, getPatients, getScheduledActivities, Patient, ScheduledActivity, updateActivityExclusion, updateScheduledActivity } from '@/api/activity/activity';
+import ActivityDetailsModal from './modals/ActivityDetailsModal';
+import AddEditActivityModal from './modals/AddEditActivityModal';
+import ExclusionManagementModal from './modals/ExclusionManagementModal';
+import ConfirmationDialog from './modals/ConfirmationDialog';
 
 // Time slot definitions for Week/Day view (7 AM to 7 PM)
 const TIME_SLOTS = Array.from({ length: 13 }, (_, i) => `${7 + i}:00`);
@@ -261,29 +264,6 @@ const ScheduleCalendarView: React.FC = () => {
       </div>
     );
   }, [handleActivityClick]);
-
-  // Generic Modal Component (replaces Shadcn Dialog)
-  const Modal: React.FC<{ isOpen: boolean; onClose: () => void; title: string; description?: string; children: React.ReactNode; footer?: React.ReactNode }> = ({ isOpen, onClose, title, description, children, footer }) => {
-    if (!isOpen) return null;
-    return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-        <div className="relative bg-white rounded-lg shadow-xl w-full max-w-sm md:max-w-md lg:max-w-lg xl:max-w-xl max-h-[90vh] overflow-y-auto">
-          <div className="flex items-center justify-between p-4 border-b">
-            <h3 className="text-xl font-semibold">{title}</h3>
-            <Button variant="ghost" size="icon" onClick={onClose} className="rounded-md">
-              <span className="sr-only">Close</span>
-              <span className="text-xl">&times;</span> {/* Simple X icon */}
-            </Button>
-          </div>
-          {description && <p className="text-sm text-gray-500 px-4 pt-2">{description}</p>}
-          <div className="p-4">
-            {children}
-          </div>
-          {footer && <div className="flex justify-end p-4 border-t">{footer}</div>}
-        </div>
-      </div>
-    );
-  };
 
   return (
     <div className="flex flex-col h-screen bg-gray-50 font-sans antialiased">
@@ -572,343 +552,46 @@ const ScheduleCalendarView: React.FC = () => {
 
       {/* Activity Details Modal */}
       {selectedActivityForDetails && (
-        <Modal
+        <ActivityDetailsModal
           isOpen={isActivityDetailsModalOpen}
           onClose={() => setIsActivityDetailsModalOpen(false)}
-          title={getActivityTemplate(selectedActivityForDetails.activityTemplateId)?.name || 'Activity Details'}
-          description="Details of the scheduled activity."
-          footer={
-            <div className="flex justify-between w-full">
-              <Button variant="outline" onClick={() => handleCreateExclusionFromActivity(selectedActivityForDetails)} className="rounded-md">
-                🚫 Create Exclusion
-              </Button>
-              <div className="flex space-x-2">
-                <Button variant="outline" onClick={() => handleEditActivity(selectedActivityForDetails)} className="rounded-md">
-                  ✏️ Edit
-                </Button>
-                <Button variant="destructive" onClick={() => handleDeleteActivity(selectedActivityForDetails.id)} className="rounded-md">
-                  🗑️ Delete
-                </Button>
-              </div>
-            </div>
-          }
-        >
-          <div className="grid gap-4 py-4">
-            <div className="flex items-center space-x-2">
-              <span className="text-gray-600">👥</span> {/* Users icon */}
-              <Label className="text-base">Patient:</Label>
-              <span className="text-base font-medium">{getPatient(selectedActivityForDetails.patientId)?.name}</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <span className="text-gray-600">📅</span> {/* CalendarIcon */}
-              <Label className="text-base">Date:</Label>
-              <span className="text-base font-medium">{format(parseISO(selectedActivityForDetails.date), 'PPP')}</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <span className="text-gray-600">⏰</span> {/* Clock icon */}
-              <Label className="text-base">Time:</Label>
-              <span className="text-base font-medium">{selectedActivityForDetails.startTime} - {selectedActivityForDetails.endTime}</span>
-            </div>
-            {selectedActivityForDetails.isOverridden && (
-              <div className="flex items-center space-x-2 text-purple-600">
-                <span className="text-purple-600">ℹ️</span> {/* Info icon */}
-                <Label className="text-base">Status:</Label>
-                <span className="text-base font-medium">Supervisor Overridden</span>
-              </div>
-            )}
-            {selectedActivityForDetails.isExcluded && (
-              <div className="flex items-center space-x-2 text-red-600">
-                <span className="text-red-600">🚫</span> {/* X icon */}
-                <Label className="text-base">Status:</Label>
-                <span className="text-base font-medium">Excluded</span>
-              </div>
-            )}
-            {selectedActivityForDetails.exclusionReason && (
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="exclusionReason" className="text-right">Exclusion Reason:</Label>
-                <span id="exclusionReason" className="col-span-3">{selectedActivityForDetails.exclusionReason}</span>
-              </div>
-            )}
-            {selectedActivityForDetails.notes && (
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="notes" className="text-right">Notes:</Label>
-                <span id="notes" className="col-span-3">{selectedActivityForDetails.notes}</span>
-              </div>
-            )}
-          </div>
-        </Modal>
+          activity={selectedActivityForDetails}
+          getActivityTemplate={getActivityTemplate}
+          getPatient={getPatient}
+          handleCreateExclusionFromActivity={handleCreateExclusionFromActivity}
+          handleEditActivity={handleEditActivity}
+          handleDeleteActivity={handleDeleteActivity}
+        />
       )}
 
       {/* Add/Edit Activity Modal */}
-      <Modal
+      <AddEditActivityModal
         isOpen={isAddEditActivityModalOpen}
         onClose={() => setIsAddEditActivityModalOpen(false)}
-        title={activityToEdit ? 'Edit Scheduled Activity' : 'Add New Scheduled Activity'}
-        description={activityToEdit ? 'Modify the details of this activity.' : 'Schedule a new activity for a patient.'}
-      >
-        <AddEditActivityForm
-          activity={activityToEdit}
-          onSave={handleSaveActivity}
-          onCancel={() => setIsAddEditActivityModalOpen(false)}
-          patients={patientsData}
-          activityTemplates={activityTemplates}
-        />
-      </Modal>
+        activity={activityToEdit}
+        onSave={handleSaveActivity}
+        patients={patientsData}
+        activityTemplates={activityTemplates}
+      />
 
       {/* Exclusion Management Modal */}
-      <Modal
+      <ExclusionManagementModal
         isOpen={isExclusionManagementModalOpen}
         onClose={() => setIsExclusionManagementModalOpen(false)}
-        title={exclusionToManage?.id ? 'Edit Exclusion' : 'Create New Exclusion'}
-        description="Manage periods when a patient is excluded from a specific activity."
-      >
-        <ExclusionForm
-          exclusion={exclusionToManage}
-          onSave={handleSaveExclusion}
-          onCancel={() => setIsExclusionManagementModalOpen(false)}
-          patients={patientsData}
-          activityTemplates={activityTemplates}
-        />
-      </Modal>
+        exclusion={exclusionToManage}
+        onSave={handleSaveExclusion}
+        patients={patientsData}
+        activityTemplates={activityTemplates}
+      />
 
       {/* Confirmation Dialog */}
-      <Modal
+      <ConfirmationDialog
         isOpen={isConfirmModalOpen}
         onClose={() => setIsConfirmModalOpen(false)}
-        title="⚠️ Confirm Action" // AlertTriangle icon
-        description={confirmMessage}
-        children={
-          <div className="flex justify-end space-x-2 w-full">
-            <Button variant="outline" onClick={() => setIsConfirmModalOpen(false)} className="rounded-md">Cancel</Button>
-            <Button
-              variant="destructive"
-              onClick={() => {
-                if (confirmAction) {
-                  confirmAction();
-                }
-                setIsConfirmModalOpen(false);
-              }}
-              className="rounded-md"
-            >
-              Confirm
-            </Button>
-          </div>
-        }
+        message={confirmMessage}
+        confirmAction={confirmAction}
       />
     </div>
-  );
-};
-
-// Helper component for Add/Edit Activity Form
-interface AddEditActivityFormProps {
-  activity: ScheduledActivity | null;
-  onSave: (activity: ScheduledActivity) => void;
-  onCancel: () => void;
-  patients: Patient[];
-  activityTemplates: ActivityTemplate[];
-}
-
-const AddEditActivityForm: React.FC<AddEditActivityFormProps> = ({ activity, onSave, onCancel, patients, activityTemplates }) => {
-  const [patientId, setPatientId] = useState(activity?.patientId || '');
-  const [activityTemplateId, setActivityTemplateId] = useState(activity?.activityTemplateId || '');
-  const [date, setDate] = useState(activity?.date || ''); // Changed to string for input type="date"
-  const [startTime, setStartTime] = useState(activity?.startTime || '09:00');
-  const [endTime, setEndTime] = useState(activity?.endTime || '10:00');
-  const [notes, setNotes] = useState(activity?.notes || '');
-  const [isOverridden, setIsOverridden] = useState(activity?.isOverridden || false);
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!patientId || !activityTemplateId || !date || !startTime || !endTime) {
-      toast("Validation Error", { description: "Please fill all required fields.", duration: 3000 });
-      return;
-    }
-
-    const newActivity: ScheduledActivity = {
-      id: activity?.id || '', // Use existing ID or placeholder for new
-      patientId,
-      activityTemplateId,
-      date: date, // Already in 'YYYY-MM-DD' format from input
-      startTime,
-      endTime,
-      notes,
-      isOverridden,
-      isExcluded: false, // Will be determined by backend/exclusion logic
-    };
-    onSave(newActivity);
-  };
-
-  return (
-    <form onSubmit={handleSubmit} className="grid gap-4 py-4">
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="patient" className="text-right">Patient</Label>
-        <Select value={patientId} onValueChange={setPatientId}>
-          <SelectTrigger className="col-span-3 rounded-md">
-            <SelectValue placeholder="Select patient" />
-          </SelectTrigger>
-          <SelectContent>
-            {patients.filter(p => p.isActive).map(p => (
-              <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="activity" className="text-right">Activity</Label>
-        <Select value={activityTemplateId} onValueChange={setActivityTemplateId}>
-          <SelectTrigger className="col-span-3 rounded-md">
-            <SelectValue placeholder="Select activity" />
-          </SelectTrigger>
-          <SelectContent>
-            {activityTemplates.map(a => (
-              <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="date" className="text-right">Date</Label>
-        <Input
-          id="date"
-          type="date"
-          value={date}
-          onChange={(e) => setDate(e.target.value)}
-          className="col-span-3 rounded-md"
-        />
-      </div>
-
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="startTime" className="text-right">Start Time</Label>
-        <Input id="startTime" type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} className="col-span-3 rounded-md" />
-      </div>
-
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="endTime" className="text-right">End Time</Label>
-        <Input id="endTime" type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} className="col-span-3 rounded-md" />
-      </div>
-
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="notes" className="text-right">Notes</Label>
-        <Textarea id="notes" value={notes} onChange={(e) => setNotes(e.target.value)} className="col-span-3 rounded-md" />
-      </div>
-
-      <div className="flex items-center space-x-2 col-span-4 justify-end">
-        <input
-          type="checkbox"
-          id="isOverridden"
-          checked={isOverridden}
-          onChange={(e) => setIsOverridden(e.target.checked)}
-          className="rounded text-blue-600 focus:ring-blue-500" // Tailwind for checkbox
-        />
-        <Label htmlFor="isOverridden" className="cursor-pointer">Supervisor Overridden</Label>
-      </div>
-
-      <div className="col-span-4 flex justify-end space-x-2"> {/* Replaced DialogFooter */}
-        <Button variant="outline" onClick={onCancel} className="rounded-md">Cancel</Button>
-        <Button type="submit" className="rounded-md">Save Activity</Button>
-      </div>
-    </form>
-  );
-};
-
-// Helper component for Exclusion Form
-interface ExclusionFormProps {
-  exclusion: ActivityExclusion | null;
-  onSave: (exclusion: ActivityExclusion) => void;
-  onCancel: () => void;
-  patients: Patient[];
-  activityTemplates: ActivityTemplate[];
-}
-
-const ExclusionForm: React.FC<ExclusionFormProps> = ({ exclusion, onSave, onCancel, patients, activityTemplates }) => {
-  const [patientId, setPatientId] = useState(exclusion?.patientId || '');
-  const [activityTemplateId, setActivityTemplateId] = useState(exclusion?.activityTemplateId || '');
-  const [startDate, setStartDate] = useState(exclusion?.startDate || ''); // Changed to string for input type="date"
-  const [endDate, setEndDate] = useState(exclusion?.endDate || ''); // Changed to string for input type="date"
-  const [reason, setReason] = useState(exclusion?.reason || '');
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!patientId || !activityTemplateId || !startDate || !endDate) {
-      toast("Validation Error", { description: "Please fill all required fields.", duration: 3000 });
-      return;
-    }
-
-    const newExclusion: ActivityExclusion = {
-      id: exclusion?.id || '',
-      patientId,
-      activityTemplateId,
-      startDate: startDate, // Already in 'YYYY-MM-DD' format from input
-      endDate: endDate,   // Already in 'YYYY-MM-DD' format from input
-      reason,
-    };
-    onSave(newExclusion);
-  };
-
-  return (
-    <form onSubmit={handleSubmit} className="grid gap-4 py-4">
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="patient" className="text-right">Patient</Label>
-        <Select value={patientId} onValueChange={setPatientId}>
-          <SelectTrigger className="col-span-3 rounded-md">
-            <SelectValue placeholder="Select patient" />
-          </SelectTrigger>
-          <SelectContent>
-            {patients.filter(p => p.isActive).map(p => (
-              <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="activity" className="text-right">Activity</Label>
-        <Select value={activityTemplateId} onValueChange={setActivityTemplateId}>
-          <SelectTrigger className="col-span-3 rounded-md">
-            <SelectValue placeholder="Select activity" />
-          </SelectTrigger>
-          <SelectContent>
-            {activityTemplates.map(a => (
-              <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="startDate" className="text-right">Start Date</Label>
-        <Input
-          id="startDate"
-          type="date"
-          value={startDate}
-          onChange={(e) => setStartDate(e.target.value)}
-          className="col-span-3 rounded-md"
-        />
-      </div>
-
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="endDate" className="text-right">End Date</Label>
-        <Input
-          id="endDate"
-          type="date"
-          value={endDate}
-          onChange={(e) => setEndDate(e.target.value)}
-          className="col-span-3 rounded-md"
-        />
-      </div>
-
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="reason" className="text-right">Reason</Label>
-        <Textarea id="reason" value={reason} onChange={(e) => setReason(e.target.value)} className="col-span-3 rounded-md" />
-      </div>
-
-      <div className="col-span-4 flex justify-end space-x-2"> {/* Replaced DialogFooter */}
-        <Button variant="outline" onClick={onCancel} className="rounded-md">Cancel</Button>
-        <Button type="submit" className="rounded-md">Save Exclusion</Button>
-      </div>
-    </form>
   );
 };
 

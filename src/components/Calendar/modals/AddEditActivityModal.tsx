@@ -1,0 +1,220 @@
+import React, { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { toast } from "sonner";
+
+import {
+  ScheduledActivity,
+  Patient,
+  ActivityTemplate,
+} from "@/api/activity/activity";
+
+interface AddEditActivityModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  activity: ScheduledActivity | null;
+  onSave: (activity: ScheduledActivity) => void;
+  patients: Patient[];
+  activityTemplates: ActivityTemplate[];
+}
+
+const AddEditActivityModal: React.FC<AddEditActivityModalProps> = ({
+  isOpen,
+  onClose,
+  activity,
+  onSave,
+  patients,
+  activityTemplates,
+}) => {
+  if (!isOpen) return null;
+  const [patientId, setPatientId] = useState(activity?.patientId || "");
+  const [activityTemplateId, setActivityTemplateId] = useState(
+    activity?.activityTemplateId || ""
+  );
+  const [date, setDate] = useState(activity?.date || ""); // Changed to string for input type="date"
+  const [startTime, setStartTime] = useState(activity?.startTime || "09:00");
+  const [endTime, setEndTime] = useState(activity?.endTime || "10:00");
+  const [notes, setNotes] = useState(activity?.notes || "");
+  const [isOverridden, setIsOverridden] = useState(
+    activity?.isOverridden || false
+  );
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!patientId || !activityTemplateId || !date || !startTime || !endTime) {
+      toast("Validation Error", {
+        description: "Please fill all required fields.",
+        duration: 3000,
+      });
+      return;
+    }
+
+    const newActivity: ScheduledActivity = {
+      id: activity?.id || "", // Use existing ID or placeholder for new
+      patientId,
+      activityTemplateId,
+      date: date, // Already in 'YYYY-MM-DD' format from input
+      startTime,
+      endTime,
+      notes,
+      isOverridden,
+      isExcluded: false, // Will be determined by backend/exclusion logic
+    };
+    onSave(newActivity);
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+      <div className="relative bg-white rounded-lg shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-between p-4 border-b">
+          <h3 className="text-xl font-semibold">
+            {activity
+              ? "Edit Scheduled Activity"
+              : "Add New Scheduled Activity"}
+          </h3>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onClose}
+            className="rounded-md"
+          >
+            <span className="sr-only">Close</span>
+            <span className="text-xl">&times;</span>
+          </Button>
+        </div>
+        <div className="p-4">
+          <form onSubmit={handleSubmit} className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="patient" className="text-right">
+                Patient
+              </Label>
+              <Select value={patientId} onValueChange={setPatientId}>
+                <SelectTrigger className="col-span-3 rounded-md">
+                  <SelectValue placeholder="Select patient" />
+                </SelectTrigger>
+                <SelectContent>
+                  {patients
+                    .filter((p) => p.isActive)
+                    .map((p) => (
+                      <SelectItem key={p.id} value={p.id}>
+                        {p.name}
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="activity" className="text-right">
+                Activity
+              </Label>
+              <Select
+                value={activityTemplateId}
+                onValueChange={setActivityTemplateId}
+              >
+                <SelectTrigger className="col-span-3 rounded-md">
+                  <SelectValue placeholder="Select activity" />
+                </SelectTrigger>
+                <SelectContent>
+                  {activityTemplates.map((a) => (
+                    <SelectItem key={a.id} value={a.id}>
+                      {a.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="date" className="text-right">
+                Date
+              </Label>
+              <Input
+                id="date"
+                type="date"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+                className="col-span-3 rounded-md"
+              />
+            </div>
+
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="startTime" className="text-right">
+                Start Time
+              </Label>
+              <Input
+                id="startTime"
+                type="time"
+                value={startTime}
+                onChange={(e) => setStartTime(e.target.value)}
+                className="col-span-3 rounded-md"
+              />
+            </div>
+
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="endTime" className="text-right">
+                End Time
+              </Label>
+              <Input
+                id="endTime"
+                type="time"
+                value={endTime}
+                onChange={(e) => setEndTime(e.target.value)}
+                className="col-span-3 rounded-md"
+              />
+            </div>
+
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="notes" className="text-right">
+                Notes
+              </Label>
+              <Textarea
+                id="notes"
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                className="col-span-3 rounded-md"
+              />
+            </div>
+
+            <div className="flex items-center space-x-2 col-span-4 justify-end">
+              <input
+                type="checkbox"
+                id="isOverridden"
+                checked={isOverridden}
+                onChange={(e) => setIsOverridden(e.target.checked)}
+                className="rounded text-blue-600 focus:ring-blue-500" // Tailwind for checkbox
+              />
+              <Label htmlFor="isOverridden" className="cursor-pointer">
+                Supervisor Overridden
+              </Label>
+            </div>
+
+            <div className="col-span-4 flex justify-end space-x-2">
+              <Button
+                variant="outline"
+                onClick={onClose}
+                className="rounded-md"
+              >
+                Cancel
+              </Button>
+              <Button type="submit" className="rounded-md">
+                Save Activity
+              </Button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default AddEditActivityModal;
