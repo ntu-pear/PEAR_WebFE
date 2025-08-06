@@ -38,12 +38,9 @@ const DayView: React.FC<DayViewProps> = ({
     const endMinute = end.getMinutes();
 
     // Calculate position and height relative to the current time slot
-    const relativeStartMinute = (startHour - 7) * 60 + startMinute;
+    const top = (startHour - 7) * 60 + startMinute;
     const durationMinutes =
       (endHour - startHour) * 60 + (endMinute - startMinute);
-
-    // Position within the time slot
-    const top = relativeStartMinute;
     const height = Math.max(20, durationMinutes); // Minimum 20px height
 
     const bgColor =
@@ -60,7 +57,7 @@ const DayView: React.FC<DayViewProps> = ({
     return (
       <div
         key={activity.id}
-        className={`absolute w-[calc(100%-4px)] left-[2px] rounded-md p-1 text-xs cursor-pointer shadow-md ${bgColor} ${textColor} ${borderColor} ${excludedClass} ${rarelyScheduledClass}`}
+        className={`group absolute w-[calc(100%-4px)] left-[2px] rounded-md p-1 text-xs cursor-pointer shadow-md ${bgColor} ${textColor} ${borderColor} ${excludedClass} ${rarelyScheduledClass}`}
         style={{ top: `${top}px`, height: `${height}px` }}
         onClick={() => onActivityClick(activity)}
       >
@@ -69,16 +66,18 @@ const DayView: React.FC<DayViewProps> = ({
         <div className="text-[10px]">
           {activity.startTime} - {activity.endTime}
         </div>
-        {activity.isExcluded && (
-          <div className="text-[10px] italic">
-            Excluded: {activity.exclusionReason}
+
+        {/* Tooltip on hover */}
+        {(activity.isExcluded ||
+          activity.isOverridden ||
+          activityTemplate.isRarelyScheduled) && (
+          <div className="absolute z-20 bottom-full mb-1 left-1/2 -translate-x-1/2 w-max max-w-xs px-2 py-1 text-white bg-black rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-200 whitespace-nowrap text-[10px]">
+            {activity.isExcluded && (
+              <div>Excluded: {activity.exclusionReason}</div>
+            )}
+            {activity.isOverridden && <div>Overridden</div>}
+            {activityTemplate.isRarelyScheduled && <div>Rarely Scheduled</div>}
           </div>
-        )}
-        {activity.isOverridden && (
-          <div className="text-[10px] italic">Overridden</div>
-        )}
-        {activityTemplate.isRarelyScheduled && (
-          <div className="text-[10px] italic">Rarely Scheduled!</div>
         )}
       </div>
     );

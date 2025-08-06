@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import {
   format,
   startOfWeek,
@@ -7,10 +7,14 @@ import {
   parseISO,
   parse,
   differenceInMinutes,
-} from 'date-fns';
-import { enUS } from 'date-fns/locale';
-import { ScheduledActivity, ActivityTemplate, Patient } from '@/api/activity/activity';
-import { TIME_SLOTS } from '../CalendarTypes';
+} from "date-fns";
+import { enUS } from "date-fns/locale";
+import {
+  ScheduledActivity,
+  ActivityTemplate,
+  Patient,
+} from "@/api/activity/activity";
+import { TIME_SLOTS } from "../CalendarTypes";
 
 interface WeekViewProps {
   currentDate: Date;
@@ -45,32 +49,47 @@ const WeekView: React.FC<WeekViewProps> = ({
     const endMinute = end.getMinutes();
 
     // Calculate position and height relative to the current time slot
-    const relativeStartMinute = (startHour - 7) * 60;
+    const top = (startHour - 7) * 60 + startMinute;
     const durationMinutes =
       (endHour - startHour) * 60 + (endMinute - startMinute);
-
-    // Position within the time slot
-    const top = relativeStartMinute;
     const height = Math.max(20, durationMinutes); // Minimum 20px height
-    const bgColor = activityTemplate.type === 'free_easy' ? 'bg-blue-400' : 'bg-orange-400';
-    const textColor = 'text-white';
-    const borderColor = activity.isOverridden ? 'border-dashed border-2 border-purple-600' : '';
-    const excludedClass = activity.isExcluded ? 'opacity-50 line-through' : '';
-    const rarelyScheduledClass = activityTemplate.isRarelyScheduled ? 'border-2 border-red-500' : '';
+
+    const bgColor =
+      activityTemplate.type === "free_easy" ? "bg-blue-400" : "bg-orange-400";
+    const textColor = "text-white";
+    const borderColor = activity.isOverridden
+      ? "border-dashed border-2 border-purple-600"
+      : "";
+    const excludedClass = activity.isExcluded ? "opacity-50 line-through" : "";
+    const rarelyScheduledClass = activityTemplate.isRarelyScheduled
+      ? "border-2 border-red-500"
+      : "";
 
     return (
       <div
         key={activity.id}
-        className={`absolute w-[calc(100%-4px)] left-[2px] rounded-md p-1 text-xs cursor-pointer shadow-md ${bgColor} ${textColor} ${borderColor} ${excludedClass} ${rarelyScheduledClass}`}
+        className={`group absolute w-[calc(100%-4px)] left-[2px] rounded-md p-1 text-xs cursor-pointer shadow-md ${bgColor} ${textColor} ${borderColor} ${excludedClass} ${rarelyScheduledClass}`}
         style={{ top: `${top}px`, height: `${height}px` }}
         onClick={() => onActivityClick(activity)}
       >
         <div className="font-semibold truncate">{activityTemplate.name}</div>
         <div className="truncate">{patient.name}</div>
-        <div className="text-[10px]">{activity.startTime} - {activity.endTime}</div>
-        {activity.isExcluded && <div className="text-[10px] italic">Excluded: {activity.exclusionReason}</div>}
-        {activity.isOverridden && <div className="text-[10px] italic">Overridden</div>}
-        {activityTemplate.isRarelyScheduled && <div className="text-[10px] italic">Rarely Scheduled!</div>}
+        <div className="text-[10px]">
+          {activity.startTime} - {activity.endTime}
+        </div>
+
+        {/* Tooltips */}
+        {(activity.isExcluded ||
+          activity.isOverridden ||
+          activityTemplate.isRarelyScheduled) && (
+          <div className="absolute z-20 w-full px-2 py-1 text-white bg-black rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-200 whitespace-nowrap truncate">
+            {activity.isExcluded && (
+              <div>Excluded: {activity.exclusionReason}</div>
+            )}
+            {activity.isOverridden && <div>Overridden</div>}
+            {activityTemplate.isRarelyScheduled && <div>Rarely Scheduled</div>}
+          </div>
+        )}
       </div>
     );
   };
@@ -80,13 +99,18 @@ const WeekView: React.FC<WeekViewProps> = ({
   return (
     <div className="grid grid-cols-[50px_repeat(7,1fr)] gap-px bg-gray-200 border border-gray-200 rounded-lg overflow-hidden min-h-[600px]">
       {/* Header row */}
-      <div className="p-2 text-center text-sm font-medium bg-white border-b border-gray-200">Time</div>
+      <div className="p-2 text-center text-sm font-medium bg-white border-b border-gray-200">
+        Time
+      </div>
       {Array.from({ length: 7 }).map((_, i) => {
         const dayDate = addDays(weekStart, i);
         const isToday = isSameDay(dayDate, new Date());
         return (
-          <div key={i} className={`p-2 text-center text-sm font-medium bg-white border-b border-gray-200 ${isToday ? 'text-blue-600' : ''}`}>
-            {format(dayDate, 'EEE d')}
+          <div
+            key={i}
+            className={`p-2 text-center text-sm font-medium bg-white border-b border-gray-200 ${isToday ? "text-blue-600" : ""}`}
+          >
+            {format(dayDate, "EEE d")}
           </div>
         );
       })}
@@ -106,12 +130,15 @@ const WeekView: React.FC<WeekViewProps> = ({
       {/* Day columns with full height activity rendering */}
       {Array.from({ length: 7 }).map((_, dayIndex) => {
         const dayDate = addDays(weekStart, dayIndex);
-        const activitiesForThisDay = filteredScheduledActivities.filter((activity) =>
-          isSameDay(parseISO(activity.date), dayDate)
+        const activitiesForThisDay = filteredScheduledActivities.filter(
+          (activity) => isSameDay(parseISO(activity.date), dayDate)
         );
 
         return (
-          <div key={dayIndex} className="relative bg-white border-r border-gray-200">
+          <div
+            key={dayIndex}
+            className="relative bg-white border-r border-gray-200"
+          >
             {/* Render time slot lines */}
             {TIME_SLOTS.map((_, i) => (
               <div key={i} className="border-b border-gray-200 h-[60px]" />
