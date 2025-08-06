@@ -79,8 +79,16 @@ const CalendarSidebar: React.FC<CalendarSidebarProps> = ({
                   onChange={(e) => onActivityToggle(activity.id, e.target.checked)}
                   className="rounded text-blue-600 focus:ring-blue-500"
                 />
-                <Label htmlFor={`activity-${activity.id}`} className="cursor-pointer">
-                  {activity.name} {activity.isRarelyScheduled && <span className="text-red-500 text-xs font-medium">(Rare)</span>}
+                <Label htmlFor={`activity-${activity.id}`} className="cursor-pointer flex items-center">
+                  {activity.name}
+                  {activity.isRarelyScheduled && (
+                    <div className="relative ml-2 group">
+                      <span className="text-red-500 text-m font-extrabold">!</span>
+                      <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-max px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-opacity duration-300">
+                        Rarely scheduled
+                      </div>
+                    </div>
+                  )}
                 </Label>
               </div>
             ))}
