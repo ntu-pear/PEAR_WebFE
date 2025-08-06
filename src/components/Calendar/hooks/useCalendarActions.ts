@@ -76,7 +76,8 @@ export const useCalendarActions = (
     if (activity.id) {
       // Edit existing
       const updatedActivity = await updateScheduledActivity(activity);
-      setScheduledActivities([...scheduledActivities, updatedActivity]);
+      // Update the specific activity in the array
+      setScheduledActivities(scheduledActivities.map(a => a.id === updatedActivity.id ? updatedActivity : a));
       toast("Activity Updated", { description: "The scheduled activity has been updated." });
     } else {
       // Add new

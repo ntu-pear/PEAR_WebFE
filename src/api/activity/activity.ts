@@ -54,18 +54,12 @@ export const getScheduledActivities = async () => {
 export const addScheduledActivity = async (activity: ScheduledActivity): Promise<ScheduledActivity> => {
   // Simulate adding by pushing to the mock array
   const newActivity = { ...activity, id: String(mockScheduledActivities.length + 1) };
-  mockScheduledActivities.push(newActivity);
   return newActivity;
 };
 
 // TODO change when actual API is implemented
 export const updateScheduledActivity = async (activity: ScheduledActivity): Promise<ScheduledActivity> => {
-  // Simulate update by finding and replacing the activity
-  const index = mockScheduledActivities.findIndex(a => a.id === activity.id);
-  if (index !== -1) {
-    mockScheduledActivities[index] = activity;
-  }
-
+  // Simulate update by returning the updated activity - don't modify the mock array directly
   return activity;
 }
 
