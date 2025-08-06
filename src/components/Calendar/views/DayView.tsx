@@ -37,9 +37,14 @@ const DayView: React.FC<DayViewProps> = ({
     const endHour = getHours(end);
     const endMinute = end.getMinutes();
 
-    // Calculate position and height assuming 60px per hour
-    const top = (startHour - 7) * 60 + startMinute; // Pixels from top (7:00 AM is 0px)
-    const height = (endHour - startHour) * 60 + (endMinute - startMinute);
+    // Calculate position and height relative to the current time slot
+    const relativeStartMinute = (startHour - 7) * 60 + startMinute;
+    const durationMinutes =
+      (endHour - startHour) * 60 + (endMinute - startMinute);
+
+    // Position within the time slot
+    const top = relativeStartMinute;
+    const height = Math.max(20, durationMinutes); // Minimum 20px height
 
     const bgColor =
       activityTemplate.type === "free_easy" ? "bg-blue-400" : "bg-orange-400";
@@ -55,25 +60,25 @@ const DayView: React.FC<DayViewProps> = ({
     return (
       <div
         key={activity.id}
-        className={`absolute w-full rounded-md p-2 text-xs cursor-pointer shadow-md ${bgColor} ${textColor} ${borderColor} ${excludedClass} ${rarelyScheduledClass}`}
+        className={`absolute w-[calc(100%-4px)] left-[2px] rounded-md p-1 text-xs cursor-pointer shadow-md ${bgColor} ${textColor} ${borderColor} ${excludedClass} ${rarelyScheduledClass}`}
         style={{ top: `${top}px`, height: `${height}px` }}
         onClick={() => onActivityClick(activity)}
       >
-        <div className="font-semibold">{activityTemplate.name}</div>
-        <div>{patient.name}</div>
-        <div>
+        <div className="font-semibold truncate">{activityTemplate.name}</div>
+        <div className="truncate">{patient.name}</div>
+        <div className="text-[10px]">
           {activity.startTime} - {activity.endTime}
         </div>
         {activity.isExcluded && (
-          <div className="text-xs italic">
+          <div className="text-[10px] italic">
             Excluded: {activity.exclusionReason}
           </div>
         )}
         {activity.isOverridden && (
-          <div className="text-xs italic">Overridden</div>
+          <div className="text-[10px] italic">Overridden</div>
         )}
         {activityTemplate.isRarelyScheduled && (
-          <div className="text-xs italic">Rarely Scheduled!</div>
+          <div className="text-[10px] italic">Rarely Scheduled!</div>
         )}
       </div>
     );
@@ -90,27 +95,35 @@ const DayView: React.FC<DayViewProps> = ({
         {format(currentDate, "EEEE, MMM dd")}
       </div>
 
-      {/* Time slots and activities */}
-      {TIME_SLOTS.map((time) => (
-        <React.Fragment key={time}>
-          <div className="p-2 text-right text-xs bg-white border-r border-gray-200 h-[60px] flex items-center justify-end">
+      {/* Time column */}
+      <div>
+        {TIME_SLOTS.map((time) => (
+          <div
+            key={time}
+            className="px-2 text-right text-xs bg-white border-r border-gray-200 h-[60px] flex justify-end"
+          >
             {time}
           </div>
-          <div className="relative bg-white border-b border-gray-200 h-[60px]">
-            {filteredScheduledActivities
-              .filter((activity) => {
-                const activityStartHour = getHours(
-                  parse(activity.startTime, "HH:mm", currentDate)
-                );
-                return (
-                  isSameDay(parseISO(activity.date), currentDate) &&
-                  activityStartHour === parseInt(time.split(":")[0])
-                ); // Only render in its starting slot
-              })
-              .map(renderActivityBlock)}
-          </div>
-        </React.Fragment>
-      ))}
+        ))}
+      </div>
+
+      {/* Activity column */}
+      <div className="relative bg-white">
+        {/* This div will be as tall as all time slots combined */}
+        <div className="absolute top-0 left-0 w-full h-full">
+          {/* Render activities here */}
+          {filteredScheduledActivities
+            .filter((activity) =>
+              isSameDay(parseISO(activity.date), currentDate)
+            )
+            .map((activity) => renderActivityBlock(activity))}
+        </div>
+
+        {/* Render time slot lines for visual grid */}
+        {TIME_SLOTS.map((time) => (
+          <div key={time} className="border-b border-gray-200 h-[60px]" />
+        ))}
+      </div>
     </div>
   );
 };

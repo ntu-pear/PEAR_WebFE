@@ -66,8 +66,8 @@ const MonthView: React.FC<MonthViewProps> = ({
             <div className={`text-sm font-semibold ${isToday ? 'text-blue-600' : ''}`}>
               {format(dayDate, 'd')}
             </div>
-            <div className="flex flex-col space-y-1 mt-1 overflow-hidden h-[calc(100%-24px)]">
-              {dayActivities.slice(0, 2).map(activity => {
+            <div className="flex flex-col space-y-1 mt-1 overflow-hidden h-[calc(100%-28px)]">
+              {dayActivities.slice(0, 3).map(activity => {
                 const activityTemplate = getActivityTemplate(activity.activityTemplateId);
                 const patient = getPatient(activity.patientId);
                 if (!activityTemplate || !patient) return null;
@@ -79,26 +79,27 @@ const MonthView: React.FC<MonthViewProps> = ({
                 return (
                   <div
                     key={activity.id}
-                    className={`rounded-sm px-1 py-0.5 text-xs truncate cursor-pointer ${bgColor} ${rarelyScheduledClass} ${excludedClass}`}
+                    className={`rounded-sm px-2 py-1 text-xs truncate cursor-pointer ${bgColor} ${rarelyScheduledClass} ${excludedClass} hover:opacity-80 transition-opacity`}
                     onClick={(e) => {
                       e.stopPropagation();
                       onActivityClick(activity);
                     }}
-                    title={`${activityTemplate.name} (${patient.name})`}
+                    title={`${activityTemplate.name} (${patient.name}) - ${activity.startTime} to ${activity.endTime}`}
                   >
-                    {activityTemplate.name} ({patient.name.split(' ')[0]})
+                    <div className="font-medium truncate">{activityTemplate.name}</div>
+                    <div className="text-[10px] truncate">{patient.name.split(' ')[0]} • {activity.startTime}</div>
                   </div>
                 );
               })}
-              {dayActivities.length > 2 && (
+              {dayActivities.length > 3 && (
                 <div
-                  className="text-xs text-blue-600 cursor-pointer mt-1"
+                  className="text-xs text-blue-600 cursor-pointer mt-1 hover:underline"
                   onClick={(e) => {
                     e.stopPropagation();
                     onViewModeChange?.('day');
                   }}
                 >
-                  +{dayActivities.length - 2} more
+                  +{dayActivities.length - 3} more
                 </div>
               )}
             </div>
