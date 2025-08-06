@@ -73,8 +73,8 @@ const AddEditActivityModal: React.FC<AddEditActivityModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="relative bg-white rounded-lg shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 z-0 flex items-center justify-center bg-black/50 p-4">
+      <div className="relative bg-white rounded-lg shadow-xl w-full max-w-md">
         <div className="flex items-center justify-between p-4 border-b">
           <h3 className="text-xl font-semibold">
             {activity
@@ -91,12 +91,10 @@ const AddEditActivityModal: React.FC<AddEditActivityModalProps> = ({
             <span className="text-xl">&times;</span>
           </Button>
         </div>
-        <div className="p-4">
-          <form onSubmit={handleSubmit} className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="patient" className="text-right">
-                Patient
-              </Label>
+        <div className="px-4">
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4 py-4">
+            <div className="items-center">
+              <Label htmlFor="patient">Patient</Label>
               <Select value={patientId} onValueChange={setPatientId}>
                 <SelectTrigger className="col-span-3 rounded-md">
                   <SelectValue placeholder="Select patient" />
@@ -113,10 +111,8 @@ const AddEditActivityModal: React.FC<AddEditActivityModalProps> = ({
               </Select>
             </div>
 
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="activity" className="text-right">
-                Activity
-              </Label>
+            <div className="items-center">
+              <Label htmlFor="activity">Activity</Label>
               <Select
                 value={activityTemplateId}
                 onValueChange={setActivityTemplateId}
@@ -134,10 +130,8 @@ const AddEditActivityModal: React.FC<AddEditActivityModalProps> = ({
               </Select>
             </div>
 
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="date" className="text-right">
-                Date
-              </Label>
+            <div className="items-center w-fit">
+              <Label htmlFor="date">Date</Label>
               <Input
                 id="date"
                 type="date"
@@ -147,36 +141,30 @@ const AddEditActivityModal: React.FC<AddEditActivityModalProps> = ({
               />
             </div>
 
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="startTime" className="text-right">
-                Start Time
-              </Label>
+            <div className="items-center">
+              <Label htmlFor="startTime">Start Time</Label>
               <Input
                 id="startTime"
                 type="time"
                 value={startTime}
                 onChange={(e) => setStartTime(e.target.value)}
-                className="col-span-3 rounded-md"
+                className="col-span-3 rounded-md w-fit"
               />
             </div>
 
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="endTime" className="text-right">
-                End Time
-              </Label>
+            <div className="items-center">
+              <Label htmlFor="endTime">End Time</Label>
               <Input
                 id="endTime"
                 type="time"
                 value={endTime}
                 onChange={(e) => setEndTime(e.target.value)}
-                className="col-span-3 rounded-md"
+                className="col-span-3 rounded-md w-fit"
               />
             </div>
 
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="notes" className="text-right">
-                Notes
-              </Label>
+            <div className="items-center">
+              <Label htmlFor="notes">Notes</Label>
               <Textarea
                 id="notes"
                 value={notes}
@@ -185,7 +173,7 @@ const AddEditActivityModal: React.FC<AddEditActivityModalProps> = ({
               />
             </div>
 
-            <div className="flex items-center space-x-2 col-span-4 justify-end">
+            <div className="flex items-center space-x-2 col-span-4 justify-end p-4">
               <input
                 type="checkbox"
                 id="isOverridden"
