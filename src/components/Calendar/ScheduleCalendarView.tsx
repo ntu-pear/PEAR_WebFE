@@ -142,7 +142,7 @@ const ScheduleCalendarView: React.FC = () => {
         />
 
         {/* Main Calendar Content */}
-        <main className="flex-1 p-4 bg-gray-100 overflow-auto relative">
+        <main className="flex-1 p-4 bg-gray-100 overflow-hidden relative">
           <Button
             className="fixed bottom-4 right-4 z-20 rounded-full h-14 w-14 text-lg shadow-xl bg-blue-600 hover:bg-blue-700 transition-colors"
             onClick={handleAddActivity}
