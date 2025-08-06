@@ -82,7 +82,7 @@ const ScheduleCalendarView: React.FC = () => {
             getActivityTemplate={getActivityTemplate}
             getPatient={getPatient}
             onActivityClick={handleActivityClick}
-            onDateClick={setCurrentDate}
+            onDateClick={(selectedDate: Date) => {setCurrentDate(selectedDate); setViewMode('day');}}
             onViewModeChange={setViewMode}
           />
         );
