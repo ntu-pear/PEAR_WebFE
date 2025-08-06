@@ -62,7 +62,7 @@ const WeekView: React.FC<WeekViewProps> = ({
   };
 
   return (
-    <div className="grid grid-cols-8 gap-px bg-gray-200 border border-gray-200 rounded-lg overflow-hidden min-h-[600px]">
+    <div className="grid grid-cols-[50px,repeat(7,1fr)] gap-px bg-gray-200 border border-gray-200 rounded-lg overflow-hidden min-h-[600px]">
       {/* Time header */}
       <div className="p-2 text-center text-sm font-medium bg-white border-b border-gray-200">Time</div>
       {/* Days of the week header */}
