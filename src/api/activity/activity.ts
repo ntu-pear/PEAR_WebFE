@@ -1,4 +1,4 @@
-import { mockActivityTemplates, mockExclusions, mockPatients, mockScheduledCentreActivities } from "@/mocks/mockScheduledActivity";
+import { mockActivityTemplates, mockExclusions, mockPatients, mockScheduledCentreActivities, mockScheduledPatientActivities } from "@/mocks/mockScheduledActivity";
 
 export interface Patient {
   id: string;
@@ -55,25 +55,30 @@ export const getActivityTemplates = async () => {
 };
 
 // TODO change when actual API is implemented
-export const getScheduledActivities = async () => {
+export const getCentreActivities = async () => {
   return mockScheduledCentreActivities;
 };
 
 // TODO change when actual API is implemented
-export const addScheduledActivity = async (activity: ScheduledActivity): Promise<ScheduledActivity> => {
+export const getPatientActivities = async () => {
+  return mockScheduledPatientActivities;
+};
+
+// TODO change when actual API is implemented
+export const addCentreActivity = async (activity: ScheduledCentreActivity): Promise<ScheduledCentreActivity> => {
   // Simulate adding by pushing to the mock array
   const newActivity = { ...activity, id: String(mockScheduledCentreActivities.length + 1) };
   return newActivity;
 };
 
 // TODO change when actual API is implemented
-export const updateScheduledActivity = async (activity: ScheduledActivity): Promise<ScheduledActivity> => {
+export const updateCentreActivity = async (activity: ScheduledCentreActivity): Promise<ScheduledCentreActivity> => {
   // Simulate update by returning the updated activity - don't modify the mock array directly
   return activity;
 }
 
 // TODO change when actual API is implemented
-export const deleteScheduledActivity = async (activityId: string) => {
+export const deleteCentreActivity = async (activityId: string) => {
   // Simulate deletion by filtering out the activity
   const updatedActivities = mockScheduledCentreActivities.filter(activity => activity.id !== activityId);
   return updatedActivities;
@@ -88,7 +93,6 @@ export const getActivityExclusions = async () => {
 export const addActivityExclusion = async (exclusion: ActivityExclusion): Promise<ActivityExclusion> => {
   // Simulate adding by pushing to the mock array
   const newExclusion = { ...exclusion, id: String(mockExclusions.length + 1) };
-  mockExclusions.push(newExclusion);
   return newExclusion;
 }
 
