@@ -58,13 +58,13 @@ const MonthView: React.FC<MonthViewProps> = ({
         return (
           <div
             key={index}
-            className={`relative p-2 h-32 border-r border-b border-gray-200 ${
-              isCurrentMonth ? 'bg-white' : 'bg-gray-50 text-gray-400'
-            } ${isToday ? 'border-2 border-blue-500' : ''}`}
+            className={`relative p-2 h-32 border-r border-b border-gray-200 bg-white ${isToday ? 'border-2 border-blue-500' : ''}`}
             onClick={() => onDateClick?.(dayDate)}
           >
             <div className={`text-sm font-semibold ${isToday ? 'text-blue-600' : ''}`}>
-              {format(dayDate, 'd')}
+              {format(dayDate, 'd') === '1'
+                ? `${format(dayDate, 'MMM')} 1`
+                : format(dayDate, 'd')}
             </div>
             <div className="flex flex-col space-y-1 mt-1 overflow-hidden h-[calc(100%-28px)]">
               {dayActivities.slice(0, 3).map(activity => {
