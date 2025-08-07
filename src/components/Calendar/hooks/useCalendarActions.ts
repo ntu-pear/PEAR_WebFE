@@ -3,28 +3,30 @@ import { addMonths, addWeeks, addDays } from 'date-fns';
 import { toast } from 'sonner';
 import { 
   addActivityExclusion, 
-  addScheduledActivity, 
-  deleteScheduledActivity, 
+  addCentreActivity, 
+  deleteCentreActivity,
+  deleteActivityExclusion,
   updateActivityExclusion, 
-  updateScheduledActivity, 
+  updateCentreActivity, 
   ActivityExclusion, 
-  ScheduledActivity 
+  ScheduledPatientActivity,
+  ScheduledCentreActivity
 } from '@/api/activity/activity';
 import { ViewMode } from '../CalendarTypes';
 
 export const useCalendarActions = (
   currentDate: Date,
   setCurrentDate: (date: Date) => void,
-  scheduledActivities: ScheduledActivity[],
-  setScheduledActivities: (activities: ScheduledActivity[]) => void,
+  scheduledActivities: (ScheduledPatientActivity | ScheduledCentreActivity)[],
+  setScheduledActivities: (activities: (ScheduledPatientActivity | ScheduledCentreActivity)[]) => void,
   activityExclusions: ActivityExclusion[],
   setActivityExclusions: (exclusions: ActivityExclusion[]) => void
 ) => {
   // Modal states
   const [isActivityDetailsModalOpen, setIsActivityDetailsModalOpen] = useState(false);
-  const [selectedActivityForDetails, setSelectedActivityForDetails] = useState<ScheduledActivity | null>(null);
+  const [selectedActivityForDetails, setSelectedActivityForDetails] = useState<ScheduledPatientActivity | ScheduledCentreActivity | null>(null);
   const [isAddEditActivityModalOpen, setIsAddEditActivityModalOpen] = useState(false);
-  const [activityToEdit, setActivityToEdit] = useState<ScheduledActivity | null>(null);
+  const [activityToEdit, setActivityToEdit] = useState<ScheduledPatientActivity | ScheduledCentreActivity | null>(null);
   const [isExclusionManagementModalOpen, setIsExclusionManagementModalOpen] = useState(false);
   const [exclusionToManage, setExclusionToManage] = useState<ActivityExclusion | null>(null);
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
@@ -41,7 +43,7 @@ export const useCalendarActions = (
   }, [currentDate, setCurrentDate]);
 
   // Activity interaction handlers
-  const handleActivityClick = useCallback((activity: ScheduledActivity) => {
+  const handleActivityClick = useCallback((activity: ScheduledPatientActivity | ScheduledCentreActivity) => {
     setSelectedActivityForDetails(activity);
     setIsActivityDetailsModalOpen(true);
   }, []);
@@ -51,7 +53,7 @@ export const useCalendarActions = (
     setIsAddEditActivityModalOpen(true);
   }, []);
 
-  const handleEditActivity = useCallback((activity: ScheduledActivity) => {
+  const handleEditActivity = useCallback((activity: ScheduledPatientActivity | ScheduledCentreActivity) => {
     setActivityToEdit(activity);
     setIsAddEditActivityModalOpen(true);
   }, []);
@@ -64,41 +66,44 @@ export const useCalendarActions = (
     };
 
     openConfirmation("Are you sure you want to delete this scheduled activity?", async () => {
-      const updatedActivity = await deleteScheduledActivity(activityId);
-      setScheduledActivities(updatedActivity);
+      await deleteCentreActivity(activityId);
+      setScheduledActivities(scheduledActivities.filter(activity => activity.id !== activityId));
       setSelectedActivityForDetails(null);
       setIsActivityDetailsModalOpen(false);
       toast("Activity Deleted", { description: "The scheduled activity has been removed." });
     });
-  }, [setScheduledActivities]);
+  }, [setScheduledActivities, scheduledActivities]);
 
-  const handleSaveActivity = useCallback(async (activity: ScheduledActivity) => {
+  const handleSaveActivity = useCallback(async (activity: ScheduledPatientActivity | ScheduledCentreActivity) => {
     if (activity.id) {
       // Edit existing
-      const updatedActivity = await updateScheduledActivity(activity);
+      const updatedActivity = await updateCentreActivity(activity as ScheduledCentreActivity);
       // Update the specific activity in the array
       setScheduledActivities(scheduledActivities.map(a => a.id === updatedActivity.id ? updatedActivity : a));
       toast("Activity Updated", { description: "The scheduled activity has been updated." });
     } else {
       // Add new
-      const newActivity = await addScheduledActivity(activity);
+      const newActivity = await addCentreActivity(activity as ScheduledCentreActivity);
       setScheduledActivities([...scheduledActivities, newActivity]);
       toast("Activity Added", { description: "A new activity has been scheduled." });
     }
     setIsAddEditActivityModalOpen(false);
   }, [scheduledActivities, setScheduledActivities]);
 
-  const handleCreateExclusionFromActivity = useCallback((activity: ScheduledActivity) => {
-    setExclusionToManage({
-      id: '',
-      activityTemplateId: activity.activityTemplateId,
-      patientId: activity.patientId,
-      startDate: activity.date,
-      endDate: activity.date,
-      reason: '',
-    });
-    setIsExclusionManagementModalOpen(true);
-    setIsActivityDetailsModalOpen(false);
+  const handleCreateExclusionFromActivity = useCallback((activity: ScheduledPatientActivity | ScheduledCentreActivity) => {
+    // Only create exclusions for patient activities
+    if ('patientId' in activity) {
+      setExclusionToManage({
+        id: '',
+        activityTemplateId: activity.activityTemplateId,
+        patientId: activity.patientId,
+        startDate: activity.date,
+        endDate: activity.date,
+        reason: '',
+      });
+      setIsExclusionManagementModalOpen(true);
+      setIsActivityDetailsModalOpen(false);
+    }
   }, []);
 
   // Exclusion Management Handlers
@@ -125,7 +130,7 @@ export const useCalendarActions = (
     };
 
     openConfirmation("Are you sure you want to delete this exclusion?", async () => {
-      await deleteScheduledActivity(exclusionId);
+      await deleteActivityExclusion(exclusionId);
       setActivityExclusions(activityExclusions.filter(e => e.id !== exclusionId));
       setIsExclusionManagementModalOpen(false);
       toast("Exclusion Deleted", { description: "The exclusion has been removed." });

@@ -1,14 +1,14 @@
 import React, { useMemo } from 'react';
 import { format, startOfWeek, addDays, startOfMonth, endOfMonth, endOfWeek, isSameMonth, isSameDay, parseISO } from 'date-fns';
 import { enUS } from 'date-fns/locale';
-import { ScheduledActivity, ActivityTemplate, Patient } from '@/api/activity/activity';
+import { ScheduledPatientActivity, ScheduledCentreActivity, ActivityTemplate, Patient } from '@/api/activity/activity';
 
 interface MonthViewProps {
   currentDate: Date;
-  filteredScheduledActivities: ScheduledActivity[];
+  filteredScheduledActivities: (ScheduledPatientActivity | ScheduledCentreActivity)[];
   getActivityTemplate: (id: string) => ActivityTemplate | undefined;
   getPatient: (id: string) => Patient | undefined;
-  onActivityClick: (activity: ScheduledActivity) => void;
+  onActivityClick: (activity: ScheduledPatientActivity | ScheduledCentreActivity) => void;
   onDateClick?: (date: Date) => void;
   onViewModeChange?: (mode: 'day') => void;
 }
@@ -69,12 +69,19 @@ const MonthView: React.FC<MonthViewProps> = ({
             <div className="flex flex-col space-y-1 mt-1 overflow-hidden h-[calc(100%-28px)]">
               {dayActivities.slice(0, 3).map(activity => {
                 const activityTemplate = getActivityTemplate(activity.activityTemplateId);
-                const patient = getPatient(activity.patientId);
-                if (!activityTemplate || !patient) return null;
+                if (!activityTemplate) return null;
+
+                // Check if this is a patient activity (has patientId) or centre activity
+                const isPatientActivity = 'patientId' in activity;
+                const patient = isPatientActivity ? getPatient(activity.patientId) : null;
 
                 const bgColor = activityTemplate.type === 'free_easy' ? 'bg-blue-300' : 'bg-orange-300';
                 const rarelyScheduledClass = activityTemplate.isRarelyScheduled ? 'border border-red-500' : '';
-                const excludedClass = activity.isExcluded ? 'opacity-50 line-through' : '';
+                const excludedClass = isPatientActivity && activity.isExcluded ? 'opacity-50 line-through' : '';
+
+                const displayTitle = isPatientActivity && patient 
+                  ? `${activityTemplate.name} (${patient.name}) - ${activity.startTime} to ${activity.endTime}`
+                  : `${activityTemplate.name} - ${activity.startTime} to ${activity.endTime}`;
 
                 return (
                   <div
@@ -84,10 +91,13 @@ const MonthView: React.FC<MonthViewProps> = ({
                       e.stopPropagation();
                       onActivityClick(activity);
                     }}
-                    title={`${activityTemplate.name} (${patient.name}) - ${activity.startTime} to ${activity.endTime}`}
+                    title={displayTitle}
                   >
                     <div className="font-medium truncate">{activityTemplate.name}</div>
-                    <div className="text-[10px] truncate">{patient.name.split(' ')[0]} • {activity.startTime}</div>
+                    <div className="text-[10px] truncate">
+                      {isPatientActivity && patient ? `${patient.name.split(' ')[0]} • ` : ''}
+                      {activity.startTime}
+                    </div>
                   </div>
                 );
               })}

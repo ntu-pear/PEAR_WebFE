@@ -13,7 +13,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 
 import {
-  ScheduledActivity,
+  ScheduledPatientActivity,
+  ScheduledCentreActivity,
   Patient,
   ActivityTemplate,
 } from "@/api/activity/activity";
@@ -21,8 +22,8 @@ import {
 interface AddEditActivityModalProps {
   isOpen: boolean;
   onClose: () => void;
-  activity: ScheduledActivity | null;
-  onSave: (activity: ScheduledActivity) => void;
+  activity: ScheduledPatientActivity | ScheduledCentreActivity | null;
+  onSave: (activity: ScheduledPatientActivity | ScheduledCentreActivity) => void;
   patients: Patient[];
   activityTemplates: ActivityTemplate[];
 }
@@ -36,7 +37,9 @@ const AddEditActivityModal: React.FC<AddEditActivityModalProps> = ({
   activityTemplates,
 }) => {
   if (!isOpen) return null;
-  const [patientId, setPatientId] = useState(activity?.patientId || "");
+  const [patientId, setPatientId] = useState(
+    (activity && 'patientId' in activity) ? activity.patientId : ""
+  );
   const [activityTemplateId, setActivityTemplateId] = useState(
     activity?.activityTemplateId || ""
   );
@@ -45,7 +48,7 @@ const AddEditActivityModal: React.FC<AddEditActivityModalProps> = ({
   const [endTime, setEndTime] = useState(activity?.endTime || "10:00");
   const [notes, setNotes] = useState(activity?.notes || "");
   const [isOverridden, setIsOverridden] = useState(
-    activity?.isOverridden || false
+    (activity && 'isOverridden' in activity) ? activity.isOverridden : false
   );
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -58,16 +61,13 @@ const AddEditActivityModal: React.FC<AddEditActivityModalProps> = ({
       return;
     }
 
-    const newActivity: ScheduledActivity = {
+    const newActivity: ScheduledCentreActivity = {
       id: activity?.id || "", // Use existing ID or placeholder for new
-      patientId,
       activityTemplateId,
       date: date, // Already in 'YYYY-MM-DD' format from input
       startTime,
       endTime,
       notes,
-      isOverridden,
-      isExcluded: false, // Will be determined by backend/exclusion logic
     };
     onSave(newActivity);
   };

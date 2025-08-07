@@ -28,6 +28,7 @@ const ScheduleCalendarView: React.FC = () => {
     selectedPatients,
     selectedActivities,
     searchTerm,
+    isSupervisor,
     setScheduledActivities,
     setActivityExclusions,
     setSearchTerm,
@@ -118,6 +119,7 @@ const ScheduleCalendarView: React.FC = () => {
         currentDate={currentDate}
         viewMode={viewMode}
         searchTerm={searchTerm}
+        isSupervisor={isSupervisor}
         onGoToToday={goToToday}
         onNavigateDate={navigateDate}
         onViewModeChange={setViewMode}
@@ -132,6 +134,7 @@ const ScheduleCalendarView: React.FC = () => {
           activityExclusions={activityExclusions}
           selectedPatients={selectedPatients}
           selectedActivities={selectedActivities}
+          isSupervisor={isSupervisor}
           getPatient={getPatient}
           getActivityTemplate={getActivityTemplate}
           onPatientToggle={handlePatientToggle}

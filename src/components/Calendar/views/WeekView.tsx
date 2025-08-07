@@ -6,11 +6,11 @@ import {
   isSameDay,
   parseISO,
   parse,
-  differenceInMinutes,
 } from "date-fns";
 import { enUS } from "date-fns/locale";
 import {
-  ScheduledActivity,
+  ScheduledPatientActivity,
+  ScheduledCentreActivity,
   ActivityTemplate,
   Patient,
 } from "@/api/activity/activity";
@@ -18,13 +18,11 @@ import { TIME_SLOTS } from "../CalendarTypes";
 
 interface WeekViewProps {
   currentDate: Date;
-  filteredScheduledActivities: ScheduledActivity[];
+  filteredScheduledActivities: (ScheduledPatientActivity | ScheduledCentreActivity)[];
   getActivityTemplate: (id: string) => ActivityTemplate | undefined;
   getPatient: (id: string) => Patient | undefined;
-  onActivityClick: (activity: ScheduledActivity) => void;
+  onActivityClick: (activity: ScheduledPatientActivity | ScheduledCentreActivity) => void;
 }
-
-const PIXELS_PER_MINUTE = 1; // You can set this to 1 for 60px/hour or adjust it.
 
 const WeekView: React.FC<WeekViewProps> = ({
   currentDate,
@@ -33,12 +31,13 @@ const WeekView: React.FC<WeekViewProps> = ({
   getPatient,
   onActivityClick,
 }) => {
-  const renderActivityBlock = (activity: ScheduledActivity) => {
+  const renderActivityBlock = (activity: ScheduledPatientActivity | ScheduledCentreActivity) => {
     const activityTemplate = getActivityTemplate(activity.activityTemplateId);
-    const patient = getPatient(activity.patientId);
-    const activityDate = parseISO(activity.date);
+    if (!activityTemplate) return null;
 
-    if (!activityTemplate || !patient) return null;
+    // Check if this is a patient activity (has patientId) or centre activity
+    const isPatientActivity = 'patientId' in activity;
+    const patient = isPatientActivity ? getPatient(activity.patientId) : null;
 
     const start = parse(activity.startTime, "HH:mm", new Date());
     const end = parse(activity.endTime, "HH:mm", new Date());
@@ -57,10 +56,10 @@ const WeekView: React.FC<WeekViewProps> = ({
     const bgColor =
       activityTemplate.type === "free_easy" ? "bg-blue-400" : "bg-orange-400";
     const textColor = "text-white";
-    const borderColor = activity.isOverridden
+    const borderColor = isPatientActivity && activity.isOverridden
       ? "border-dashed border-2 border-purple-600"
       : "";
-    const excludedClass = activity.isExcluded ? "opacity-50 line-through" : "";
+    const excludedClass = isPatientActivity && activity.isExcluded ? "opacity-50 line-through" : "";
     const rarelyScheduledClass = activityTemplate.isRarelyScheduled
       ? "border-2 border-red-500"
       : "";
@@ -73,20 +72,21 @@ const WeekView: React.FC<WeekViewProps> = ({
         onClick={() => onActivityClick(activity)}
       >
         <div className="font-semibold truncate">{activityTemplate.name}</div>
-        <div className="truncate">{patient.name}</div>
+        {isPatientActivity && patient && (
+          <div className="truncate">{patient.name}</div>
+        )}
         <div className="text-[10px]">
           {activity.startTime} - {activity.endTime}
         </div>
 
         {/* Tooltips */}
-        {(activity.isExcluded ||
-          activity.isOverridden ||
+        {((isPatientActivity && (activity.isExcluded || activity.isOverridden)) ||
           activityTemplate.isRarelyScheduled) && (
           <div className="absolute z-20 w-full px-2 py-1 text-white bg-black rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-200 whitespace-nowrap truncate">
-            {activity.isExcluded && (
+            {isPatientActivity && activity.isExcluded && (
               <div>Excluded: {activity.exclusionReason}</div>
             )}
-            {activity.isOverridden && <div>Overridden</div>}
+            {isPatientActivity && activity.isOverridden && <div>Overridden</div>}
             {activityTemplate.isRarelyScheduled && <div>Rarely Scheduled</div>}
           </div>
         )}

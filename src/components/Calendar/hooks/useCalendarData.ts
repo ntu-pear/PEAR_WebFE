@@ -5,15 +5,21 @@ import {
   getActivityExclusions, 
   getActivityTemplates, 
   getPatients, 
-  getScheduledActivities, 
+  getCentreActivities,
+  getPatientActivities,
   Patient, 
-  ScheduledActivity 
+  ScheduledPatientActivity,
+  ScheduledCentreActivity
 } from '@/api/activity/activity';
+import { useAuth } from '@/hooks/useAuth';
 
 export const useCalendarData = () => {
+  const { currentUser } = useAuth();
+  const isSupervisor = currentUser?.roleName === 'SUPERVISOR';
+  
   const [patientsData, setPatientsData] = useState<Patient[]>([]);
   const [activityTemplates, setActivityTemplates] = useState<ActivityTemplate[]>([]);
-  const [scheduledActivities, setScheduledActivities] = useState<ScheduledActivity[]>([]);
+  const [scheduledActivities, setScheduledActivities] = useState<(ScheduledPatientActivity | ScheduledCentreActivity)[]>([]);
   const [activityExclusions, setActivityExclusions] = useState<ActivityExclusion[]>([]);
   const [selectedPatients, setSelectedPatients] = useState<string[]>([]);
   const [selectedActivities, setSelectedActivities] = useState<string[]>([]);
@@ -25,54 +31,78 @@ export const useCalendarData = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const patients = await getPatients();
-        setPatientsData(patients);
-        setSelectedPatients(patients.filter(p => p.isActive).map(p => p.id));
-
+        // Always fetch activity templates
         const activityTemplates = await getActivityTemplates();
         setActivityTemplates(activityTemplates);
         setSelectedActivities(activityTemplates.map(a => a.id));
 
-        const scheduledActivities = await getScheduledActivities();
-        setScheduledActivities(scheduledActivities);
+        if (isSupervisor) {
+          // For supervisors: fetch only centre activities, no patients or exclusions
+          const centreActivities = await getCentreActivities();
+          setScheduledActivities(centreActivities);
+          setPatientsData([]);
+          setActivityExclusions([]);
+          setSelectedPatients([]);
+        } else {
+          // For caregivers: fetch patients, patient activities, and exclusions
+          const patients = await getPatients();
+          setPatientsData(patients);
+          setSelectedPatients(patients.filter(p => p.isActive).map(p => p.id));
 
-        const exclusions = await getActivityExclusions();
-        setActivityExclusions(exclusions);
+          const patientActivities = await getPatientActivities();
+          setScheduledActivities(patientActivities);
+
+          const exclusions = await getActivityExclusions();
+          setActivityExclusions(exclusions);
+        }
       } catch (error) {
         console.error("Failed to fetch data:", error);
       }
     };
 
     fetchData();
-  }, []);
+  }, [isSupervisor]);
 
   // Filtered scheduled activities based on selected patients, activities, and search term
   const filteredScheduledActivities = useMemo(() => {
     return scheduledActivities.filter(activity => {
-      const patient = getPatient(activity.patientId);
       const activityTemplate = getActivityTemplate(activity.activityTemplateId);
 
-      // Check if the activity is covered by any exclusion
-      const isCurrentlyExcluded = activityExclusions.some(ex =>
-        ex.activityTemplateId === activity.activityTemplateId &&
-        ex.patientId === activity.patientId &&
-        activity.date >= ex.startDate && activity.date <= ex.endDate
-      );
+      if (isSupervisor) {
+        // For supervisors: filter only by activity type and search term (activity name only)
+        const matchesActivity = selectedActivities.includes(activity.activityTemplateId);
+        const matchesSearch = searchTerm === '' ||
+          activityTemplate?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          activity.notes?.toLowerCase().includes(searchTerm.toLowerCase());
 
-      // Update the activity's isExcluded status based on current exclusions
-      activity.isExcluded = isCurrentlyExcluded;
+        return matchesActivity && matchesSearch;
+      } else {
+        // For caregivers: filter by patients, activities, and search term
+        const patientActivity = activity as ScheduledPatientActivity;
+        const patient = getPatient(patientActivity.patientId);
 
-      const matchesPatient = selectedPatients.includes(activity.patientId);
-      const matchesActivity = selectedActivities.includes(activity.activityTemplateId);
-      const matchesSearch = searchTerm === '' ||
-        patient?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        activityTemplate?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        activity.notes?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        activity.exclusionReason?.toLowerCase().includes(searchTerm.toLowerCase());
+        // Check if the activity is covered by any exclusion
+        const isCurrentlyExcluded = activityExclusions.some(ex =>
+          ex.activityTemplateId === patientActivity.activityTemplateId &&
+          ex.patientId === patientActivity.patientId &&
+          patientActivity.date >= ex.startDate && patientActivity.date <= ex.endDate
+        );
 
-      return matchesPatient && matchesActivity && matchesSearch;
+        // Update the activity's isExcluded status based on current exclusions
+        patientActivity.isExcluded = isCurrentlyExcluded;
+
+        const matchesPatient = selectedPatients.includes(patientActivity.patientId);
+        const matchesActivity = selectedActivities.includes(patientActivity.activityTemplateId);
+        const matchesSearch = searchTerm === '' ||
+          patient?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          activityTemplate?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          patientActivity.notes?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          patientActivity.exclusionReason?.toLowerCase().includes(searchTerm.toLowerCase());
+
+        return matchesPatient && matchesActivity && matchesSearch;
+      }
     });
-  }, [selectedPatients, selectedActivities, searchTerm, scheduledActivities, activityExclusions, getPatient, getActivityTemplate]);
+  }, [selectedPatients, selectedActivities, searchTerm, scheduledActivities, activityExclusions, getPatient, getActivityTemplate, isSupervisor]);
 
   // Filter handlers
   const handlePatientToggle = useCallback((patientId: string, checked: boolean) => {
@@ -97,6 +127,7 @@ export const useCalendarData = () => {
     selectedPatients,
     selectedActivities,
     searchTerm,
+    isSupervisor,
     
     // Setters
     setPatientsData,

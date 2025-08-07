@@ -10,6 +10,7 @@ interface CalendarHeaderProps {
   currentDate: Date;
   viewMode: ViewMode;
   searchTerm: string;
+  isSupervisor: boolean;
   onGoToToday: () => void;
   onNavigateDate: (amount: number, unit: ViewMode) => void;
   onViewModeChange: (mode: ViewMode) => void;
@@ -20,6 +21,7 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
   currentDate,
   viewMode,
   searchTerm,
+  isSupervisor,
   onGoToToday,
   onNavigateDate,
   onViewModeChange,
@@ -68,7 +70,7 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
         <div className="relative">
           <span className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-500">🔍</span>
           <Input
-            placeholder="Search activities, patients..."
+            placeholder={isSupervisor ? "Search activities..." : "Search activities, patients..."}
             className="pl-8 w-64 rounded-md"
             value={searchTerm}
             onChange={(e) => onSearchChange(e.target.value)}

@@ -1,7 +1,8 @@
 import React from "react";
 import { format, isSameDay, parseISO, getHours, parse } from "date-fns";
 import {
-  ScheduledActivity,
+  ScheduledPatientActivity,
+  ScheduledCentreActivity,
   ActivityTemplate,
   Patient,
 } from "@/api/activity/activity";
@@ -9,10 +10,10 @@ import { TIME_SLOTS } from "../CalendarTypes";
 
 interface DayViewProps {
   currentDate: Date;
-  filteredScheduledActivities: ScheduledActivity[];
+  filteredScheduledActivities: (ScheduledPatientActivity | ScheduledCentreActivity)[];
   getActivityTemplate: (id: string) => ActivityTemplate | undefined;
   getPatient: (id: string) => Patient | undefined;
-  onActivityClick: (activity: ScheduledActivity) => void;
+  onActivityClick: (activity: ScheduledPatientActivity | ScheduledCentreActivity) => void;
 }
 
 const DayView: React.FC<DayViewProps> = ({
@@ -23,11 +24,13 @@ const DayView: React.FC<DayViewProps> = ({
   onActivityClick,
 }) => {
   // Helper to render activity blocks for Day view
-  const renderActivityBlock = (activity: ScheduledActivity) => {
+  const renderActivityBlock = (activity: ScheduledPatientActivity | ScheduledCentreActivity) => {
     const activityTemplate = getActivityTemplate(activity.activityTemplateId);
-    const patient = getPatient(activity.patientId);
+    if (!activityTemplate) return null;
 
-    if (!activityTemplate || !patient) return null;
+    // Check if this is a patient activity (has patientId) or centre activity
+    const isPatientActivity = 'patientId' in activity;
+    const patient = isPatientActivity ? getPatient(activity.patientId) : null;
 
     const start = parse(activity.startTime, "HH:mm", new Date());
     const end = parse(activity.endTime, "HH:mm", new Date());
@@ -46,10 +49,10 @@ const DayView: React.FC<DayViewProps> = ({
     const bgColor =
       activityTemplate.type === "free_easy" ? "bg-blue-400" : "bg-orange-400";
     const textColor = "text-white";
-    const borderColor = activity.isOverridden
+    const borderColor = isPatientActivity && activity.isOverridden
       ? "border-dashed border-2 border-purple-600"
       : "";
-    const excludedClass = activity.isExcluded ? "opacity-50 line-through" : "";
+    const excludedClass = isPatientActivity && activity.isExcluded ? "opacity-50 line-through" : "";
     const rarelyScheduledClass = activityTemplate.isRarelyScheduled
       ? "border-2 border-red-500"
       : "";
@@ -62,20 +65,21 @@ const DayView: React.FC<DayViewProps> = ({
         onClick={() => onActivityClick(activity)}
       >
         <div className="font-semibold truncate">{activityTemplate.name}</div>
-        <div className="truncate">{patient.name}</div>
+        {isPatientActivity && patient && (
+          <div className="truncate">{patient.name}</div>
+        )}
         <div className="text-[10px]">
           {activity.startTime} - {activity.endTime}
         </div>
 
         {/* Tooltip on hover */}
-        {(activity.isExcluded ||
-          activity.isOverridden ||
+        {((isPatientActivity && (activity.isExcluded || activity.isOverridden)) ||
           activityTemplate.isRarelyScheduled) && (
           <div className="absolute z-20 mb-1 left-1/2 -translate-x-1/2 w-max max-w-xs px-2 py-1 text-white bg-black rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-200 whitespace-nowrap text-[10px]">
-            {activity.isExcluded && (
+            {isPatientActivity && activity.isExcluded && (
               <div>Excluded: {activity.exclusionReason}</div>
             )}
-            {activity.isOverridden && <div>Overridden</div>}
+            {isPatientActivity && activity.isOverridden && <div>Overridden</div>}
             {activityTemplate.isRarelyScheduled && <div>Rarely Scheduled</div>}
           </div>
         )}

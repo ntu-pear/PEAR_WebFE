@@ -2,16 +2,17 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { format, parseISO } from 'date-fns';
-import { ScheduledActivity, ActivityTemplate, Patient } from '@/api/activity/activity';
+import { ScheduledPatientActivity, ScheduledCentreActivity, ActivityTemplate, Patient } from '@/api/activity/activity';
+import { useAuth } from '@/hooks/useAuth';
 
 interface ActivityDetailsModalProps {
   isOpen: boolean;
   onClose: () => void;
-  activity: ScheduledActivity;
+  activity: ScheduledPatientActivity | ScheduledCentreActivity;
   getActivityTemplate: (id: string) => ActivityTemplate | undefined;
   getPatient: (id: string) => Patient | undefined;
-  handleCreateExclusionFromActivity: (activity: ScheduledActivity) => void;
-  handleEditActivity: (activity: ScheduledActivity) => void;
+  handleCreateExclusionFromActivity: (activity: ScheduledPatientActivity | ScheduledCentreActivity) => void;
+  handleEditActivity: (activity: ScheduledPatientActivity | ScheduledCentreActivity) => void;
   handleDeleteActivity: (activityId: string) => void;
 }
 
@@ -27,8 +28,13 @@ const ActivityDetailsModal: React.FC<ActivityDetailsModalProps> = ({
 }) => {
   if (!isOpen) return null;
 
+  const { currentUser } = useAuth();
+  const isSupervisor = currentUser?.roleName === 'SUPERVISOR';
   const activityTemplate = getActivityTemplate(activity.activityTemplateId);
-  const patient = getPatient(activity.patientId);
+  
+  // Check if this is a patient activity (has patientId) or centre activity
+  const isPatientActivity = 'patientId' in activity;
+  const patient = isPatientActivity ? getPatient(activity.patientId) : null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
@@ -42,11 +48,14 @@ const ActivityDetailsModal: React.FC<ActivityDetailsModalProps> = ({
         </div>
         <div className="p-4">
           <div className="grid gap-4 py-4">
-            <div className="flex items-center space-x-2">
-              <span className="text-gray-600">👥</span>
-              <Label className="text-base">Patient:</Label>
-              <span className="text-base font-medium">{patient?.name}</span>
-            </div>
+            {/* Patient info - only show for patient activities */}
+            {isPatientActivity && patient && (
+              <div className="flex items-center space-x-2">
+                <span className="text-gray-600">👥</span>
+                <Label className="text-base">Patient:</Label>
+                <span className="text-base font-medium">{patient.name}</span>
+              </div>
+            )}
             <div className="flex items-center space-x-2">
               <span className="text-gray-600">📅</span>
               <Label className="text-base">Date:</Label>
@@ -57,21 +66,24 @@ const ActivityDetailsModal: React.FC<ActivityDetailsModalProps> = ({
               <Label className="text-base">Time:</Label>
               <span className="text-base font-medium">{activity.startTime} - {activity.endTime}</span>
             </div>
-            {activity.isOverridden && (
+            {/* Override status - only for patient activities */}
+            {isPatientActivity && activity.isOverridden && (
               <div className="flex items-center space-x-2 text-purple-600">
                 <span className="text-purple-600">ℹ️</span>
                 <Label className="text-base">Status:</Label>
                 <span className="text-base font-medium">Supervisor Overridden</span>
               </div>
             )}
-            {activity.isExcluded && (
+            {/* Exclusion status - only for patient activities */}
+            {isPatientActivity && activity.isExcluded && (
               <div className="flex items-center space-x-2 text-red-600">
                 <span className="text-red-600">🚫</span>
                 <Label className="text-base">Status:</Label>
                 <span className="text-base font-medium">Excluded</span>
               </div>
             )}
-            {activity.exclusionReason && (
+            {/* Exclusion reason - only for patient activities */}
+            {isPatientActivity && activity.exclusionReason && (
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="exclusionReason" className="text-right">Exclusion Reason:</Label>
                 <span id="exclusionReason" className="col-span-3">{activity.exclusionReason}</span>
@@ -86,10 +98,13 @@ const ActivityDetailsModal: React.FC<ActivityDetailsModalProps> = ({
           </div>
         </div>
         <div className="flex justify-between p-4 border-t">
-          <Button variant="outline" onClick={() => handleCreateExclusionFromActivity(activity)} className="rounded-md">
-            🚫 Create Exclusion
-          </Button>
-          <div className="flex space-x-2">
+          {/* Only show Create Exclusion for caregivers and patient activities */}
+          {!isSupervisor && isPatientActivity && (
+            <Button variant="outline" onClick={() => handleCreateExclusionFromActivity(activity)} className="rounded-md">
+              🚫 Create Exclusion
+            </Button>
+          )}
+          <div className={`flex space-x-2 ${!isSupervisor && isPatientActivity ? '' : 'ml-auto'}`}>
             <Button variant="outline" onClick={() => handleEditActivity(activity)} className="rounded-md">
               ✏️ Edit
             </Button>
