@@ -1,4 +1,4 @@
-import { ActivityExclusion, ActivityTemplate, Patient, ScheduledActivity } from "@/api/activity/activity";
+import { ActivityExclusion, ActivityTemplate, Patient, ScheduledCentreActivity, ScheduledPatientActivity } from "@/api/activity/activity";
 
 export const mockPatients: Patient[] = [
   { id: 'p1', name: 'John Doe', isActive: true },
@@ -15,7 +15,20 @@ export const mockActivityTemplates: ActivityTemplate[] = [
   { id: 'a6', name: 'Free & Easy', type: 'free_easy', isRarelyScheduled: false },
 ];
 
-export const mockScheduledActivities: ScheduledActivity[] = [
+export const mockScheduledCentreActivities: ScheduledCentreActivity[] = [
+  { id: 's1', activityTemplateId: 'a1', date: '2025-07-28', startTime: '09:00', endTime: '10:00', notes:""},
+  { id: 's2', activityTemplateId: 'a3', date: '2025-07-28', startTime: '12:00', endTime: '13:00', notes:""},
+  { id: 's3', activityTemplateId: 'a2', date: '2025-07-28', startTime: '10:30', endTime: '11:30', notes:""},
+  { id: 's4', activityTemplateId: 'a6', date: '2025-07-29', startTime: '14:00', endTime: '16:00', notes:""},
+  { id: 's5', activityTemplateId: 'a4', date: '2025-07-29', startTime: '09:30', endTime: '10:30', notes:""},
+  { id: 's6', activityTemplateId: 'a1', date: '2025-07-30', startTime: '09:00', endTime: '10:00', notes:""},
+  { id: 's7', activityTemplateId: 'a3', date: '2025-07-30', startTime: '12:00', endTime: '13:00', notes:""},
+  { id: 's8', activityTemplateId: 'a2', date: '2025-07-30', startTime: '10:30', endTime: '11:30', notes:""},
+  { id: 's9', activityTemplateId: 'a5', date: '2025-08-01', startTime: '11:00', endTime: '12:00', notes:""},
+  { id: 's1', activityTemplateId: 'a1', date: '2025-08-01', startTime: '09:00', endTime: '10:00', notes:""},
+];
+
+export const mockScheduledPatientActivities: ScheduledPatientActivity[] = [
   { id: 's1', activityTemplateId: 'a1', patientId: 'p1', date: '2025-07-28', startTime: '09:00', endTime: '10:00', isOverridden: false, isExcluded: false },
   { id: 's2', activityTemplateId: 'a3', patientId: 'p1', date: '2025-07-28', startTime: '12:00', endTime: '13:00', isOverridden: false, isExcluded: false },
   { id: 's3', activityTemplateId: 'a2', patientId: 'p2', date: '2025-07-28', startTime: '10:30', endTime: '11:30', isOverridden: false, isExcluded: false },

@@ -1,4 +1,4 @@
-import { mockActivityTemplates, mockExclusions, mockPatients, mockScheduledActivities } from "@/mocks/mockScheduledActivity";
+import { mockActivityTemplates, mockExclusions, mockPatients, mockScheduledCentreActivities } from "@/mocks/mockScheduledActivity";
 
 export interface Patient {
   id: string;
@@ -13,7 +13,16 @@ export interface ActivityTemplate {
   isRarelyScheduled: boolean; // Backend-determined
 }
 
-export interface ScheduledActivity {
+export interface ScheduledCentreActivity {
+  id: string;
+  activityTemplateId: string;
+  startTime: string; // 'HH:mm'
+  endTime: string; // 'HH:mm'
+  date: string; // 'YYYY-MM-DD'
+  notes?: string;
+}
+
+export interface ScheduledPatientActivity {
   id: string;
   activityTemplateId: string;
   patientId: string;
@@ -47,13 +56,13 @@ export const getActivityTemplates = async () => {
 
 // TODO change when actual API is implemented
 export const getScheduledActivities = async () => {
-  return mockScheduledActivities;
+  return mockScheduledCentreActivities;
 };
 
 // TODO change when actual API is implemented
 export const addScheduledActivity = async (activity: ScheduledActivity): Promise<ScheduledActivity> => {
   // Simulate adding by pushing to the mock array
-  const newActivity = { ...activity, id: String(mockScheduledActivities.length + 1) };
+  const newActivity = { ...activity, id: String(mockScheduledCentreActivities.length + 1) };
   return newActivity;
 };
 
@@ -66,7 +75,7 @@ export const updateScheduledActivity = async (activity: ScheduledActivity): Prom
 // TODO change when actual API is implemented
 export const deleteScheduledActivity = async (activityId: string) => {
   // Simulate deletion by filtering out the activity
-  const updatedActivities = mockScheduledActivities.filter(activity => activity.id !== activityId);
+  const updatedActivities = mockScheduledCentreActivities.filter(activity => activity.id !== activityId);
   return updatedActivities;
 }
 
