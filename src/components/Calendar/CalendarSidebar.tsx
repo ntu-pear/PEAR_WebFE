@@ -19,7 +19,7 @@ const CalendarSidebar: React.FC<CalendarSidebarProps> = ({
       <div className="h-full pr-4">
         {/* Activities Section */}
         <div className="mb-6">
-          <h3 className="text-lg font-semibold mb-2 flex items-center">🏃 Activities</h3>
+          <h3 className="text-lg font-semibold mb-2 flex items-center">Activities</h3>
           <div className="space-y-2">
             {activityTemplates.map(activity => (
               <div key={activity.id} className="flex items-center space-x-2">

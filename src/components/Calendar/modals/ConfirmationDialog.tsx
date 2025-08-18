@@ -1,5 +1,6 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
+import { TriangleAlert } from 'lucide-react';
 
 interface ConfirmationDialogProps {
   isOpen: boolean;
@@ -20,7 +21,7 @@ const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
       <div className="relative bg-white rounded-lg shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between p-4 border-b">
-          <h3 className="text-xl font-semibold">⚠️ Confirm Action</h3>
+          <h3 className="flex items-center gap-2 text-xl font-semibold"><TriangleAlert /> Confirm Action</h3>
           <Button variant="ghost" size="icon" onClick={onClose} className="rounded-md">
             <span className="sr-only">Close</span>
             <span className="text-xl">&times;</span>

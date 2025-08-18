@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { format, parseISO } from 'date-fns';
 import { ScheduledCentreActivity, ActivityTemplate } from '@/api/activity/activity';
+import { Calendar, Clock, Pencil, Trash } from 'lucide-react';
 
 interface ActivityDetailsModalProps {
   isOpen: boolean;
@@ -38,12 +39,12 @@ const ActivityDetailsModal: React.FC<ActivityDetailsModalProps> = ({
         <div className="p-4">
           <div className="grid gap-4 py-4">
             <div className="flex items-center space-x-2">
-              <span className="text-gray-600">📅</span>
+              <span className="text-gray-600"><Calendar /></span>
               <Label className="text-base">Date:</Label>
               <span className="text-base font-medium">{format(parseISO(activity.date), 'PPP')}</span>
             </div>
             <div className="flex items-center space-x-2">
-              <span className="text-gray-600">⏰</span>
+              <span className="text-gray-600"><Clock /></span>
               <Label className="text-base">Time:</Label>
               <span className="text-base font-medium">{activity.startTime} - {activity.endTime}</span>
             </div>
@@ -57,11 +58,11 @@ const ActivityDetailsModal: React.FC<ActivityDetailsModalProps> = ({
         </div>
         <div className="flex justify-between p-4 border-t">
           <div className="flex space-x-2 ml-auto">
-            <Button variant="outline" onClick={() => handleEditActivity(activity)} className="rounded-md">
-              ✏️ Edit
+            <Button variant="outline" onClick={() => handleEditActivity(activity)} className="rounded-md gap-1">
+              <Pencil className="h-4 w-4"/> Edit
             </Button>
-            <Button variant="destructive" onClick={() => handleDeleteActivity(activity.id)} className="rounded-md">
-              🗑️ Delete
+            <Button variant="destructive" onClick={() => handleDeleteActivity(activity.id)} className="rounded-md gap-1">
+              <Trash className="h-4 w-4"/> Delete
             </Button>
           </div>
         </div>

@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ViewMode } from './CalendarTypes';
+import { Search } from 'lucide-react';
 
 interface CalendarHeaderProps {
   currentDate: Date;
@@ -66,7 +67,7 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
       </div>
       <div className="flex items-center space-x-2">
         <div className="relative">
-          <span className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-500">🔍</span>
+          <span className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-500"><Search /></span>
           <Input
             placeholder="Search activities..."
             className="pl-8 w-64 rounded-md"
