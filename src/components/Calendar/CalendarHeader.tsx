@@ -84,9 +84,6 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
             <SelectItem value="month">Month</SelectItem>
           </SelectContent>
         </Select>
-        <Button variant="ghost" size="icon" className="rounded-md">📅</Button>
-        <Button variant="ghost" size="icon" className="rounded-md">🖨️</Button>
-        <Button variant="ghost" size="icon" className="rounded-md">⚙️</Button>
       </div>
     </header>
   );
