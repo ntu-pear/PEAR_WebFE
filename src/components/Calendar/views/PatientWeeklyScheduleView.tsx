@@ -70,81 +70,84 @@ const PatientWeeklyScheduleView: React.FC<PatientWeeklyScheduleViewProps> = ({
 
   return (
     <div className="border border-gray-200 rounded-lg overflow-hidden bg-white">
-      {/* Header row */}
-      <div className="bg-gray-50 border-b border-gray-200 sticky top-0 z-20">
-        <div className="flex">
-          {/* Patient header */}
-          <div className="sticky left-0 bg-gray-50 border-r border-gray-200 p-3 text-center text-sm font-medium min-w-[200px] z-30">
-            <div>Patient</div>
-            <div className="text-xs text-gray-500 mt-1">
-              Week of {format(weekStart, "MMM dd, yyyy")}
+      {/* Single scrollable container */}
+      <div className="overflow-x-auto">
+        <div className="min-w-max">
+          {/* Header row */}
+          <div className="bg-gray-50 border-b border-gray-200 sticky top-0 z-20">
+            <div className="flex">
+              {/* Patient header */}
+              <div className="sticky left-0 bg-gray-50 border-r border-gray-200 p-3 text-center text-sm font-medium min-w-[200px] z-30">
+                <div>Patient</div>
+                <div className="text-xs text-gray-500 mt-1">
+                  Week of {format(weekStart, "MMM dd, yyyy")}
+                </div>
+              </div>
+              
+              {/* Day headers */}
+              <div className="flex flex-1">
+                {weekDays.map(day => (
+                  <div
+                    key={format(day, 'yyyy-MM-dd')}
+                    className={`p-3 text-center text-sm font-medium border-r border-gray-200 min-w-[140px] flex-1 ${
+                      isToday(day) ? 'text-blue-600 bg-blue-50' : ''
+                    }`}
+                  >
+                    <div>{format(day, "EEE")}</div>
+                    <div className="text-xs text-gray-500 mt-1">{format(day, "MMM dd")}</div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
-          
-          {/* Day headers */}
-          <div className="flex flex-1">
-            {weekDays.map(day => (
-              <div
-                key={format(day, 'yyyy-MM-dd')}
-                className={`p-3 text-center text-sm font-medium border-r border-gray-200 min-w-[140px] flex-1 ${
-                  isToday(day) ? 'text-blue-600 bg-blue-50' : ''
-                }`}
-              >
-                <div>{format(day, "EEE")}</div>
-                <div className="text-xs text-gray-500 mt-1">{format(day, "MMM dd")}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
 
-      {/* Patient rows */}
-      <div className="overflow-x-auto">
-        {patients.length === 0 ? (
-          <div className="p-8 text-center text-gray-500">
-            No patients found.
-          </div>
-        ) : (
-          patients.map(patient => {
-            // Calculate the maximum height needed for this patient's row
-            const maxActivitiesInDay = Math.max(
-              ...weekDays.map(day => {
-                const dateString = format(day, "yyyy-MM-dd");
-                const activities = getPatientActivitiesForDate(patient.id, dateString);
-                return activities.length;
-              }),
-              1 // Minimum 1 to ensure some height
-            );
-            const rowHeight = Math.max(60, maxActivitiesInDay * 30 + 16); // 16px for padding
+          {/* Patient rows */}
+          {patients.length === 0 ? (
+            <div className="p-8 text-center text-gray-500">
+              No patients found.
+            </div>
+          ) : (
+            patients.map(patient => {
+              // Calculate the maximum height needed for this patient's row
+              const maxActivitiesInDay = Math.max(
+                ...weekDays.map(day => {
+                  const dateString = format(day, "yyyy-MM-dd");
+                  const activities = getPatientActivitiesForDate(patient.id, dateString);
+                  return activities.length;
+                }),
+                1 // Minimum 1 to ensure some height
+              );
+              const rowHeight = Math.max(60, maxActivitiesInDay * 30 + 16); // 16px for padding
 
-            return (
-              <div key={patient.id} className="flex border-b border-gray-200 last:border-b-0" style={{ minHeight: `${rowHeight}px` }}>
-                {/* Patient name cell */}
-                <div className="sticky left-0 bg-white border-r border-gray-200 p-3 flex items-center min-w-[200px] z-10 shadow-sm">
-                  <div>
-                    <div className="font-medium text-sm">{patient.name}</div>
-                    <div className={`text-xs ${patient.isActive ? 'text-green-600' : 'text-gray-500'}`}>
-                      {patient.isActive ? 'Active' : 'Inactive'}
+              return (
+                <div key={patient.id} className="flex border-b border-gray-200 last:border-b-0" style={{ minHeight: `${rowHeight}px` }}>
+                  {/* Patient name cell */}
+                  <div className="sticky left-0 bg-white border-r border-gray-200 p-3 flex items-center min-w-[200px] z-10 shadow-sm">
+                    <div>
+                      <div className="font-medium text-sm">{patient.name}</div>
+                      <div className={`text-xs ${patient.isActive ? 'text-green-600' : 'text-gray-500'}`}>
+                        {patient.isActive ? 'Active' : 'Inactive'}
+                      </div>
                     </div>
                   </div>
+                  
+                  {/* Day cells for this patient */}
+                  <div className="flex flex-1">
+                    {weekDays.map((day, index) => (
+                      <div 
+                        key={`${patient.id}-${format(day, 'yyyy-MM-dd')}`} 
+                        className={`min-w-[140px] flex-1 ${index < weekDays.length - 1 ? 'border-r border-gray-200' : ''}`}
+                        style={{ minHeight: `${rowHeight}px` }}
+                      >
+                        {renderActivityCell(patient.id, day)}
+                      </div>
+                    ))}
+                  </div>
                 </div>
-                
-                {/* Day cells for this patient */}
-                <div className="flex flex-1">
-                  {weekDays.map((day, index) => (
-                    <div 
-                      key={`${patient.id}-${format(day, 'yyyy-MM-dd')}`} 
-                      className={`min-w-[140px] flex-1 ${index < weekDays.length - 1 ? 'border-r border-gray-200' : ''}`}
-                      style={{ minHeight: `${rowHeight}px` }}
-                    >
-                      {renderActivityCell(patient.id, day)}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            );
-          })
-        )}
+              );
+            })
+          )}
+        </div>
       </div>
     </div>
   );

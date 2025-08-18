@@ -57,19 +57,14 @@ export const usePatientScheduleData = () => {
     });
   }, [patients, showInactivePatients, searchTerm]);
 
-  // Filtered patient activities based on selected activity types and search term
+  // Filtered patient activities based on selected activity types (search term should not filter activities)
   const filteredPatientActivities = useMemo(() => {
     return patientActivities.filter(activity => {
-      const activityTemplate = getActivityTemplate(activity.activityTemplateId);
-      
       const matchesActivityType = selectedActivities.includes(activity.activityTemplateId);
-      const matchesSearch = searchTerm === '' ||
-        activityTemplate?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        activity.notes?.toLowerCase().includes(searchTerm.toLowerCase());
       
-      return matchesActivityType && matchesSearch && !activity.isExcluded;
+      return matchesActivityType && !activity.isExcluded;
     });
-  }, [patientActivities, selectedActivities, searchTerm, getActivityTemplate]);
+  }, [patientActivities, selectedActivities]);
 
   // Get patient schedule data combining patients with their activities
   const patientScheduleData = useMemo((): PatientScheduleData[] => {
