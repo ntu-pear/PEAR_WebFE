@@ -29,8 +29,8 @@ export const useCalendarActions = (
 
   const navigateDate = useCallback((amount: number, unit: ViewMode) => {
     if (unit === 'month') setCurrentDate(addMonths(currentDate, amount));
-    if (unit === 'week') setCurrentDate(addWeeks(currentDate, amount));
-    if (unit === 'day') setCurrentDate(addDays(currentDate, amount));
+    if (unit === 'week' || unit === 'patient-weekly') setCurrentDate(addWeeks(currentDate, amount));
+    if (unit === 'day' || unit === 'patient-daily') setCurrentDate(addDays(currentDate, amount));
   }, [currentDate, setCurrentDate]);
 
   // Activity interaction handlers

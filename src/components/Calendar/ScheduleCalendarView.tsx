@@ -5,10 +5,14 @@ import AddEditActivityModal from './modals/AddEditActivityModal';
 import ConfirmationDialog from './modals/ConfirmationDialog';
 import CalendarHeader from './CalendarHeader';
 import CalendarSidebar from './CalendarSidebar';
+import PatientScheduleSidebar from './PatientScheduleSidebar';
 import MonthView from './views/MonthView';
 import WeekView from './views/WeekView';
 import DayView from './views/DayView';
+import PatientDailyScheduleView from './views/PatientDailyScheduleView';
+import PatientWeeklyScheduleView from './views/PatientWeeklyScheduleView';
 import { useCalendarData } from './hooks/useCalendarData';
+import { usePatientScheduleData } from './hooks/usePatientScheduleData';
 import { useCalendarActions } from './hooks/useCalendarActions';
 import { ViewMode } from './CalendarTypes';
 
@@ -17,7 +21,7 @@ const ScheduleCalendarView: React.FC = () => {
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
   const [viewMode, setViewMode] = useState<ViewMode>('month');
 
-  // hooks for data and actions
+  // hooks for center activity data and actions
   const {
     activityTemplates,
     scheduledActivities,
@@ -29,6 +33,21 @@ const ScheduleCalendarView: React.FC = () => {
     getActivityTemplate,
     handleActivityToggle,
   } = useCalendarData();
+
+  // hooks for patient schedule data
+  const {
+    activityTemplates: patientActivityTemplates,
+    filteredPatients,
+    selectedActivities: patientSelectedActivities,
+    searchTerm: patientSearchTerm,
+    showInactivePatients,
+    setSearchTerm: setPatientSearchTerm,
+    getActivityTemplate: getPatientActivityTemplate,
+    getPatientActivitiesForDate,
+    getPatientActivitiesForTimeSlot,
+    handleActivityToggle: handlePatientActivityToggle,
+    handlePatientStatusToggle,
+  } = usePatientScheduleData();
 
   const {
     isActivityDetailsModalOpen,
@@ -54,6 +73,18 @@ const ScheduleCalendarView: React.FC = () => {
     scheduledActivities,
     setScheduledActivities
   );
+
+  // Handle patient activity clicks (for patient views)
+  const handlePatientActivityClick = (activity: any) => {
+    // For now, use the same modal as center activities
+    // In a real implementation, you might want a separate modal for patient activities
+    handleActivityClick(activity);
+  };
+
+  // Determine which search term and functions to use based on view mode
+  const isPatientView = viewMode === 'patient-daily' || viewMode === 'patient-weekly';
+  const currentSearchTerm = isPatientView ? patientSearchTerm : searchTerm;
+  const currentSearchSetter = isPatientView ? setPatientSearchTerm : setSearchTerm;
 
   const renderCalendarView = () => {
     switch (viewMode) {
@@ -86,6 +117,26 @@ const ScheduleCalendarView: React.FC = () => {
             onActivityClick={handleActivityClick}
           />
         );
+      case 'patient-daily':
+        return (
+          <PatientDailyScheduleView
+            currentDate={currentDate}
+            patients={filteredPatients}
+            getPatientActivitiesForTimeSlot={getPatientActivitiesForTimeSlot}
+            getActivityTemplate={getPatientActivityTemplate}
+            onActivityClick={handlePatientActivityClick}
+          />
+        );
+      case 'patient-weekly':
+        return (
+          <PatientWeeklyScheduleView
+            currentDate={currentDate}
+            patients={filteredPatients}
+            getPatientActivitiesForDate={getPatientActivitiesForDate}
+            getActivityTemplate={getPatientActivityTemplate}
+            onActivityClick={handlePatientActivityClick}
+          />
+        );
       default:
         return null;
     }
@@ -97,20 +148,30 @@ const ScheduleCalendarView: React.FC = () => {
       <CalendarHeader
         currentDate={currentDate}
         viewMode={viewMode}
-        searchTerm={searchTerm}
+        searchTerm={currentSearchTerm}
         onGoToToday={goToToday}
         onNavigateDate={navigateDate}
         onViewModeChange={setViewMode}
-        onSearchChange={setSearchTerm}
+        onSearchChange={currentSearchSetter}
       />
 
       <div className="flex flex-1 overflow-hidden">
         {/* Left Sidebar */}
-        <CalendarSidebar
-          activityTemplates={activityTemplates}
-          selectedActivities={selectedActivities}
-          onActivityToggle={handleActivityToggle}
-        />
+        {isPatientView ? (
+          <PatientScheduleSidebar
+            activityTemplates={patientActivityTemplates}
+            selectedActivities={patientSelectedActivities}
+            showInactivePatients={showInactivePatients}
+            onActivityToggle={handlePatientActivityToggle}
+            onPatientStatusToggle={handlePatientStatusToggle}
+          />
+        ) : (
+          <CalendarSidebar
+            activityTemplates={activityTemplates}
+            selectedActivities={selectedActivities}
+            onActivityToggle={handleActivityToggle}
+          />
+        )}
 
         {/* Main Calendar Content */}
         <main className="flex-1 p-4 bg-gray-100 overflow-hidden relative">

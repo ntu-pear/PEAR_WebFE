@@ -34,9 +34,18 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
         return `${format(startOfWeek(currentDate, { locale: enUS }), 'MMM dd')} - ${format(endOfWeek(currentDate, { locale: enUS }), 'MMM dd, yyyy')}`;
       case 'day':
         return format(currentDate, 'EEEE, MMMM dd, yyyy');
+      case 'patient-daily':
+        return `Patient Schedule - ${format(currentDate, 'EEEE, MMMM dd, yyyy')}`;
+      case 'patient-weekly':
+        return `Patient Schedule - ${format(startOfWeek(currentDate, { locale: enUS }), 'MMM dd')} - ${format(endOfWeek(currentDate, { locale: enUS }), 'MMM dd, yyyy')}`;
       default:
         return '';
     }
+  };
+
+  const getSearchPlaceholder = () => {
+    const isPatientView = viewMode === 'patient-daily' || viewMode === 'patient-weekly';
+    return isPatientView ? 'Search patients...' : 'Search activities...';
   };
 
   return (
@@ -69,20 +78,22 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
         <div className="relative">
           <span className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-500"><Search /></span>
           <Input
-            placeholder="Search activities..."
+            placeholder={getSearchPlaceholder()}
             className="pl-8 w-64 rounded-md"
             value={searchTerm}
             onChange={(e) => onSearchChange(e.target.value)}
           />
         </div>
         <Select value={viewMode} onValueChange={onViewModeChange}>
-          <SelectTrigger className="w-[120px] rounded-md">
+          <SelectTrigger className="w-[150px] rounded-md">
             <SelectValue placeholder="View" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="day">Day</SelectItem>
-            <SelectItem value="week">Week</SelectItem>
-            <SelectItem value="month">Month</SelectItem>
+            <SelectItem value="day">Centre Day</SelectItem>
+            <SelectItem value="week">Centre Week</SelectItem>
+            <SelectItem value="month">Centre Month</SelectItem>
+            <SelectItem value="patient-daily">Patient Daily</SelectItem>
+            <SelectItem value="patient-weekly">Patient Weekly</SelectItem>
           </SelectContent>
         </Select>
       </div>
