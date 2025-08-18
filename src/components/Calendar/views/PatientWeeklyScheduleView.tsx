@@ -6,6 +6,7 @@ import {
   ActivityTemplate,
   Patient
 } from "@/api/activity/activity";
+import { ACTIVITY_STYLES } from "../CalendarTypes";
 
 interface PatientWeeklyScheduleViewProps {
   currentDate: Date;
@@ -38,14 +39,16 @@ const PatientWeeklyScheduleView: React.FC<PatientWeeklyScheduleViewProps> = ({
           const activityTemplate = getActivityTemplate(activity.activityTemplateId);
           if (!activityTemplate) return null;
 
-          const bgColor = activityTemplate.type === 'free_easy' ? 'bg-blue-400' : 'bg-orange-400';
-          const rarelyScheduledClass = activityTemplate.isRarelyScheduled ? 'border border-red-500' : '';
-          const overriddenClass = activity.isOverridden ? 'bg-red-400' : '';
-
           return (
             <div
               key={activity.id}
-              className={`rounded-md p-1 text-xs cursor-pointer shadow-sm text-white mb-1 ${bgColor} ${rarelyScheduledClass} ${overriddenClass}`}
+              className={`${ACTIVITY_STYLES.baseActivity} ${ACTIVITY_STYLES.fontColour} mb-1 ${
+                activity.isOverridden 
+                  ? ACTIVITY_STYLES.bgcolours.modified 
+                  : activityTemplate.type === 'free_easy' 
+                    ? ACTIVITY_STYLES.bgcolours.freeEasy 
+                    : ACTIVITY_STYLES.bgcolours.routine
+              } ${activityTemplate.isRarelyScheduled ? ACTIVITY_STYLES.rarelyScheduled : ''}`}
               onClick={() => onActivityClick(activity)}
               title={`${activityTemplate.name} (${activity.startTime} - ${activity.endTime})`}
             >

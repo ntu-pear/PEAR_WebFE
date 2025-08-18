@@ -3,6 +3,7 @@ import { ActivityTemplate } from '@/api/activity/activity';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
+import { ACTIVITY_STYLES } from './CalendarTypes';
 
 interface PatientScheduleSidebarProps {
   activityTemplates: ActivityTemplate[];
@@ -64,8 +65,10 @@ const PatientScheduleSidebar: React.FC<PatientScheduleSidebarProps> = ({
                 >
                   <div
                     className={`w-3 h-3 rounded ${
-                      activity.type === 'free_easy' ? 'bg-blue-400' : 'bg-orange-400'
-                    } ${activity.isRarelyScheduled ? 'ring-2 ring-red-500' : ''}`}
+                      activity.type === 'free_easy' 
+                        ? ACTIVITY_STYLES.bgcolours.freeEasy 
+                        : ACTIVITY_STYLES.bgcolours.routine
+                    } ${activity.isRarelyScheduled ? ACTIVITY_STYLES.rarelyScheduled : ''}`}
                   />
                   <span className="truncate">{activity.name}</span>
                   {activity.isRarelyScheduled && (
@@ -90,15 +93,15 @@ const PatientScheduleSidebar: React.FC<PatientScheduleSidebarProps> = ({
           </CardHeader>
           <CardContent className="space-y-2">
             <div className="flex items-center gap-2 text-xs">
-              <div className="w-3 h-3 rounded bg-blue-400"></div>
+              <div className={`w-3 h-3 rounded ${ACTIVITY_STYLES.bgcolours.freeEasy}`}></div>
               <span>Free & Easy</span>
             </div>
             <div className="flex items-center gap-2 text-xs">
-              <div className="w-3 h-3 rounded bg-orange-400"></div>
+              <div className={`w-3 h-3 rounded ${ACTIVITY_STYLES.bgcolours.routine}`}></div>
               <span>Routine</span>
             </div>
             <div className="flex items-center gap-2 text-xs">
-              <div className="w-3 h-3 rounded bg-red-400"></div>
+              <div className={`w-3 h-3 rounded ${ACTIVITY_STYLES.bgcolours.modified}`}></div>
               <span>Modified</span>
             </div>
             <div className="flex items-center gap-2 text-xs">

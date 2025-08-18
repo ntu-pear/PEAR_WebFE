@@ -4,7 +4,7 @@ import {
   ScheduledCentreActivity,
   ActivityTemplate,
 } from "@/api/activity/activity";
-import { TIME_SLOTS } from "../CalendarTypes";
+import { TIME_SLOTS, ACTIVITY_STYLES } from "../CalendarTypes";
 
 interface DayViewProps {
   currentDate: Date;
@@ -38,17 +38,14 @@ const DayView: React.FC<DayViewProps> = ({
       (endHour - startHour) * 60 + (endMinute - startMinute);
     const height = Math.max(20, durationMinutes); // Minimum 20px height
 
-    const bgColor =
-      activityTemplate.type === "free_easy" ? "bg-blue-400" : "bg-orange-400";
-    const textColor = "text-white";
-    const rarelyScheduledClass = activityTemplate.isRarelyScheduled
-      ? "border-2 border-red-500"
-      : "";
-
     return (
       <div
         key={activity.id}
-        className={`group absolute w-[calc(100%-4px)] left-[2px] rounded-md p-1 text-xs cursor-pointer shadow-md ${bgColor} ${textColor} ${rarelyScheduledClass}`}
+        className={`${ACTIVITY_STYLES.baseActivity} ${ACTIVITY_STYLES.fontColour} group absolute w-[calc(100%-4px)] left-[2px] ${
+          activityTemplate.type === 'free_easy' 
+            ? ACTIVITY_STYLES.bgcolours.freeEasy 
+            : ACTIVITY_STYLES.bgcolours.routine
+        } ${activityTemplate.isRarelyScheduled ? ACTIVITY_STYLES.rarelyScheduled : ''}`}
         style={{ top: `${top}px`, height: `${height}px` }}
         onClick={() => onActivityClick(activity)}
       >

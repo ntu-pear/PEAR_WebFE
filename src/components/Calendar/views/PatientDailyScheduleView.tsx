@@ -5,7 +5,7 @@ import {
   ActivityTemplate,
   Patient
 } from "@/api/activity/activity";
-import { TIME_SLOTS } from "../CalendarTypes";
+import { TIME_SLOTS, ACTIVITY_STYLES } from "../CalendarTypes";
 
 interface PatientDailyScheduleViewProps {
   currentDate: Date;
@@ -76,14 +76,16 @@ const PatientDailyScheduleView: React.FC<PatientDailyScheduleViewProps> = ({
               }
             }
 
-            const bgColor = activityTemplate.type === 'free_easy' ? 'bg-blue-400' : 'bg-orange-400';
-            const rarelyScheduledClass = activityTemplate.isRarelyScheduled ? 'border border-red-500' : '';
-            const overriddenClass = activity.isOverridden ? 'bg-red-400' : '';
-
             return (
               <div
                 key={activity.id}
-                className={`absolute top-2 rounded-md p-1 text-xs cursor-pointer shadow-sm text-white z-10 ${bgColor} ${rarelyScheduledClass} ${overriddenClass}`}
+                className={`${ACTIVITY_STYLES.baseActivity} ${ACTIVITY_STYLES.fontColour} absolute top-2 z-10 ${
+                  activity.isOverridden 
+                    ? ACTIVITY_STYLES.bgcolours.modified 
+                    : activityTemplate.type === 'free_easy' 
+                      ? ACTIVITY_STYLES.bgcolours.freeEasy 
+                      : ACTIVITY_STYLES.bgcolours.routine
+                } ${activityTemplate.isRarelyScheduled ? ACTIVITY_STYLES.rarelyScheduled : ''}`}
                 style={{ 
                   left: `${leftOffset}px`,
                   width: `${Math.max(totalWidth, 60)}px`, // Minimum 60px width
