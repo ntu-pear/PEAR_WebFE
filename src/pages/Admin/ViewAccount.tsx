@@ -24,7 +24,6 @@ const ViewAccount: React.FC = () => {
     accountInfo,
     nricData,
     getNRIC,
-    resetUnmaskedNRICData,
     setAccountInfo,
     refreshAccountData,
   } = useViewAccount();
