@@ -27,12 +27,12 @@ import {
   HighlightTypeList,
 } from "@/api/patients/highlight";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { mockCaregiverNameList } from "@/mocks/mockHighlightTableData";
-import PatientHighlightModal from "@/components/Modal/PatientHighlightModal";
+import {
+  mockCaregiverNameList,
+  mockHighlightDetails,
+} from "@/mocks/mockHighlightTableData";
 
 const HighlightTable: React.FC = () => {
-  const [modalDetails, setModalDetails] = useState<any>();
-  const [showHighlightModal, setShowHighlightModal] = useState<Boolean>(false);
   const [highlights, setHighlights] = useState<HighlightTableData[]>([]);
   const [highlightTypes, setHighlightTypes] = useState<HighlightTypeList[]>([]);
   const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
@@ -45,15 +45,27 @@ const HighlightTable: React.FC = () => {
     []
   );
 
-  const sortByPatientName = (
-    data: HighlightTableData[],
-    direction: "asc" | "desc"
-  ) => {
-    return [...data].sort((a, b) => {
-      if (a.patientName < b.patientName) return direction === "asc" ? -1 : 1;
-      if (a.patientName > b.patientName) return direction === "asc" ? 1 : -1;
-      return 0;
-    });
+  const flattenHighlights = (
+    highlights: HighlightTableData[]
+  ): HighlightTableData[] => {
+    let count = 0;
+
+    while (count < highlights.length) {
+      if (
+        count % 10 === 0 ||
+        highlights[count].patientId !== highlights[count - 1].patientId
+      ) {
+        highlights[count].showPatientDetails = true;
+        highlights[count].showCaregiverDetails = true;
+        highlights[count].showType = true;
+      } else if (highlights[count].type !== highlights[count - 1].type) {
+        highlights[count].showType = true;
+      }
+
+      count++;
+    }
+
+    return highlights;
   };
 
   const handleFilter = async () => {
@@ -64,10 +76,8 @@ const HighlightTable: React.FC = () => {
         patientName.toLowerCase().includes(searchItem.toLowerCase())
       );
 
-      filteredHighlights = filteredHighlights.filter(({ highlights }) =>
-        highlights.some((highlight) =>
-          highlight.some(({ type }) => selectedTypes.includes(type))
-        )
+      filteredHighlights = filteredHighlights.filter(({ type }) =>
+        selectedTypes.includes(type)
       );
 
       filteredHighlights = filteredHighlights.filter(
@@ -76,100 +86,19 @@ const HighlightTable: React.FC = () => {
           caregiverId.toString() === selectedCaregiver
       );
 
-      filteredHighlights = sortByPatientName(filteredHighlights, "asc");
-
-      setHighlights(filteredHighlights);
+      setHighlights(flattenHighlights(filteredHighlights));
     } catch (error) {
       console.error("Error fetching highlights:", error);
     }
   };
 
   const formatHighlightType = (highlightType: string) => {
-    switch (highlightType) {
-      case "newPrescription":
-        return "Prescription";
-      case "newAllergy":
-        return "Allergy";
-      case "newActivityExclusion":
-        return "Activity Exclusion";
-      case "abnormalVital":
-        return "Abnormal Vital";
-      case "problem":
-        return "Problem";
-      case "medicalHistory":
-        return "Medical History";
-    }
-  };
+    const spaced = highlightType.replace(/([a-z])([A-Z])/g, "$1 $2");
 
-  const handleHighlightClick = (_id: string, type: string) => {
-    switch (type) {
-      case "newPrescription":
-        setModalDetails({
-          title: "Prescription Details",
-          body: [
-            { label: "Drug Name", content: "Ibuprofen" },
-            { label: "Dosage", content: "1 Pill" },
-            { label: "Frequency per Day", content: "3 times" },
-            { label: "Instruction", content: "Eat after food" },
-            { label: "Take after meal", content: "Yes" },
-            { label: "Chronic", content: "No" },
-            { label: "Remarks", content: "NIL" },
-          ],
-        });
-        break;
-      case "newAllergy":
-        setModalDetails({
-          title: "Allergy Details",
-          body: [
-            { label: "Allergy", content: "Milk" },
-            { label: "Reaction", content: "Itching" },
-            { label: "Remarks", content: "Servere, need to monitor closely" },
-          ],
-        });
-        break;
-      case "newActivityExclusion":
-        setModalDetails({
-          title: "Activity Exclusion Details",
-          body: [
-            { label: "Name", content: "Doctor Appointment" },
-            { label: "Description", content: "Meet @ 12pm" },
-            { label: "Remarks", content: "Important appointment" },
-          ],
-        });
-        break;
-      case "abnormalVital":
-        setModalDetails({
-          title: "Vital Details",
-          body: [
-            { label: "Talen after meal", content: "Yes" },
-            { label: "Temperature", content: "37 degree" },
-            { label: "SystolicBP/DiastolicBP (mmHg)", content: "20" },
-            { label: "HeartRate (bpm)", content: "20" },
-            { label: "SpO2 (%)", content: "20" },
-            { label: "Blood sugar level (mmol/L)", content: "20" },
-            { label: "Height (m)", content: "20" },
-            { label: "Weight (kg)", content: "20" },
-          ],
-        });
-        break;
-      case "problem":
-        setModalDetails({
-          title: "Problem Details",
-          body: [
-            { label: "Description", content: "Having some issues" },
-            { label: "Remarks", content: "No remarks" },
-            { label: "Author", content: "Caregiver" },
-          ],
-        });
-        break;
-      case "medicalHistory":
-        setModalDetails({
-          title: "Medical History",
-          body: [{ label: "Details", content: "None" }],
-        });
-        break;
-    }
-    setShowHighlightModal(true);
+    return spaced
+      .split(" ")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
   };
 
   useEffect(() => {
@@ -189,89 +118,206 @@ const HighlightTable: React.FC = () => {
     {
       key: "patientName",
       header: "Patient",
-      render: (value: string, highlight: HighlightTableData) => (
-        <div className="flex items-center gap-3">
-          <Avatar>
-            <AvatarImage
-              src={highlight.patientProfilePicture}
-              alt={highlight.patientName}
-            />
-            <AvatarFallback>
-              {highlight.patientName
-                .split(" ")
-                .map((n) => n[0])
-                .join("")}
-            </AvatarFallback>
-          </Avatar>
-          <div>
-            <div className="font-medium">{value}</div>
-            <div className="text-sm text-muted-foreground">
-              {highlight.patientNric}
+      render: (value: string, highlight: HighlightTableData) =>
+        highlight.showPatientDetails ? (
+          <div className="flex items-center gap-3">
+            <Avatar>
+              <AvatarImage
+                src={highlight.patientProfilePicture}
+                alt={highlight.patientName}
+              />
+              <AvatarFallback>
+                {highlight.patientName
+                  .split(" ")
+                  .map((n) => n[0])
+                  .join("")}
+              </AvatarFallback>
+            </Avatar>
+            <div>
+              <div className="font-medium">{value}</div>
+              <div className="text-sm text-muted-foreground">
+                {highlight.patientNric}
+              </div>
             </div>
           </div>
-        </div>
-      ),
+        ) : (
+          <div></div>
+        ),
     },
     {
       key: "caregiverName",
       header: "Caregiver",
-      render: (value: string, highlight: HighlightTableData) => (
-        <div className="flex items-center gap-3">
-          <Avatar>
-            <AvatarImage
-              src={highlight.caregiverProfilePicture}
-              alt={highlight.caregiverName}
-            />
-            <AvatarFallback>
-              {highlight.caregiverName
-                .split(" ")
-                .map((n) => n[0])
-                .join("")}
-            </AvatarFallback>
-          </Avatar>
-          <div>
-            <div className="font-medium">{value}</div>
-            <div className="text-sm text-muted-foreground">
-              {highlight.caregiverNric}
+      render: (value: string, highlight: HighlightTableData) =>
+        highlight.showCaregiverDetails ? (
+          <div className="flex items-center gap-3">
+            <Avatar>
+              <AvatarImage
+                src={highlight.caregiverProfilePicture}
+                alt={highlight.caregiverName}
+              />
+              <AvatarFallback>
+                {highlight.caregiverName
+                  .split(" ")
+                  .map((n) => n[0])
+                  .join("")}
+              </AvatarFallback>
+            </Avatar>
+            <div>
+              <div className="font-medium">{value}</div>
+              <div className="text-sm text-muted-foreground">
+                {highlight.caregiverNric}
+              </div>
             </div>
           </div>
-        </div>
-      ),
+        ) : (
+          <div></div>
+        ),
     },
     {
-      key: "highlights",
-      header: "Highlight",
-      render: (
-        value: {
-          id: string;
-          type: string;
-          value: string;
-        }[][]
-      ) => (
-        <div className="space-y-4">
-          {value.map((highlights) => (
-            <div key={highlights[0].type}>
-              <label className="font-semibold text-gray-700">
-                {formatHighlightType(highlights[0].type)}
-              </label>
-              <ul className="list-disc list-inside space-y-1">
-                {highlights.map((highlight, index) => (
-                  <li key={index}>
-                    <a
-                      className="text-blue-500 hover:underline"
-                      onClick={() =>
-                        handleHighlightClick(highlight.id, highlight.type)
-                      }
-                    >
-                      {highlight.value}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
-        </div>
-      ),
+      key: "type",
+      header: "Type",
+      render: (value: string, highlight: HighlightTableData) =>
+        highlight.showType ? (
+          <div className="font-medium">{formatHighlightType(value)}</div>
+        ) : (
+          ""
+        ),
+    },
+    {
+      key: "value",
+      header: "Value",
+      render: (value: string) => value,
+    },
+    {
+      // TBD: Fix after highlight corresponds to correct highlight type ID
+      key: "details",
+      header: "Details",
+      render: (_: string, highlight: HighlightTableData) => {
+        switch (highlight.type) {
+          case "Prescription": {
+            const d = mockHighlightDetails.Prescription;
+            return (
+              <div className="space-y-1 text-sm">
+                <div>
+                  <b>Drug name:</b> {d.prescriptionListDesc}
+                </div>
+                <div>
+                  <b>Dosage:</b> {d.dosage}
+                </div>
+                <div>
+                  <b>Frequency per day:</b> {d.frequencyPerDay}
+                </div>
+                <div>
+                  <b>Instruction:</b> {d.instruction}
+                </div>
+                <div>
+                  <b>Take after meal:</b> {d.afterMeal ? "Yes" : "No"}
+                </div>
+                <div>
+                  <b>Chronic:</b> {d.isChronic ? "Yes" : "No"}
+                </div>
+                <div>
+                  <b>Start date:</b> {d.startDate.split("T")[0]}
+                </div>
+                <div>
+                  <b>End date:</b> {d.endDate.split("T")[0]}
+                </div>
+                <div>
+                  <b>Remarks:</b> {d.prescriptionRemarks}
+                </div>
+              </div>
+            );
+          }
+          case "Allergy": {
+            const d = mockHighlightDetails.Allergy;
+            return (
+              <div className="space-y-1 text-sm">
+                <div>
+                  <b>Allergy:</b> {d.allergyListDesc}
+                </div>
+                <div>
+                  <b>Reaction:</b> {d.allergyReaction}
+                </div>
+                <div>
+                  <b>Remarks:</b> {d.allergyRemarks}
+                </div>
+              </div>
+            );
+          }
+          case "ActivityExclusion": {
+            const d = mockHighlightDetails.ActivityExclusion;
+            return (
+              <div className="space-y-1 text-sm">
+                <div>
+                  <b>Activity name:</b> {d.activityTitle}
+                </div>
+                <div>
+                  <b>Activity description:</b> {d.activityDesc}
+                </div>
+                <div>
+                  <b>Start date:</b> {d.startDateTime.split("T")[0]}
+                </div>
+                <div>
+                  <b>End date:</b> {d.endDateTime.split("T")[0]}
+                </div>
+                <div>
+                  <b>Remarks:</b> {d.exclusionRemarks}
+                </div>
+              </div>
+            );
+          }
+          case "Vital": {
+            const d = mockHighlightDetails.Vital;
+            return (
+              <div className="space-y-1 text-sm">
+                <div>
+                  <b>Taken after meal:</b> {d.afterMeal ? "Yes" : "No"}
+                </div>
+                <div>
+                  <b>Temperature (°C):</b> {d.temperature}
+                </div>
+                <div>
+                  <b>SystolicBP/DiastolicBP (mmHg):</b> {d.systolicBP}/
+                  {d.diastolicBP}
+                </div>
+                <div>
+                  <b>HeartRate (bpm):</b> {d.heartRate}
+                </div>
+                <div>
+                  <b>SpO₂ (%):</b> {d.spO2}
+                </div>
+                <div>
+                  <b>Blood sugar level (mmol/L):</b> {d.bloodSugarlevel}
+                </div>
+                <div>
+                  <b>Height (m):</b> {d.height}
+                </div>
+                <div>
+                  <b>Weight (kg):</b> {d.weight}
+                </div>
+              </div>
+            );
+          }
+          case "Problem": {
+            const d = mockHighlightDetails.Problem;
+            return (
+              <div className="space-y-1 text-sm">
+                <div>
+                  <b>Description:</b> {d.problemLogListDesc}
+                </div>
+                <div>
+                  <b>Remarks:</b> {d.problemLogRemarks}
+                </div>
+                <div>
+                  <b>Author:</b> {d.authorName}
+                </div>
+              </div>
+            );
+          }
+          default:
+            return <span>-</span>;
+        }
+      },
     },
   ];
 
@@ -361,13 +407,6 @@ const HighlightTable: React.FC = () => {
           </Card>
         </div>
       </div>
-      {modalDetails && showHighlightModal && (
-        <PatientHighlightModal
-          title={modalDetails.title}
-          body={modalDetails.body}
-          onClose={() => setShowHighlightModal(false)}
-        />
-      )}
     </>
   );
 };
