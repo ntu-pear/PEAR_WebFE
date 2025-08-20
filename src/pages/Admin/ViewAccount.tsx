@@ -107,9 +107,10 @@ const ViewAccount: React.FC = () => {
                       nric: getNRIC(),
                       unmaskedNRIC: nricData.nric,
                     },
-                    refreshAccountData: (user: User) => {
+                    refreshAccountData: async (user: User) => {
                       setAccountInfo(user);
-                      resetUnmaskedNRICData();
+                      // Call the actual refreshAccountData to ensure all state is properly updated
+                      await refreshAccountData();
                     },
                   })
                 }
