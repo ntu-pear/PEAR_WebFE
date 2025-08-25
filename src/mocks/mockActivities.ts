@@ -1,6 +1,6 @@
 import { TableRowData } from "@/components/Table/DataTable";
 
-export interface ActivitiesData extends TableRowData {
+export interface ActivityTableData extends TableRowData {
   active: boolean;
   title: string;
   description: string;
@@ -12,14 +12,14 @@ export interface ActivitiesData extends TableRowData {
   fixedTimeSlots?: string;
 }
 
-export const mockActivitiesList: ActivitiesData[] = [
+export const mockActivitiesList: ActivityTableData[] = [
   {
     id: 1,
     active: true,
     title: "Lunch",
     description: "Daily Lunch",
-    startDate: "11 Mar 2024",
-    endDate: "11 Mar 2024",
+    startDate: "2025-03-27",
+    endDate: "2025-03-27",
     isCompulsory: true,
     isFixed: true,
     isGroup: true,
@@ -30,8 +30,8 @@ export const mockActivitiesList: ActivitiesData[] = [
     active: true,
     title: "Breathing+Vital Check",
     description: "breathing and vital check",
-    startDate: "11 Mar 2024",
-    endDate: "11 Mar 2024",
+    startDate: "2025-03-27",
+    endDate: "2025-03-27",
     isCompulsory: true,
     isFixed: true,
     isGroup: true,
@@ -42,10 +42,10 @@ export const mockActivitiesList: ActivitiesData[] = [
     active: true,
     title: "Board Games",
     description: "Board Games",
-    startDate: "11 Mar 2024",
-    endDate: "11 Mar 2024",
+    startDate: "2025-03-27",
+    endDate: "2025-03-27",
     isCompulsory: false,
-    isFixed: true,
+    isFixed: false,
     isGroup: true,
   },
   {
@@ -53,10 +53,10 @@ export const mockActivitiesList: ActivitiesData[] = [
     active: true,
     title: "Movie Screening",
     description: "movie screening",
-    startDate: "11 Mar 2024",
-    endDate: "11 Mar 2024",
+    startDate: "2025-03-27",
+    endDate: "2025-03-27",
     isCompulsory: false,
-    isFixed: true,
+    isFixed: false,
     isGroup: true,
   },
   {
@@ -64,8 +64,8 @@ export const mockActivitiesList: ActivitiesData[] = [
     active: true,
     title: "Brisk Walking",
     description: "brisk walking",
-    startDate: "11 Mar 2024",
-    endDate: "11 Mar 2024",
+    startDate: "2025-03-27",
+    endDate: "2025-03-27",
     isCompulsory: false,
     isFixed: true,
     isGroup: true,
