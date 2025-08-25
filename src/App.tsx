@@ -21,6 +21,7 @@ import ForgotPassword from "./pages/auth/ForgotPassword";
 import ViewMedicationSchedule from "./pages/Supervisor/ViewMedicationSchedule";
 import ManageMedication from "./pages/Supervisor/ManageMedication";
 import ManageActivities from "./pages/Supervisor/ManageActivities";
+import ViewLists from "./pages/Supervisor/ViewLists";
 import ViewPatient from "./pages/ViewPatient";
 import TestGeocode from "./pages/testGeocode";
 
@@ -153,6 +154,7 @@ const App: React.FC = () => {
                         path="view-patient-logs"
                         element={<PatientLogs />}
                       />
+                      <Route path="manage-list-items" element={<ViewLists />} />
                       <Route path="settings/*" element={<UserSettings />}>
                         {settingsRoutes.map(({ path, element }) => (
                           <Route key={path} path={path} element={element} />

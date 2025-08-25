@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const VITE_PATIENT_SERVICE_URL: string = import.meta.env
+export const VITE_PATIENT_SERVICE_URL: string = import.meta.env
   .VITE_PATIENT_SERVICE_URL;
 
 const VITE_GEOCODE_SERVICE_URL: string = import.meta.env
@@ -127,6 +127,14 @@ export const getPatientPrivacyLevelAPI = axios.create({
 
 export const writePatientPrivacyLevelAPI = axios.create({
   baseURL: `${VITE_PATIENT_SERVICE_URL}/privacy_levels`,
+});
+
+export const listsAPI = axios.create({
+  baseURL: `${VITE_PATIENT_SERVICE_URL}/List`,
+});
+
+export const listTypesAPI = axios.create({
+  baseURL: `${VITE_PATIENT_SERVICE_URL}/GetAllListTypes`,
 });
 
 //geocode
