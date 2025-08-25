@@ -1,4 +1,3 @@
-// tests/view-lists.e2e.spec.ts
 import { test, expect } from "@playwright/test";
 import dotenv from "dotenv";
 import path from "path";
