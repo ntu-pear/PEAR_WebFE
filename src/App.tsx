@@ -53,8 +53,8 @@ import ViewAccount from "./pages/Admin/ViewAccount";
 import { ViewAccountProvider } from "./hooks/admin/useViewAccount";
 import ManageSocialHistory from "./pages/Admin/ManageSocialHistory";
 import CustomRoleProtectedRoute from "./components/CustomRoleProtectedRoute";
-import CentreActivity from "./pages/Supervisor/CentreActivity";
 import PatientScheduleView from "./pages/Supervisor/PatientScheduleView";
+import CenterScheduleView from "./pages/Supervisor/CenterScheduleView";
 
 export const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: false, staleTime: Infinity } },
@@ -164,7 +164,7 @@ const App: React.FC = () => {
                       </Route>
                       <Route
                         path="centre-activity"
-                        element={<CentreActivity />}
+                        element={<CenterScheduleView />}
                       />
                       <Route
                         path="patient-schedule"
