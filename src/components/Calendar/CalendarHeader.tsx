@@ -15,6 +15,7 @@ interface CalendarHeaderProps {
   onNavigateDate: (amount: number, unit: ViewMode) => void;
   onViewModeChange: (mode: ViewMode) => void;
   onSearchChange: (term: string) => void;
+  allowedViewModes?: ViewMode[];
 }
 
 const CalendarHeader: React.FC<CalendarHeaderProps> = ({
@@ -25,19 +26,27 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
   onNavigateDate,
   onViewModeChange,
   onSearchChange,
+  allowedViewModes,
 }) => {
   const getHeaderTitle = () => {
     switch (viewMode) {
-      case 'month':
-        return format(currentDate, 'MMMM yyyy');
-      case 'week':
-        return `${format(startOfWeek(currentDate, { locale: enUS }), 'MMM dd')} - ${format(endOfWeek(currentDate, { locale: enUS }), 'MMM dd, yyyy')}`;
-      case 'day':
-        return format(currentDate, 'EEEE, MMMM dd, yyyy');
+      case 'centre-monthly':
+        return `Activity Schedule - ${format(currentDate, 'MMMM yyyy')}`;
+      case 'centre-weekly':
+        return `Activity Schedule - ${format(startOfWeek(currentDate, { locale: enUS }), 'MMM dd')} - ${format(endOfWeek(currentDate, { locale: enUS }), 'MMM dd, yyyy')}`;
+      case 'centre-daily':
+        return `Activity Schedule - ${format(currentDate, 'EEEE, MMMM dd, yyyy')}`;
       case 'patient-daily':
         return `Patient Schedule - ${format(currentDate, 'EEEE, MMMM dd, yyyy')}`;
       case 'patient-weekly':
         return `Patient Schedule - ${format(startOfWeek(currentDate, { locale: enUS }), 'MMM dd')} - ${format(endOfWeek(currentDate, { locale: enUS }), 'MMM dd, yyyy')}`;
+      // Keep backward compatibility for old view modes
+      case 'month':
+        return `Activity Schedule - ${format(currentDate, 'MMMM yyyy')}`;
+      case 'week':
+        return `Activity Schedule - ${format(startOfWeek(currentDate, { locale: enUS }), 'MMM dd')} - ${format(endOfWeek(currentDate, { locale: enUS }), 'MMM dd, yyyy')}`;
+      case 'day':
+        return `Activity Schedule - ${format(currentDate, 'EEEE, MMMM dd, yyyy')}`;
       default:
         return '';
     }
@@ -46,6 +55,22 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
   const getSearchPlaceholder = () => {
     const isPatientView = viewMode === 'patient-daily' || viewMode === 'patient-weekly';
     return isPatientView ? 'Search patients...' : 'Search activities...';
+  };
+
+  const getViewModeOptions = () => {
+    const allOptions = [
+      { value: 'centre-daily', label: 'Daily' },
+      { value: 'centre-weekly', label: 'Weekly' },
+      { value: 'centre-monthly', label: 'Monthly' },
+      { value: 'patient-daily', label: 'Daily' },
+      { value: 'patient-weekly', label: 'Weekly' },
+    ] as const;
+
+    if (allowedViewModes) {
+      return allOptions.filter(option => allowedViewModes.includes(option.value as ViewMode));
+    }
+
+    return allOptions;
   };
 
   return (
@@ -89,11 +114,11 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
             <SelectValue placeholder="View" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="day">Centre Day</SelectItem>
-            <SelectItem value="week">Centre Week</SelectItem>
-            <SelectItem value="month">Centre Month</SelectItem>
-            <SelectItem value="patient-daily">Patient Daily</SelectItem>
-            <SelectItem value="patient-weekly">Patient Weekly</SelectItem>
+            {getViewModeOptions().map(option => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </div>

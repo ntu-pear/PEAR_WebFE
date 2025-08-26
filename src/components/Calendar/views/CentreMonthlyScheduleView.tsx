@@ -16,16 +16,16 @@ import {
 } from "@/api/activity/activity";
 import { ACTIVITY_STYLES } from "../CalendarTypes";
 
-interface MonthViewProps {
+interface CentreMonthlyScheduleViewProps {
   currentDate: Date;
   filteredScheduledActivities: ScheduledCentreActivity[];
   getActivityTemplate: (id: string) => ActivityTemplate | undefined;
   onActivityClick: (activity: ScheduledCentreActivity) => void;
   onDateClick?: (date: Date) => void;
-  onViewModeChange?: (mode: "day") => void;
+  onViewModeChange?: (mode: "centre-daily") => void;
 }
 
-const MonthView: React.FC<MonthViewProps> = ({
+const CentreMonthlyScheduleView: React.FC<CentreMonthlyScheduleViewProps> = ({
   currentDate,
   filteredScheduledActivities,
   getActivityTemplate,
@@ -121,7 +121,7 @@ const MonthView: React.FC<MonthViewProps> = ({
                   className="text-xs text-blue-600 cursor-pointer m-0 hover:underline"
                   onClick={(e) => {
                     e.stopPropagation();
-                    onViewModeChange?.("day");
+                    onViewModeChange?.("centre-daily");
                   }}
                 >
                   +{dayActivities.length - 3} more
@@ -134,4 +134,4 @@ const MonthView: React.FC<MonthViewProps> = ({
   );
 };
 
-export default MonthView;
+export default CentreMonthlyScheduleView;

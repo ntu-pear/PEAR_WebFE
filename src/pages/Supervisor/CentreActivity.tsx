@@ -1,9 +1,9 @@
-import ActivityTable from "@/components/Calendar/ScheduleCalendarView";
+import CenterScheduleView from "./CenterScheduleView";
 
 const CentreActivity = () => {
   return (
     <div>
-      <ActivityTable />
+      <CenterScheduleView />
     </div>
   );
 }

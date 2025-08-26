@@ -95,9 +95,14 @@ const supervisorMenu: MenuSection[] = [
         path: "/supervisor/display-schedule",
       },
       {
-        title: "Display Centre Activity",
+        title: "Centre Activity Schedule",
         icon: "Calendar",
         path: "/supervisor/centre-activity",
+      },
+      {
+        title: "Patient Schedule",
+        icon: "Users",
+        path: "/supervisor/patient-schedule",
       },
     ],
   },
