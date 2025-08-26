@@ -40,13 +40,6 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
         return `Patient Schedule - ${format(currentDate, 'EEEE, MMMM dd, yyyy')}`;
       case 'patient-weekly':
         return `Patient Schedule - ${format(startOfWeek(currentDate, { locale: enUS }), 'MMM dd')} - ${format(endOfWeek(currentDate, { locale: enUS }), 'MMM dd, yyyy')}`;
-      // Keep backward compatibility for old view modes
-      case 'month':
-        return `Activity Schedule - ${format(currentDate, 'MMMM yyyy')}`;
-      case 'week':
-        return `Activity Schedule - ${format(startOfWeek(currentDate, { locale: enUS }), 'MMM dd')} - ${format(endOfWeek(currentDate, { locale: enUS }), 'MMM dd, yyyy')}`;
-      case 'day':
-        return `Activity Schedule - ${format(currentDate, 'EEEE, MMMM dd, yyyy')}`;
       default:
         return '';
     }

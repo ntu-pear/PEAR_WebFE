@@ -69,15 +69,15 @@ const PatientWeeklyScheduleView: React.FC<PatientWeeklyScheduleViewProps> = ({
   };
 
   return (
-    <div className="border border-gray-200 rounded-lg overflow-hidden bg-white">
-      {/* Single scrollable container */}
-      <div className="overflow-x-auto">
-        <div className="min-w-max">
-          {/* Header row */}
+    <div className="border border-gray-200 rounded-lg overflow-hidden bg-white h-full flex flex-col">
+      {/* Combined scrollable container for both header and content */}
+      <div className="flex-1 overflow-auto">
+        <div className="min-w-fit">
+          {/* Header row - sticky */}
           <div className="bg-gray-50 border-b border-gray-200 sticky top-0 z-20">
             <div className="flex">
               {/* Patient header */}
-              <div className="sticky left-0 bg-gray-50 border-r border-gray-200 p-3 text-center text-sm font-medium min-w-[200px] z-30">
+              <div className="sticky left-0 bg-gray-50 border-r border-gray-200 p-3 text-center text-sm font-medium w-[200px] flex-shrink-0 z-30">
                 <div>Patient</div>
                 <div className="text-xs text-gray-500 mt-1">
                   Week of {format(weekStart, "MMM dd, yyyy")}
@@ -85,26 +85,24 @@ const PatientWeeklyScheduleView: React.FC<PatientWeeklyScheduleViewProps> = ({
               </div>
               
               {/* Day headers */}
-              <div className="flex flex-1">
-                {weekDays.map(day => (
-                  <div
-                    key={format(day, 'yyyy-MM-dd')}
-                    className={`p-3 text-center text-sm font-medium border-r border-gray-200 min-w-[140px] flex-1 ${
-                      isToday(day) ? 'text-blue-600 bg-blue-50' : ''
-                    }`}
-                  >
-                    <div>{format(day, "EEE")}</div>
-                    <div className="text-xs text-gray-500 mt-1">{format(day, "MMM dd")}</div>
-                  </div>
-                ))}
-              </div>
+              {weekDays.map(day => (
+                <div
+                  key={format(day, 'yyyy-MM-dd')}
+                  className={`p-3 text-center text-sm font-medium w-[140px] flex-shrink-0 border-r border-gray-200 ${
+                    isToday(day) ? 'text-blue-600 bg-blue-50' : ''
+                  }`}
+                >
+                  <div>{format(day, "EEE")}</div>
+                  <div className="text-xs text-gray-500 mt-1">{format(day, "MMM dd")}</div>
+                </div>
+              ))}
             </div>
           </div>
 
           {/* Patient rows */}
           {patients.length === 0 ? (
             <div className="p-8 text-center text-gray-500">
-              No patients found.
+              Generate a schedule to view patient activities.
             </div>
           ) : (
             patients.map(patient => {
@@ -122,7 +120,7 @@ const PatientWeeklyScheduleView: React.FC<PatientWeeklyScheduleViewProps> = ({
               return (
                 <div key={patient.id} className="flex border-b border-gray-200 last:border-b-0" style={{ minHeight: `${rowHeight}px` }}>
                   {/* Patient name cell */}
-                  <div className="sticky left-0 bg-white border-r border-gray-200 p-3 flex items-center min-w-[200px] z-10 shadow-sm">
+                  <div className="sticky left-0 bg-white border-r border-gray-200 p-3 flex items-center w-[200px] flex-shrink-0 z-10 shadow-sm">
                     <div>
                       <div className="font-medium text-sm">{patient.name}</div>
                       <div className={`text-xs ${patient.isActive ? 'text-green-600' : 'text-gray-500'}`}>
@@ -132,17 +130,15 @@ const PatientWeeklyScheduleView: React.FC<PatientWeeklyScheduleViewProps> = ({
                   </div>
                   
                   {/* Day cells for this patient */}
-                  <div className="flex flex-1">
-                    {weekDays.map((day, index) => (
-                      <div 
-                        key={`${patient.id}-${format(day, 'yyyy-MM-dd')}`} 
-                        className={`min-w-[140px] flex-1 ${index < weekDays.length - 1 ? 'border-r border-gray-200' : ''}`}
-                        style={{ minHeight: `${rowHeight}px` }}
-                      >
-                        {renderActivityCell(patient.id, day)}
-                      </div>
-                    ))}
-                  </div>
+                  {weekDays.map(day => (
+                    <div 
+                      key={`${patient.id}-${format(day, 'yyyy-MM-dd')}`} 
+                      className="w-[140px] flex-shrink-0 border-r border-gray-200"
+                      style={{ minHeight: `${rowHeight}px` }}
+                    >
+                      {renderActivityCell(patient.id, day)}
+                    </div>
+                  ))}
                 </div>
               );
             })

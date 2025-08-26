@@ -5,6 +5,7 @@ import PatientDailyScheduleView from '@/components/Calendar/views/PatientDailySc
 import PatientWeeklyScheduleView from '@/components/Calendar/views/PatientWeeklyScheduleView';
 import ActivityDetailsModal from '@/components/Calendar/modals/ActivityDetailsModal';
 import { usePatientScheduleData } from '@/components/Calendar/hooks/usePatientScheduleData';
+import { useSchedulerService } from '@/hooks/scheduler/useSchedulerService';
 import { ViewMode } from '@/components/Calendar/CalendarTypes';
 
 // Patient Schedule View component
@@ -17,7 +18,6 @@ const PatientScheduleView: React.FC = () => {
   // hooks for patient schedule data
   const {
     activityTemplates,
-    filteredPatients,
     selectedActivities,
     searchTerm,
     showInactivePatients,
@@ -29,10 +29,111 @@ const PatientScheduleView: React.FC = () => {
     handlePatientStatusToggle,
   } = usePatientScheduleData();
 
+  // hooks for scheduler service
+  const {
+    isLoading: isGeneratingSchedule,
+    scheduleData,
+    error: scheduleError,
+    generateSchedule,
+    clearSchedule,
+    getPatientScheduleForDate,
+    getScheduleForTimeSlot,
+  } = useSchedulerService();
+
   // Handle patient activity clicks
   const handlePatientActivityClick = (activity: any) => {
     setSelectedActivityForDetails(activity);
     setIsActivityDetailsModalOpen(true);
+  };
+
+  // Enhanced function to get patient activities including generated schedule
+  const getEnhancedPatientActivitiesForTimeSlot = (patientId: string, date: string, timeSlot: string) => {
+    // Get original patient activities for this time slot
+    const originalActivities = getPatientActivitiesForTimeSlot(patientId, date, timeSlot);
+    
+    // Convert string patient ID to number for matching with scheduler API
+    // Patient IDs are now numeric strings like '1', '2' etc.
+    const numericPatientId = parseInt(patientId);
+    
+    // Get generated schedule activities for this time slot
+    const scheduledActivities = getScheduleForTimeSlot(date, timeSlot)
+      .filter(scheduleItem => scheduleItem.patientId === numericPatientId)
+      .map(scheduleItem => ({
+        id: scheduleItem.id,
+        patientId: patientId, // Keep the original string format for calendar
+        activityTemplateId: `generated-${scheduleItem.id}`, // Use unique ID to identify each generated activity
+        startTime: scheduleItem.startTime,
+        endTime: scheduleItem.endTime,
+        date: scheduleItem.date, // Already in YYYY-MM-DD format from scheduler
+        isOverridden: false,
+        isExcluded: false,
+        notes: '', // Remove the notes field with the activity name
+        generatedActivity: scheduleItem.activityName, // Custom field for generated activities
+        isGenerated: true, // Flag to identify generated activities
+      }));
+    
+    return [...originalActivities, ...scheduledActivities];
+  };
+
+  // Enhanced function to get patient activities for date including generated schedule
+  const getEnhancedPatientActivitiesForDate = (patientId: string, date: string) => {
+    // Get original patient activities
+    const originalActivities = getPatientActivitiesForDate(patientId, date);
+    
+    // Convert string patient ID to number for matching with scheduler API
+    // Patient IDs are now numeric strings like '1', '2' etc.
+    const numericPatientId = parseInt(patientId);
+    
+    // Get generated schedule activities for this date
+    const scheduledActivities = getPatientScheduleForDate(numericPatientId, date)
+      .map(scheduleItem => ({
+        id: scheduleItem.id,
+        patientId: patientId, // Keep the original string format for calendar
+        activityTemplateId: `generated-${scheduleItem.id}`, // Use unique ID to identify each generated activity
+        startTime: scheduleItem.startTime,
+        endTime: scheduleItem.endTime,
+        date: scheduleItem.date, // Already in YYYY-MM-DD format from scheduler
+        isOverridden: false,
+        isExcluded: false,
+        notes: '', // Remove the notes field with the activity name
+        generatedActivity: scheduleItem.activityName, // Custom field for generated activities
+        isGenerated: true, // Flag to identify generated activities
+      }));
+    
+    return [...originalActivities, ...scheduledActivities];
+  };
+
+  // Enhanced activity template function to handle generated activities
+  const getEnhancedActivityTemplate = (id: string) => {
+    // Check if it's a generated activity
+    if (id.startsWith('generated-')) {
+      // Extract the schedule item ID
+      const scheduleItemId = id.replace('generated-', '');
+      
+      // Find the corresponding schedule item to get the actual activity name
+      const scheduleItem = scheduleData.find(item => item.id === scheduleItemId);
+      
+      if (scheduleItem) {
+        // Determine activity type based on name
+        const activityType: 'free_easy' | 'routine' = scheduleItem.activityName.toLowerCase().includes('free and easy') ? 'free_easy' : 'routine';
+        
+        return {
+          id: id,
+          name: scheduleItem.activityName, // Use the actual activity name from the scheduler
+          type: activityType,
+          isRarelyScheduled: false,
+        };
+      }
+      
+      // Fallback if schedule item not found
+      return {
+        id: id,
+        name: 'Generated Activity',
+        type: 'routine' as const,
+        isRarelyScheduled: false,
+      };
+    }
+    return getActivityTemplate(id);
   };
 
   // Navigation functions
@@ -44,17 +145,14 @@ const PatientScheduleView: React.FC = () => {
     const newDate = new Date(currentDate);
     
     switch (unit) {
-      case 'day':
       case 'centre-daily':
       case 'patient-daily':
         newDate.setDate(newDate.getDate() + amount);
         break;
-      case 'week':
       case 'centre-weekly':
       case 'patient-weekly':
         newDate.setDate(newDate.getDate() + (amount * 7));
         break;
-      case 'month':
       case 'centre-monthly':
         newDate.setMonth(newDate.getMonth() + amount);
         break;
@@ -71,14 +169,30 @@ const PatientScheduleView: React.FC = () => {
   };
 
   const renderCalendarView = () => {
+    // Get unique patients from schedule data, not from mock patients
+    const patientsFromSchedule = scheduleData.length > 0 
+      ? Array.from(new Set(scheduleData.map(item => item.patientId)))
+          .map(patientId => ({
+            id: String(patientId),
+            name: String(patientId), // Use ID as name as requested
+            isActive: true
+          }))
+      : [];
+    
+    // Apply search filter to patients
+    const filteredPatientsFromSchedule = patientsFromSchedule.filter(patient =>
+      patient.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      patient.id.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    
     switch (viewMode) {
       case 'patient-daily':
         return (
           <PatientDailyScheduleView
             currentDate={currentDate}
-            patients={filteredPatients}
-            getPatientActivitiesForTimeSlot={getPatientActivitiesForTimeSlot}
-            getActivityTemplate={getActivityTemplate}
+            patients={filteredPatientsFromSchedule}
+            getPatientActivitiesForTimeSlot={getEnhancedPatientActivitiesForTimeSlot}
+            getActivityTemplate={getEnhancedActivityTemplate}
             onActivityClick={handlePatientActivityClick}
           />
         );
@@ -86,9 +200,9 @@ const PatientScheduleView: React.FC = () => {
         return (
           <PatientWeeklyScheduleView
             currentDate={currentDate}
-            patients={filteredPatients}
-            getPatientActivitiesForDate={getPatientActivitiesForDate}
-            getActivityTemplate={getActivityTemplate}
+            patients={filteredPatientsFromSchedule}
+            getPatientActivitiesForDate={getEnhancedPatientActivitiesForDate}
+            getActivityTemplate={getEnhancedActivityTemplate}
             onActivityClick={handlePatientActivityClick}
           />
         );
@@ -96,9 +210,9 @@ const PatientScheduleView: React.FC = () => {
         return (
           <PatientDailyScheduleView
             currentDate={currentDate}
-            patients={filteredPatients}
-            getPatientActivitiesForTimeSlot={getPatientActivitiesForTimeSlot}
-            getActivityTemplate={getActivityTemplate}
+            patients={filteredPatientsFromSchedule}
+            getPatientActivitiesForTimeSlot={getEnhancedPatientActivitiesForTimeSlot}
+            getActivityTemplate={getEnhancedActivityTemplate}
             onActivityClick={handlePatientActivityClick}
           />
         );
@@ -106,7 +220,7 @@ const PatientScheduleView: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-gray-50 font-sans antialiased">
+    <div className="flex flex-col h-screen">
       {/* Header Bar */}
       <CalendarHeader
         currentDate={currentDate}
@@ -119,7 +233,7 @@ const PatientScheduleView: React.FC = () => {
         allowedViewModes={['patient-daily', 'patient-weekly']}
       />
 
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-1 overflow-y-auto">
         {/* Left Sidebar */}
         <PatientScheduleSidebar
           activityTemplates={activityTemplates}
@@ -127,10 +241,16 @@ const PatientScheduleView: React.FC = () => {
           showInactivePatients={showInactivePatients}
           onActivityToggle={handleActivityToggle}
           onPatientStatusToggle={handlePatientStatusToggle}
+          // Scheduler props
+          isGeneratingSchedule={isGeneratingSchedule}
+          scheduleData={scheduleData}
+          scheduleError={scheduleError}
+          onGenerateSchedule={generateSchedule}
+          onClearSchedule={clearSchedule}
         />
 
         {/* Main Calendar Content */}
-        <main className="flex-1 p-4 bg-gray-100 overflow-hidden">
+        <main className="flex-1 p-4 bg-gray-100 relative">
           {renderCalendarView()}
         </main>
       </div>

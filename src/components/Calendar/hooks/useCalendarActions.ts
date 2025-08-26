@@ -28,9 +28,9 @@ export const useCalendarActions = (
   const goToToday = useCallback(() => setCurrentDate(new Date()), [setCurrentDate]);
 
   const navigateDate = useCallback((amount: number, unit: ViewMode) => {
-    if (unit === 'month' || unit === 'centre-monthly') setCurrentDate(addMonths(currentDate, amount));
-    if (unit === 'week' || unit === 'centre-weekly' || unit === 'patient-weekly') setCurrentDate(addWeeks(currentDate, amount));
-    if (unit === 'day' || unit === 'centre-daily' || unit === 'patient-daily') setCurrentDate(addDays(currentDate, amount));
+    if (unit === 'centre-monthly') setCurrentDate(addMonths(currentDate, amount));
+    if (unit === 'centre-weekly' || unit === 'patient-weekly') setCurrentDate(addWeeks(currentDate, amount));
+    if (unit === 'centre-daily' || unit === 'patient-daily') setCurrentDate(addDays(currentDate, amount));
   }, [currentDate, setCurrentDate]);
 
   // Activity interaction handlers

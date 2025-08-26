@@ -25,25 +25,26 @@ export const usePatientScheduleData = () => {
   const getPatient = useCallback((id: string) => patients.find(p => p.id === id), [patients]);
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        // Fetch all required data
-        const [templates, patientsData, activitiesData] = await Promise.all([
-          getActivityTemplates(),
-          getPatients(),
-          getPatientActivities()
-        ]);
+    // all this is mock data, can be removed once scheduler is implemented
+    // const fetchData = async () => {
+    //   try {
+    //     // Fetch all required data
+    //     const [templates, patientsData, activitiesData] = await Promise.all([
+    //       getActivityTemplates(),
+    //       getPatients(),
+    //       getPatientActivities()
+    //     ]);
 
-        setActivityTemplates(templates);
-        setSelectedActivities(templates.map((a: ActivityTemplate) => a.id));
-        setPatients(patientsData);
-        setPatientActivities(activitiesData);
-      } catch (error) {
-        console.error("Failed to fetch patient schedule data:", error);
-      }
-    };
+    //     setActivityTemplates(templates);
+    //     setSelectedActivities(templates.map((a: ActivityTemplate) => a.id));
+    //     setPatients(patientsData);
+    //     setPatientActivities(activitiesData);
+    //   } catch (error) {
+    //     console.error("Failed to fetch patient schedule data:", error);
+    //   }
+    // };
 
-    fetchData();
+    // fetchData();
   }, []);
 
   // Filtered patients based on active status and search term

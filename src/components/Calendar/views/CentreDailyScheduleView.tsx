@@ -33,7 +33,7 @@ const CentreDailyScheduleView: React.FC<CentreDailyScheduleViewProps> = ({
     const endMinute = end.getMinutes();
 
     // Calculate position and height relative to the current time slot
-    const top = (startHour - 7) * 60 + startMinute;
+    const top = (startHour - 9) * 60 + startMinute;
     const durationMinutes =
       (endHour - startHour) * 60 + (endMinute - startMinute);
     const height = Math.max(20, durationMinutes); // Minimum 20px height

@@ -3,6 +3,8 @@ import { ActivityTemplate } from '@/api/activity/activity';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
+import { RefreshCw, Calendar as CalendarIcon } from 'lucide-react';
 import { ACTIVITY_STYLES } from './CalendarTypes';
 
 interface PatientScheduleSidebarProps {
@@ -11,6 +13,12 @@ interface PatientScheduleSidebarProps {
   showInactivePatients: boolean;
   onActivityToggle: (activityId: string, checked: boolean) => void;
   onPatientStatusToggle: (showInactive: boolean) => void;
+  // Scheduler props
+  isGeneratingSchedule: boolean;
+  scheduleData: any[];
+  scheduleError: string | null;
+  onGenerateSchedule: () => void;
+  onClearSchedule: () => void;
 }
 
 const PatientScheduleSidebar: React.FC<PatientScheduleSidebarProps> = ({
@@ -19,10 +27,62 @@ const PatientScheduleSidebar: React.FC<PatientScheduleSidebarProps> = ({
   showInactivePatients,
   onActivityToggle,
   onPatientStatusToggle,
+  isGeneratingSchedule,
+  scheduleData,
+  scheduleError,
+  onGenerateSchedule,
+  onClearSchedule,
 }) => {
   return (
     <div className="w-64 bg-white border-r border-gray-200 p-4 overflow-y-auto">
       <div className="space-y-4">
+        {/* Scheduler Controls */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm">Schedule Generator</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <Button
+              onClick={onGenerateSchedule}
+              disabled={isGeneratingSchedule}
+              className="w-full bg-green-600 hover:bg-green-700 text-white"
+            >
+              {isGeneratingSchedule ? (
+                <>
+                  <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                  Generating...
+                </>
+              ) : (
+                <>
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  Generate Schedule
+                </>
+              )}
+            </Button>
+            {scheduleData.length > 0 && (
+              <Button
+                onClick={onClearSchedule}
+                variant="outline"
+                className="w-full bg-white hover:bg-gray-50"
+              >
+                Clear Schedule
+              </Button>
+            )}
+            
+            {/* Schedule Status */}
+            {scheduleError && (
+              <div className="bg-red-100 border border-red-400 text-red-700 px-3 py-2 rounded text-xs">
+                Error: {scheduleError}
+              </div>
+            )}
+            
+            {scheduleData.length > 0 && (
+              <div className="bg-green-100 border border-green-400 text-green-700 px-3 py-2 rounded text-xs">
+                Generated schedule for {new Set(scheduleData.map(s => s.patientId)).size} patients
+              </div>
+            )}
+          </CardContent>
+        </Card>
         {/* Patient Status Filter */}
         <Card>
           <CardHeader className="pb-3">

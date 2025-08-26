@@ -1,9 +1,10 @@
-import { ActivityExclusion, ActivityTemplate, Patient, ScheduledCentreActivity, ScheduledPatientActivity } from "@/api/activity/activity";
+import { ActivityTemplate, Patient, ScheduledCentreActivity, ScheduledPatientActivity } from "@/api/activity/activity";
 
 export const mockPatients: Patient[] = [
-  { id: 'p1', name: 'John Doe', isActive: true },
-  { id: 'p2', name: 'Jane Smith', isActive: true },
-  { id: 'p3', name: 'Peter Jones', isActive: false },
+  // These are not used anymore since patients come from scheduler API response
+  { id: '1', name: '1', isActive: true },
+  { id: '2', name: '2', isActive: true },
+  { id: '3', name: '3', isActive: true },
 ];
 
 export const mockActivityTemplates: ActivityTemplate[] = [
@@ -39,35 +40,30 @@ export const mockScheduledCentreActivities: ScheduledCentreActivity[] = [
 ];
 
 export const mockScheduledPatientActivities: ScheduledPatientActivity[] = [
-  { id: 's1', activityTemplateId: 'a1', patientId: 'p1', date: '2025-07-28', startTime: '09:00', endTime: '10:00', isOverridden: false, isExcluded: false },
-  { id: 's2', activityTemplateId: 'a3', patientId: 'p1', date: '2025-07-28', startTime: '12:00', endTime: '13:00', isOverridden: false, isExcluded: false },
-  { id: 's3', activityTemplateId: 'a2', patientId: 'p2', date: '2025-07-28', startTime: '10:30', endTime: '11:30', isOverridden: false, isExcluded: false },
-  { id: 's4', activityTemplateId: 'a6', patientId: 'p1', date: '2025-07-29', startTime: '14:00', endTime: '16:00', isOverridden: false, isExcluded: false },
-  { id: 's5', activityTemplateId: 'a4', patientId: 'p2', date: '2025-07-29', startTime: '09:30', endTime: '10:30', isOverridden: false, isExcluded: false },
-  { id: 's6', activityTemplateId: 'a1', patientId: 'p1', date: '2025-07-30', startTime: '09:00', endTime: '10:00', isOverridden: false, isExcluded: false },
-  { id: 's7', activityTemplateId: 'a3', patientId: 'p1', date: '2025-07-30', startTime: '12:00', endTime: '13:00', isOverridden: false, isExcluded: false },
-  { id: 's8', activityTemplateId: 'a2', patientId: 'p2', date: '2025-07-30', startTime: '10:30', endTime: '11:30', isOverridden: false, isExcluded: false },
-  { id: 's9', activityTemplateId: 'a5', patientId: 'p1', date: '2025-08-01', startTime: '11:00', endTime: '12:00', isOverridden: true, notes: 'Supervisor adjusted time', isExcluded: false },
-  { id: 's10', activityTemplateId: 'a1', patientId: 'p2', date: '2025-08-01', startTime: '09:00', endTime: '10:00', isOverridden: false, isExcluded: true, exclusionReason: 'Patient feeling unwell' }, // Example of excluded
+  { id: 's1', activityTemplateId: 'a1', patientId: '1', date: '2025-07-28', startTime: '09:00', endTime: '10:00', isOverridden: false, isExcluded: false },
+  { id: 's2', activityTemplateId: 'a3', patientId: '1', date: '2025-07-28', startTime: '12:00', endTime: '13:00', isOverridden: false, isExcluded: false },
+  { id: 's3', activityTemplateId: 'a2', patientId: '2', date: '2025-07-28', startTime: '10:30', endTime: '11:30', isOverridden: false, isExcluded: false },
+  { id: 's4', activityTemplateId: 'a6', patientId: '1', date: '2025-07-29', startTime: '14:00', endTime: '16:00', isOverridden: false, isExcluded: false },
+  { id: 's5', activityTemplateId: 'a4', patientId: '2', date: '2025-07-29', startTime: '09:30', endTime: '10:30', isOverridden: false, isExcluded: false },
+  { id: 's6', activityTemplateId: 'a1', patientId: '1', date: '2025-07-30', startTime: '09:00', endTime: '10:00', isOverridden: false, isExcluded: false },
+  { id: 's7', activityTemplateId: 'a3', patientId: '1', date: '2025-07-30', startTime: '12:00', endTime: '13:00', isOverridden: false, isExcluded: false },
+  { id: 's8', activityTemplateId: 'a2', patientId: '2', date: '2025-07-30', startTime: '10:30', endTime: '11:30', isOverridden: false, isExcluded: false },
+  { id: 's9', activityTemplateId: 'a5', patientId: '1', date: '2025-08-01', startTime: '11:00', endTime: '12:00', isOverridden: true, notes: 'Supervisor adjusted time', isExcluded: false },
+  { id: 's10', activityTemplateId: 'a1', patientId: '2', date: '2025-08-01', startTime: '09:00', endTime: '10:00', isOverridden: false, isExcluded: true, exclusionReason: 'Patient feeling unwell' }, // Example of excluded
   
   // Add current week activities for testing (August 18-24, 2025)
-  { id: 's11', activityTemplateId: 'a1', patientId: 'p1', date: '2025-08-18', startTime: '09:00', endTime: '10:00', isOverridden: false, isExcluded: false },
-  { id: 's12', activityTemplateId: 'a3', patientId: 'p1', date: '2025-08-18', startTime: '12:00', endTime: '13:00', isOverridden: false, isExcluded: false },
-  { id: 's13', activityTemplateId: 'a2', patientId: 'p2', date: '2025-08-18', startTime: '10:30', endTime: '11:30', isOverridden: false, isExcluded: false },
-  { id: 's14', activityTemplateId: 'a5', patientId: 'p2', date: '2025-08-18', startTime: '14:00', endTime: '15:00', isOverridden: false, isExcluded: false },
-  { id: 's15', activityTemplateId: 'a6', patientId: 'p1', date: '2025-08-19', startTime: '15:00', endTime: '17:00', isOverridden: false, isExcluded: false },
-  { id: 's16', activityTemplateId: 'a4', patientId: 'p2', date: '2025-08-19', startTime: '09:30', endTime: '10:30', isOverridden: false, isExcluded: false },
-  { id: 's17', activityTemplateId: 'a1', patientId: 'p1', date: '2025-08-20', startTime: '09:00', endTime: '10:00', isOverridden: false, isExcluded: false },
-  { id: 's18', activityTemplateId: 'a3', patientId: 'p2', date: '2025-08-20', startTime: '12:00', endTime: '13:00', isOverridden: false, isExcluded: false },
-  { id: 's19', activityTemplateId: 'a2', patientId: 'p1', date: '2025-08-21', startTime: '10:30', endTime: '11:30', isOverridden: false, isExcluded: false },
-  { id: 's20', activityTemplateId: 'a5', patientId: 'p2', date: '2025-08-21', startTime: '14:00', endTime: '15:00', isOverridden: false, isExcluded: false },
+  { id: 's11', activityTemplateId: 'a1', patientId: '1', date: '2025-08-18', startTime: '09:00', endTime: '10:00', isOverridden: false, isExcluded: false },
+  { id: 's12', activityTemplateId: 'a3', patientId: '1', date: '2025-08-18', startTime: '12:00', endTime: '13:00', isOverridden: false, isExcluded: false },
+  { id: 's13', activityTemplateId: 'a2', patientId: '2', date: '2025-08-18', startTime: '10:30', endTime: '11:30', isOverridden: false, isExcluded: false },
+  { id: 's14', activityTemplateId: 'a5', patientId: '2', date: '2025-08-18', startTime: '14:00', endTime: '15:00', isOverridden: false, isExcluded: false },
+  { id: 's15', activityTemplateId: 'a6', patientId: '1', date: '2025-08-19', startTime: '15:00', endTime: '17:00', isOverridden: false, isExcluded: false },
+  { id: 's16', activityTemplateId: 'a4', patientId: '2', date: '2025-08-19', startTime: '09:30', endTime: '10:30', isOverridden: false, isExcluded: false },
+  { id: 's17', activityTemplateId: 'a1', patientId: '1', date: '2025-08-20', startTime: '09:00', endTime: '10:00', isOverridden: false, isExcluded: false },
+  { id: 's18', activityTemplateId: 'a3', patientId: '2', date: '2025-08-20', startTime: '12:00', endTime: '13:00', isOverridden: false, isExcluded: false },
+  { id: 's19', activityTemplateId: 'a2', patientId: '1', date: '2025-08-21', startTime: '10:30', endTime: '11:30', isOverridden: false, isExcluded: false },
+  { id: 's20', activityTemplateId: 'a5', patientId: '2', date: '2025-08-21', startTime: '14:00', endTime: '15:00', isOverridden: false, isExcluded: false },
   
   // Add some activities that span multiple time slots for better testing
-  { id: 's21', activityTemplateId: 'a6', patientId: 'p1', date: '2025-08-18', startTime: '16:30', endTime: '20:30', isOverridden: false, isExcluded: false }, // Spans 16:00 and 17:00 slots
-  { id: 's22', activityTemplateId: 'a4', patientId: 'p2', date: '2025-08-18', startTime: '08:45', endTime: '09:15', isOverridden: false, isExcluded: false }, // Spans 8:00 and 9:00 slots
-];
-
-export const mockExclusions: ActivityExclusion[] = [
-  { id: 'e1', activityTemplateId: 'a1', patientId: 'p2', startDate: '2025-08-01', endDate: '2025-08-03', reason: 'Patient unwell' },
-  { id: 'e2', activityTemplateId: 'a3', patientId: 'p1', startDate: '2025-08-05', endDate: '2025-08-05', reason: 'Doctor appointment' },
+  { id: 's21', activityTemplateId: 'a6', patientId: '1', date: '2025-08-18', startTime: '16:30', endTime: '17:30', isOverridden: false, isExcluded: false }, // Within new time range
+  { id: 's22', activityTemplateId: 'a4', patientId: '2', date: '2025-08-18', startTime: '09:15', endTime: '09:45', isOverridden: false, isExcluded: false }, // Within 9:00 slot
 ];

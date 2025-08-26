@@ -106,15 +106,15 @@ const PatientDailyScheduleView: React.FC<PatientDailyScheduleViewProps> = ({
   };
 
   return (
-    <div className="border border-gray-200 rounded-lg overflow-hidden bg-white">
-      {/* Single scrollable container */}
-      <div className="overflow-x-auto">
-        <div className="min-w-max">
-          {/* Header row */}
+    <div className="border border-gray-200 rounded-lg overflow-hidden bg-white h-full flex flex-col">
+      {/* Combined scrollable container for both header and content */}
+      <div className="flex-1 overflow-auto">
+        <div className="min-w-fit">
+          {/* Header row - sticky */}
           <div className="bg-gray-50 border-b border-gray-200 sticky top-0 z-20">
             <div className="flex">
               {/* Patient header */}
-              <div className="sticky left-0 bg-gray-50 border-r border-gray-200 p-3 text-center text-sm font-medium min-w-[200px] z-30">
+              <div className="sticky left-0 bg-gray-50 border-r border-gray-200 p-3 text-center text-sm font-medium w-[200px] z-30">
                 <div>Patient</div>
                 <div className="text-xs text-gray-500 mt-1">
                   {format(currentDate, "EEEE, MMM dd")}
@@ -125,7 +125,7 @@ const PatientDailyScheduleView: React.FC<PatientDailyScheduleViewProps> = ({
               {TIME_SLOTS.map(timeSlot => (
                 <div
                   key={timeSlot}
-                  className="p-3 text-center text-sm font-medium border-r border-gray-200 min-w-[120px] flex-shrink-0"
+                  className="p-3 text-center text-sm font-medium border-r border-gray-200 w-[120px]"
                 >
                   {timeSlot}
                 </div>
@@ -136,13 +136,13 @@ const PatientDailyScheduleView: React.FC<PatientDailyScheduleViewProps> = ({
           {/* Patient rows */}
           {patients.length === 0 ? (
             <div className="p-8 text-center text-gray-500">
-              No patients found.
+              Generate a schedule to view patient activities.
             </div>
           ) : (
             patients.map(patient => (
               <div key={patient.id} className="flex border-b border-gray-200 last:border-b-0">
                 {/* Patient name cell */}
-                <div className="sticky left-0 bg-white border-r border-gray-200 p-3 flex items-center min-w-[200px] z-10 shadow-sm">
+                <div className="sticky left-0 bg-white border-r border-gray-200 p-3 flex items-center w-[200px] z-10 shadow-sm">
                   <div>
                     <div className="font-medium text-sm">{patient.name}</div>
                     <div className={`text-xs ${patient.isActive ? 'text-green-600' : 'text-gray-500'}`}>
@@ -153,7 +153,10 @@ const PatientDailyScheduleView: React.FC<PatientDailyScheduleViewProps> = ({
                 
                 {/* Time slot cells for this patient */}
                 {TIME_SLOTS.map(timeSlot => (
-                  <div key={`${patient.id}-${timeSlot}`} className="min-w-[120px] flex-shrink-0">
+                  <div 
+                    key={`${patient.id}-${timeSlot}`} 
+                    className="w-[120px] border-r border-gray-200"
+                  >
                     {renderActivityCell(patient.id, timeSlot)}
                   </div>
                 ))}
