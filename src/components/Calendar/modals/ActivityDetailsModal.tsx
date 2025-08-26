@@ -2,7 +2,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { format, parseISO } from 'date-fns';
-import { ScheduledCentreActivity, ActivityTemplate } from '@/api/activity/activity';
+import { ScheduledCentreActivity, ActivityTemplate } from '@/api/scheduler/scheduler';
 import { Calendar, Clock, Pencil, Trash } from 'lucide-react';
 
 interface ActivityDetailsModalProps {

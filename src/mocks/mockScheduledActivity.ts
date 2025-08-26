@@ -1,4 +1,4 @@
-import { ActivityTemplate, Patient, ScheduledCentreActivity, ScheduledPatientActivity } from "@/api/activity/activity";
+import { ActivityTemplate, Patient, ScheduledCentreActivity, ScheduledPatientActivity } from "@/api/scheduler/scheduler";
 
 export const mockPatients: Patient[] = [
   // These are not used anymore since patients come from scheduler API response

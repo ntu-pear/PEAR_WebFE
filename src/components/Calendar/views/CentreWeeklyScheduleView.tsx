@@ -11,7 +11,7 @@ import { enUS } from "date-fns/locale";
 import {
   ScheduledCentreActivity,
   ActivityTemplate,
-} from "@/api/activity/activity";
+} from "@/api/scheduler/scheduler";
 import { TIME_SLOTS, ACTIVITY_STYLES } from "../CalendarTypes";
 
 interface CentreWeeklyScheduleViewProps {

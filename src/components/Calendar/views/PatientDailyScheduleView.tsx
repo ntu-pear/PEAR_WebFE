@@ -4,7 +4,7 @@ import {
   ScheduledPatientActivity,
   ActivityTemplate,
   Patient
-} from "@/api/activity/activity";
+} from "@/api/scheduler/scheduler";
 import { TIME_SLOTS, ACTIVITY_STYLES } from "../CalendarTypes";
 
 interface PatientDailyScheduleViewProps {

@@ -9,7 +9,7 @@ import {
   Patient,
   ActivityExclusion,
   ActivityTemplate,
-} from "@/api/activity/activity";
+} from "@/api/scheduler/scheduler";
 import { toast } from "sonner";
 
 interface ExclusionManagementModalProps {

@@ -4,7 +4,7 @@ import {
   getActivityTemplates,
   getCentreActivities,
   ScheduledCentreActivity
-} from '@/api/activity/activity';
+} from '@/api/scheduler/scheduler';
 
 export const useCalendarData = () => {
   const [activityTemplates, setActivityTemplates] = useState<ActivityTemplate[]>([]);

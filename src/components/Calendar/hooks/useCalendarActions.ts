@@ -6,7 +6,7 @@ import {
   deleteCentreActivity,
   updateCentreActivity, 
   ScheduledCentreActivity
-} from '@/api/activity/activity';
+} from '@/api/scheduler/scheduler';
 import { ViewMode } from '../CalendarTypes';
 
 export const useCalendarActions = (

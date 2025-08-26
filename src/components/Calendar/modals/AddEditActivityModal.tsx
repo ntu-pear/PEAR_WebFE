@@ -15,7 +15,7 @@ import { toast } from "sonner";
 import {
   ScheduledCentreActivity,
   ActivityTemplate,
-} from "@/api/activity/activity";
+} from "@/api/scheduler/scheduler";
 
 interface AddEditActivityModalProps {
   isOpen: boolean;

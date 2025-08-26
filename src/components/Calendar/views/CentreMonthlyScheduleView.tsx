@@ -13,7 +13,7 @@ import { enUS } from "date-fns/locale";
 import {
   ScheduledCentreActivity,
   ActivityTemplate,
-} from "@/api/activity/activity";
+} from "@/api/scheduler/scheduler";
 import { ACTIVITY_STYLES } from "../CalendarTypes";
 
 interface CentreMonthlyScheduleViewProps {

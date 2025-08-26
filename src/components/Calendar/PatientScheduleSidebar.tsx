@@ -1,5 +1,5 @@
 import React from 'react';
-import { ActivityTemplate } from '@/api/activity/activity';
+import { ActivityTemplate } from '@/api/scheduler/scheduler';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';

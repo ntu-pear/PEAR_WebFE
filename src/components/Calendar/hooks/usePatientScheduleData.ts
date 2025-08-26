@@ -6,7 +6,7 @@ import {
   getActivityTemplates,
   getPatients,
   getPatientActivities
-} from '@/api/activity/activity';
+} from '@/api/scheduler/scheduler';
 
 export interface PatientScheduleData {
   patient: Patient;
