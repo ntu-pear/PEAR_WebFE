@@ -13,7 +13,7 @@ import { useCalendarActions } from '@/components/Calendar/hooks/useCalendarActio
 import { ViewMode } from '@/components/Calendar/CalendarTypes';
 
 // Care Center Schedule View component
-const CenterScheduleView: React.FC = () => {
+const CentreScheduleView: React.FC = () => {
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
   const [viewMode, setViewMode] = useState<ViewMode>('centre-monthly');
 
@@ -167,4 +167,4 @@ const CenterScheduleView: React.FC = () => {
   );
 };
 
-export default CenterScheduleView;
+export default CentreScheduleView;
