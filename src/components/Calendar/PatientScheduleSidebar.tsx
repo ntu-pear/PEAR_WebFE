@@ -39,7 +39,7 @@ const PatientScheduleSidebar: React.FC<PatientScheduleSidebarProps> = ({
   const activitiesFromSchedule = activityTemplates;
 
   return (
-    <div className="w-64 bg-white border-r border-gray-200 p-4 overflow-y-auto">
+    <div className="w-100 bg-white border-r border-gray-200 p-4 overflow-y-auto">
       <div className="space-y-4">
         {/* Scheduler Controls */}
         <Card>
@@ -130,8 +130,18 @@ const PatientScheduleSidebar: React.FC<PatientScheduleSidebarProps> = ({
                       activity.type === 'free_easy' 
                         ? ACTIVITY_STYLES.bgcolours.freeEasy 
                         : ACTIVITY_STYLES.bgcolours.routine
-                    }`}
+                    } ${activity.isRarelyScheduled ? ACTIVITY_STYLES.rarelyScheduled : ''}`}
                   />
+                  <span className="truncate">{activity.name}</span>
+                  {activity.isRarelyScheduled && (
+                    <div className="relative">
+                      <span className="text-xs text-red-600 font-bold">!</span>
+                      {/* Tooltip for rarely scheduled activities */}
+                      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-1 px-2 py-1 text-xs text-white bg-black rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-200 whitespace-nowrap z-50">
+                        Rarely Scheduled
+                      </div>
+                    </div>
+                  )}
                   <span className="truncate">{activity.name}</span>
                 </label>
               </div>
@@ -155,6 +165,10 @@ const PatientScheduleSidebar: React.FC<PatientScheduleSidebarProps> = ({
             <div className="flex items-center gap-2 text-xs">
               <div className={`w-3 h-3 rounded ${ACTIVITY_STYLES.bgcolours.modified}`}></div>
               <span>Modified</span>
+            </div>
+            <div className="flex items-center gap-2 text-xs">
+              <div className="w-3 h-3 rounded bg-gray-400 ring-2 ring-red-500"></div>
+              <span>Rarely Scheduled</span>
             </div>
           </CardContent>
         </Card>
