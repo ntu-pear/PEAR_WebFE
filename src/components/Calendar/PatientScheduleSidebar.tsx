@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { RefreshCw, Calendar as CalendarIcon } from 'lucide-react';
 import { ACTIVITY_STYLES } from './CalendarTypes';
+import { CalendarScheduleItem } from '@/hooks/scheduler/useSchedulerService';
 
 interface PatientScheduleSidebarProps {
   activityTemplates: ActivityTemplate[];
@@ -15,7 +16,7 @@ interface PatientScheduleSidebarProps {
   onPatientStatusToggle: (showInactive: boolean) => void;
   // Scheduler props
   isGeneratingSchedule: boolean;
-  scheduleData: any[];
+  scheduleData: CalendarScheduleItem[];
   scheduleError: string | null;
   onGenerateSchedule: () => void;
   onClearSchedule: () => void;
@@ -33,6 +34,10 @@ const PatientScheduleSidebar: React.FC<PatientScheduleSidebarProps> = ({
   onGenerateSchedule,
   onClearSchedule,
 }) => {
+  // Use activityTemplates from props instead of deriving from scheduleData
+  // This allows parent component to manage the activity list and filtering
+  const activitiesFromSchedule = activityTemplates;
+
   return (
     <div className="w-64 bg-white border-r border-gray-200 p-4 overflow-y-auto">
       <div className="space-y-4">
@@ -68,14 +73,12 @@ const PatientScheduleSidebar: React.FC<PatientScheduleSidebarProps> = ({
                 Clear Schedule
               </Button>
             )}
-            
             {/* Schedule Status */}
             {scheduleError && (
               <div className="bg-red-100 border border-red-400 text-red-700 px-3 py-2 rounded text-xs">
                 Error: {scheduleError}
               </div>
             )}
-            
             {scheduleData.length > 0 && (
               <div className="bg-green-100 border border-green-400 text-green-700 px-3 py-2 rounded text-xs">
                 Generated schedule for {new Set(scheduleData.map(s => s.patientId)).size} patients
@@ -101,14 +104,13 @@ const PatientScheduleSidebar: React.FC<PatientScheduleSidebarProps> = ({
             </div>
           </CardContent>
         </Card>
-
-        {/* Activity Filters */}
+        {/* Activity Filters (from scheduleData) */}
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-sm">Activities</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
-            {activityTemplates.map((activity) => (
+            {activitiesFromSchedule.map((activity) => (
               <div key={activity.id} className="flex items-center space-x-2">
                 <input
                   type="checkbox"
@@ -128,24 +130,14 @@ const PatientScheduleSidebar: React.FC<PatientScheduleSidebarProps> = ({
                       activity.type === 'free_easy' 
                         ? ACTIVITY_STYLES.bgcolours.freeEasy 
                         : ACTIVITY_STYLES.bgcolours.routine
-                    } ${activity.isRarelyScheduled ? ACTIVITY_STYLES.rarelyScheduled : ''}`}
+                    }`}
                   />
                   <span className="truncate">{activity.name}</span>
-                  {activity.isRarelyScheduled && (
-                    <div className="relative">
-                      <span className="text-xs text-red-600 font-bold">!</span>
-                      {/* Tooltip for rarely scheduled activities */}
-                      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-1 px-2 py-1 text-xs text-white bg-black rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-200 whitespace-nowrap z-50">
-                        Rarely Scheduled
-                      </div>
-                    </div>
-                  )}
                 </label>
               </div>
             ))}
           </CardContent>
         </Card>
-
         {/* Legend */}
         <Card>
           <CardHeader className="pb-3">
@@ -163,10 +155,6 @@ const PatientScheduleSidebar: React.FC<PatientScheduleSidebarProps> = ({
             <div className="flex items-center gap-2 text-xs">
               <div className={`w-3 h-3 rounded ${ACTIVITY_STYLES.bgcolours.modified}`}></div>
               <span>Modified</span>
-            </div>
-            <div className="flex items-center gap-2 text-xs">
-              <div className="w-3 h-3 rounded bg-gray-400 ring-2 ring-red-500"></div>
-              <span>Rarely Scheduled</span>
             </div>
           </CardContent>
         </Card>

@@ -242,7 +242,7 @@ const getDateForDayOfWeek = (dayName: string, startDateStr: string): string => {
   targetDate.setDate(startDate.getDate() + offset);
   
   const result = targetDate.toISOString().split('T')[0];
-  console.log(`Date calculation: ${dayName} from StartDate ${startDateStr} (day ${startDayOfWeek}) -> ${result} (offset: ${offset})`);
+  // console.log(`Date calculation: ${dayName} from StartDate ${startDateStr} (day ${startDayOfWeek}) -> ${result} (offset: ${offset})`);
   
   // Return in YYYY-MM-DD format for calendar compatibility
   return result;

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import CalendarHeader from '@/components/Calendar/CalendarHeader';
 import PatientScheduleSidebar from '@/components/Calendar/PatientScheduleSidebar';
 import PatientDailyScheduleView from '@/components/Calendar/views/PatientDailyScheduleView';
@@ -14,18 +14,18 @@ const PatientScheduleView: React.FC = () => {
   const [viewMode, setViewMode] = useState<ViewMode>('patient-daily');
   const [isActivityDetailsModalOpen, setIsActivityDetailsModalOpen] = useState(false);
   const [selectedActivityForDetails, setSelectedActivityForDetails] = useState<any>(null);
+  
+  // State for managing selected activities from schedule data
+  const [selectedScheduleActivities, setSelectedScheduleActivities] = useState<string[]>([]);
 
-  // hooks for patient schedule data
+  // hooks for patient schedule data (only need some parts)
   const {
-    activityTemplates,
-    selectedActivities,
     searchTerm,
     showInactivePatients,
     setSearchTerm,
     getActivityTemplate,
     getPatientActivitiesForDate,
     getPatientActivitiesForTimeSlot,
-    handleActivityToggle,
     handlePatientStatusToggle,
   } = usePatientScheduleData();
 
@@ -39,6 +39,38 @@ const PatientScheduleView: React.FC = () => {
     getPatientScheduleForDate,
     getScheduleForTimeSlot,
   } = useSchedulerService();
+
+  // Derive unique activities from scheduleData and auto-select them
+  const activitiesFromSchedule = useMemo(() => {
+    if (!Array.isArray(scheduleData)) return [];
+    const activityMap = new Map();
+    scheduleData.forEach((item) => {
+      if (!activityMap.has(item.activityName)) {
+        activityMap.set(item.activityName, {
+          id: item.activityName,
+          name: item.activityName,
+          type: item.activityName === 'Free and Easy' ? 'free_easy' : 'routine',
+        });
+      }
+    });
+    return Array.from(activityMap.values());
+  }, [scheduleData]);
+
+  // Auto-select all activities when schedule data changes
+  useEffect(() => {
+    if (activitiesFromSchedule.length > 0) {
+      setSelectedScheduleActivities(activitiesFromSchedule.map(activity => activity.id));
+    } else {
+      setSelectedScheduleActivities([]);
+    }
+  }, [activitiesFromSchedule]);
+
+  // Handler for activity toggle
+  const handleScheduleActivityToggle = useCallback((activityId: string, checked: boolean) => {
+    setSelectedScheduleActivities(prev =>
+      checked ? [...prev, activityId] : prev.filter(id => id !== activityId)
+    );
+  }, []);
 
   // Handle patient activity clicks
   const handlePatientActivityClick = (activity: any) => {
@@ -57,7 +89,10 @@ const PatientScheduleView: React.FC = () => {
     
     // Get generated schedule activities for this time slot
     const scheduledActivities = getScheduleForTimeSlot(date, timeSlot)
-      .filter(scheduleItem => scheduleItem.patientId === numericPatientId)
+      .filter(scheduleItem => 
+        scheduleItem.patientId === numericPatientId &&
+        selectedScheduleActivities.includes(scheduleItem.activityName) // Filter by selected activities
+      )
       .map(scheduleItem => ({
         id: scheduleItem.id,
         patientId: patientId, // Keep the original string format for calendar
@@ -86,6 +121,9 @@ const PatientScheduleView: React.FC = () => {
     
     // Get generated schedule activities for this date
     const scheduledActivities = getPatientScheduleForDate(numericPatientId, date)
+      .filter(scheduleItem => 
+        selectedScheduleActivities.includes(scheduleItem.activityName) // Filter by selected activities
+      )
       .map(scheduleItem => ({
         id: scheduleItem.id,
         patientId: patientId, // Keep the original string format for calendar
@@ -236,10 +274,10 @@ const PatientScheduleView: React.FC = () => {
       <div className="flex flex-1 overflow-y-auto">
         {/* Left Sidebar */}
         <PatientScheduleSidebar
-          activityTemplates={activityTemplates}
-          selectedActivities={selectedActivities}
+          activityTemplates={activitiesFromSchedule} // Use derived activities from schedule
+          selectedActivities={selectedScheduleActivities} // Use schedule-based selected activities
           showInactivePatients={showInactivePatients}
-          onActivityToggle={handleActivityToggle}
+          onActivityToggle={handleScheduleActivityToggle} // Use new handler
           onPatientStatusToggle={handlePatientStatusToggle}
           // Scheduler props
           isGeneratingSchedule={isGeneratingSchedule}
