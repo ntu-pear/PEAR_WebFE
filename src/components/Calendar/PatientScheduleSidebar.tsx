@@ -142,7 +142,6 @@ const PatientScheduleSidebar: React.FC<PatientScheduleSidebarProps> = ({
                       </div>
                     </div>
                   )}
-                  <span className="truncate">{activity.name}</span>
                 </label>
               </div>
             ))}
