@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Card,
   CardContent,
@@ -6,65 +6,99 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { PlusCircle } from "lucide-react";
+import { ListFilter, PlusCircle } from "lucide-react";
 import { DataTableClient } from "@/components/Table/DataTable";
-import { mockActivitiesList /*ActivitiesData*/ } from "@/mocks/mockActivities";
+import { ActivityTableData, mockActivitiesList } from "@/mocks/mockActivities";
 import { Button } from "@/components/ui/button";
 import Searchbar from "@/components/Searchbar";
+import { useModal } from "@/hooks/useModal";
+import AddActivityModal from "@/components/Modal/Add/AddActivityModal";
+import useDebounce from "@/hooks/useDebounce";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import EditActivityModal from "@/components/Modal/Edit/EditActivityModal";
+import DeleteActivityModal from "@/components/Modal/Delete/DeleteActivityModal";
 
 const ManageActivities: React.FC = () => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const { openModal, activeModal } = useModal();
 
-  // Modal ref to detect outside clicks
-  const modalRef = useRef<HTMLDivElement | null>(null);
+  const [activities, setActivities] =
+    useState<ActivityTableData[]>(mockActivitiesList);
+  const booleanOptions = [
+    { key: "All", value: "all" },
+    { key: "Yes", value: "true" },
+    { key: "No", value: "false" },
+  ];
 
-  // Function to open the modal
-  const openModal = () => setIsModalOpen(true);
+  const [search, setSearch] = useState<string>("");
+  const [compulsory, setCompulsory] = useState<string>("all");
+  const [fixed, setFixed] = useState<string>("all");
+  const [group, setGroup] = useState<string>("all");
+  const debouncedSearch = useDebounce(search, 300);
+  const debouncedCompulsory = useDebounce(compulsory, 300);
+  const debouncedFixed = useDebounce(fixed, 300);
+  const debouncedGroup = useDebounce(group, 300);
+  const fetchActivities = () => {
+    let filteredActivities = mockActivitiesList.filter(
+      ({ title, isCompulsory, isFixed, isGroup }) =>
+        title.toLowerCase().includes(debouncedSearch.toLowerCase()) &&
+        (debouncedCompulsory === "all"
+          ? true
+          : isCompulsory.toString() === debouncedCompulsory) &&
+        (debouncedFixed === "all"
+          ? true
+          : isFixed.toString() === debouncedFixed) &&
+        (debouncedGroup === "all"
+          ? true
+          : isGroup.toString() === debouncedGroup)
+    );
 
-  // Function to close the modal
-  const closeModal = () => setIsModalOpen(false);
-
-  // Close the modal if clicking outside the modal content
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        modalRef.current &&
-        !modalRef.current.contains(event.target as Node)
-      ) {
-        closeModal();
-      }
-    };
-
-    if (isModalOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
-    } else {
-      document.removeEventListener("mousedown", handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [isModalOpen]);
-
-  const handleFormSubmit = (event: React.FormEvent) => {
-    event.preventDefault();
-    console.log("Form submitted!");
-    closeModal();
+    setActivities(filteredActivities);
   };
+  useEffect(() => {
+    fetchActivities();
+  }, [debouncedSearch, debouncedCompulsory, debouncedFixed, debouncedGroup]);
 
-  const handleInputChange = () => {};
+  const renderFilter = (
+    title: string,
+    value: string,
+    setValue: (value: string) => void
+  ) => (
+    <DropdownMenu modal={false}>
+      <DropdownMenuTrigger asChild>
+        <Button variant="outline" size="sm" className="h-8 gap-1">
+          <ListFilter className="h-4 w-4" />
+          <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+            {title}
+          </span>
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuRadioGroup value={value} onValueChange={setValue}>
+          {booleanOptions.map(({ key, value }) => (
+            <DropdownMenuRadioItem value={value}>{key}</DropdownMenuRadioItem>
+          ))}
+        </DropdownMenuRadioGroup>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
 
   const columns = [
-    { key: "title", header: "Patient Id" },
-    { key: "description", header: "Activity Description" },
+    { key: "title", header: "Title" },
+    { key: "description", header: "Description" },
     {
       key: "isCompulsory",
       header: "Compulsory",
       render: (value: any) =>
         value ? (
-          <span style={{ color: "green" }}>True</span>
+          <span style={{ color: "green" }}>Yes</span>
         ) : (
-          <span style={{ color: "red" }}>False</span>
+          <span style={{ color: "red" }}>No</span>
         ),
     },
     {
@@ -72,9 +106,9 @@ const ManageActivities: React.FC = () => {
       header: "Fixed",
       render: (value: any) =>
         value ? (
-          <span style={{ color: "green" }}>True</span>
+          <span style={{ color: "green" }}>Yes</span>
         ) : (
-          <span style={{ color: "red" }}>False</span>
+          <span style={{ color: "red" }}>No</span>
         ),
     },
     {
@@ -82,9 +116,9 @@ const ManageActivities: React.FC = () => {
       header: "Group",
       render: (value: any) =>
         value ? (
-          <span style={{ color: "green" }}>True</span>
+          <span style={{ color: "green" }}>Yes</span>
         ) : (
-          <span style={{ color: "red" }}>False</span>
+          <span style={{ color: "red" }}>No</span>
         ),
     },
     {
@@ -92,32 +126,54 @@ const ManageActivities: React.FC = () => {
       header: "Fixed Time Slots",
       render: (value: any) => (value ? value : <span>NIL</span>),
     },
-    { key: "startDate", header: "Start Date" },
-    { key: "endDate", header: "End Date" },
+    {
+      key: "startDate",
+      header: "Start Date",
+      className: "hidden md:table-cell",
+    },
+    { key: "endDate", header: "End Date", className: "hidden md:table-cell" },
   ];
 
   return (
     <div className="flex min-h-screen w-full flex-col container mx-auto px-0 sm:px-4">
       <div className="flex flex-col sm:gap-4 sm:py-4 sm:pl-14">
-        <Searchbar onSearchChange={handleInputChange} />
+        <div className="flex justify-between items-center">
+          <Searchbar
+            searchItem={search}
+            onSearchChange={(e) => setSearch(e.target.value)}
+          />
+          <div className="flex space-x-2">
+            {renderFilter("Compulsory", compulsory, setCompulsory)}
+            {renderFilter("Fixed", fixed, setFixed)}
+            {renderFilter("Group", group, setGroup)}
+          </div>
+        </div>
 
         <main className="flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0">
-          <div className="flex justify-end mb-4">
-            <Button size="sm" className="h-8 gap-1" onClick={openModal}>
-              <PlusCircle className="h-4 w-4" />
-              <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                Add Centre Activity
-              </span>
-            </Button>
-          </div>
           <Card>
             <CardHeader>
-              <CardTitle>Manage Activities</CardTitle>
-              <CardDescription>Manage activities for patients</CardDescription>
+              <div className="flex justify-between items-end">
+                <div className="space-y-1.5">
+                  <CardTitle>Manage Activities</CardTitle>
+                  <CardDescription>
+                    Manage activities for patients
+                  </CardDescription>
+                </div>
+                <Button
+                  size="sm"
+                  className="h-8 gap-1"
+                  onClick={() => openModal("addActivity")}
+                >
+                  <PlusCircle className="h-4 w-4" />
+                  <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+                    Add Centre Activity
+                  </span>
+                </Button>
+              </div>
             </CardHeader>
             <CardContent className='className="overflow-x-auto"'>
               <DataTableClient
-                data={mockActivitiesList}
+                data={activities}
                 columns={columns}
                 viewMore={false}
                 renderActions={(item) => (
@@ -125,14 +181,18 @@ const ManageActivities: React.FC = () => {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => console.log("Edit", item)}
+                      onClick={() =>
+                        openModal("editActivity", { activityId: item.id })
+                      }
                     >
                       Edit
                     </Button>
                     <Button
                       variant="destructive"
                       size="sm"
-                      onClick={() => console.log("Delete", item)}
+                      onClick={() =>
+                        openModal("deleteActivity", { activityId: item.id })
+                      }
                     >
                       Delete
                     </Button>
@@ -143,119 +203,9 @@ const ManageActivities: React.FC = () => {
           </Card>
         </main>
       </div>
-
-      {/* Add Activity Modal */}
-      {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <div
-            ref={modalRef}
-            className="bg-background p-8 rounded-md w-[400px]"
-          >
-            <h3 className="text-lg font-medium mb-5">Add Centre Activity</h3>
-            <form onSubmit={handleFormSubmit} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium">
-                  Activity Name <span className="text-red-600">*</span>
-                </label>
-                <input
-                  type="text"
-                  className="mt-1 block w-full p-2 border rounded-md text-gray-900"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium">
-                  Activity Description <span className="text-red-600">*</span>
-                </label>
-                <textarea
-                  className="mt-1 block w-full p-2 border rounded-md min-h-[100px] text-gray-900"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium">
-                  Fixed Time Slots <span className="text-red-600">*</span>
-                </label>
-                <textarea
-                  className="mt-1 block w-full p-2 border rounded-md min-h-[100px] text-gray-900"
-                  required
-                />
-              </div>
-
-              <div className="flex space-x-4">
-                <div>
-                  <label className="block text-sm font-medium">
-                    Start Date <span className="text-red-600">*</span>
-                  </label>
-                  <input
-                    type="date"
-                    className="mt-1 block w-full p-2 border rounded-md text-gray-900"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium">
-                    End Date <span className="text-red-600">*</span>
-                  </label>
-                  <input
-                    type="date"
-                    className="mt-1 block w-full p-2 border rounded-md text-gray-900"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium">
-                  Is Compulsory? <span className="text-red-600">*</span>
-                </label>
-                <select
-                  className="mt-1 block w-full p-2 border rounded-md text-gray-900"
-                  required
-                >
-                  <option value="yes">Yes</option>
-                  <option value="no">No</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium">
-                  Is Fixed? <span className="text-red-600">*</span>
-                </label>
-                <select
-                  className="mt-1 block w-full p-2 border rounded-md text-gray-900"
-                  required
-                >
-                  <option value="yes">Yes</option>
-                  <option value="no">No</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium">
-                  Is Group? <span className="text-red-600">*</span>
-                </label>
-                <select
-                  className="mt-1 block w-full p-2 border rounded-md text-gray-900"
-                  required
-                >
-                  <option value="yes">Yes</option>
-                  <option value="no">No</option>
-                </select>
-              </div>
-
-              <div className="mt-6 flex justify-end space-x-2">
-                <Button variant="outline" onClick={closeModal}>
-                  Cancel
-                </Button>
-                <Button type="submit">Submit</Button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      {activeModal.name == "addActivity" && <AddActivityModal />}
+      {activeModal.name == "editActivity" && <EditActivityModal />}
+      {activeModal.name == "deleteActivity" && <DeleteActivityModal />}
     </div>
   );
 };

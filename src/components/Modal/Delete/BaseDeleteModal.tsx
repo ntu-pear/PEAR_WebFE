@@ -2,7 +2,7 @@ import { Button } from "../../ui/button";
 
 interface BaseDeleteModalProps {
   modalRef: React.RefObject<HTMLDivElement>;
-  onSubmit: (event: React.FormEvent) => Promise<void>;
+  onSubmit: (event: React.FormEvent) => Promise<void> | void;
   closeModal: () => void;
 }
 
