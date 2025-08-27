@@ -7,6 +7,7 @@ import ActivityDetailsModal from '@/components/Calendar/modals/ActivityDetailsMo
 import { usePatientScheduleData } from '@/components/Calendar/hooks/usePatientScheduleData';
 import { useSchedulerService } from '@/hooks/scheduler/useSchedulerService';
 import { ViewMode } from '@/components/Calendar/CalendarTypes';
+import { fetchPatientById, type PatientBase } from '@/api/patients/patients';
 
 // Patient Schedule View component
 const PatientScheduleView: React.FC = () => {
@@ -17,6 +18,10 @@ const PatientScheduleView: React.FC = () => {
   
   // State for managing selected activities from schedule data
   const [selectedScheduleActivities, setSelectedScheduleActivities] = useState<string[]>([]);
+  
+  // State for storing patient details
+  const [patientDetails, setPatientDetails] = useState<Map<number, PatientBase>>(new Map());
+  const [loadingPatients, setLoadingPatients] = useState<Set<number>>(new Set());
 
   // hooks for patient schedule data (only need some parts)
   const {
@@ -57,6 +62,35 @@ const PatientScheduleView: React.FC = () => {
     return Array.from(activityMap.values());
   }, [scheduleData]);
 
+  const fetchPatientDetails = useCallback(async (patientId: number) => {
+    if (patientDetails.has(patientId) || loadingPatients.has(patientId)) {
+      return;
+    }
+
+    setLoadingPatients(prev => new Set(prev).add(patientId));
+    
+    try {
+      const patient = await fetchPatientById(patientId, true);
+      setPatientDetails(prev => new Map(prev).set(patientId, patient));
+    } catch (error) {
+      console.error(`Failed to fetch patient ${patientId}:`, error);
+    } finally {
+      setLoadingPatients(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(patientId);
+        return newSet;
+      });
+    }
+  }, [patientDetails, loadingPatients]);
+
+  const getPatientDisplayName = useCallback((patientId: number) => {
+    const patient = patientDetails.get(patientId);
+    if (patient) {
+      return `${patient.name} (ID: ${patientId})`;
+    }
+    return `Patient ID: ${patientId}`; // Fallback while loading
+  }, [patientDetails]);
+
   // Auto-select all activities when schedule data changes
   useEffect(() => {
     if (activitiesFromSchedule.length > 0) {
@@ -65,6 +99,16 @@ const PatientScheduleView: React.FC = () => {
       setSelectedScheduleActivities([]);
     }
   }, [activitiesFromSchedule]);
+
+  // Fetch patient details when schedule data changes
+  useEffect(() => {
+    if (scheduleData.length > 0) {
+      const uniquePatientIds = Array.from(new Set(scheduleData.map(item => item.patientId)));
+      uniquePatientIds.forEach(patientId => {
+        fetchPatientDetails(patientId);
+      });
+    }
+  }, [scheduleData, fetchPatientDetails]);
 
   // Handler for activity toggle
   const handleScheduleActivityToggle = useCallback((activityId: string, checked: boolean) => {
@@ -208,14 +252,17 @@ const PatientScheduleView: React.FC = () => {
   };
 
   const renderCalendarView = () => {
-    // Get unique patients from schedule data, not from mock patients
     const patientsFromSchedule = scheduleData.length > 0 
       ? Array.from(new Set(scheduleData.map(item => item.patientId)))
-          .map(patientId => ({
-            id: String(patientId),
-            name: String(patientId), // Use ID as name as requested
-            isActive: true
-          }))
+          .map(patientId => {
+            fetchPatientDetails(patientId);
+            
+            return {
+              id: String(patientId),
+              name: getPatientDisplayName(patientId),
+              isActive: true
+            };
+          })
       : [];
     
     // Apply search filter to patients
@@ -302,6 +349,7 @@ const PatientScheduleView: React.FC = () => {
           onClose={() => setIsActivityDetailsModalOpen(false)}
           activity={selectedActivityForDetails}
           getActivityTemplate={getEnhancedActivityTemplate}
+          getPatientDisplayName={getPatientDisplayName}
         />
       )}
     </div>

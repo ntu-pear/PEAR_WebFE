@@ -11,6 +11,7 @@ interface ActivityDetailsModalProps {
   onClose: () => void;
   activity: ScheduledCentreActivity | ScheduledPatientActivity;
   getActivityTemplate: (id: string) => ActivityTemplate | undefined;
+  getPatientDisplayName?: (patientId: number) => string;
 }
 
 const ActivityDetailsModal: React.FC<ActivityDetailsModalProps> = ({
@@ -18,6 +19,7 @@ const ActivityDetailsModal: React.FC<ActivityDetailsModalProps> = ({
   onClose,
   activity,
   getActivityTemplate,
+  getPatientDisplayName,
 }) => {
   const navigate = useNavigate();
   
@@ -49,11 +51,13 @@ const ActivityDetailsModal: React.FC<ActivityDetailsModalProps> = ({
             </div>
             
             {/* Patient Name - only show for patient activities */}
-            {isPatientActivity && (
+            {isPatientActivity && patientId && (
               <div className="flex items-center space-x-2">
                 <span className="text-gray-600"><User /></span>
                 <Label className="text-base">Patient:</Label>
-                <span className="text-base font-medium">{patientId}</span>
+                <span className="text-base font-medium">
+                  {getPatientDisplayName ? getPatientDisplayName(parseInt(patientId)) : `Patient ID: ${patientId}`}
+                </span>
               </div>
             )}
             
