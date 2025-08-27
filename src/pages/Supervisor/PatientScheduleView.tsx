@@ -11,7 +11,7 @@ import { ViewMode } from '@/components/Calendar/CalendarTypes';
 // Patient Schedule View component
 const PatientScheduleView: React.FC = () => {
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
-  const [viewMode, setViewMode] = useState<ViewMode>('patient-daily');
+  const [viewMode, setViewMode] = useState<ViewMode>('patient-weekly');
   const [isActivityDetailsModalOpen, setIsActivityDetailsModalOpen] = useState(false);
   const [selectedActivityForDetails, setSelectedActivityForDetails] = useState<any>(null);
   
