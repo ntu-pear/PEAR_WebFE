@@ -5,7 +5,7 @@ export type ViewMode = 'centre-daily' | 'centre-weekly' | 'centre-monthly' | 'pa
 export const TIME_SLOTS = Array.from({ length: 10 }, (_, i) => `${(8 + i).toString().padStart(2, '0')}:00`);
 
 // API time slots - includes start hours and final end hour 
-// length must be one more than the number of slots
+// ie length must be one more than the number of slots
 // [9, 10, 11, 12] means slots: 9-10, 10-11, 11-12
 export const API_TIME_SLOTS = Array.from({ length: 9 }, (_, i) => 9 + i);
 

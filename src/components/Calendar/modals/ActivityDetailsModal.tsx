@@ -27,7 +27,7 @@ const ActivityDetailsModal: React.FC<ActivityDetailsModalProps> = ({
 
   const activityTemplate = getActivityTemplate(activity.activityTemplateId);
   
-  // Check if this is a patient activity (has patientId)
+  // Check if this is a patient activity (has patientId) since modal is shared with centre activity view for now
   const isPatientActivity = 'patientId' in activity;
   const patientId = isPatientActivity ? (activity as ScheduledPatientActivity).patientId : null;
 

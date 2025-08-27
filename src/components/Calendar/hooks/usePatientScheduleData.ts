@@ -1,11 +1,8 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
-import { 
-  ActivityTemplate, 
+import { useState, useMemo, useCallback } from 'react';
+import {
+  ActivityTemplate,
   Patient,
-  ScheduledPatientActivity,
-  getActivityTemplates,
-  getPatients,
-  getPatientActivities
+  ScheduledPatientActivity
 } from '@/api/scheduler/scheduler';
 
 export interface PatientScheduleData {
@@ -24,29 +21,6 @@ export const usePatientScheduleData = () => {
   const getActivityTemplate = useCallback((id: string) => activityTemplates.find(a => a.id === id), [activityTemplates]);
   const getPatient = useCallback((id: string) => patients.find(p => p.id === id), [patients]);
 
-  useEffect(() => {
-    // all this is mock data, can be removed once scheduler is implemented
-    // const fetchData = async () => {
-    //   try {
-    //     // Fetch all required data
-    //     const [templates, patientsData, activitiesData] = await Promise.all([
-    //       getActivityTemplates(),
-    //       getPatients(),
-    //       getPatientActivities()
-    //     ]);
-
-    //     setActivityTemplates(templates);
-    //     setSelectedActivities(templates.map((a: ActivityTemplate) => a.id));
-    //     setPatients(patientsData);
-    //     setPatientActivities(activitiesData);
-    //   } catch (error) {
-    //     console.error("Failed to fetch patient schedule data:", error);
-    //   }
-    // };
-
-    // fetchData();
-  }, []);
-
   // Filtered patients based on active status and search term
   const filteredPatients = useMemo(() => {
     return patients.filter(patient => {
@@ -62,7 +36,7 @@ export const usePatientScheduleData = () => {
   const filteredPatientActivities = useMemo(() => {
     return patientActivities.filter(activity => {
       const matchesActivityType = selectedActivities.includes(activity.activityTemplateId);
-      
+
       return matchesActivityType && !activity.isExcluded;
     });
   }, [patientActivities, selectedActivities]);
@@ -77,7 +51,7 @@ export const usePatientScheduleData = () => {
 
   // Get activities for a specific patient and date
   const getPatientActivitiesForDate = useCallback((patientId: string, date: string) => {
-    return filteredPatientActivities.filter(activity => 
+    return filteredPatientActivities.filter(activity =>
       activity.patientId === patientId && activity.date === date
     );
   }, [filteredPatientActivities]);
@@ -86,19 +60,19 @@ export const usePatientScheduleData = () => {
   const getPatientActivitiesForTimeSlot = useCallback((patientId: string, date: string, timeSlot: string) => {
     return filteredPatientActivities.filter(activity => {
       if (activity.patientId !== patientId || activity.date !== date) return false;
-      
+
       // Parse time slot (e.g., "10:00" -> hour: 10)
       const slotHour = parseInt(timeSlot.split(':')[0]);
       const slotStart = slotHour * 60; // Convert to minutes
       const slotEnd = slotStart + 60; // 1-hour slot
-      
+
       // Parse activity start and end times
       const [activityStartHour, activityStartMinute] = activity.startTime.split(':').map(Number);
       const [activityEndHour, activityEndMinute] = activity.endTime.split(':').map(Number);
-      
+
       const activityStart = activityStartHour * 60 + activityStartMinute; // Convert to minutes
       const activityEnd = activityEndHour * 60 + activityEndMinute; // Convert to minutes
-      
+
       // Check if activity overlaps with the time slot
       // Activity overlaps if it starts before slot ends AND ends after slot starts
       return activityStart < slotEnd && activityEnd > slotStart;
@@ -127,19 +101,19 @@ export const usePatientScheduleData = () => {
     selectedActivities,
     searchTerm,
     showInactivePatients,
-    
+
     // Setters
     setActivityTemplates,
     setPatients,
     setPatientActivities,
     setSearchTerm,
-    
+
     // Helpers
     getActivityTemplate,
     getPatient,
     getPatientActivitiesForDate,
     getPatientActivitiesForTimeSlot,
-    
+
     // Handlers
     handleActivityToggle,
     handlePatientStatusToggle,

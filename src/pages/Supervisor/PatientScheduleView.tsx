@@ -23,7 +23,7 @@ const PatientScheduleView: React.FC = () => {
   const [patientDetails, setPatientDetails] = useState<Map<number, PatientBase>>(new Map());
   const [loadingPatients, setLoadingPatients] = useState<Set<number>>(new Set());
 
-  // hooks for patient schedule data (only need some parts)
+  // hooks for patient schedule data
   const {
     searchTerm,
     showInactivePatients,
@@ -46,7 +46,7 @@ const PatientScheduleView: React.FC = () => {
     getScheduleForTimeSlot,
   } = useSchedulerService();
 
-  // Derive unique activities from scheduleData and auto-select them
+  // Derive unique activities from scheduleData and auto-select all
   const activitiesFromSchedule = useMemo(() => {
     if (!Array.isArray(scheduleData)) return [];
     const activityMap = new Map();
@@ -322,10 +322,10 @@ const PatientScheduleView: React.FC = () => {
       <div className="flex flex-1 overflow-y-auto">
         {/* Left Sidebar */}
         <PatientScheduleSidebar
-          activityTemplates={activitiesFromSchedule} // Use derived activities from schedule
+          activityTemplates={activitiesFromSchedule} // Use derived activities from scheduler response
           selectedActivities={selectedScheduleActivities} // Use schedule-based selected activities
           showInactivePatients={showInactivePatients}
-          onActivityToggle={handleScheduleActivityToggle} // Use new handler
+          onActivityToggle={handleScheduleActivityToggle}
           onPatientStatusToggle={handlePatientStatusToggle}
           // Scheduler props
           isGeneratingSchedule={isGeneratingSchedule}

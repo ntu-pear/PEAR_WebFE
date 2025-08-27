@@ -33,11 +33,11 @@ const AddEditActivityModal: React.FC<AddEditActivityModalProps> = ({
   activityTemplates,
 }) => {
   if (!isOpen) return null;
-  
+
   const [activityTemplateId, setActivityTemplateId] = useState(
     activity?.activityTemplateId || ""
   );
-  const [date, setDate] = useState(activity?.date || ""); // Changed to string for input type="date"
+  const [date, setDate] = useState(activity?.date || ""); // Expected to be in 'YYYY-MM-DD' format
   const [startTime, setStartTime] = useState(activity?.startTime || "09:00");
   const [endTime, setEndTime] = useState(activity?.endTime || "10:00");
   const [notes, setNotes] = useState(activity?.notes || "");
@@ -53,9 +53,9 @@ const AddEditActivityModal: React.FC<AddEditActivityModalProps> = ({
     }
 
     const newActivity: ScheduledCentreActivity = {
-      id: activity?.id || "", // Use existing ID or placeholder for new
+      id: activity?.id || "",
       activityTemplateId,
-      date: date, // Already in 'YYYY-MM-DD' format from input
+      date: date,
       startTime,
       endTime,
       notes,

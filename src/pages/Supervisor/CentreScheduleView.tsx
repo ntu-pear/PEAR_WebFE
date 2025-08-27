@@ -45,8 +45,6 @@ const CentreScheduleView: React.FC = () => {
     navigateDate,
     handleActivityClick,
     handleAddActivity,
-    handleEditActivity,
-    handleDeleteActivity,
     handleSaveActivity,
   } = useCalendarActions(
     currentDate,
@@ -142,8 +140,6 @@ const CentreScheduleView: React.FC = () => {
           onClose={() => setIsActivityDetailsModalOpen(false)}
           activity={selectedActivityForDetails}
           getActivityTemplate={getActivityTemplate}
-          handleEditActivity={handleEditActivity}
-          handleDeleteActivity={handleDeleteActivity}
         />
       )}
 
