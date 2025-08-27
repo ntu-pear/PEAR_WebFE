@@ -1,5 +1,7 @@
 import React from "react";
 import { format, parse, getHours } from "date-fns";
+import { useNavigate } from "react-router-dom";
+import { Settings } from "lucide-react";
 import {
   ScheduledPatientActivity,
   ActivityTemplate,
@@ -22,6 +24,7 @@ const PatientDailyScheduleView: React.FC<PatientDailyScheduleViewProps> = ({
   getActivityTemplate,
   onActivityClick,
 }) => {
+  const navigate = useNavigate();
   const dateString = format(currentDate, "yyyy-MM-dd");
 
   const renderActivityCell = (patientId: string, timeSlot: string) => {
@@ -142,13 +145,20 @@ const PatientDailyScheduleView: React.FC<PatientDailyScheduleViewProps> = ({
             patients.map(patient => (
               <div key={patient.id} className="flex border-b border-gray-200 last:border-b-0">
                 {/* Patient name cell */}
-                <div className="sticky left-0 bg-white border-r border-gray-200 p-3 flex items-center w-[200px] z-10 shadow-sm">
+                <div className="sticky left-0 bg-white border-r border-gray-200 p-3 flex items-center justify-between w-[200px] z-10 shadow-sm">
                   <div>
                     <div className="font-medium text-sm">{patient.name}</div>
                     <div className={`text-xs ${patient.isActive ? 'text-green-600' : 'text-gray-500'}`}>
                       {patient.isActive ? 'Active' : 'Inactive'}
                     </div>
                   </div>
+                  <button
+                    onClick={() => navigate(`/supervisor/view-patient/${patient.id}?tab=activity-preference`)}
+                    className="p-1 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                    title="Edit activity preferences"
+                  >
+                    <Settings className="h-4 w-4" />
+                  </button>
                 </div>
                 
                 {/* Time slot cells for this patient */}

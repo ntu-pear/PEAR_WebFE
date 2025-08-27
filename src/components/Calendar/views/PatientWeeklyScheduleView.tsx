@@ -1,6 +1,8 @@
 import React from "react";
 import { format, startOfWeek, addDays } from "date-fns";
 import { enUS } from "date-fns/locale";
+import { useNavigate } from "react-router-dom";
+import { Settings } from "lucide-react";
 import {
   ScheduledPatientActivity,
   ActivityTemplate,
@@ -23,6 +25,7 @@ const PatientWeeklyScheduleView: React.FC<PatientWeeklyScheduleViewProps> = ({
   getActivityTemplate,
   onActivityClick,
 }) => {
+  const navigate = useNavigate();
   const weekStart = startOfWeek(currentDate, { locale: enUS });
   const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
 
@@ -120,13 +123,20 @@ const PatientWeeklyScheduleView: React.FC<PatientWeeklyScheduleViewProps> = ({
               return (
                 <div key={patient.id} className="flex border-b border-gray-200 last:border-b-0" style={{ minHeight: `${rowHeight}px` }}>
                   {/* Patient name cell */}
-                  <div className="sticky left-0 bg-white border-r border-gray-200 p-3 flex items-center w-[200px] flex-shrink-0 z-10 shadow-sm">
+                  <div className="sticky left-0 bg-white border-r border-gray-200 p-3 flex items-center justify-between w-[200px] flex-shrink-0 z-10 shadow-sm">
                     <div>
                       <div className="font-medium text-sm">{patient.name}</div>
                       <div className={`text-xs ${patient.isActive ? 'text-green-600' : 'text-gray-500'}`}>
                         {patient.isActive ? 'Active' : 'Inactive'}
                       </div>
                     </div>
+                    <button
+                      onClick={() => navigate(`/supervisor/view-patient/${patient.id}?tab=activity-preference`)}
+                      className="p-1 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                      title="Edit activity preferences"
+                    >
+                      <Settings className="h-4 w-4" />
+                    </button>
                   </div>
                   
                   {/* Day cells for this patient */}
