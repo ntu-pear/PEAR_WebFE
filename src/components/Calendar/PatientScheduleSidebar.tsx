@@ -1,10 +1,11 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ActivityTemplate } from '@/api/scheduler/scheduler';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { RefreshCw, Calendar as CalendarIcon } from 'lucide-react';
+import { RefreshCw, Calendar as CalendarIcon, ExternalLink } from 'lucide-react';
 import { ACTIVITY_STYLES } from './CalendarTypes';
 import { CalendarScheduleItem } from '@/hooks/scheduler/useSchedulerService';
 
@@ -34,6 +35,8 @@ const PatientScheduleSidebar: React.FC<PatientScheduleSidebarProps> = ({
   onGenerateSchedule,
   onClearSchedule,
 }) => {
+  const navigate = useNavigate();
+  
   // Use activityTemplates from props instead of deriving from scheduleData
   // This allows parent component to manage the activity list and filtering
   const activitiesFromSchedule = activityTemplates;
@@ -145,6 +148,15 @@ const PatientScheduleSidebar: React.FC<PatientScheduleSidebarProps> = ({
                 </label>
               </div>
             ))}
+            <Button 
+              variant="outline"
+              size="sm"
+              className="mt-2 w-full text-sm text-blue-600 border-blue-200 hover:bg-blue-50 hover:border-blue-300" 
+              onClick={() => navigate('/supervisor/manage-activities')}
+            >
+              <ExternalLink className="mr-2 h-4 w-4" />
+              Manage Activities
+            </Button>
           </CardContent>
         </Card>
         {/* Legend */}
