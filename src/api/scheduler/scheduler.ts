@@ -1,4 +1,5 @@
 import { mockActivityTemplates, mockPatients, mockScheduledCentreActivities, mockScheduledPatientActivities } from "@/mocks/mockScheduledActivity";
+import { API_TIME_SLOTS } from "@/components/Calendar/CalendarTypes";
 
 const SCHEDULER_BASE_URL = import.meta.env.VITE_SCHEDULER_SERVICE_URL;
 export interface Patient {
@@ -154,6 +155,11 @@ export const parseScheduleString = (scheduleString: string): string[] => {
   return scheduleString.split('--').map(activity => activity.trim()).filter(activity => activity.length > 0);
 };
 
+// Helper function to convert hour number to time string (e.g., 9 -> "09:00")
+const hourToTimeString = (hour: number): string => {
+  return `${hour.toString().padStart(2, '0')}:00`;
+};
+
 // Helper function to convert schedule data to calendar format
 export const convertScheduleToCalendarFormat = (scheduleData: WeeklyScheduleData[]) => {
   const calendarSchedule: Array<{
@@ -168,11 +174,8 @@ export const convertScheduleToCalendarFormat = (scheduleData: WeeklyScheduleData
     endDate: string;
   }> = [];
   
-  // Time slots from 9 AM to 4 PM (8 hours = 8 slots to match API)
-  const timeSlots = Array.from({ length: 8 }, (_, i) => {
-    const hour = 9 + i;
-    return `${hour.toString().padStart(2, '0')}:00`;
-  });
+  // Use the API time slots constant
+  const timeSlots = API_TIME_SLOTS;
   
   for (const patientSchedule of scheduleData) {
     const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
@@ -183,9 +186,11 @@ export const convertScheduleToCalendarFormat = (scheduleData: WeeklyScheduleData
       
       // Create calendar events for each activity
       activities.forEach((activity, index) => {
-        if (activity && index < timeSlots.length) {
-          const startTime = timeSlots[index];
-          const endTime = index + 1 < timeSlots.length ? timeSlots[index + 1] : '17:00'; // Last slot ends at 5 PM
+        if (activity && index < timeSlots.length - 1) { // -1 because last element is end hour, not a slot start
+          const startHour = timeSlots[index];
+          const endHour = timeSlots[index + 1];
+          const startTime = hourToTimeString(startHour);
+          const endTime = hourToTimeString(endHour);
           const eventDate = getDateForDayOfWeek(day, patientSchedule.StartDate);
           
           const calendarEvent = {

@@ -1,7 +1,13 @@
 export type ViewMode = 'centre-daily' | 'centre-weekly' | 'centre-monthly' | 'patient-daily' | 'patient-weekly';
 
-// Time slot definitions for Week/Day view (9 AM to 4 PM - 8 slots to match API)
-export const TIME_SLOTS = Array.from({ length: 8 }, (_, i) => `${(9 + i).toString().padStart(2, '0')}:00`);
+// Time slot definitions for Week/Day view itself
+// Currently using 10 slots to add padding for view
+export const TIME_SLOTS = Array.from({ length: 10 }, (_, i) => `${(8 + i).toString().padStart(2, '0')}:00`);
+
+// API time slots - includes start hours and final end hour 
+// length must be one more than the number of slots
+// [9, 10, 11, 12] means slots: 9-10, 10-11, 11-12
+export const API_TIME_SLOTS = Array.from({ length: 9 }, (_, i) => 9 + i);
 
 // Activity styling constants - centralized for easy customization
 export const ACTIVITY_STYLES = {
