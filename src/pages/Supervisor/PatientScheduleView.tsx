@@ -35,6 +35,7 @@ const PatientScheduleView: React.FC = () => {
     scheduleData,
     error: scheduleError,
     generateSchedule,
+    getOrGenerateSchedule,
     clearSchedule,
     getPatientScheduleForDate,
     getScheduleForTimeSlot,
@@ -283,7 +284,8 @@ const PatientScheduleView: React.FC = () => {
           isGeneratingSchedule={isGeneratingSchedule}
           scheduleData={scheduleData}
           scheduleError={scheduleError}
-          onGenerateSchedule={generateSchedule}
+          onGenerateSchedule={getOrGenerateSchedule}
+          onRegenerateSchedule={generateSchedule}
           onClearSchedule={clearSchedule}
         />
 

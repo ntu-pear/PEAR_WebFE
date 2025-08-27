@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { generateAndGetSchedule, type WeeklyScheduleData } from '@/api/scheduler/scheduler';
+import { generateAndGetSchedule, getSchedule, convertScheduleToCalendarFormat, type WeeklyScheduleData } from '@/api/scheduler/scheduler';
 import { toast } from 'sonner';
 
 export interface CalendarScheduleItem {
@@ -41,6 +41,46 @@ export const useSchedulerService = () => {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
       setError(errorMessage);
       toast.error(`Error generating schedule: ${errorMessage}`);
+      return [];
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  const getOrGenerateSchedule = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      // First try to get existing schedule
+      const scheduleResponse = await getSchedule();
+      
+      if (scheduleResponse.Status === "200" && scheduleResponse.Data && scheduleResponse.Data.length > 0) {
+        // Schedule exists, convert and use it
+        const calendarSchedule = convertScheduleToCalendarFormat(scheduleResponse.Data);
+        setScheduleData(calendarSchedule);
+        setRawScheduleData(scheduleResponse.Data);
+        toast.success('Existing schedule loaded successfully!');
+        return calendarSchedule;
+      } else {
+        // No schedule exists, generate a new one
+        const result = await generateAndGetSchedule();
+        
+        if (result.success) {
+          setScheduleData(result.data);
+          setRawScheduleData(result.rawData);
+          toast.success('New schedule generated successfully!');
+          return result.data;
+        } else {
+          setError(result.message);
+          toast.error(`Failed to generate schedule: ${result.message}`);
+          return [];
+        }
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      setError(errorMessage);
+      toast.error(`Error loading/generating schedule: ${errorMessage}`);
       return [];
     } finally {
       setIsLoading(false);
@@ -94,6 +134,7 @@ export const useSchedulerService = () => {
     
     // Actions
     generateSchedule,
+    getOrGenerateSchedule,
     clearSchedule,
     
     // Getters

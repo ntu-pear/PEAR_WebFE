@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { RefreshCw, Calendar as CalendarIcon, ExternalLink } from 'lucide-react';
+import { RefreshCw, Calendar as CalendarIcon, ExternalLink, RotateCcw } from 'lucide-react';
 import { ACTIVITY_STYLES } from './CalendarTypes';
 import { CalendarScheduleItem } from '@/hooks/scheduler/useSchedulerService';
 
@@ -20,6 +20,7 @@ interface PatientScheduleSidebarProps {
   scheduleData: CalendarScheduleItem[];
   scheduleError: string | null;
   onGenerateSchedule: () => void;
+  onRegenerateSchedule: () => void;
   onClearSchedule: () => void;
 }
 
@@ -33,6 +34,7 @@ const PatientScheduleSidebar: React.FC<PatientScheduleSidebarProps> = ({
   scheduleData,
   scheduleError,
   onGenerateSchedule,
+  onRegenerateSchedule,
   onClearSchedule,
 }) => {
   const navigate = useNavigate();
@@ -40,6 +42,8 @@ const PatientScheduleSidebar: React.FC<PatientScheduleSidebarProps> = ({
   // Use activityTemplates from props instead of deriving from scheduleData
   // This allows parent component to manage the activity list and filtering
   const activitiesFromSchedule = activityTemplates;
+
+  const hasSchedule = scheduleData.length > 0;
 
   return (
     <div className="w-100 bg-white border-r border-gray-200 p-4 overflow-y-auto">
@@ -51,7 +55,7 @@ const PatientScheduleSidebar: React.FC<PatientScheduleSidebarProps> = ({
           </CardHeader>
           <CardContent className="space-y-3">
             <Button
-              onClick={onGenerateSchedule}
+              onClick={hasSchedule ? onRegenerateSchedule : onGenerateSchedule}
               disabled={isGeneratingSchedule}
               className="w-full bg-green-600 hover:bg-green-700 text-white"
             >
@@ -59,6 +63,11 @@ const PatientScheduleSidebar: React.FC<PatientScheduleSidebarProps> = ({
                 <>
                   <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
                   Generating...
+                </>
+              ) : hasSchedule ? (
+                <>
+                  <RotateCcw className="mr-2 h-4 w-4" />
+                  Regenerate Schedule
                 </>
               ) : (
                 <>
