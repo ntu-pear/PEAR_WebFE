@@ -123,18 +123,18 @@ const PatientScheduleSidebar: React.FC<PatientScheduleSidebarProps> = ({
                 />
                 <label
                   htmlFor={activity.id}
-                  className="text-sm cursor-pointer flex items-center gap-2 group"
+                  className="text-sm cursor-pointer flex items-center gap-2 group flex-1 min-w-0"
                 >
                   <div
-                    className={`w-3 h-3 rounded ${
+                    className={`w-3 h-3 rounded flex-shrink-0 ${
                       activity.type === 'free_easy' 
                         ? ACTIVITY_STYLES.bgcolours.freeEasy 
                         : ACTIVITY_STYLES.bgcolours.routine
                     } ${activity.isRarelyScheduled ? ACTIVITY_STYLES.rarelyScheduled : ''}`}
                   />
-                  <span className="truncate">{activity.name}</span>
+                  <span className="truncate flex-1 min-w-0">{activity.name}</span>
                   {activity.isRarelyScheduled && (
-                    <div className="relative">
+                    <div className="relative flex-shrink-0">
                       <span className="text-xs text-red-600 font-bold">!</span>
                       {/* Tooltip for rarely scheduled activities */}
                       <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-1 px-2 py-1 text-xs text-white bg-black rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-200 whitespace-nowrap z-50">
