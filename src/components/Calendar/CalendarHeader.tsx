@@ -3,7 +3,6 @@ import { format, startOfWeek, endOfWeek } from 'date-fns';
 import { enUS } from 'date-fns/locale';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ViewMode } from './CalendarTypes';
 import { Search } from 'lucide-react';
 
@@ -102,18 +101,19 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
             onChange={(e) => onSearchChange(e.target.value)}
           />
         </div>
-        <Select value={viewMode} onValueChange={onViewModeChange}>
-          <SelectTrigger className="w-[150px] rounded-md">
-            <SelectValue placeholder="View" />
-          </SelectTrigger>
-          <SelectContent>
-            {getViewModeOptions().map(option => (
-              <SelectItem key={option.value} value={option.value}>
-                {option.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <div className="flex items-center space-x-1 bg-gray-100 rounded-md p-1">
+          {getViewModeOptions().map(option => (
+            <Button
+              key={option.value}
+              variant={viewMode === option.value ? "default" : "ghost"}
+              size="sm"
+              onClick={() => onViewModeChange(option.value as ViewMode)}
+              className="rounded-md"
+            >
+              {option.label}
+            </Button>
+          ))}
+        </div>
       </div>
     </header>
   );
