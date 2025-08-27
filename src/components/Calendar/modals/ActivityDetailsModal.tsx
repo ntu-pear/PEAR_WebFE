@@ -11,8 +11,6 @@ interface ActivityDetailsModalProps {
   onClose: () => void;
   activity: ScheduledCentreActivity | ScheduledPatientActivity;
   getActivityTemplate: (id: string) => ActivityTemplate | undefined;
-  handleEditActivity: (activity: ScheduledCentreActivity | ScheduledPatientActivity) => void;
-  handleDeleteActivity: (activityId: string) => void;
 }
 
 const ActivityDetailsModal: React.FC<ActivityDetailsModalProps> = ({
@@ -20,8 +18,6 @@ const ActivityDetailsModal: React.FC<ActivityDetailsModalProps> = ({
   onClose,
   activity,
   getActivityTemplate,
-  handleEditActivity,
-  handleDeleteActivity,
 }) => {
   const navigate = useNavigate();
   
