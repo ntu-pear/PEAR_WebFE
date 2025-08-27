@@ -299,7 +299,7 @@ const PatientScheduleView: React.FC = () => {
           isOpen={isActivityDetailsModalOpen}
           onClose={() => setIsActivityDetailsModalOpen(false)}
           activity={selectedActivityForDetails}
-          getActivityTemplate={getActivityTemplate}
+          getActivityTemplate={getEnhancedActivityTemplate}
           handleEditActivity={() => {}} // No edit functionality for patient activities
           handleDeleteActivity={() => {}} // No delete functionality for patient activities
         />
