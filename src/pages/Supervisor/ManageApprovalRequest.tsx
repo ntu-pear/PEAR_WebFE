@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { ListFilter } from 'lucide-react'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { DataTableClient } from "@/components/Table/DataTable";
 import { Badge } from "@/components/ui/badge";
@@ -31,6 +31,7 @@ const ManageApprovalRequest: React.FC = () => {
     const [selectedRequestStatus, setSelectedRequestStatus] = useState<RequestStatus>("All")
     const [selectedRequesteeRole, setRequesteeRole] = useState<Role>("All")
     const [searchItem, setSearchItem] = useState("");
+    
 
     type RequestRow = {
         id: number;
@@ -140,6 +141,20 @@ const ManageApprovalRequest: React.FC = () => {
         },
     ];
 
+    const [filteredData, setFilteredData] = useState(sampleData)
+    useEffect(()=>{
+        let data = sampleData
+        if(selectedRequestStatus != "All"){
+            data = data.filter(item=>item.status === selectedRequestStatus)
+        }
+        if(selectedRequesteeRole != "All"){
+            data = data.filter(item=>item.requestee_role===selectedRequesteeRole)
+        }
+        if(searchItem.trim() != ""){
+            data = data.filter(item=>item.request_title.toLowerCase().startsWith(searchItem.trim().toLowerCase()))
+        }
+        setFilteredData(data)
+    },[selectedRequestStatus, selectedRequesteeRole,searchItem])
 
     return (
         <div className='container flex flex-col min-h-screen w-full mx-auto px-0 sm:px-4 '>
@@ -202,10 +217,21 @@ const ManageApprovalRequest: React.FC = () => {
                     </CardHeader>
                     <CardContent>
                         <DataTableClient
-                            data={sampleData}
+                            data={filteredData}
                             columns={columns}
                             viewMore={false}
-
+                            renderActions={(item) =>
+                                item.status === "Pending" && (
+                                    <div className="flex gap-2">
+                                        <Button variant="approve" size="sm" className="h-8 gap-1">
+                                            Approve
+                                        </Button>
+                                        <Button variant="reject" size="sm" className="h-8 gap-1">
+                                            Reject
+                                        </Button>
+                                    </div>
+                                )
+                            }
                         />
                     </CardContent>
                 </Card>
