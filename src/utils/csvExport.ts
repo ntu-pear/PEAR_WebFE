@@ -1,7 +1,5 @@
 import { CalendarScheduleItem } from '@/hooks/scheduler/useSchedulerService';
 import { format, startOfWeek, endOfWeek } from 'date-fns';
-import { enUS } from 'date-fns/locale';
-import { date } from 'zod';
 
 export interface ExportScheduleItem {
   patientId: number;
@@ -19,12 +17,14 @@ export interface ExportScheduleItem {
  * @param headers - Array of CSV header strings
  * @param scheduleData - Array of schedule items to export
  * @param selectedActivities - Array of selected activity names to filter by
+ * @param getPatientName - Function to get patient display name by ID
  * @param filename - Optional custom filename (without extension)
  */
 export const exportScheduleToCSV = (
   headers: readonly string[],
   scheduleData: CalendarScheduleItem[],
   selectedActivities: string[],
+  getPatientName: (patientId: number) => string,
   filename?: string
 ) => {
   // Filter schedule data by selected activities
@@ -48,7 +48,7 @@ export const exportScheduleToCSV = (
 
     return {
       patientId: item.patientId,
-      patientName: `Patient ${item.patientId}`, // Using ID as name as per your current implementation
+      patientName: getPatientName(item.patientId), // Use the provided function to get actual patient name
       activityName: item.activityName,
       date: item.date,
       day: item.day,
@@ -76,8 +76,9 @@ export const exportScheduleToCSV = (
   const csvContent = csvRows.join('\n');
 
   // Generate filename with week range
-  const weekStart = startOfWeek(Date.now(), { weekStartsOn: 1 });
-  const weekEnd = endOfWeek(Date.now(), { weekStartsOn: 1 });
+  const now = new Date();
+  const weekStart = startOfWeek(now, { weekStartsOn: 1 });
+  const weekEnd = endOfWeek(now, { weekStartsOn: 1 });
   const defaultFilename = `patient-schedule-${format(weekStart, 'yyyy-MM-dd')}-to-${format(weekEnd, 'yyyy-MM-dd')}`;
   const finalFilename = filename || defaultFilename;
 

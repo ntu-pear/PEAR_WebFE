@@ -93,6 +93,14 @@ const PatientScheduleView: React.FC = () => {
     return `Patient ID: ${patientId}`; // Fallback while loading
   }, [patientDetails]);
 
+  const getPatientNameForExport = useCallback((patientId: number) => {
+    const patient = patientDetails.get(patientId);
+    if (patient) {
+      return patient.name; // Just the name without ID for CSV export
+    }
+    return `Patient ${patientId}`; // Fallback if patient details not loaded
+  }, [patientDetails]);
+
   // Auto-select all activities when schedule data changes
   useEffect(() => {
     if (activitiesFromSchedule.length > 0) {
@@ -125,7 +133,8 @@ const PatientScheduleView: React.FC = () => {
       const result = exportScheduleToCSV(
         PATIENT_SCHEDULE_CSV_HEADERS,
         scheduleData,
-        selectedScheduleActivities
+        selectedScheduleActivities,
+        getPatientNameForExport // Use the export-specific function that returns just the patient name
       );
       
       toast.success(
