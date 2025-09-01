@@ -8,6 +8,8 @@ import { usePatientScheduleData } from '@/components/Calendar/hooks/usePatientSc
 import { useSchedulerService } from '@/hooks/scheduler/useSchedulerService';
 import { ViewMode } from '@/components/Calendar/CalendarTypes';
 import { fetchPatientById, type PatientBase } from '@/api/patients/patients';
+import { exportScheduleToCSV } from '@/utils/csvExport';
+import { toast } from 'sonner';
 
 // Patient Schedule View component
 const PatientScheduleView: React.FC = () => {
@@ -116,6 +118,27 @@ const PatientScheduleView: React.FC = () => {
       checked ? [...prev, activityId] : prev.filter(id => id !== activityId)
     );
   }, []);
+
+  // Handle CSV export
+  const handleExportSchedule = () => {
+    try {
+      const result = exportScheduleToCSV(
+        PATIENT_SCHEDULE_CSV_HEADERS,
+        scheduleData,
+        selectedScheduleActivities
+      );
+      
+      toast.success(
+        `Exported ${result.recordsExported} activities for week ${result.weekRange}`,
+        {
+          description: `File: ${result.filename}`,
+        }
+      );
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      toast.error(`Export failed: ${errorMessage}`);
+    }
+  };
 
   // Handle patient activity clicks
   const handlePatientActivityClick = (activity: any) => {
@@ -317,6 +340,8 @@ const PatientScheduleView: React.FC = () => {
         onViewModeChange={handleViewModeChange}
         onSearchChange={setSearchTerm}
         allowedViewModes={['patient-daily', 'patient-weekly']}
+        showExportButton={scheduleData.length > 0 && selectedScheduleActivities.length > 0}
+        onExportSchedule={handleExportSchedule}
       />
 
       <div className="flex flex-1 overflow-y-auto">
@@ -357,3 +382,15 @@ const PatientScheduleView: React.FC = () => {
 };
 
 export default PatientScheduleView;
+
+// CSV Headers for Patient Schedule Export
+export const PATIENT_SCHEDULE_CSV_HEADERS = [
+  'Patient ID',
+  'Patient Name', 
+  'Activity Name',
+  'Date',
+  'Day',
+  'Start Time',
+  'End Time',
+  'Duration'
+] as const;

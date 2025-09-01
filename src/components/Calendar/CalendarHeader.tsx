@@ -4,7 +4,7 @@ import { enUS } from 'date-fns/locale';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ViewMode } from './CalendarTypes';
-import { Search } from 'lucide-react';
+import { Search, Download } from 'lucide-react';
 
 interface CalendarHeaderProps {
   currentDate: Date;
@@ -15,6 +15,9 @@ interface CalendarHeaderProps {
   onViewModeChange: (mode: ViewMode) => void;
   onSearchChange: (term: string) => void;
   allowedViewModes?: ViewMode[];
+  // Export functionality for patient schedule view
+  showExportButton?: boolean;
+  onExportSchedule?: () => void;
 }
 
 const CalendarHeader: React.FC<CalendarHeaderProps> = ({
@@ -26,6 +29,8 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
   onViewModeChange,
   onSearchChange,
   allowedViewModes,
+  showExportButton = false,
+  onExportSchedule,
 }) => {
   const getHeaderTitle = () => {
     switch (viewMode) {
@@ -92,6 +97,16 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
         </h2>
       </div>
       <div className="flex items-center space-x-2">
+        {showExportButton && onExportSchedule && (
+          <Button 
+            variant="outline" 
+            onClick={onExportSchedule}
+            className="rounded-md bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-300"
+          >
+            <Download className="mr-2 h-4 w-4" />
+            Export
+          </Button>
+        )}
         <div className="relative">
           <span className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-500"><Search /></span>
           <Input
