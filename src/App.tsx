@@ -45,6 +45,7 @@ import TwoFactorAuthSettings from "./components/UserSettings/TwoFactorAuthSettin
 import ConfirmNewEmail from "./pages/auth/ConfirmNewEmail";
 import Login2FA from "./pages/auth/Login2FA";
 import HighlightTable from "./pages/Supervisor/HighlightTable";
+import ManageApprovalRequest from "./pages/Supervisor/ManageApprovalRequest";
 import VerifyAccount from "./pages/VerifyAccount";
 import { ViewPatientProvider } from "./hooks/patient/useViewPatient";
 import PatientLogs from "./pages/logger/PatientLogs";
@@ -150,6 +151,7 @@ const App: React.FC = () => {
                         path="view-highlights"
                         element={<HighlightTable />}
                       />
+                      <Route path="manage-approval-requests" element={<ManageApprovalRequest/>}/>
                       <Route
                         path="view-patient-logs"
                         element={<PatientLogs />}
