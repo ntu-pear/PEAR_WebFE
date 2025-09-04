@@ -105,7 +105,7 @@ export const deleteCentreActivity = async (activityId: string) => {
 // Generate a new schedule
 export const generateSchedule = async (): Promise<SchedulerResponse<string>> => {
   try {
-    const response = await fetch(`${SCHEDULER_BASE_URL}schedule/generate/`, {
+    const response = await fetch(`${SCHEDULER_BASE_URL}/schedule/generate/`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -127,7 +127,7 @@ export const generateSchedule = async (): Promise<SchedulerResponse<string>> => 
 // Get the generated schedule
 export const getSchedule = async (): Promise<SchedulerResponse<WeeklyScheduleData[]>> => {
   try {
-    const response = await fetch(`${SCHEDULER_BASE_URL}schedule/getSchedule/`, {
+    const response = await fetch(`${SCHEDULER_BASE_URL}/schedule/getSchedule/`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
