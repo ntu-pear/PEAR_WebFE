@@ -23,7 +23,7 @@ const PatientScheduleView: React.FC = () => {
   
   // State for storing patient details
   const [patientDetails, setPatientDetails] = useState<Map<number, PatientBase>>(new Map());
-  const [loadingPatients, setLoadingPatients] = useState<Set<number>>(new Set());
+  const [fetchedPatients, setFetchedPatients] = useState<Set<number>>(new Set());
 
   // hooks for patient schedule data
   const {
@@ -63,25 +63,19 @@ const PatientScheduleView: React.FC = () => {
   }, [scheduleData]);
 
   const fetchPatientDetails = useCallback(async (patientId: number) => {
-    if (patientDetails.has(patientId) || loadingPatients.has(patientId)) {
+    if (patientDetails.has(patientId) || fetchedPatients.has(patientId)) {
       return;
     }
 
-    setLoadingPatients(prev => new Set(prev).add(patientId));
+    setFetchedPatients(prev => new Set(prev).add(patientId));
     
     try {
       const patient = await fetchPatientById(patientId, true);
       setPatientDetails(prev => new Map(prev).set(patientId, patient));
     } catch (error) {
       console.error(`Failed to fetch patient ${patientId}:`, error);
-    } finally {
-      setLoadingPatients(prev => {
-        const newSet = new Set(prev);
-        newSet.delete(patientId);
-        return newSet;
-      });
     }
-  }, [patientDetails, loadingPatients]);
+  }, [patientDetails, fetchedPatients]);
 
   const getPatientDisplayName = useCallback((patientId: number) => {
     const patient = patientDetails.get(patientId);
@@ -274,6 +268,18 @@ const PatientScheduleView: React.FC = () => {
     setCurrentDate(newDate);
   };
 
+  // Memoize patients list to prevent unnecessary API calls
+  const patientsFromSchedule = useMemo(() => {
+    if (scheduleData.length === 0) return [];
+    
+    return Array.from(new Set(scheduleData.map(item => item.patientId)))
+      .map(patientId => ({
+        id: String(patientId),
+        name: getPatientDisplayName(patientId),
+        isActive: true
+      }));
+  }, [scheduleData, getPatientDisplayName]);
+
   // Handle view mode change - only allow patient view modes
   const handleViewModeChange = (newViewMode: ViewMode) => {
     if (newViewMode === 'patient-daily' || newViewMode === 'patient-weekly') {
@@ -282,19 +288,6 @@ const PatientScheduleView: React.FC = () => {
   };
 
   const renderCalendarView = () => {
-    const patientsFromSchedule = scheduleData.length > 0 
-      ? Array.from(new Set(scheduleData.map(item => item.patientId)))
-          .map(patientId => {
-            fetchPatientDetails(patientId);
-            
-            return {
-              id: String(patientId),
-              name: getPatientDisplayName(patientId),
-              isActive: true
-            };
-          })
-      : [];
-    
     // Apply search filter to patients
     const filteredPatientsFromSchedule = patientsFromSchedule.filter(patient =>
       patient.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
