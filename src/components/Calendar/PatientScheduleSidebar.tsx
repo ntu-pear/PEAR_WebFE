@@ -40,7 +40,7 @@ const PatientScheduleSidebar: React.FC<PatientScheduleSidebarProps> = ({
   const hasSchedule = scheduleData.length > 0;
 
   return (
-    <div className="w-100 bg-white border-r border-gray-200 p-4 overflow-y-auto">
+    <div className="w-80 flex-shrink-0 bg-white border-r border-gray-200 p-4 overflow-y-auto">
       <div className="space-y-4">
         {/* Scheduler Controls */}
         <Card>

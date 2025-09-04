@@ -362,7 +362,7 @@ const PatientScheduleView: React.FC = () => {
         onExportSchedule={handleExportSchedule}
       />
 
-      <div className="flex flex-1 overflow-y-auto">
+      <div className="flex flex-1 overflow-hidden">
         {/* Left Sidebar */}
         <PatientScheduleSidebar
           activityTemplates={activitiesFromSchedule} // Use derived activities from scheduler response
@@ -378,7 +378,7 @@ const PatientScheduleView: React.FC = () => {
         />
 
         {/* Main Calendar Content */}
-        <main className="flex-1 p-4 bg-gray-100 relative">
+        <main className="flex-1 min-w-0 p-4 bg-gray-100 relative overflow-auto">
           {renderCalendarView()}
         </main>
       </div>
