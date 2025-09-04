@@ -37,21 +37,22 @@ test('Supervisor: View Patient Scheduled Activities', async ({ page }) => {
   
   await page.locator('div').filter({ hasText: /^Generate Schedule$/ }).click();
   // check that the timetable is visible
-  await expect(page.getByRole('main').filter({ hasText: 'Toggle themeToggle themeToday' }).getByRole('main')).toBeVisible();
+  await expect(page.getByRole('main').filter({ hasText: 'Toggle themeToggle theme' }).getByRole('main')).toBeVisible();
 
   // Find and capture the first patient's display text (try both formats)
-  let patientElement = page.locator('div').filter({ hasText: /\(ID: \d+\)Active$/ }).first();
+  let patientElement = page.locator('div.font-medium.text-sm').filter({ hasText: /\(ID: \d+\)/ }).first();
   let patientDisplayText: string | null = null;
   let patientSearchTerm = '';
 
-  // try to find name with format "NAME (ID: X)Active", might fail if backend does not return the name
+  // try to find name with format "NAME (ID: X)", might fail if backend does not return the name
+  var patientNameMatch;
   try {
     await expect(patientElement).toBeVisible();
     patientDisplayText = await patientElement.textContent();
     console.log('Found patient with full format:', patientDisplayText);
     
-    // Extract the name part since the textcontent will include timeslots text
-    const patientNameMatch = patientDisplayText?.match(/^(.+?)\s*\(ID: \d+\)Active/);
+    // Extract the name part - the display text should now be just the patient name with ID
+    patientNameMatch = patientDisplayText?.match(/^(.+?)\s*\(ID: \d+\)$/);
     patientSearchTerm = patientNameMatch ? patientNameMatch[1].trim() : "";
     if (patientSearchTerm === "") {
       throw new Error("Could not extract patient name");
@@ -59,13 +60,13 @@ test('Supervisor: View Patient Scheduled Activities', async ({ page }) => {
   } catch (error) {
     // If that fails, try to find the fallback format "Patient ID: X"
     console.log('Full format not found, trying fallback format...');
-    patientElement = page.locator('div').filter({ hasText: /^Patient ID: \d+/ }).first();
+    patientElement = page.locator('div.font-medium.text-sm').filter({ hasText: /^Patient ID: \d+/ }).first();
     await expect(patientElement).toBeVisible();
     patientDisplayText = await patientElement.textContent();
     console.log('Found patient with fallback format:', patientDisplayText);
     
-    // Extract the name part since the textcontent will include timeslots text
-    const fallbackMatch = patientDisplayText?.match(/^(Patient ID: \d+)/);
+    // Extract the name part
+    const fallbackMatch = patientDisplayText?.match(/^(Patient ID: \d+)$/);
     patientSearchTerm = fallbackMatch ? fallbackMatch[1] : "Patient ID";
   }
   
@@ -89,6 +90,6 @@ test('Supervisor: View Patient Scheduled Activities', async ({ page }) => {
   // Test patient search functionality
   await page.getByRole('textbox', { name: 'Search patients...' }).click();
   await page.getByRole('textbox', { name: 'Search patients...' }).fill(patientSearchTerm);
-  // Verify search results show the expected patient using exact text match
-  await expect(page.getByText(patientSearchTerm, { exact: true })).toBeVisible();
+  // Verify search results show the expected patient - look for the full display name since that's what appears
+  await expect(page.getByText(patientDisplayText!, { exact: true })).toBeVisible();
 });

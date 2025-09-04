@@ -126,9 +126,6 @@ const PatientWeeklyScheduleView: React.FC<PatientWeeklyScheduleViewProps> = ({
                   <div className="sticky left-0 bg-white border-r border-gray-200 p-3 flex items-center justify-between w-[200px] flex-shrink-0 z-10 shadow-sm">
                     <div>
                       <div className="font-medium text-sm">{patient.name}</div>
-                      <div className={`text-xs ${patient.isActive ? 'text-green-600' : 'text-gray-500'}`}>
-                        {patient.isActive ? 'Active' : 'Inactive'}
-                      </div>
                     </div>
                     <button
                       onClick={() => navigate(`/supervisor/view-patient/${patient.id}?tab=activity-preference`)}
