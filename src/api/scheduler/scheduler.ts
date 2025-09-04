@@ -1,4 +1,4 @@
-import { mockActivityTemplates, mockPatients, mockScheduledCentreActivities, mockScheduledPatientActivities } from "@/mocks/mockScheduledActivity";
+import { mockActivityTemplates, mockScheduledCentreActivities } from "@/mocks/mockScheduledActivity";
 import { API_TIME_SLOTS } from "@/components/Calendar/CalendarTypes";
 
 const SCHEDULER_BASE_URL = import.meta.env.VITE_SCHEDULER_SERVICE_URL;
@@ -62,40 +62,30 @@ export interface GenerateScheduleResponse {
   Data: string;
 }
 
-// TODO change when actual API is implemented
-export const getPatients = async () => {
-  return mockPatients;
-}
-
-// TODO change when actual API is implemented
+// for centre activity schedule view
 export const getActivityTemplates = async () => {
   return mockActivityTemplates;
 };
 
-// TODO change when actual API is implemented
+// for centre activity schedule view
 export const getCentreActivities = async () => {
   return mockScheduledCentreActivities;
 };
 
-// TODO change when actual API is implemented
-export const getPatientActivities = async () => {
-  return mockScheduledPatientActivities;
-};
-
-// TODO change when actual API is implemented
+// for centre activity schedule view
 export const addCentreActivity = async (activity: ScheduledCentreActivity): Promise<ScheduledCentreActivity> => {
   // Simulate adding by pushing to the mock array
   const newActivity = { ...activity, id: String(mockScheduledCentreActivities.length + 1) };
   return newActivity;
 };
 
-// TODO change when actual API is implemented
+// for centre activity schedule view
 export const updateCentreActivity = async (activity: ScheduledCentreActivity): Promise<ScheduledCentreActivity> => {
   // Simulate update by returning the updated activity - don't modify the mock array directly
   return activity;
 }
 
-// TODO change when actual API is implemented
+// for centre activity schedule view
 export const deleteCentreActivity = async (activityId: string) => {
   // Simulate deletion by filtering out the activity
   const updatedActivities = mockScheduledCentreActivities.filter(activity => activity.id !== activityId);
