@@ -1,5 +1,5 @@
 import { CalendarScheduleItem } from '@/hooks/scheduler/useSchedulerService';
-import { format, startOfWeek, endOfWeek } from 'date-fns';
+import { format } from 'date-fns';
 
 export interface ExportScheduleItem {
   patientId: number;
@@ -75,11 +75,10 @@ export const exportScheduleToCSV = (
 
   const csvContent = csvRows.join('\n');
 
-  // Generate filename with week range
+  // Generate filename with today's date
   const now = new Date();
-  const weekStart = startOfWeek(now, { weekStartsOn: 1 });
-  const weekEnd = endOfWeek(now, { weekStartsOn: 1 });
-  const defaultFilename = `patient-schedule-${format(weekStart, 'yyyy-MM-dd')}-to-${format(weekEnd, 'yyyy-MM-dd')}`;
+  const todayFormatted = format(now, 'yyyy-MM-dd');
+  const defaultFilename = `exported_data_${todayFormatted}`;
   const finalFilename = filename || defaultFilename;
 
   // Create and trigger download
@@ -98,6 +97,6 @@ export const exportScheduleToCSV = (
   return {
     recordsExported: exportData.length,
     filename: `${finalFilename}.csv`,
-    weekRange: `${format(weekStart, 'MMM dd')} - ${format(weekEnd, 'MMM dd, yyyy')}`
+    exportDate: format(now, 'MMM dd, yyyy')
   };
 };

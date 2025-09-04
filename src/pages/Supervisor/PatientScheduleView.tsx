@@ -126,15 +126,21 @@ const PatientScheduleView: React.FC = () => {
   // Handle CSV export
   const handleExportSchedule = () => {
     try {
+      // Generate filename with today's date
+      const today = new Date();
+      const todayFormatted = today.toISOString().split('T')[0]; // YYYY-MM-DD format
+      const customFilename = `Patient_Schedule_Data_${todayFormatted}`;
+      
       const result = exportScheduleToCSV(
         PATIENT_SCHEDULE_CSV_HEADERS,
         scheduleData,
         selectedScheduleActivities,
-        getPatientNameForExport // Use the export-specific function that returns just the patient name
+        getPatientNameForExport, // Use the export-specific function that returns just the patient name
+        customFilename // Pass the custom filename
       );
       
       toast.success(
-        `Exported ${result.recordsExported} activities for week ${result.weekRange}`,
+        `Exported ${result.recordsExported} activities for ${result.exportDate}`,
         {
           description: `File: ${result.filename}`,
         }
