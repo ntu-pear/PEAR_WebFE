@@ -35,6 +35,18 @@ module.exports = {
           DEFAULT: "hsl(var(--destructive))",
           foreground: "hsl(var(--destructive-foreground))",
         },
+        pending:{
+          DEFAULT:"hsl(var(--pending))",
+          foreground:"hsl(var(--pending-foreground))"
+        },
+        approve:{
+          DEFAULT:"hsl(var(--approve))",
+          foreground:"hsl(var(--approve-foreground))"
+        },
+        reject:{
+          DEFAULT:"hsl(var(--reject))",
+          foreground:"hsl(var(--reject-foreground))"
+        },
         save: {
           DEFAULT: "hsl(var(--save))",
           foreground: "hsl(var(--save-foreground))",
