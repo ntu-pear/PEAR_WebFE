@@ -46,11 +46,13 @@ export async function fetchListItems(type: string): Promise<ListItem[]> {
       value: Value ?? value,
     }));
   }
-  return res.data.data.map(({ Value, value }, index) => ({
-    id: index,
-    type,
-    value: Value ?? value,
-  }));
+  return res.data.data.map(
+    ({ Value, value }: { Value?: string; value?: string }, index: number) => ({
+      id: index,
+      type,
+      value: Value ?? value,
+    })
+  );
 }
 
 // TBD: Replace with real API
