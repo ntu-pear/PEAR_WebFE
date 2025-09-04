@@ -28,12 +28,10 @@ const PatientScheduleView: React.FC = () => {
   // hooks for patient schedule data
   const {
     searchTerm,
-    showInactivePatients,
     setSearchTerm,
     getActivityTemplate,
     getPatientActivitiesForDate,
     getPatientActivitiesForTimeSlot,
-    handlePatientStatusToggle,
   } = usePatientScheduleData();
 
   // hooks for scheduler service
@@ -358,9 +356,7 @@ const PatientScheduleView: React.FC = () => {
         <PatientScheduleSidebar
           activityTemplates={activitiesFromSchedule} // Use derived activities from scheduler response
           selectedActivities={selectedScheduleActivities} // Use schedule-based selected activities
-          showInactivePatients={showInactivePatients}
           onActivityToggle={handleScheduleActivityToggle}
-          onPatientStatusToggle={handlePatientStatusToggle}
           // Scheduler props
           isGeneratingSchedule={isGeneratingSchedule}
           scheduleData={scheduleData}

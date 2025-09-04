@@ -2,8 +2,6 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ActivityTemplate } from '@/api/scheduler/scheduler';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { RefreshCw, Calendar as CalendarIcon, ExternalLink, RotateCcw } from 'lucide-react';
 import { ACTIVITY_STYLES } from './CalendarTypes';
@@ -12,9 +10,7 @@ import { CalendarScheduleItem } from '@/hooks/scheduler/useSchedulerService';
 interface PatientScheduleSidebarProps {
   activityTemplates: ActivityTemplate[];
   selectedActivities: string[];
-  showInactivePatients: boolean;
   onActivityToggle: (activityId: string, checked: boolean) => void;
-  onPatientStatusToggle: (showInactive: boolean) => void;
   // Scheduler props
   isGeneratingSchedule: boolean;
   scheduleData: CalendarScheduleItem[];
@@ -27,9 +23,7 @@ interface PatientScheduleSidebarProps {
 const PatientScheduleSidebar: React.FC<PatientScheduleSidebarProps> = ({
   activityTemplates,
   selectedActivities,
-  showInactivePatients,
   onActivityToggle,
-  onPatientStatusToggle,
   isGeneratingSchedule,
   scheduleData,
   scheduleError,
@@ -96,24 +90,6 @@ const PatientScheduleSidebar: React.FC<PatientScheduleSidebarProps> = ({
                 Generated schedule for {new Set(scheduleData.map(s => s.patientId)).size} patients
               </div>
             )}
-          </CardContent>
-        </Card>
-        {/* Patient Status Filter */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm">Patient Status</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="flex items-center space-x-2">
-              <Switch
-                id="show-inactive"
-                checked={showInactivePatients}
-                onCheckedChange={onPatientStatusToggle}
-              />
-              <Label htmlFor="show-inactive" className="text-sm">
-                Show inactive patients
-              </Label>
-            </div>
           </CardContent>
         </Card>
         {/* Activity Filters (from scheduleData) */}
