@@ -35,11 +35,11 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
   const getHeaderTitle = () => {
     switch (viewMode) {
       case 'centre-monthly':
-        return `Activity Schedule - ${format(currentDate, 'MMMM yyyy')}`;
+        return `Centre Activity Schedule - ${format(currentDate, 'MMMM yyyy')}`;
       case 'centre-weekly':
-        return `Activity Schedule - ${format(startOfWeek(currentDate, { locale: enUS }), 'MMM dd')} - ${format(endOfWeek(currentDate, { locale: enUS }), 'MMM dd, yyyy')}`;
+        return `Centre Activity Schedule - ${format(startOfWeek(currentDate, { locale: enUS }), 'MMM dd')} - ${format(endOfWeek(currentDate, { locale: enUS }), 'MMM dd, yyyy')}`;
       case 'centre-daily':
-        return `Activity Schedule - ${format(currentDate, 'EEEE, MMMM dd, yyyy')}`;
+        return `Centre Activity Schedule - ${format(currentDate, 'EEEE, MMMM dd, yyyy')}`;
       case 'patient-daily':
         return `Patient Schedule - ${format(currentDate, 'EEEE, MMMM dd, yyyy')}`;
       case 'patient-weekly':

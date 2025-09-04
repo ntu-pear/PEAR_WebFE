@@ -165,10 +165,6 @@ const App: React.FC = () => {
                         ))}
                       </Route>
                       <Route
-                        path="centre-activity"
-                        element={<CentreScheduleView />}
-                      />
-                      <Route
                         path="patient-schedule"
                         element={<PatientScheduleView />}
                       />

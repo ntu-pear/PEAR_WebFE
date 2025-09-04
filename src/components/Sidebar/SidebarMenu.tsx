@@ -90,11 +90,6 @@ const supervisorMenu: MenuSection[] = [
     title: "SCHEDULE",
     items: [
       {
-        title: "Centre Activity Schedule",
-        icon: "Calendar",
-        path: "/supervisor/centre-activity",
-      },
-      {
         title: "Patient Schedule",
         icon: "Users",
         path: "/supervisor/patient-schedule",
