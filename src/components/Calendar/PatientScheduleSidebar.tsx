@@ -17,7 +17,6 @@ interface PatientScheduleSidebarProps {
   scheduleError: string | null;
   onGenerateSchedule: () => void;
   onRegenerateSchedule: () => void;
-  onClearSchedule: () => void;
 }
 
 const PatientScheduleSidebar: React.FC<PatientScheduleSidebarProps> = ({
@@ -29,7 +28,6 @@ const PatientScheduleSidebar: React.FC<PatientScheduleSidebarProps> = ({
   scheduleError,
   onGenerateSchedule,
   onRegenerateSchedule,
-  onClearSchedule,
 }) => {
   const navigate = useNavigate();
   
@@ -70,15 +68,6 @@ const PatientScheduleSidebar: React.FC<PatientScheduleSidebarProps> = ({
                 </>
               )}
             </Button>
-            {scheduleData.length > 0 && (
-              <Button
-                onClick={onClearSchedule}
-                variant="outline"
-                className="w-full bg-white hover:bg-gray-50"
-              >
-                Clear Schedule
-              </Button>
-            )}
             {/* Schedule Status */}
             {scheduleError && (
               <div className="bg-red-100 border border-red-400 text-red-700 px-3 py-2 rounded text-xs">

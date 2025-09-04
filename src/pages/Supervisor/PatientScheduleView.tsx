@@ -41,7 +41,6 @@ const PatientScheduleView: React.FC = () => {
     error: scheduleError,
     generateSchedule,
     getOrGenerateSchedule,
-    clearSchedule,
     getPatientScheduleForDate,
     getScheduleForTimeSlot,
   } = useSchedulerService();
@@ -374,7 +373,6 @@ const PatientScheduleView: React.FC = () => {
           scheduleError={scheduleError}
           onGenerateSchedule={getOrGenerateSchedule}
           onRegenerateSchedule={generateSchedule}
-          onClearSchedule={clearSchedule}
         />
 
         {/* Main Calendar Content */}
