@@ -45,7 +45,7 @@ const PatientScheduleSidebar: React.FC<PatientScheduleSidebarProps> = ({
         {/* Scheduler Controls */}
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm">Schedule Generator</CardTitle>
+            <CardTitle className="text-sm">Schedule Management</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <Button

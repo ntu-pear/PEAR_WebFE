@@ -93,6 +93,11 @@ const PatientScheduleView: React.FC = () => {
     return `Patient ${patientId}`; // Fallback if patient details not loaded
   }, [patientDetails]);
 
+  // Auto-fetch/generate schedule when component mounts
+  useEffect(() => {
+    getOrGenerateSchedule();
+  }, [getOrGenerateSchedule]); // Include the function in dependency array
+
   // Auto-select all activities when schedule data changes
   useEffect(() => {
     if (activitiesFromSchedule.length > 0) {
@@ -288,6 +293,19 @@ const PatientScheduleView: React.FC = () => {
   };
 
   const renderCalendarView = () => {
+    // Show loading state while generating schedule
+    if (isGeneratingSchedule && scheduleData.length === 0) {
+      return (
+        <div className="flex items-center justify-center h-full">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading schedule...</p>
+            <p className="text-sm text-gray-500 mt-2">This may take a moment</p>
+          </div>
+        </div>
+      );
+    }
+
     // Apply search filter to patients
     const filteredPatientsFromSchedule = patientsFromSchedule.filter(patient =>
       patient.name.toLowerCase().includes(searchTerm.toLowerCase()) ||

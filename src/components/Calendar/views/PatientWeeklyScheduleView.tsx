@@ -105,7 +105,7 @@ const PatientWeeklyScheduleView: React.FC<PatientWeeklyScheduleViewProps> = ({
           {/* Patient rows */}
           {patients.length === 0 ? (
             <div className="p-8 text-center text-gray-500">
-              Generate a schedule to view patient activities.
+              No schedule data available.
             </div>
           ) : (
             patients.map(patient => {

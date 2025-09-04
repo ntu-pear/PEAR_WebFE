@@ -35,7 +35,10 @@ test('Supervisor: View Patient Scheduled Activities', async ({ page }) => {
   await page.getByRole('button').filter({ hasText: /^$/ }).first().click();
   await page.locator('a').filter({ hasText: 'Patient Schedule' }).click();
   
-  await page.locator('div').filter({ hasText: /^Generate Schedule$/ }).click();
+  // The schedule is now automatically generated when user navigates to the page
+  // so just check that the "Regenerate Schedule" button is visible
+  await expect(page.getByText('Regenerate Schedule')).toBeVisible();
+  
   // check that the timetable is visible
   await expect(page.getByRole('main').filter({ hasText: 'Toggle themeToggle theme' }).getByRole('main')).toBeVisible();
 
