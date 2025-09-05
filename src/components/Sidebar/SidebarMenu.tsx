@@ -90,9 +90,14 @@ const supervisorMenu: MenuSection[] = [
     title: "SCHEDULE",
     items: [
       {
-        title: "Display Schedule",
-        icon: "Calendar",
-        path: "/supervisor/display-schedule",
+        title: "Patient Schedule",
+        icon: "Users",
+        path: "/supervisor/patient-schedule",
+      },
+      {
+        title: "Scheduler System Test",
+        icon: "Settings",
+        path: "/supervisor/scheduler-system-test",
       },
     ],
   },
