@@ -141,7 +141,7 @@ export const parseScheduleString = (scheduleString: string): string[] => {
   if (!scheduleString || scheduleString.trim() === '') {
     return [];
   }
-  
+
   return scheduleString.split('--').map(activity => activity.trim()).filter(activity => activity.length > 0);
 };
 
@@ -163,17 +163,17 @@ export const convertScheduleToCalendarFormat = (scheduleData: WeeklyScheduleData
     startDate: string;
     endDate: string;
   }> = [];
-  
+
   // Use the API time slots constant
   const timeSlots = API_TIME_SLOTS;
-  
+
   for (const patientSchedule of scheduleData) {
     const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-    
+
     for (const day of days) {
       const daySchedule = patientSchedule[day as keyof WeeklyScheduleData] as string;
       const activities = parseScheduleString(daySchedule);
-      
+
       // Create calendar events for each activity
       activities.forEach((activity, index) => {
         if (activity && index < timeSlots.length - 1) { // -1 because last element is end hour, not a slot start
@@ -182,7 +182,7 @@ export const convertScheduleToCalendarFormat = (scheduleData: WeeklyScheduleData
           const startTime = hourToTimeString(startHour);
           const endTime = hourToTimeString(endHour);
           const eventDate = getDateForDayOfWeek(day, patientSchedule.StartDate);
-          
+
           const calendarEvent = {
             id: `${patientSchedule.PatientID}-${day}-${index}`,
             patientId: patientSchedule.PatientID,
@@ -194,23 +194,23 @@ export const convertScheduleToCalendarFormat = (scheduleData: WeeklyScheduleData
             startDate: patientSchedule.StartDate,
             endDate: patientSchedule.EndDate,
           };
-          
+
           calendarSchedule.push(calendarEvent);
         }
       });
     }
   }
-  
+
   return calendarSchedule;
 };
 
 // Helper function to get actual date for day of week based on the API's StartDate
 const getDateForDayOfWeek = (dayName: string, startDateStr: string): string => {
   const startDate = new Date(startDateStr);
-  
+
   // Determine what day of the week the StartDate is
   const startDayOfWeek = startDate.getDay();
-  
+
   // Map day names to day numbers
   const dayMapping = {
     'Sunday': 0,
@@ -221,9 +221,9 @@ const getDateForDayOfWeek = (dayName: string, startDateStr: string): string => {
     'Friday': 5,
     'Saturday': 6,
   };
-  
+
   const targetDay = dayMapping[dayName as keyof typeof dayMapping];
-  
+
   // Calculate offset from the start date
   // If StartDate is Monday (1) and we want Tuesday (2), offset = 1
   // If StartDate is Monday (1) and we want Sunday (0), offset = 6 (next Sunday)
@@ -231,14 +231,14 @@ const getDateForDayOfWeek = (dayName: string, startDateStr: string): string => {
   if (offset < 0) {
     offset += 7; // Handle wrap-around for previous days in the week
   }
-  
+
   // Add the offset to get the target date
   const targetDate = new Date(startDate);
   targetDate.setDate(startDate.getDate() + offset);
-  
+
   const result = targetDate.toISOString().split('T')[0];
   // console.log(`Date calculation: ${dayName} from StartDate ${startDateStr} (day ${startDayOfWeek}) -> ${result} (offset: ${offset})`);
-  
+
   // Return in YYYY-MM-DD format for calendar compatibility
   return result;
 };
@@ -248,21 +248,21 @@ export const generateAndGetSchedule = async () => {
   try {
     // First generate the schedule
     const generateResponse = await generateSchedule();
-    
+
     if (generateResponse.Status !== "200") {
       throw new Error(`Failed to generate schedule: ${generateResponse.Message}`);
     }
-    
+
     // Then get the generated schedule
     const scheduleResponse = await getSchedule();
-    
+
     if (scheduleResponse.Status !== "200") {
       throw new Error(`Failed to get schedule: ${scheduleResponse.Message}`);
     }
-    
+
     // Convert to calendar format
     const calendarSchedule = convertScheduleToCalendarFormat(scheduleResponse.Data);
-    
+
     return {
       success: true,
       data: calendarSchedule,
