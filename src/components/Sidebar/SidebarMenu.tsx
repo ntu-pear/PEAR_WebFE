@@ -94,6 +94,11 @@ const supervisorMenu: MenuSection[] = [
         icon: "Users",
         path: "/supervisor/patient-schedule",
       },
+      {
+        title: "Scheduler System Test",
+        icon: "Settings",
+        path: "/supervisor/scheduler-system-test",
+      },
     ],
   },
   {

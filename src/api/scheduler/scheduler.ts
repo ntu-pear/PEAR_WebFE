@@ -279,3 +279,55 @@ export const generateAndGetSchedule = async () => {
     };
   }
 };
+
+// System test related interfaces
+export interface SystemTestResult {
+  testName: string;
+  testResult: string;
+  testRemarks: string[];
+}
+
+export interface SystemStatistic {
+  statsName: string;
+  statsResult: string[];
+}
+
+export interface SystemWarning {
+  warningName: string;
+  warningRemarks: string[];
+}
+
+export interface SystemTestData {
+  SystemTest: SystemTestResult[];
+  Statistics: SystemStatistic[];
+  Warnings: SystemWarning[];
+}
+
+// Get system test results
+export const getSystemTest = async (): Promise<SchedulerResponse<SystemTestData>> => {
+  try {
+    const response = await fetch(`${SCHEDULER_BASE_URL}/schedule/systemTest/`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      let errorDetails = '';
+      try {
+        const errorData = await response.json();
+        errorDetails = JSON.stringify(errorData, null, 2);
+      } catch {
+        errorDetails = await response.text();
+      }
+      throw new Error(`HTTP error! status: ${response.status}\n\nResponse details:\n${errorDetails}`);
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error getting system test results:', error);
+    throw error;
+  }
+};
