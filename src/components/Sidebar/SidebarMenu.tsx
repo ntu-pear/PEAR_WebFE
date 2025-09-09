@@ -202,6 +202,11 @@ const adminMenu: MenuSection[] = [
         icon: "Wrench",
         path: "/admin/manage-miscellaneous",
       },
+      {
+        title: "Permanent Delete",
+        icon: "Trash2",
+        path: "/admin/dev-permanent-delete",
+      },
     ],
   },
   {

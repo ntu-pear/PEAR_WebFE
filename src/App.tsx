@@ -30,6 +30,7 @@ import CreateRole from "./pages/Admin/CreateRole";
 import EditRole from "./pages/Admin/EditRole";
 import EditUserInRole from "./pages/Admin/EditUserInRole";
 import RegisterAccount from "./pages/Admin/RegisterAccount";
+import DevPermanentDelete from "./pages/Admin/DevPermanentDeleteAccount";
 
 import Unauthorized from "./pages/Unauthorized";
 import NotFound from "./pages/NotFound";
@@ -153,7 +154,10 @@ const App: React.FC = () => {
                         path="view-highlights"
                         element={<HighlightTable />}
                       />
-                      <Route path="manage-approval-requests" element={<ManageApprovalRequest/>}/>
+                      <Route
+                        path="manage-approval-requests"
+                        element={<ManageApprovalRequest />}
+                      />
                       <Route
                         path="view-patient-logs"
                         element={<PatientLogs />}
@@ -203,6 +207,10 @@ const App: React.FC = () => {
                       <Route
                         path="manage-social-history"
                         element={<ManageSocialHistory />}
+                      />
+                      <Route
+                        path="dev-permanent-delete"
+                        element={<DevPermanentDelete />}
                       />
                       <Route path="settings/*" element={<UserSettings />}>
                         {settingsRoutes.map(({ path, element }) => (
