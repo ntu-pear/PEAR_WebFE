@@ -11,6 +11,8 @@ import * as Icons from "lucide-react";
 import { LucideIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { FeatureFlags } from "@/utils/featureFlags";
+import { useAnyFeatureFlag } from "@/hooks/useFeatureFlags";
 
 // Types
 interface MenuItem {
@@ -18,6 +20,7 @@ interface MenuItem {
   icon: string;
   path: string;
   children?: MenuItem[];
+  featureFlag?: (keyof FeatureFlags)[]; // optional check for feature flag
 }
 
 interface MenuSection {
@@ -98,6 +101,7 @@ const supervisorMenu: MenuSection[] = [
         title: "Scheduler System Test",
         icon: "Settings",
         path: "/supervisor/scheduler-system-test",
+        featureFlag: ["staging","development"],
       },
     ],
   },
@@ -440,7 +444,8 @@ const SidebarMenu: React.FC = () => {
             {menuSections &&
               menuSections.map((section) => (
                 <ExpandableSection key={section.title} title={section.title}>
-                  {section.items.map((item) => (
+                  {section.items.filter(item => !item.featureFlag || useAnyFeatureFlag(item.featureFlag))
+                  .map((item) => (
                     <MenuItem
                       key={item.title}
                       to={item.path}

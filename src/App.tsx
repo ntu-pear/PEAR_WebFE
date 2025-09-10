@@ -11,6 +11,8 @@ import { ModalProvider } from "./hooks/useModal";
 import { AuthProvider } from "./hooks/useAuth";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { FeatureFlagProvider } from "./hooks/useFeatureFlags";
+import FeatureFlagPanel from "./components/FeatureFlagPanel";
 
 import PatientTable from "./pages/PatientTable";
 import AddPatient from "./pages/Supervisor/AddPatient";
@@ -57,6 +59,7 @@ import ManageSocialHistory from "./pages/Admin/ManageSocialHistory";
 import CustomRoleProtectedRoute from "./components/CustomRoleProtectedRoute";
 import PatientScheduleView from "./pages/Supervisor/PatientScheduleView";
 import SchedulerSystemTest from "./pages/Supervisor/SchedulerSystemTest";
+import { useStaticFeatureFlag } from "./hooks/useFeatureFlags";
 
 export const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: false, staleTime: Infinity } },
@@ -92,11 +95,12 @@ const App: React.FC = () => {
   return (
     <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
       <QueryClientProvider client={queryClient}>
-        <Router>
-          <AuthProvider>
-            <ModalProvider>
-              <div className="min-h-screen bg-background font-sans antialiased">
-                <main>
+        <FeatureFlagProvider>
+          <Router>
+            <AuthProvider>
+              <ModalProvider>
+                <div className="min-h-screen bg-background font-sans antialiased">
+                  <main>
                   <Routes>
                     <Route path="/login" element={<Login />} />
                     <Route path="/login-2fa" element={<Login2FA />} />
@@ -172,10 +176,12 @@ const App: React.FC = () => {
                         path="patient-schedule"
                         element={<PatientScheduleView />}
                       />
-                      <Route
-                        path="scheduler-system-test"
-                        element={<SchedulerSystemTest />}
-                      />
+                      {!useStaticFeatureFlag("production") && (
+                        <Route
+                          path="scheduler-system-test"
+                          element={<SchedulerSystemTest />}
+                        />
+                      )}
                     </Route>
 
                     {/* Routes for Admin*/}
@@ -286,12 +292,16 @@ const App: React.FC = () => {
                     <Route path="/test-geocode" element={<TestGeocode />} />
                     <Route path="/" element={<Navigate to="/login" />} />
                   </Routes>
-                </main>
-                <Toaster richColors />
-              </div>
-            </ModalProvider>
-          </AuthProvider>
-        </Router>
+                  </main>
+                  <Toaster richColors />
+                  {useStaticFeatureFlag("flag_panel") && (
+                    <FeatureFlagPanel />
+                  )}
+                </div>
+              </ModalProvider>
+            </AuthProvider>
+          </Router>
+        </FeatureFlagProvider>
       </QueryClientProvider>
     </ThemeProvider>
   );
