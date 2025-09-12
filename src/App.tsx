@@ -11,7 +11,7 @@ import { ModalProvider } from "./hooks/useModal";
 import { AuthProvider } from "./hooks/useAuth";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { FeatureFlagProvider } from "./hooks/useFeatureFlags";
+import { FeatureFlagProvider, useFeatureFlag } from "./hooks/useFeatureFlags";
 import FeatureFlagPanel from "./components/FeatureFlagPanel";
 
 import PatientTable from "./pages/PatientTable";
@@ -59,7 +59,6 @@ import ManageSocialHistory from "./pages/Admin/ManageSocialHistory";
 import CustomRoleProtectedRoute from "./components/CustomRoleProtectedRoute";
 import PatientScheduleView from "./pages/Supervisor/PatientScheduleView";
 import SchedulerSystemTest from "./pages/Supervisor/SchedulerSystemTest";
-import { useStaticFeatureFlag } from "./hooks/useFeatureFlags";
 
 export const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: false, staleTime: Infinity } },
@@ -95,7 +94,6 @@ const App: React.FC = () => {
   return (
     <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
       <QueryClientProvider client={queryClient}>
-        <FeatureFlagProvider>
           <Router>
             <AuthProvider>
               <ModalProvider>
@@ -176,7 +174,7 @@ const App: React.FC = () => {
                         path="patient-schedule"
                         element={<PatientScheduleView />}
                       />
-                      {!useStaticFeatureFlag("production") && (
+                      {!useFeatureFlag("production") && (
                         <Route
                           path="scheduler-system-test"
                           element={<SchedulerSystemTest />}
@@ -294,14 +292,13 @@ const App: React.FC = () => {
                   </Routes>
                   </main>
                   <Toaster richColors />
-                  {useStaticFeatureFlag("flag_panel") && (
+                  {useFeatureFlag("flag_panel") && (
                     <FeatureFlagPanel />
                   )}
                 </div>
               </ModalProvider>
             </AuthProvider>
           </Router>
-        </FeatureFlagProvider>
       </QueryClientProvider>
     </ThemeProvider>
   );
