@@ -51,7 +51,9 @@ export const useFeatureFlags = () => {
 };
 
 /**
- * For checking if a feature is enabled at runtime
+ * For checking if a feature is enabled at runtime. 
+ * Note: This does not provide route-level protection, routes should handle
+ * their own access control (e.g., redirecting if disabled).
  * @param feature - The feature flag key to check
  * @returns boolean indicating if the feature is enabled
  */
