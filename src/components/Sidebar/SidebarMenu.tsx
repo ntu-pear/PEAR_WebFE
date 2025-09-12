@@ -102,7 +102,7 @@ const supervisorMenu: MenuSection[] = [
         title: "Scheduler System Test",
         icon: "Settings",
         path: "/supervisor/scheduler-system-test",
-        featureFlag: ["staging","development"],
+        featureFlag: ["staging", "development"],
       },
     ],
   },
@@ -148,10 +148,10 @@ const supervisorMenu: MenuSection[] = [
         title: "Feature Flag Settings",
         icon: "Settings",
         path: "/supervisor/feature-flag-settings",
-        featureFlag: ["development","staging"],
+        featureFlag: ["development", "staging"],
       },
     ],
-    featureFlag: ["development","staging"],
+    featureFlag: ["development", "staging"],
   },
 ];
 
@@ -490,21 +490,31 @@ const SidebarMenu: React.FC = () => {
           </div>
           <div className="flex-grow overflow-y-auto">
             {menuSections &&
-              menuSections.filter(section => !section.featureFlag || useAnyFeatureFlag(section.featureFlag))
-              .map((section) => (
-                <ExpandableSection key={section.title} title={section.title}>
-                  {section.items.filter(item => !item.featureFlag || useAnyFeatureFlag(item.featureFlag))
-                  .map((item) => (
-                    <MenuItem
-                      key={item.title}
-                      to={item.path}
-                      icon={item.icon}
-                      label={item.title}
-                      closeSheet={closeSheet}
-                    />
-                  ))}
-                </ExpandableSection>
-              ))}
+              menuSections
+                .filter(
+                  (section) =>
+                    !section.featureFlag ||
+                    useAnyFeatureFlag(section.featureFlag)
+                )
+                .map((section) => (
+                  <ExpandableSection key={section.title} title={section.title}>
+                    {section.items
+                      .filter(
+                        (item) =>
+                          !item.featureFlag ||
+                          useAnyFeatureFlag(item.featureFlag)
+                      )
+                      .map((item) => (
+                        <MenuItem
+                          key={item.title}
+                          to={item.path}
+                          icon={item.icon}
+                          label={item.title}
+                          closeSheet={closeSheet}
+                        />
+                      ))}
+                  </ExpandableSection>
+                ))}
           </div>
         </div>
       </SheetContent>

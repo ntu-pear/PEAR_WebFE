@@ -23,7 +23,8 @@ export default function FeatureFlagSettings() {
             </h1>
           </div>
           <p className="text-gray-600 text-lg">
-            Manage feature flags to enable or disable specific functionality across the application.
+            Manage feature flags to enable or disable specific functionality
+            across the application.
           </p>
         </div>
 
@@ -38,7 +39,10 @@ export default function FeatureFlagSettings() {
               <ul className="text-sm text-blue-700 space-y-1">
                 <li>Changes are temporary and will reset on page refresh</li>
                 <li>These settings affect the current browser session only</li>
-                <li>Some features may require additional permissions or data to function properly</li>
+                <li>
+                  Some features may require additional permissions or data to
+                  function properly
+                </li>
               </ul>
             </div>
           </div>
@@ -63,7 +67,8 @@ export default function FeatureFlagSettings() {
               </Button>
             </div>
             <p className="text-sm text-gray-600 mt-2">
-              Toggle individual feature flags to enable or disable specific functionality.
+              Toggle individual feature flags to enable or disable specific
+              functionality.
             </p>
           </CardHeader>
           <CardContent>
@@ -109,7 +114,8 @@ export default function FeatureFlagSettings() {
             {/* Footer */}
             <div className="mt-6 pt-4 border-t text-center">
               <p className="text-sm text-gray-500">
-                Feature flags help control the rollout of features and can also be used for A/B testing in the future.
+                Feature flags help control the rollout of features and can also
+                be used for A/B testing in the future.
               </p>
             </div>
           </CardContent>

@@ -86,27 +86,27 @@ export default function FeatureFlagPanel() {
         <CardContent className="pt-0">
           <div className="space-y-2">
             {Object.entries(flags).map(([key, value]) => (
-                  <div
-                    key={key}
-                    className="flex items-center justify-between text-sm"
-                  >
-                    <span className="font-medium text-gray-700 capitalize">
-                      {key.replace(/([A-Z])/g, " $1").trim()}
-                    </span>
-                    <Button
-                      onClick={() => toggleFlag(key as keyof typeof flags)}
-                      variant={value ? "default" : "secondary"}
-                      size="sm"
-                      className={`h-6 px-2 text-xs font-medium ${
-                        value
-                          ? "bg-green-500 hover:bg-green-600 text-white"
-                          : "bg-gray-200 hover:bg-gray-300 text-gray-700"
-                      }`}
-                    >
-                      {value ? "ON" : "OFF"}
-                    </Button>
-                  </div>
-                ))}
+              <div
+                key={key}
+                className="flex items-center justify-between text-sm"
+              >
+                <span className="font-medium text-gray-700 capitalize">
+                  {key.replace(/([A-Z])/g, " $1").trim()}
+                </span>
+                <Button
+                  onClick={() => toggleFlag(key as keyof typeof flags)}
+                  variant={value ? "default" : "secondary"}
+                  size="sm"
+                  className={`h-6 px-2 text-xs font-medium ${
+                    value
+                      ? "bg-green-500 hover:bg-green-600 text-white"
+                      : "bg-gray-200 hover:bg-gray-300 text-gray-700"
+                  }`}
+                >
+                  {value ? "ON" : "OFF"}
+                </Button>
+              </div>
+            ))}
           </div>
           <div className="mt-3 pt-3 border-t text-xs text-gray-500">
             Changes are temporary
