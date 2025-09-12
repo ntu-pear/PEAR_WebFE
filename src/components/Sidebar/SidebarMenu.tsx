@@ -26,6 +26,7 @@ interface MenuItem {
 interface MenuSection {
   title: string;
   items: MenuItem[];
+  featureFlag?: (keyof FeatureFlags)[]; // optional check for feature flag
 }
 
 const supervisorMenu: MenuSection[] = [
@@ -140,6 +141,18 @@ const supervisorMenu: MenuSection[] = [
       },
     ],
   },
+  {
+    title: "DEVELOPER",
+    items: [
+      {
+        title: "Feature Flag Settings",
+        icon: "Settings",
+        path: "/supervisor/feature-flag-settings",
+        featureFlag: ["development","staging"],
+      },
+    ],
+    featureFlag: ["development","staging"],
+  },
 ];
 
 const adminMenu: MenuSection[] = [
@@ -191,6 +204,11 @@ const adminMenu: MenuSection[] = [
   {
     title: "DEVELOPER",
     items: [
+      {
+        title: "Feature Flag Settings",
+        icon: "Settings",
+        path: "/admin/feature-flag-settings",
+      },
       {
         title: "Edit Roles",
         icon: "Wrench",
@@ -264,6 +282,16 @@ const doctorMenu: MenuSection[] = [
         title: "Search",
         icon: "Search",
         path: "/doctor/search",
+      },
+    ],
+  },
+  {
+    title: "DEVELOPER",
+    items: [
+      {
+        title: "Feature Flag Settings",
+        icon: "Settings",
+        path: "/doctor/feature-flag-settings",
       },
     ],
   },
@@ -341,6 +369,16 @@ const gameTherapistMenu: MenuSection[] = [
       },
     ],
   },
+  {
+    title: "DEVELOPER",
+    items: [
+      {
+        title: "Feature Flag Settings",
+        icon: "Settings",
+        path: "/game-therapist/feature-flag-settings",
+      },
+    ],
+  },
 ];
 
 const guardianMenu: MenuSection[] = [
@@ -351,6 +389,16 @@ const guardianMenu: MenuSection[] = [
         title: "Patient Information",
         icon: "UserRound",
         path: "/guardian/patient-information",
+      },
+    ],
+  },
+  {
+    title: "DEVELOPER",
+    items: [
+      {
+        title: "Feature Flag Settings",
+        icon: "Settings",
+        path: "/guardian/feature-flag-settings",
       },
     ],
   },
@@ -442,7 +490,8 @@ const SidebarMenu: React.FC = () => {
           </div>
           <div className="flex-grow overflow-y-auto">
             {menuSections &&
-              menuSections.map((section) => (
+              menuSections.filter(section => !section.featureFlag || useAnyFeatureFlag(section.featureFlag))
+              .map((section) => (
                 <ExpandableSection key={section.title} title={section.title}>
                   {section.items.filter(item => !item.featureFlag || useAnyFeatureFlag(item.featureFlag))
                   .map((item) => (
