@@ -55,6 +55,7 @@ import { ViewAccountProvider } from "./hooks/admin/useViewAccount";
 import ManageSocialHistory from "./pages/Admin/ManageSocialHistory";
 import CustomRoleProtectedRoute from "./components/CustomRoleProtectedRoute";
 import PatientScheduleView from "./pages/Supervisor/PatientScheduleView";
+import SchedulerSystemTest from "./pages/Supervisor/SchedulerSystemTest";
 
 export const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: false, staleTime: Infinity } },
@@ -166,6 +167,10 @@ const App: React.FC = () => {
                       <Route
                         path="patient-schedule"
                         element={<PatientScheduleView />}
+                      />
+                      <Route
+                        path="scheduler-system-test"
+                        element={<SchedulerSystemTest />}
                       />
                     </Route>
 
