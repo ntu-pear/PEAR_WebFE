@@ -207,6 +207,29 @@ export const deleteUserById = async (userId: string) => {
   }
 }
 
+export const permanentDeleteUserById = async (userId: string) => {
+  try {
+    const token = retrieveAccessTokenFromCookie();
+    if (!token) throw new Error("Token not found");
+    const response = await adminAPI.delete<User>(
+      `/${userId}`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    console.log("Permanent delete user", response.data);
+    return response.data;
+  } catch (error: any) {
+    if (error.response?.status === 404) {
+      toast.error("User not found.");
+    } else if (error.response?.status === 403) {
+      toast.error("Insufficient permissions to permanently delete user.");
+    } else {
+      toast.error("Failed to permanently delete user.");
+    }
+    console.error("Permanent delete user", error);
+    throw error;
+  }
+}
+
 export const getGuardian = async (nric: string) => {
   try {
     const token = retrieveAccessTokenFromCookie();

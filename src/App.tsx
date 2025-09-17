@@ -11,6 +11,8 @@ import { ModalProvider } from "./hooks/useModal";
 import { AuthProvider } from "./hooks/useAuth";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { useFeatureFlag } from "./hooks/useFeatureFlags";
+import FeatureFlagPanel from "./components/FeatureFlagPanel";
 
 import PatientTable from "./pages/PatientTable";
 import AddPatient from "./pages/Supervisor/AddPatient";
@@ -30,6 +32,7 @@ import CreateRole from "./pages/Admin/CreateRole";
 import EditRole from "./pages/Admin/EditRole";
 import EditUserInRole from "./pages/Admin/EditUserInRole";
 import RegisterAccount from "./pages/Admin/RegisterAccount";
+import DevPermanentDelete from "./pages/Admin/DevPermanentDeleteAccount";
 
 import Unauthorized from "./pages/Unauthorized";
 import NotFound from "./pages/NotFound";
@@ -56,6 +59,7 @@ import ManageSocialHistory from "./pages/Admin/ManageSocialHistory";
 import CustomRoleProtectedRoute from "./components/CustomRoleProtectedRoute";
 import PatientScheduleView from "./pages/Supervisor/PatientScheduleView";
 import SchedulerSystemTest from "./pages/Supervisor/SchedulerSystemTest";
+import FeatureFlagSettings from "./pages/FeatureFlagSettings";
 
 export const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: false, staleTime: Infinity } },
@@ -153,7 +157,10 @@ const App: React.FC = () => {
                         path="view-highlights"
                         element={<HighlightTable />}
                       />
-                      <Route path="manage-approval-requests" element={<ManageApprovalRequest/>}/>
+                      <Route
+                        path="manage-approval-requests"
+                        element={<ManageApprovalRequest />}
+                      />
                       <Route
                         path="view-patient-logs"
                         element={<PatientLogs />}
@@ -168,10 +175,20 @@ const App: React.FC = () => {
                         path="patient-schedule"
                         element={<PatientScheduleView />}
                       />
-                      <Route
-                        path="scheduler-system-test"
-                        element={<SchedulerSystemTest />}
-                      />
+                      {(useFeatureFlag("staging") ||
+                        !useFeatureFlag("production")) && (
+                        <Route
+                          path="feature-flag-settings"
+                          element={<FeatureFlagSettings />}
+                        />
+                      )}
+                      {(useFeatureFlag("staging") ||
+                        !useFeatureFlag("production")) && (
+                        <Route
+                          path="scheduler-system-test"
+                          element={<SchedulerSystemTest />}
+                        />
+                      )}
                     </Route>
 
                     {/* Routes for Admin*/}
@@ -204,6 +221,20 @@ const App: React.FC = () => {
                         path="manage-social-history"
                         element={<ManageSocialHistory />}
                       />
+                      {(useFeatureFlag("staging") ||
+                        !useFeatureFlag("production")) && (
+                        <Route
+                          path="dev-permanent-delete"
+                          element={<DevPermanentDelete />}
+                        />
+                      )}
+                      {(useFeatureFlag("staging") ||
+                        !useFeatureFlag("production")) && (
+                        <Route
+                          path="feature-flag-settings"
+                          element={<FeatureFlagSettings />}
+                        />
+                      )}
                       <Route path="settings/*" element={<UserSettings />}>
                         {settingsRoutes.map(({ path, element }) => (
                           <Route key={path} path={path} element={element} />
@@ -225,6 +256,13 @@ const App: React.FC = () => {
                         path="view-patient/:id"
                         element={<ViewPatientWrapper />}
                       />
+                      {(useFeatureFlag("staging") ||
+                        !useFeatureFlag("production")) && (
+                        <Route
+                          path="feature-flag-settings"
+                          element={<FeatureFlagSettings />}
+                        />
+                      )}
                       <Route path="settings/*" element={<UserSettings />}>
                         {settingsRoutes.map(({ path, element }) => (
                           <Route key={path} path={path} element={element} />
@@ -238,6 +276,13 @@ const App: React.FC = () => {
                       element={<ProtectedRoute allowedRoles={["GUARDIAN"]} />}
                     >
                       <Route path="temp-page" element={<TempPage />} />
+                      {(useFeatureFlag("staging") ||
+                        !useFeatureFlag("production")) && (
+                        <Route
+                          path="feature-flag-settings"
+                          element={<FeatureFlagSettings />}
+                        />
+                      )}
                       <Route path="settings/*" element={<UserSettings />}>
                         {settingsRoutes.map(({ path, element }) => (
                           <Route key={path} path={path} element={element} />
@@ -253,6 +298,13 @@ const App: React.FC = () => {
                       }
                     >
                       <Route path="temp-page" element={<TempPage />} />
+                      {(useFeatureFlag("staging") ||
+                        !useFeatureFlag("production")) && (
+                        <Route
+                          path="feature-flag-settings"
+                          element={<FeatureFlagSettings />}
+                        />
+                      )}
                       <Route path="settings/*" element={<UserSettings />}>
                         {settingsRoutes.map(({ path, element }) => (
                           <Route key={path} path={path} element={element} />
@@ -266,6 +318,13 @@ const App: React.FC = () => {
                       element={<CustomRoleProtectedRoute />}
                     >
                       <Route path="temp-page" element={<TempPage />} />
+                      {(useFeatureFlag("staging") ||
+                        !useFeatureFlag("production")) && (
+                        <Route
+                          path="feature-flag-settings"
+                          element={<FeatureFlagSettings />}
+                        />
+                      )}
                       <Route path="settings/*" element={<UserSettings />}>
                         {settingsRoutes.map(({ path, element }) => (
                           <Route key={path} path={path} element={element} />
@@ -280,6 +339,7 @@ const App: React.FC = () => {
                   </Routes>
                 </main>
                 <Toaster richColors />
+                {useFeatureFlag("flag_panel") && <FeatureFlagPanel />}
               </div>
             </ModalProvider>
           </AuthProvider>

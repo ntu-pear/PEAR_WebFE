@@ -11,6 +11,8 @@ import * as Icons from "lucide-react";
 import { LucideIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { FeatureFlags } from "@/utils/featureFlags";
+import { useAnyFeatureFlag } from "@/hooks/useFeatureFlags";
 
 // Types
 interface MenuItem {
@@ -18,11 +20,13 @@ interface MenuItem {
   icon: string;
   path: string;
   children?: MenuItem[];
+  featureFlag?: (keyof FeatureFlags)[]; // optional check for feature flag
 }
 
 interface MenuSection {
   title: string;
   items: MenuItem[];
+  featureFlag?: (keyof FeatureFlags)[]; // optional check for feature flag
 }
 
 const supervisorMenu: MenuSection[] = [
@@ -98,6 +102,7 @@ const supervisorMenu: MenuSection[] = [
         title: "Scheduler System Test",
         icon: "Settings",
         path: "/supervisor/scheduler-system-test",
+        featureFlag: ["staging", "development"],
       },
     ],
   },
@@ -135,6 +140,18 @@ const supervisorMenu: MenuSection[] = [
         path: "/supervisor/manage-list-items",
       },
     ],
+  },
+  {
+    title: "DEVELOPER",
+    items: [
+      {
+        title: "Feature Flag Settings",
+        icon: "Settings",
+        path: "/supervisor/feature-flag-settings",
+        featureFlag: ["development", "staging"],
+      },
+    ],
+    featureFlag: ["development", "staging"],
   },
 ];
 
@@ -188,6 +205,11 @@ const adminMenu: MenuSection[] = [
     title: "DEVELOPER",
     items: [
       {
+        title: "Feature Flag Settings",
+        icon: "Settings",
+        path: "/admin/feature-flag-settings",
+      },
+      {
         title: "Edit Roles",
         icon: "Wrench",
         path: "/admin/edit-roles",
@@ -201,6 +223,11 @@ const adminMenu: MenuSection[] = [
         title: "Manage Miscellaneous",
         icon: "Wrench",
         path: "/admin/manage-miscellaneous",
+      },
+      {
+        title: "Permanent Delete",
+        icon: "Trash2",
+        path: "/admin/dev-permanent-delete",
       },
     ],
   },
@@ -255,6 +282,16 @@ const doctorMenu: MenuSection[] = [
         title: "Search",
         icon: "Search",
         path: "/doctor/search",
+      },
+    ],
+  },
+  {
+    title: "DEVELOPER",
+    items: [
+      {
+        title: "Feature Flag Settings",
+        icon: "Settings",
+        path: "/doctor/feature-flag-settings",
       },
     ],
   },
@@ -332,6 +369,16 @@ const gameTherapistMenu: MenuSection[] = [
       },
     ],
   },
+  {
+    title: "DEVELOPER",
+    items: [
+      {
+        title: "Feature Flag Settings",
+        icon: "Settings",
+        path: "/game-therapist/feature-flag-settings",
+      },
+    ],
+  },
 ];
 
 const guardianMenu: MenuSection[] = [
@@ -342,6 +389,16 @@ const guardianMenu: MenuSection[] = [
         title: "Patient Information",
         icon: "UserRound",
         path: "/guardian/patient-information",
+      },
+    ],
+  },
+  {
+    title: "DEVELOPER",
+    items: [
+      {
+        title: "Feature Flag Settings",
+        icon: "Settings",
+        path: "/guardian/feature-flag-settings",
       },
     ],
   },
@@ -433,19 +490,31 @@ const SidebarMenu: React.FC = () => {
           </div>
           <div className="flex-grow overflow-y-auto">
             {menuSections &&
-              menuSections.map((section) => (
-                <ExpandableSection key={section.title} title={section.title}>
-                  {section.items.map((item) => (
-                    <MenuItem
-                      key={item.title}
-                      to={item.path}
-                      icon={item.icon}
-                      label={item.title}
-                      closeSheet={closeSheet}
-                    />
-                  ))}
-                </ExpandableSection>
-              ))}
+              menuSections
+                .filter(
+                  (section) =>
+                    !section.featureFlag ||
+                    useAnyFeatureFlag(section.featureFlag)
+                )
+                .map((section) => (
+                  <ExpandableSection key={section.title} title={section.title}>
+                    {section.items
+                      .filter(
+                        (item) =>
+                          !item.featureFlag ||
+                          useAnyFeatureFlag(item.featureFlag)
+                      )
+                      .map((item) => (
+                        <MenuItem
+                          key={item.title}
+                          to={item.path}
+                          icon={item.icon}
+                          label={item.title}
+                          closeSheet={closeSheet}
+                        />
+                      ))}
+                  </ExpandableSection>
+                ))}
           </div>
         </div>
       </SheetContent>
