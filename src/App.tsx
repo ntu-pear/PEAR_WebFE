@@ -54,6 +54,7 @@ import ViewAccount from "./pages/Admin/ViewAccount";
 import { ViewAccountProvider } from "./hooks/admin/useViewAccount";
 import ManageSocialHistory from "./pages/Admin/ManageSocialHistory";
 import CustomRoleProtectedRoute from "./components/CustomRoleProtectedRoute";
+import PatientScheduleView from "./pages/Supervisor/PatientScheduleView";
 
 export const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: false, staleTime: Infinity } },
@@ -162,6 +163,10 @@ const App: React.FC = () => {
                           <Route key={path} path={path} element={element} />
                         ))}
                       </Route>
+                      <Route
+                        path="patient-schedule"
+                        element={<PatientScheduleView />}
+                      />
                     </Route>
 
                     {/* Routes for Admin*/}
