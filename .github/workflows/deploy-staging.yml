@@ -30,7 +30,7 @@ jobs:
           echo "VITE_SCHEDULER_SERVICE_URL=${{ vars.VITE_SCHEDULER_SERVICE_URL }}" >> .env
           
           # Feature Flags
-          if [ "${{ vars.FEATURE_FLAGS }}" != '']; then
+          if [ -n "${{ vars.FEATURE_FLAGS }}" ]; then
             echo "${{ vars.FEATURE_FLAGS }}" >> .env
           fi
 
