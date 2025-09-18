@@ -57,16 +57,18 @@ const PatientScheduleView: React.FC = () => {
     return Array.from(activityMap.values());
   }, [scheduleData]);
 
-  const getPatientDisplayName = useCallback((calendarItem: CalendarScheduleItem) => {
+  // Function to get patient name for CSV export
+  const getPatientNameForExport = useCallback((calendarItem: CalendarScheduleItem) => {
     // Try to get the patient name from schedule data first
     const patientPreferredName = calendarItem.patientPreferredName;
     if (patientPreferredName) {
-      return `${patientPreferredName} (ID: ${calendarItem.patientId})`;
+      return patientPreferredName;
     }
 
     return `Patient ID: ${calendarItem.patientId}`; // default fallback value
   }, [scheduleData]);
 
+  // Function to get patient display name for activity details modal
   const getPatientDisplayNameFromActivity = useCallback((activity: ScheduledPatientActivity) => {
     // Try to get the patient name from schedule data first
     const patientPreferredName = activity.patientPreferredName;
@@ -110,7 +112,7 @@ const PatientScheduleView: React.FC = () => {
         PATIENT_SCHEDULE_CSV_HEADERS,
         scheduleData,
         selectedScheduleActivities,
-        getPatientDisplayName, // Use the export-specific function that returns just the patient name
+        getPatientNameForExport, // Use the export-specific function that returns just the patient name
         customFilename // Pass the custom filename
       );
       
