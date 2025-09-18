@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 export interface CalendarScheduleItem {
   id: string;
   patientId: number;
+  patientPreferredName: string;
   activityName: string;
   day: string;
   startTime: string;

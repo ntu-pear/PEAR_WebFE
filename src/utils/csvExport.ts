@@ -24,7 +24,7 @@ export const exportScheduleToCSV = (
   headers: readonly string[],
   scheduleData: CalendarScheduleItem[],
   selectedActivities: string[],
-  getPatientName: (patientId: number) => string,
+  getPatientName: (patientId: CalendarScheduleItem) => string,
   filename?: string
 ) => {
   // Filter schedule data by selected activities
@@ -48,7 +48,7 @@ export const exportScheduleToCSV = (
 
     return {
       patientId: item.patientId,
-      patientName: getPatientName(item.patientId), // Use the provided function to get actual patient name
+      patientName: getPatientName(item), // Use the provided function to get actual patient name
       activityName: item.activityName,
       date: item.date,
       day: item.day,

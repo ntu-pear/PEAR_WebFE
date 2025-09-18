@@ -28,6 +28,7 @@ export interface ScheduledPatientActivity {
   id: string;
   activityTemplateId: string;
   patientId: string;
+  patientPreferredName: string;
   startTime: string; // 'HH:mm'
   endTime: string; // 'HH:mm'
   date: string; // 'YYYY-MM-DD'
@@ -45,6 +46,7 @@ export interface SchedulerResponse<T> {
 
 export interface WeeklyScheduleData {
   PatientID: number;
+  PreferredName: string;
   Monday: string;
   Tuesday: string;
   Wednesday: string;
@@ -155,6 +157,7 @@ export const convertScheduleToCalendarFormat = (scheduleData: WeeklyScheduleData
   const calendarSchedule: Array<{
     id: string;
     patientId: number;
+    patientPreferredName: string;
     activityName: string;
     day: string;
     startTime: string;
@@ -186,6 +189,7 @@ export const convertScheduleToCalendarFormat = (scheduleData: WeeklyScheduleData
           const calendarEvent = {
             id: `${patientSchedule.PatientID}-${day}-${index}`,
             patientId: patientSchedule.PatientID,
+            patientPreferredName: patientSchedule.PreferredName,
             activityName: activity,
             day: day,
             startTime: startTime,

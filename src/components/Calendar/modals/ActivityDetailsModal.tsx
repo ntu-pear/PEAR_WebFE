@@ -11,7 +11,7 @@ interface ActivityDetailsModalProps {
   onClose: () => void;
   activity: ScheduledCentreActivity | ScheduledPatientActivity;
   getActivityTemplate: (id: string) => ActivityTemplate | undefined;
-  getPatientDisplayName?: (patientId: number) => string;
+  getPatientDisplayName?: (activity: ScheduledPatientActivity) => string;
 }
 
 const ActivityDetailsModal: React.FC<ActivityDetailsModalProps> = ({
@@ -62,7 +62,7 @@ const ActivityDetailsModal: React.FC<ActivityDetailsModalProps> = ({
                 <span className="text-gray-600"><User /></span>
                 <Label className="text-base">Patient:</Label>
                 <span className="text-base font-medium">
-                  {getPatientDisplayName ? getPatientDisplayName(parseInt(patientId)) : `Patient ID: ${patientId}`}
+                  {getPatientDisplayName ? getPatientDisplayName(activity) : `Patient ID: ${patientId}`}
                 </span>
               </div>
             )}
