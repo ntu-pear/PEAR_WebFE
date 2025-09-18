@@ -389,7 +389,7 @@ export default PatientScheduleView;
 // CSV Headers for Patient Schedule Export
 export const PATIENT_SCHEDULE_CSV_HEADERS = [
   'Patient ID',
-  'Patient Name', 
+  'Patient Preferred Name', 
   'Activity Name',
   'Date',
   'Day',
