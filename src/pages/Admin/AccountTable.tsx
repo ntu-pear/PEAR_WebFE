@@ -104,6 +104,17 @@ const AccountTable: React.FC = () => {
     handleFilter(accountTDServer.page, accountTDServer.page_size, column, newSortDir);
   };
 
+  const handlePageSizeChange = (newPageSize: number) => {
+    // Reset to first page when changing page size
+    const newAccountTDServer = {
+      ...accountTDServer,
+      page: 0,
+      page_size: newPageSize,
+    };
+    setAccountTDServer(newAccountTDServer);
+    handleFilter(0, newPageSize);
+  };
+
   useEffect(() => {
     handleFilter(accountTDServer.page, accountTDServer.page_size);
   }, [debouncedActiveStatus, debouncedSearch]);
@@ -226,6 +237,8 @@ const AccountTable: React.FC = () => {
                     sortBy={sortBy}
                     sortDir={sortDir}
                     onSort={handleSort}
+                    onPageSizeChange={handlePageSizeChange}
+                    pageSizeOptions={[5, 10, 20, 50, 100]}
                   />
                 </CardContent>
               </Card>
