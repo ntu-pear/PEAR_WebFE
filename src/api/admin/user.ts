@@ -76,14 +76,27 @@ export const fetchUserNRIC = async (userid: string) => {
 export const fetchUsersByFields = async (
   pageNo: number = 0,
   pageSize: number = 10,
-  filters: any = {}
+  filters: any = {},
+  sortBy?: string | null,
+  sortDir: "asc" | "desc" = "asc"
 ): Promise<AccountTableDataServer> => {
   const token = retrieveAccessTokenFromCookie();
   if (!token) throw new Error("No token found.");
 
   try {
+    // Build query parameters
+    const params = new URLSearchParams({
+      page: pageNo.toString(),
+      page_size: pageSize.toString(),
+      sort_dir: sortDir,
+    });
+
+    if (sortBy) {
+      params.append("sort_by", sortBy);
+    }
+
     const response = await adminAPI.post<AccountTableDataServer>(
-      `/get_users_by_fields?page=${pageNo}&page_size=${pageSize}`,
+      `/get_users_by_fields?${params.toString()}`,
       filters,
       {
         headers: {

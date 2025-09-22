@@ -42,6 +42,8 @@ const AccountTable: React.FC = () => {
   const [activeStatus, setActiveStatus] = useState("All");
   const [searchItem, setSearchItem] = useState("");
   const [tabValue, setTabValue] = useState("all");
+  const [sortBy, setSortBy] = useState<string | null>(null);
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
   const debouncedActiveStatus = useDebounce(activeStatus, 300);
   const debouncedSearch = useDebounce(searchItem, 300);
 
@@ -53,7 +55,7 @@ const AccountTable: React.FC = () => {
     []
   );
 
-  const handleFilter = async (pageNo: number, pageSize: number) => {
+  const handleFilter = async (pageNo: number, pageSize: number, sortColumn?: string, sortDirection?: "asc" | "desc") => {
     try {
       const apiFilterJson = {
         nric_FullName: debouncedSearch,
@@ -74,8 +76,12 @@ const AccountTable: React.FC = () => {
         Object.entries(apiFilterJson).filter(([_, value]) => value !== "")
       );
 
+      // Use provided sort parameters or current state
+      const currentSortBy = sortColumn !== undefined ? sortColumn : sortBy;
+      const currentSortDir = sortDirection !== undefined ? sortDirection : sortDir;
+
       const fetchedAccountTDServer: AccountTableDataServer =
-        await fetchUsersByFields(pageNo, pageSize, filteredJsonList);
+        await fetchUsersByFields(pageNo, pageSize, filteredJsonList, currentSortBy, currentSortDir);
 
       //let filteredAccountTDList = fetchedAccountTDServer.users;
 
@@ -91,6 +97,13 @@ const AccountTable: React.FC = () => {
     }
   };
 
+  const handleSort = (column: string) => {
+    const newSortDir = sortBy === column && sortDir === "asc" ? "desc" : "asc";
+    setSortBy(column);
+    setSortDir(newSortDir);
+    handleFilter(accountTDServer.page, accountTDServer.page_size, column, newSortDir);
+  };
+
   useEffect(() => {
     handleFilter(accountTDServer.page, accountTDServer.page_size);
   }, [debouncedActiveStatus, debouncedSearch]);
@@ -102,10 +115,11 @@ const AccountTable: React.FC = () => {
   const columns: {
     key: keyof User;
     header: string;
+    sortable?: boolean;
     render?: (value: any) => React.ReactNode;
   }[] = [
-    { key: "id", header: "ID" },
-    { key: "nric_FullName", header: "Name" },
+    { key: "id", header: "ID", sortable: true },
+    { key: "nric_FullName", header: "Name", sortable: true },
     {
       key: "isDeleted",
       header: "Status",
@@ -123,14 +137,15 @@ const AccountTable: React.FC = () => {
         return <Badge variant={variant}>{status}</Badge>;
       },
     },
-    { key: "email", header: "Email" },
+    { key: "email", header: "Email", sortable: true },
     {
       key: "loginTimeStamp",
       header: "Last Login",
+      sortable: true,
       render: renderLoginTimeStamp,
     },
-    { key: "createdDate", header: "Created Date" },
-    { key: "roleName", header: "Role" },
+    { key: "createdDate", header: "Created Date", sortable: true },
+    { key: "roleName", header: "Role", sortable: true },
   ];
 
   return (
@@ -208,6 +223,9 @@ const AccountTable: React.FC = () => {
                     viewMoreBaseLink={"/admin/view-account"}
                     activeTab={""}
                     fetchData={handleFilter}
+                    sortBy={sortBy}
+                    sortDir={sortDir}
+                    onSort={handleSort}
                   />
                 </CardContent>
               </Card>

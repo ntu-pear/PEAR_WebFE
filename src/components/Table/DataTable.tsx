@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from "react";
+import { ChevronUp, ChevronDown, ChevronsUpDown } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -45,6 +46,7 @@ interface DataTableServerProps<T extends TableRowData> {
   columns: Array<{
     key: keyof T;
     header: string;
+    sortable?: boolean; // Add sortable property
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     render?: (value: any, item: T) => React.ReactNode;
     className?: string;
@@ -56,7 +58,10 @@ interface DataTableServerProps<T extends TableRowData> {
   hideActionsHeader?: boolean;
   className?: string;
   renderActions?: (item: T) => React.ReactNode; // New prop to customize actions column
-  fetchData: (pageNo: number, pageSize: number) => void;
+  fetchData: (pageNo: number, pageSize: number, sortColumn?: string, sortDirection?: "asc" | "desc") => void;
+  sortBy?: string | null; // Add sorting props
+  sortDir?: "asc" | "desc";
+  onSort?: (column: string) => void;
 }
 
 // Data Table with Client Pagination
@@ -184,6 +189,9 @@ export function DataTableServer<T extends TableRowData>({
   className = "",
   renderActions, // Accept renderActions function as a prop
   fetchData,
+  sortBy,
+  sortDir,
+  onSort,
 }: DataTableServerProps<T>) {
   const { pageNo, pageSize, totalRecords, totalPages } = pagination;
 
@@ -215,9 +223,25 @@ export function DataTableServer<T extends TableRowData>({
               {columns.map((column) => (
                 <TableHead
                   key={column.key.toString()}
-                  className={`cursor-pointer ${column.className || ""}`}
+                  className={`${column.className || ""} ${column.sortable ? "cursor-pointer select-none" : ""}`}
+                  onClick={() => column.sortable && onSort && onSort(column.key.toString())}
                 >
-                  {column.header}
+                  <div className="flex items-center space-x-1">
+                    <span>{column.header}</span>
+                    {column.sortable && (
+                      <div className="flex flex-col">
+                        {sortBy === column.key.toString() ? (
+                          sortDir === "asc" ? (
+                            <ChevronUp className="h-4 w-4" />
+                          ) : (
+                            <ChevronDown className="h-4 w-4" />
+                          )
+                        ) : (
+                          <ChevronsUpDown className="h-4 w-4 text-gray-400" />
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </TableHead>
               ))}
               {hideActionsHeader ? null : (
