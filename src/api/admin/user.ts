@@ -35,6 +35,11 @@ export interface AccountTableDataServer {
   total: number;
 }
 
+export interface ExportUserFilters {
+  nric_FullName?: string;
+  isDeleted?: string;
+}
+
 export const fetchUsers = async () => {
   try {
     const token = retrieveAccessTokenFromCookie();
@@ -76,7 +81,7 @@ export const fetchUserNRIC = async (userid: string) => {
 export const fetchUsersByFields = async (
   pageNo: number = 0,
   pageSize: number = 10,
-  filters: any = {},
+  filters: ExportUserFilters = {},
   sortBy?: string | null,
   sortDir: "asc" | "desc" = "asc"
 ): Promise<AccountTableDataServer> => {
@@ -259,7 +264,7 @@ export const getGuardian = async (nric: string) => {
 };
 
 export const exportUsers = async (
-  filters: Record<string, string> = {}
+  filters: ExportUserFilters = {}
 ) => {
   const token = retrieveAccessTokenFromCookie();
   if (!token) throw new Error("No token found.");
@@ -268,13 +273,12 @@ export const exportUsers = async (
     // Build query parameters from filters
     const params = new URLSearchParams();
     
-    if (filters.nric_FullName) {
-      params.append("nric_FullName", filters.nric_FullName);
-    }
-    
-    if (filters.isDeleted) {
-      params.append("isDeleted", filters.isDeleted);
-    }
+    // Add all filter parameters if they exist
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== '') {
+        params.append(key, value.toString());
+      }
+    });
 
     const response = await adminAPI.get(
       `/users/export${params.toString() ? `?${params.toString()}` : ''}`,
