@@ -27,6 +27,7 @@ import {
   AccountTableDataServer,
   fetchUsersByFields,
   User,
+  exportUsers,
 } from "@/api/admin/user";
 import { Badge } from "@/components/ui/badge";
 
@@ -115,6 +116,37 @@ const AccountTable: React.FC = () => {
     handleFilter(0, newPageSize);
   };
 
+  const handleExport = async () => {
+    try {
+      // Build the same filters used for the table
+      const apiFilterJson = {
+        nric_FullName: debouncedSearch,
+        isDeleted: "",
+      };
+
+      // Map the active field to actual values (same logic as handleFilter)
+      if (debouncedActiveStatus === "All") {
+        apiFilterJson.isDeleted = "";
+      } else if (debouncedActiveStatus === "Active") {
+        apiFilterJson.isDeleted = "false";
+      } else if (debouncedActiveStatus === "Inactive") {
+        apiFilterJson.isDeleted = "true";
+      }
+
+      // Remove items that are empty (same logic as handleFilter)
+      const filteredJsonList = Object.fromEntries(
+        Object.entries(apiFilterJson).filter(([_, value]) => value !== "")
+      );
+
+      toast.loading("Exporting users...");
+      await exportUsers(filteredJsonList);
+      toast.success("Users exported successfully!");
+    } catch (error) {
+      toast.error("Failed to export users");
+      console.error("Export error:", error);
+    }
+  };
+
   useEffect(() => {
     handleFilter(accountTDServer.page, accountTDServer.page_size);
   }, [debouncedActiveStatus, debouncedSearch]);
@@ -199,7 +231,7 @@ const AccountTable: React.FC = () => {
               </DropdownMenu>
             </div>
             <div className="flex">
-              <Button size="sm" variant="outline" className="h-8 gap-1">
+              <Button size="sm" variant="outline" className="h-8 gap-1" onClick={handleExport}>
                 <File className="h-4 w-4" />
                 <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
                   Export

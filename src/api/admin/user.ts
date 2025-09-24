@@ -257,3 +257,65 @@ export const getGuardian = async (nric: string) => {
     throw error;
   }
 };
+
+export const exportUsers = async (
+  filters: Record<string, string> = {}
+) => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+
+  try {
+    // Build query parameters from filters
+    const params = new URLSearchParams();
+    
+    if (filters.nric_FullName) {
+      params.append("nric_FullName", filters.nric_FullName);
+    }
+    
+    if (filters.isDeleted) {
+      params.append("isDeleted", filters.isDeleted);
+    }
+
+    const response = await adminAPI.get(
+      `/users/export${params.toString() ? `?${params.toString()}` : ''}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        responseType: 'blob', // Important for file downloads
+      }
+    );
+
+    // Create download link
+    const blob = new Blob([response.data], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    
+    // Extract filename from response headers if available
+    const contentDisposition = response.headers['content-disposition'];
+    let filename = `users_export_${new Date().toISOString().split('T')[0]}.csv`;
+    
+    if (contentDisposition) {
+      const filenameMatch = contentDisposition.match(/filename="(.+)"/);
+      if (filenameMatch) {
+        filename = filenameMatch[1];
+      }
+    } else {
+      // Fallback filename if not found in headers
+      filename = `users_export_${new Date().toISOString().split('T')[0]}.csv`;
+    }
+    
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+
+    console.log("Export users successful");
+    return response.data;
+  } catch (error) {
+    console.error("Export users", error);
+    throw error;
+  }
+};
