@@ -12,6 +12,13 @@ const VITE_LOGGER_SERVICE_URL: string = import.meta.env.VITE_LOGGER_SERVICE_URL;
 export const VITE_USER_SERVICE_URL: string = import.meta.env
   .VITE_USER_SERVICE_URL;
 
+const VITE_ACTIVITY_SERVICE_URL: string = import.meta.env.VITE_ACTIVITY_SERVICE_URL;
+
+// activity service
+export const activityAPI = axios.create({
+  baseURL: `${VITE_ACTIVITY_SERVICE_URL}`,
+});
+
 // patient
 export const patientsAPI = axios.create({
   baseURL: `${VITE_PATIENT_SERVICE_URL}/patients`,
