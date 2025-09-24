@@ -1,5 +1,5 @@
 import { activityAPI } from "../apiConfig";
-import { retrieveAccessTokenFromCookie } from "../users/auth";
+import { retrieveAccessTokenFromCookie, getCurrentUser } from "../users/auth";
 
 // Activity Preference API - Centre Activity Preferences only
 export interface CentreActivityPreference {
@@ -65,10 +65,9 @@ const mockPreferences: CentreActivityPreference[] = [
 // Get ALL activity preferences from all patients
 export const getAllCentreActivityPreferences = async (): Promise<CentreActivityPreference[]> => {
   try {
-    console.log("🔄 Attempting to fetch ALL activity preferences from all patients");
     const token = retrieveAccessTokenFromCookie();
     if (!token) {
-      console.warn("❌ No authentication token found, using mock data");
+      console.warn("No authentication token found, using mock data");
       return mockPreferences;
     }
     
@@ -80,10 +79,10 @@ export const getAllCentreActivityPreferences = async (): Promise<CentreActivityP
         },
       }
     );
-    console.log("✅ Successfully fetched ALL activity preferences:", response.data);
+    console.log("Successfully fetched ALL activity preferences:", response.data);
     return response.data;
   } catch (error) {
-    console.error("❌ Error fetching ALL activity preferences, using mock data:", error);
+    console.error("Error fetching ALL activity preferences, using mock data:", error);
     return mockPreferences;
   }
 };
@@ -93,10 +92,9 @@ export const getCentreActivityPreferences = async (
   patientId: string
 ): Promise<CentreActivityPreference[]> => {
   try {
-    console.log("🔄 Attempting to fetch activity preferences for patient:", patientId);
     const token = retrieveAccessTokenFromCookie();
     if (!token) {
-      console.warn("❌ No authentication token found, using mock data");
+      console.warn("No authentication token found, using mock data");
       return mockPreferences;
     }
     
@@ -108,10 +106,10 @@ export const getCentreActivityPreferences = async (
         },
       }
     );
-    console.log("✅ Successfully fetched activity preferences:", response.data);
+    console.log("Successfully fetched activity preferences:", response.data);
     return response.data;
   } catch (error) {
-    console.error("❌ Error fetching activity preferences, using mock data:", error);
+    console.error("Error fetching activity preferences, using mock data:", error);
     return mockPreferences;
   }
 };
@@ -201,10 +199,9 @@ const mockCentreActivities: CentreActivity[] = [
 // Get all activities
 export const getAllActivities = async (): Promise<Activity[]> => {
   try {
-    console.log("🔄 Attempting to fetch activities from API...");
     const token = retrieveAccessTokenFromCookie();
     if (!token) {
-      console.warn("❌ No authentication token found, using mock data");
+      console.warn("No authentication token found, using mock data");
       return mockActivities;
     }
     
@@ -213,10 +210,10 @@ export const getAllActivities = async (): Promise<Activity[]> => {
         Authorization: `Bearer ${token}`,
       },
     });
-    console.log("✅ Successfully fetched activities:", response.data);
+    console.log("Successfully fetched activities:", response.data);
     return response.data;
   } catch (error) {
-    console.error("❌ Error fetching activities, using mock data:", error);
+    console.error("Error fetching activities, using mock data:", error);
     return mockActivities;
   }
 };
@@ -224,10 +221,10 @@ export const getAllActivities = async (): Promise<Activity[]> => {
 // Get all centre activities
 export const getAllCentreActivities = async (): Promise<CentreActivity[]> => {
   try {
-    console.log("🔄 Attempting to fetch centre activities from API...");
+
     const token = retrieveAccessTokenFromCookie();
     if (!token) {
-      console.warn("❌ No authentication token found, using mock data");
+      console.warn("No authentication token found, using mock data");
       return mockCentreActivities;
     }
     
@@ -236,10 +233,10 @@ export const getAllCentreActivities = async (): Promise<CentreActivity[]> => {
         Authorization: `Bearer ${token}`,
       },
     });
-    console.log("✅ Successfully fetched centre activities:", response.data);
+    console.log("Successfully fetched centre activities:", response.data);
     return response.data;
   } catch (error) {
-    console.error("❌ Error fetching centre activities, using mock data:", error);
+    console.error("Error fetching centre activities, using mock data:", error);
     return mockCentreActivities;
   }
 };
@@ -251,10 +248,19 @@ export const createActivityPreference = async (
   isLike: boolean
 ): Promise<CentreActivityPreference> => {
   try {
+    const token = retrieveAccessTokenFromCookie();
+    if (!token) {
+      throw new Error("No authentication token found");
+    }
+
     const response = await activityAPI.post("/centre_activity_preferences", {
       centre_activity_id: centreActivityId,
       patient_id: patientId,
       is_like: isLike,
+    }, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
     });
     return response.data;
   } catch (error) {
@@ -265,12 +271,34 @@ export const createActivityPreference = async (
 
 // Update activity preference
 export const updateActivityPreference = async (
-  id: number,
+  existingPreference: CentreActivityPreference,
   isLike: boolean
 ): Promise<CentreActivityPreference> => {
   try {
-    const response = await activityAPI.put(`/centre_activity_preferences/${id}`, {
+    const token = retrieveAccessTokenFromCookie();
+    if (!token) {
+      throw new Error("No authentication token found");
+    }
+
+    // Get current user to set modified_by_id
+    const currentUser = await getCurrentUser();
+    
+    // Send complete payload including modified_by_id
+    const updatePayload = {
+      id: existingPreference.id,
+      centre_activity_id: existingPreference.centre_activity_id,
+      patient_id: existingPreference.patient_id,
       is_like: isLike,
+      is_deleted: existingPreference.is_deleted,
+      created_date: existingPreference.created_date,
+      created_by_id: existingPreference.created_by_id,
+      modified_by_id: currentUser.userId.toString() // Backend expects string
+    };
+
+    const response = await activityAPI.put(`/centre_activity_preferences/${existingPreference.id}`, updatePayload, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
     });
     return response.data;
   } catch (error) {
@@ -282,7 +310,16 @@ export const updateActivityPreference = async (
 // Delete activity preference
 export const deleteActivityPreference = async (id: number): Promise<void> => {
   try {
-    await activityAPI.delete(`/centre_activity_preferences/${id}`);
+    const token = retrieveAccessTokenFromCookie();
+    if (!token) {
+      throw new Error("No authentication token found");
+    }
+
+    await activityAPI.delete(`/centre_activity_preferences/${id}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
   } catch (error) {
     console.error("Error deleting activity preference:", error);
     throw error;

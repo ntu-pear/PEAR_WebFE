@@ -59,13 +59,13 @@ export const ViewPatientProvider: React.FC<{ children: ReactNode }> = ({
 
   const refreshPatientData = async () => {
     if (!id || isNaN(Number(id))) return;
-    console.log("🔄 Refreshing patient data for ID:", id);
+
     try {
       const fetchedPatientInfo: PatientInformation = await fetchPatientInfo(
         Number(id)
       );
 
-      console.log("✅ Fetched patient info:", fetchedPatientInfo);
+      console.log("Fetched patient info:", fetchedPatientInfo);
       setPatientInfo(fetchedPatientInfo);
       setNricData({
         nric: fetchedPatientInfo.nric,
@@ -73,7 +73,7 @@ export const ViewPatientProvider: React.FC<{ children: ReactNode }> = ({
       });
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
-      console.error("❌ Failed to fetch patient information:", error);
+      console.error("Failed to fetch patient information:", error);
       toast.error("Failed to fetch patient information");
     }
   };
@@ -84,7 +84,7 @@ export const ViewPatientProvider: React.FC<{ children: ReactNode }> = ({
 
   // Debug patient info state changes
   useEffect(() => {
-    console.log("🏥 Patient Info State Changed:", {
+    console.log("Patient Info State Changed:", {
       patientInfo,
       id,
       hasData: !!patientInfo

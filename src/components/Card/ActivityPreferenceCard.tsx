@@ -10,16 +10,10 @@ import { useAuth } from "@/hooks/useAuth";
 import { useModal } from "@/hooks/useModal";
 
 const ActivityPreferenceCard: React.FC = () => {
-  const { activityPreferences, loading, error } = useActivityPreferences();
+  const { activityPreferences, loading, error, refreshActivityPreferences } = useActivityPreferences();
   const { currentUser } = useAuth();
   const { openModal } = useModal();
   const [patientNameFilter, setPatientNameFilter] = useState("");
-
-  // Debug activity preferences data
-  console.log("📋 Activity Preferences Debug:", {
-    count: activityPreferences.length,
-    sampleData: activityPreferences.slice(0, 3)
-  });
 
   // Filter data by patient name
   const filteredPreferences = activityPreferences.filter(pref => 
@@ -126,8 +120,7 @@ const ActivityPreferenceCard: React.FC = () => {
             activityName: item.activityName,
             currentPreference: item.patientPreference,
             onUpdate: () => {
-              // Refresh data after update
-              window.location.reload(); // Simple refresh for now
+              refreshActivityPreferences();
             }
           })}
           disabled={!currentUser || (currentUser.roleName !== "SUPERVISOR" && currentUser.roleName !== "PRIMARY_GUARDIAN")}

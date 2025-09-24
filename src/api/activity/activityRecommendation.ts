@@ -40,10 +40,9 @@ const mockRecommendations: CentreActivityRecommendation[] = [
 // Get ALL activity recommendations from all patients
 export const getAllCentreActivityRecommendations = async (): Promise<CentreActivityRecommendation[]> => {
   try {
-    console.log("🔄 Attempting to fetch ALL activity recommendations from all patients");
     const token = retrieveAccessTokenFromCookie();
     if (!token) {
-      console.warn("❌ No authentication token found, using mock data");
+      console.warn("No authentication token found, using mock data");
       return mockRecommendations;
     }
     
@@ -55,10 +54,10 @@ export const getAllCentreActivityRecommendations = async (): Promise<CentreActiv
         },
       }
     );
-    console.log("✅ Successfully fetched ALL activity recommendations:", response.data);
+    console.log("Successfully fetched ALL activity recommendations:", response.data);
     return response.data;
   } catch (error) {
-    console.error("❌ Error fetching ALL activity recommendations, using mock data:", error);
+    console.error("Error fetching ALL activity recommendations, using mock data:", error);
     return mockRecommendations;
   }
 };
@@ -68,10 +67,9 @@ export const getCentreActivityRecommendations = async (
   patientId: string
 ): Promise<CentreActivityRecommendation[]> => {
   try {
-    console.log("🔄 Attempting to fetch activity recommendations for patient:", patientId);
     const token = retrieveAccessTokenFromCookie();
     if (!token) {
-      console.warn("❌ No authentication token found, using mock data");
+      console.warn("No authentication token found, using mock data");
       return mockRecommendations;
     }
     
@@ -83,10 +81,10 @@ export const getCentreActivityRecommendations = async (
         },
       }
     );
-    console.log("✅ Successfully fetched activity recommendations:", response.data);
+    console.log("Successfully fetched activity recommendations:", response.data);
     return response.data;
   } catch (error) {
-    console.error("❌ Error fetching activity recommendations, using mock data:", error);
+    console.error("Error fetching activity recommendations, using mock data:", error);
     return mockRecommendations;
   }
 };

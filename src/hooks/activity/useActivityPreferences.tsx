@@ -35,16 +35,14 @@ export const useActivityPreferences = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  console.log("📊 useActivityPreferences - Fetching ALL patients' activity preferences");
 
   const fetchActivityPreferences = async () => {
     try {
-      console.log("🔄 Starting to fetch ALL patients' activity preferences and recommendations");
+
       setLoading(true);
       setError(null);
       
       // Fetch all required data in parallel
-      console.log("🔄 Fetching all data in parallel...");
       const [activities, centreActivities, preferences, recommendations, patientsData] = await Promise.all([
         getAllActivities(),
         getAllCentreActivities(),
@@ -53,20 +51,13 @@ export const useActivityPreferences = () => {
         fetchAllPatientTD("", null, 0, 1000), // Get all patients (large page size to get all)
       ]);
 
-      console.log("📊 Fetched data summary:", {
+      console.log("Fetched data summary:", {
         activities: activities.length,
         centreActivities: centreActivities.length,
         preferences: preferences.length,
         recommendations: recommendations.length,
         patients: patientsData.patients.length
       });
-
-      console.log("🔍 Raw data details:");
-      console.log("Activities sample:", activities.slice(0, 3));
-      console.log("Centre Activities sample:", centreActivities.slice(0, 3));
-      console.log("Preferences sample:", preferences.slice(0, 5));
-      console.log("Recommendations sample:", recommendations.slice(0, 5));
-      console.log("Patients sample:", patientsData.patients.slice(0, 5));
 
       // Create a map of centre activity id to activity details
       const centreActivityMap = new Map<number, { activity: Activity; centreActivity: CentreActivity }>();
@@ -81,7 +72,7 @@ export const useActivityPreferences = () => {
       // Create preference and recommendation maps by patient-centre_activity combination
       const preferenceMap = new Map<string, CentreActivityPreference>();
       preferences.forEach(pref => {
-        console.log(`🔍 Processing preference: patient_id=${pref.patient_id}, centre_activity_id=${pref.centre_activity_id}, is_like=${pref.is_like}, is_deleted=${pref.is_deleted}`);
+      
         if (!pref.is_deleted) {
           const key = `${pref.patient_id}-${pref.centre_activity_id}`;
           preferenceMap.set(key, pref);
@@ -90,7 +81,6 @@ export const useActivityPreferences = () => {
 
       const recommendationMap = new Map<string, CentreActivityRecommendation>();
       recommendations.forEach(rec => {
-        console.log(`🔍 Processing recommendation: patient_id=${rec.patient_id}, centre_activity_id=${rec.centre_activity_id}, doctor_remarks=${rec.doctor_remarks}, is_deleted=${rec.is_deleted}`);
         if (!rec.is_deleted) {
           const key = `${rec.patient_id}-${rec.centre_activity_id}`;
           recommendationMap.set(key, rec);
@@ -102,7 +92,7 @@ export const useActivityPreferences = () => {
       preferences.forEach(pref => !pref.is_deleted && patientActivityCombinations.add(`${pref.patient_id}-${pref.centre_activity_id}`));
       recommendations.forEach(rec => !rec.is_deleted && patientActivityCombinations.add(`${rec.patient_id}-${rec.centre_activity_id}`));
 
-      console.log("🎯 Unique patient-activity combinations:", patientActivityCombinations.size);
+      console.log("Unique patient-activity combinations:", patientActivityCombinations.size);
 
       // Create real patient data mapping from API response
       const patientNameMap = new Map<number, string>();
@@ -111,7 +101,7 @@ export const useActivityPreferences = () => {
         patientNameMap.set(patientId, patient.name || patient.preferredName || `Patient ${patientId}`);
       });
 
-      console.log("👥 Patient mapping created:", {
+      console.log("Patient mapping created:", {
         patientCount: patientNameMap.size,
         samplePatients: Array.from(patientNameMap.entries()).slice(0, 5)
       });
@@ -126,7 +116,7 @@ export const useActivityPreferences = () => {
         
         const centreActivityData = centreActivityMap.get(centreActivityId);
         if (!centreActivityData) {
-          console.warn(`⚠️ Centre activity ${centreActivityId} not found in centre activities`);
+          console.warn(`Centre activity ${centreActivityId} not found in centre activities`);
           return;
         }
 
@@ -158,9 +148,8 @@ export const useActivityPreferences = () => {
       });
 
       setActivityPreferences(combinedData.sort((a, b) => a.activityName.localeCompare(b.activityName)));
-      console.log("✅ Successfully set activity preferences:", combinedData.length, "items");
     } catch (err) {
-      console.error("❌ Error fetching activity preferences:", err);
+      console.error("Error fetching activity preferences:", err);
       setError("Failed to fetch activity preferences and patient data");
     } finally {
       setLoading(false);
