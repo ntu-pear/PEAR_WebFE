@@ -17,6 +17,10 @@ export const activitiesAPI = axios.create({
   baseURL: `${VITE_ACTIVITY_SERVICE_URL}/activities`,
 });
 
+export const careCentreAPI = axios.create({
+  baseURL: `${VITE_ACTIVITY_SERVICE_URL}/care_centres`,
+});
+
 export const VITE_USER_SERVICE_URL: string = import.meta.env
   .VITE_USER_SERVICE_URL;
 
