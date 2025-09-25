@@ -7,6 +7,7 @@ export interface CentreActivityRecommendation {
   centre_activity_id: number;
   patient_id: number;
   doctor_id: number;
+  doctor_recommendation: number; // 1=RECOMMENDED, 0=NEUTRAL, -1=NOT_RECOMMENDED
   doctor_remarks?: string | null;
   is_deleted: boolean;
   created_date: string;
@@ -19,18 +20,21 @@ export interface CentreActivityRecommendation {
 const mockRecommendations: CentreActivityRecommendation[] = [
   {
     id: 1, centre_activity_id: 1, patient_id: 123, doctor_id: 1,
+    doctor_recommendation: 1, // RECOMMENDED
     doctor_remarks: "Great for cognitive stimulation and memory enhancement", is_deleted: false,
     created_date: "2024-01-01T00:00:00Z", modified_date: null,
     created_by_id: "doctor1", modified_by_id: null
   },
   {
     id: 2, centre_activity_id: 4, patient_id: 123, doctor_id: 1,
+    doctor_recommendation: 1, // RECOMMENDED
     doctor_remarks: "Helps with emotional well-being and social interaction", is_deleted: false,
     created_date: "2024-01-01T00:00:00Z", modified_date: null,
     created_by_id: "doctor1", modified_by_id: null
   },
   {
     id: 3, centre_activity_id: 5, patient_id: 123, doctor_id: 2,
+    doctor_recommendation: 1, // RECOMMENDED
     doctor_remarks: "Recommended for improving focus and concentration", is_deleted: false,
     created_date: "2024-01-01T00:00:00Z", modified_date: null,
     created_by_id: "doctor2", modified_by_id: null
@@ -94,6 +98,7 @@ export const createActivityRecommendation = async (
   patientId: number,
   centreActivityId: number,
   doctorId: number,
+  doctorRecommendation: number, // 1=RECOMMENDED, 0=NEUTRAL, -1=NOT_RECOMMENDED
   doctorRemarks?: string
 ): Promise<CentreActivityRecommendation> => {
   try {
@@ -101,6 +106,7 @@ export const createActivityRecommendation = async (
       centre_activity_id: centreActivityId,
       patient_id: patientId,
       doctor_id: doctorId,
+      doctor_recommendation: doctorRecommendation,
       doctor_remarks: doctorRemarks,
     });
     return response.data;
@@ -113,12 +119,19 @@ export const createActivityRecommendation = async (
 // Update activity recommendation
 export const updateActivityRecommendation = async (
   id: number,
+  doctorRecommendation?: number, // 1=RECOMMENDED, 0=NEUTRAL, -1=NOT_RECOMMENDED
   doctorRemarks?: string
 ): Promise<CentreActivityRecommendation> => {
   try {
-    const response = await activityAPI.put(`/centre_activity_recommendations/${id}`, {
-      doctor_remarks: doctorRemarks,
-    });
+    const payload: any = {};
+    if (doctorRecommendation !== undefined) {
+      payload.doctor_recommendation = doctorRecommendation;
+    }
+    if (doctorRemarks !== undefined) {
+      payload.doctor_remarks = doctorRemarks;
+    }
+    
+    const response = await activityAPI.put(`/centre_activity_recommendations/${id}`, payload);
     return response.data;
   } catch (error) {
     console.error("Error updating activity recommendation:", error);

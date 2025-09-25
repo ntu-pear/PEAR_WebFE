@@ -3,7 +3,7 @@ import { CardHeader, CardTitle, CardContent, Card } from "../ui/card";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
-import { Heart, HeartCrack, Edit, Search } from "lucide-react";
+import { Heart, HeartCrack, Edit, Search, ThumbsUp, ThumbsDown, Minus } from "lucide-react";
 import { DataTableClient } from "../Table/DataTable";
 import { useActivityPreferences } from "@/hooks/activity/useActivityPreferences";
 import { useAuth } from "@/hooks/useAuth";
@@ -45,9 +45,22 @@ const ActivityPreferenceCard: React.FC = () => {
 
   const renderRecommendationBadge = (recommendation: string | null | undefined) => {
     if (recommendation === "RECOMMENDED") {
-      return <Badge className="bg-blue-500">Recommended</Badge>;
+      return (
+        <Badge className="bg-blue-500 text-white inline-flex items-center gap-1 px-2 py-1">
+          <ThumbsUp className="h-3 w-3 fill-current" />
+          Recommended
+        </Badge>
+      );
     }
-    return <Badge variant="outline">Not Set</Badge>;
+    if (recommendation === "NOT_RECOMMENDED") {
+      return (
+        <Badge variant="destructive" className="inline-flex items-center gap-1 px-2 py-1">
+          <ThumbsDown className="h-3 w-3" />
+          Not Recommended
+        </Badge>
+      );
+    }
+    return <Badge variant="outline" className="px-2 py-1">Not Set</Badge>;
   };
 
   const columns = [

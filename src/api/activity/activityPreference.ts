@@ -6,7 +6,7 @@ export interface CentreActivityPreference {
   id: number;
   centre_activity_id: number;
   patient_id: number;
-  is_like: boolean;
+  is_like: number; // 1=LIKE, 0=NEUTRAL, -1=DISLIKE
   is_deleted: boolean;
   created_date: string;
   modified_date?: string | null;
@@ -46,17 +46,17 @@ export interface CentreActivity {
 
 const mockPreferences: CentreActivityPreference[] = [
   {
-    id: 1, centre_activity_id: 1, patient_id: 123, is_like: true, is_deleted: false,
+    id: 1, centre_activity_id: 1, patient_id: 123, is_like: 1, is_deleted: false, // LIKE
     created_date: "2024-01-01T00:00:00Z", modified_date: null,
     created_by_id: "admin", modified_by_id: null
   },
   {
-    id: 2, centre_activity_id: 3, patient_id: 123, is_like: false, is_deleted: false,
+    id: 2, centre_activity_id: 3, patient_id: 123, is_like: -1, is_deleted: false, // DISLIKE
     created_date: "2024-01-01T00:00:00Z", modified_date: null,
     created_by_id: "admin", modified_by_id: null
   },
   {
-    id: 3, centre_activity_id: 2, patient_id: 123, is_like: true, is_deleted: false,
+    id: 3, centre_activity_id: 2, patient_id: 123, is_like: 1, is_deleted: false, // LIKE
     created_date: "2024-01-01T00:00:00Z", modified_date: null,
     created_by_id: "admin", modified_by_id: null
   }
@@ -245,7 +245,7 @@ export const getAllCentreActivities = async (): Promise<CentreActivity[]> => {
 export const createActivityPreference = async (
   patientId: number,
   centreActivityId: number,
-  isLike: boolean
+  isLike: number // 1=LIKE, 0=NEUTRAL, -1=DISLIKE
 ): Promise<CentreActivityPreference> => {
   try {
     const token = retrieveAccessTokenFromCookie();
@@ -272,7 +272,7 @@ export const createActivityPreference = async (
 // Update activity preference
 export const updateActivityPreference = async (
   existingPreference: CentreActivityPreference,
-  isLike: boolean
+  isLike: number // 1=LIKE, 0=NEUTRAL, -1=DISLIKE
 ): Promise<CentreActivityPreference> => {
   try {
     const token = retrieveAccessTokenFromCookie();

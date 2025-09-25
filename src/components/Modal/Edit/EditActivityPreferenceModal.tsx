@@ -9,6 +9,7 @@ import {
   getAllCentreActivityPreferences 
 } from "@/api/activity/activityPreference";
 import { retrieveAccessTokenFromCookie } from "@/api/users/auth";
+import { preferenceToInt } from "@/utils/activityConversions";
 
 const EditActivityPreferenceModal: React.FC = () => {
   const { modalRef, closeModal, activeModal } = useModal();
@@ -69,16 +70,16 @@ const EditActivityPreferenceModal: React.FC = () => {
         }
         // If no existing preference and setting to NEUTRAL, do nothing (already neutral by default)
       } else {
-        // Convert preference to boolean for API
-        const isLike = patientPreference === "LIKE";
+        // Convert preference to integer for API
+        const preferenceValue = preferenceToInt(patientPreference as "LIKE" | "DISLIKE" | "NEUTRAL");
         
         if (existingPreference) {
           // Update existing preference
-          await updateActivityPreference(existingPreference, isLike);
+          await updateActivityPreference(existingPreference, preferenceValue);
           console.log("Preference updated");
         } else {
           // Create new preference
-          await createActivityPreference(patientId, centreActivityId, isLike);
+          await createActivityPreference(patientId, centreActivityId, preferenceValue);
           console.log("New preference created");
         }
       }

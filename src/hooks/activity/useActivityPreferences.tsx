@@ -12,6 +12,7 @@ import {
   CentreActivityRecommendation,
 } from "@/api/activity/activityRecommendation";
 import { fetchAllPatientTD } from "@/api/patients/patients";
+import { intToPreference, intToRecommendation } from "@/utils/activityConversions";
 
 // Combined type for display
 export interface ActivityPreferenceWithRecommendation {
@@ -124,13 +125,24 @@ export const useActivityPreferences = () => {
         const preference = preferenceMap.get(combination);
         const recommendation = recommendationMap.get(combination);
 
-        // For preferences: LIKE/DISLIKE if exists, NEUTRAL as default
+        // For preferences: Convert integer to string representation
         const patientPreference: "LIKE" | "DISLIKE" | "NEUTRAL" = preference 
-          ? (preference.is_like ? "LIKE" : "DISLIKE") 
+          ? intToPreference(preference.is_like)
           : "NEUTRAL"; // Default to NEUTRAL when no preference record exists
 
-        // For recommendations: RECOMMENDED if exists, null if no record
-        const doctorRecommendation = recommendation ? "RECOMMENDED" : null;
+        // For recommendations: Convert integer to string representation
+        const doctorRecommendation = recommendation 
+          ? intToRecommendation(recommendation.doctor_recommendation)
+          : null;
+
+        // Skip this record if both preference is NEUTRAL and recommendation is null/NEUTRAL
+        // Only show records with meaningful data (non-neutral preferences or recommendations)
+        const hasNonNeutralPreference = patientPreference !== "NEUTRAL";
+        const hasNonNeutralRecommendation = doctorRecommendation !== null && doctorRecommendation !== "NEUTRAL";
+        
+        if (!hasNonNeutralPreference && !hasNonNeutralRecommendation) {
+          return; // Skip this combination as it has no meaningful data
+        }
 
         combinedData.push({
           id: parseInt(`${patientId}${centreActivityId}`), // Unique ID combining patient and centre activity
