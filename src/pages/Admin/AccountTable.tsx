@@ -30,6 +30,7 @@ import {
   exportUsers,
 } from "@/api/admin/user";
 import { Badge } from "@/components/ui/badge";
+import { formatDateTime } from "@/utils/formatDate";
 
 const AccountTable: React.FC = () => {
   const [accountTDServer, setAccountTDServer] =
@@ -117,6 +118,7 @@ const AccountTable: React.FC = () => {
   };
 
   const handleExport = async () => {
+    let loadingToast;
     try {
       // Build the same filters used for the table
       const apiFilterJson = {
@@ -138,10 +140,12 @@ const AccountTable: React.FC = () => {
         Object.entries(apiFilterJson).filter(([_, value]) => value !== "")
       );
 
-      toast.loading("Exporting users...");
+      loadingToast = toast.loading("Exporting users...");
       await exportUsers(filteredJsonList);
+      toast.dismiss(loadingToast);
       toast.success("Users exported successfully!");
     } catch (error) {
+      if (loadingToast) toast.dismiss(loadingToast);
       toast.error("Failed to export users");
       console.error("Export error:", error);
     }
@@ -152,7 +156,11 @@ const AccountTable: React.FC = () => {
   }, [debouncedActiveStatus, debouncedSearch]);
 
   const renderLoginTimeStamp = (loginTimeStamp: string | null) => {
-    return loginTimeStamp ? loginTimeStamp : "-";
+    return formatDateTime(loginTimeStamp);
+  };
+
+  const renderCreatedDate = (createdDate: string | null) => {
+    return formatDateTime(createdDate);
   };
 
   const columns: {
@@ -187,7 +195,12 @@ const AccountTable: React.FC = () => {
       sortable: true,
       render: renderLoginTimeStamp,
     },
-    { key: "createdDate", header: "Created Date", sortable: true },
+    {
+      key: "createdDate",
+      header: "Created Date",
+      sortable: true,
+      render: renderCreatedDate,
+    },
     { key: "roleName", header: "Role", sortable: true },
   ];
 
