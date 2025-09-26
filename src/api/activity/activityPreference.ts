@@ -253,10 +253,14 @@ export const createActivityPreference = async (
       throw new Error("No authentication token found");
     }
 
+    // Get current user to set created_by_id
+    const currentUser = await getCurrentUser();
+
     const response = await activityAPI.post("/centre_activity_preferences", {
       centre_activity_id: centreActivityId,
       patient_id: patientId,
       is_like: isLike,
+      created_by_id: currentUser.userId.toString(), // Backend expects string
     }, {
       headers: {
         Authorization: `Bearer ${token}`,

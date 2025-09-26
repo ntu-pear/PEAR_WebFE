@@ -15,6 +15,7 @@ const EditActivityPreferenceModal: React.FC = () => {
   const { modalRef, closeModal, activeModal } = useModal();
   const [patientPreference, setPatientPreference] = useState<string>("");
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   
   // Get the data passed to the modal
   const modalData = (activeModal as any).props || {};
@@ -31,6 +32,8 @@ const EditActivityPreferenceModal: React.FC = () => {
   useEffect(() => {
     // Set initial preference value, default to NEUTRAL if no preference
     setPatientPreference(currentPreference || "NEUTRAL");
+    // Clear any previous errors when modal opens
+    setError(null);
   }, [currentPreference]);
 
   const handleSavePreference = async (event: React.FormEvent) => {
@@ -92,7 +95,33 @@ const EditActivityPreferenceModal: React.FC = () => {
       }
     } catch (error) {
       console.error("Error updating preference:", error);
-      // TODO: Show error message to user
+      
+      // Extract error message from the error object
+      let errorMessage = "Failed to update preference. Please try again.";
+      
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      } else if (typeof error === 'object' && error !== null) {
+        // Handle API error responses
+        const apiError = error as any;
+        if (apiError.response?.data?.detail) {
+          // Handle FastAPI validation errors (array format)
+          if (Array.isArray(apiError.response.data.detail)) {
+            const validationErrors = apiError.response.data.detail.map((err: any) => 
+              `${err.loc?.join('.') || 'Field'}: ${err.msg}`
+            ).join(', ');
+            errorMessage = `Validation error: ${validationErrors}`;
+          } else {
+            errorMessage = apiError.response.data.detail;
+          }
+        } else if (apiError.response?.data?.message) {
+          errorMessage = apiError.response.data.message;
+        } else if (apiError.message) {
+          errorMessage = apiError.message;
+        }
+      }
+      
+      setError(errorMessage);
     } finally {
       setSaving(false);
     }
@@ -123,6 +152,12 @@ const EditActivityPreferenceModal: React.FC = () => {
         </div>
 
         <form onSubmit={handleSavePreference} className="space-y-4">
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-md text-sm">
+              <strong>Error:</strong> {error}
+            </div>
+          )}
+          
           <div>
             <label className="block text-sm font-medium mb-3">
               Patient Preference <span className="text-red-600">*</span>
@@ -137,7 +172,11 @@ const EditActivityPreferenceModal: React.FC = () => {
                     name="patientPreference"
                     value={option.value}
                     checked={patientPreference === option.value}
-                    onChange={(e) => setPatientPreference(e.target.value)}
+                    onChange={(e) => {
+                      setPatientPreference(e.target.value);
+                      // Clear error when user makes changes
+                      if (error) setError(null);
+                    }}
                     className="sr-only"
                   />
                   <label
