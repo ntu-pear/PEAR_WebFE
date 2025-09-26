@@ -57,6 +57,7 @@ import AccountTable from "./pages/Admin/AccountTable";
 import ViewAccount from "./pages/Admin/ViewAccount";
 import { ViewAccountProvider } from "./hooks/admin/useViewAccount";
 import ManageSocialHistory from "./pages/Admin/ManageSocialHistory";
+import ManageCentre from "./pages/Admin/ManageCentre";
 import CustomRoleProtectedRoute from "./components/CustomRoleProtectedRoute";
 import PatientScheduleView from "./pages/Supervisor/PatientScheduleView";
 import SchedulerSystemTest from "./pages/Supervisor/SchedulerSystemTest";
@@ -211,6 +212,10 @@ const App: React.FC = () => {
                       <Route
                         path="register-account"
                         element={<RegisterAccount />}
+                      />
+                      <Route
+                        path="manage-centre"
+                        element={<ManageCentre />}
                       />
                       <Route path="edit-roles" element={<EditRoles />} />
                       <Route path="create-role" element={<CreateRole />} />

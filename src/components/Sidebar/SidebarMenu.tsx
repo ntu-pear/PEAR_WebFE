@@ -185,7 +185,7 @@ const adminMenu: MenuSection[] = [
     title: "CENTRES",
     items: [
       {
-        title: "Manage centre",
+        title: "Manage Centre",
         icon: "List",
         path: "/admin/manage-centre",
       },
