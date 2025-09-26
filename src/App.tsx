@@ -23,6 +23,7 @@ import ForgotPassword from "./pages/auth/ForgotPassword";
 import ViewMedicationSchedule from "./pages/Supervisor/ViewMedicationSchedule";
 import ManageMedication from "./pages/Supervisor/ManageMedication";
 import ManageActivities from "./pages/Supervisor/ManageActivities";
+import ManageCentreActivities from "./pages/Supervisor/ManageCentreActivities";
 import ViewLists from "./pages/Supervisor/ViewLists";
 import ViewPatient from "./pages/ViewPatient";
 import TestGeocode from "./pages/testGeocode";
@@ -151,6 +152,7 @@ const App: React.FC = () => {
                         path="manage-activities"
                         element={<ManageActivities />}
                       />
+                      <Route path="manage-centre-activities" element={<ManageCentreActivities />} />
                       <Route path="manage-adhoc" element={<ManageAdhoc />} />
                       <Route path="add-adhoc" element={<AddAdhoc />} />
                       <Route

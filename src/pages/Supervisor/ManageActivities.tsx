@@ -1,213 +1,162 @@
-import React, { useState, useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
+import { Filter, Plus } from "lucide-react";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
+  Card, CardContent, CardDescription, CardHeader, CardTitle,
 } from "@/components/ui/card";
-import { ListFilter, PlusCircle } from "lucide-react";
-import { DataTableClient } from "@/components/Table/DataTable";
-import { ActivityTableData, mockActivitiesList } from "@/mocks/mockActivities";
 import { Button } from "@/components/ui/button";
-import Searchbar from "@/components/Searchbar";
-import { useModal } from "@/hooks/useModal";
-import AddActivityModal from "@/components/Modal/Add/AddActivityModal";
-import useDebounce from "@/hooks/useDebounce";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import EditActivityModal from "@/components/Modal/Edit/EditActivityModal";
-import DeleteActivityModal from "@/components/Modal/Delete/DeleteActivityModal";
+import { Input } from "@/components/ui/input";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 
-const ManageActivities: React.FC = () => {
-  const { openModal, activeModal } = useModal();
+import ActivityForm from "@/components/Form/ActivityForm";
+import ActivitiesTable from "@/components/Table/ActivitiesTable";
+import { useActivities, useActivityMutations, toRows, type ActivityRow } from "@/hooks/activities/useActivities";
 
-  const [activities, setActivities] =
-    useState<ActivityTableData[]>(mockActivitiesList);
-  const booleanOptions = [
-    { key: "All", value: "all" },
-    { key: "Yes", value: "true" },
-    { key: "No", value: "false" },
-  ];
+function confirmAction(message: string) {
+  return window.confirm(message);
+}
 
-  const [search, setSearch] = useState<string>("");
-  const [compulsory, setCompulsory] = useState<string>("all");
-  const [fixed, setFixed] = useState<string>("all");
-  const [group, setGroup] = useState<string>("all");
-  const debouncedSearch = useDebounce(search, 300);
-  const debouncedCompulsory = useDebounce(compulsory, 300);
-  const debouncedFixed = useDebounce(fixed, 300);
-  const debouncedGroup = useDebounce(group, 300);
-  const fetchActivities = () => {
-    let filteredActivities = mockActivitiesList.filter(
-      ({ title, isCompulsory, isFixed, isGroup }) =>
-        title.toLowerCase().includes(debouncedSearch.toLowerCase()) &&
-        (debouncedCompulsory === "all"
-          ? true
-          : isCompulsory.toString() === debouncedCompulsory) &&
-        (debouncedFixed === "all"
-          ? true
-          : isFixed.toString() === debouncedFixed) &&
-        (debouncedGroup === "all"
-          ? true
-          : isGroup.toString() === debouncedGroup)
-    );
+export default function ManageActivities() {
+  const [includeDeleted, setIncludeDeleted] = useState(false);
+  const [search, setSearch] = useState("");
+  const [creatingOpen, setCreatingOpen] = useState(false);
+  const [editing, setEditing] = useState<ActivityRow | null>(null);
+  const [page, setPage] = useState(1);
 
-    setActivities(filteredActivities);
-  };
+  const { data, isLoading, isError, error } = useActivities(includeDeleted);
+  const { create, update, remove } = useActivityMutations();
+
   useEffect(() => {
-    fetchActivities();
-  }, [debouncedSearch, debouncedCompulsory, debouncedFixed, debouncedGroup]);
+    if (isError) toast.error(`Failed to load activities. ${(error as Error)?.message ?? ""}`);
+  }, [isError, error]);
 
-  const renderFilter = (
-    title: string,
-    value: string,
-    setValue: (value: string) => void
-  ) => (
-    <DropdownMenu modal={false}>
-      <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="sm" className="h-8 gap-1">
-          <ListFilter className="h-4 w-4" />
-          <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-            {title}
-          </span>
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <DropdownMenuRadioGroup value={value} onValueChange={setValue}>
-          {booleanOptions.map(({ key, value }) => (
-            <DropdownMenuRadioItem value={value}>{key}</DropdownMenuRadioItem>
-          ))}
-        </DropdownMenuRadioGroup>
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
+  // reset to first page whenever list or search/toggle changes
+  useEffect(() => setPage(1), [search, includeDeleted, data]);
 
-  const columns = [
-    { key: "title", header: "Title" },
-    { key: "description", header: "Description" },
-    {
-      key: "isCompulsory",
-      header: "Compulsory",
-      render: (value: any) =>
-        value ? (
-          <span style={{ color: "green" }}>Yes</span>
-        ) : (
-          <span style={{ color: "red" }}>No</span>
-        ),
-    },
-    {
-      key: "isFixed",
-      header: "Fixed",
-      render: (value: any) =>
-        value ? (
-          <span style={{ color: "green" }}>Yes</span>
-        ) : (
-          <span style={{ color: "red" }}>No</span>
-        ),
-    },
-    {
-      key: "isGroup",
-      header: "Group",
-      render: (value: any) =>
-        value ? (
-          <span style={{ color: "green" }}>Yes</span>
-        ) : (
-          <span style={{ color: "red" }}>No</span>
-        ),
-    },
-    {
-      key: "fixedTimeSlots",
-      header: "Fixed Time Slots",
-      render: (value: any) => (value ? value : <span>NIL</span>),
-    },
-    {
-      key: "startDate",
-      header: "Start Date",
-      className: "hidden md:table-cell",
-    },
-    { key: "endDate", header: "End Date", className: "hidden md:table-cell" },
-  ];
+  const rows = useMemo(() => toRows(data ?? []), [data]);
 
   return (
     <div className="flex min-h-screen w-full flex-col container mx-auto px-0 sm:px-4">
       <div className="flex flex-col sm:gap-4 sm:py-4 sm:pl-14">
-        <div className="flex justify-between items-center">
-          <Searchbar
-            searchItem={search}
-            onSearchChange={(e) => setSearch(e.target.value)}
-          />
-          <div className="flex space-x-2">
-            {renderFilter("Compulsory", compulsory, setCompulsory)}
-            {renderFilter("Fixed", fixed, setFixed)}
-            {renderFilter("Group", group, setGroup)}
+
+        {/* Toolbar */}
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div className="w-full md:max-w-md">
+            <Input
+              placeholder="Search..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="h-11"
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              className={`h-9 ${includeDeleted ? "border-primary" : ""}`}
+              onClick={() => setIncludeDeleted(v => !v)}
+            >
+              <Filter className="mr-2 h-4 w-4" />
+              {includeDeleted ? "Showing Deleted" : "Deleted Hidden"}
+            </Button>
           </div>
         </div>
 
         <main className="flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0">
           <Card>
             <CardHeader>
-              <div className="flex justify-between items-end">
-                <div className="space-y-1.5">
+              <div className="flex items-start justify-between">
+                <div>
                   <CardTitle>Manage Activities</CardTitle>
-                  <CardDescription>
-                    Manage activities for patients
-                  </CardDescription>
+                  <CardDescription>Manage all listed activities</CardDescription>
                 </div>
-                <Button
-                  size="sm"
-                  className="h-8 gap-1"
-                  onClick={() => openModal("addActivity")}
-                >
-                  <PlusCircle className="h-4 w-4" />
-                  <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                    Add Centre Activity
-                  </span>
-                </Button>
+
+                <Sheet open={creatingOpen} onOpenChange={setCreatingOpen}>
+                  <SheetTrigger asChild>
+                    <Button className="h-10">
+                      <Plus className="mr-2 h-4 w-4" />
+                      Add Activity
+                    </Button>
+                  </SheetTrigger>
+                  <SheetContent className="w-[480px] sm:w-[540px]">
+                    <SheetHeader><SheetTitle>Create Activity</SheetTitle></SheetHeader>
+
+                    <ActivityForm
+                      onSubmit={async (values, setErrors, setSubmitting) => {
+                        try {
+                          await create.mutateAsync({ title: values.title, description: values.description || undefined });
+                          toast.success("Activity created.");
+                          setCreatingOpen(false);
+                        } catch (err: any) {
+                          toast.error(`Failed to create. ${err?.message ?? ""}`);
+                          setErrors({ _summary: [`Failed to create. ${err?.message ?? ""}`] });
+                        } finally {
+                          setSubmitting(false);
+                        }
+                      }}
+                      submitting={create.isPending}
+                    />
+                  </SheetContent>
+                </Sheet>
               </div>
             </CardHeader>
-            <CardContent className='className="overflow-x-auto"'>
-              <DataTableClient
-                data={activities}
-                columns={columns}
-                viewMore={false}
-                renderActions={(item) => (
-                  <div className="flex space-x-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() =>
-                        openModal("editActivity", { activityId: item.id })
-                      }
-                    >
-                      Edit
-                    </Button>
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={() =>
-                        openModal("deleteActivity", { activityId: item.id })
-                      }
-                    >
-                      Delete
-                    </Button>
-                  </div>
-                )}
-              />
+
+            <CardContent className="overflow-x-auto">
+              {isLoading ? (
+                <div className="p-4 text-sm text-muted-foreground">Loading…</div>
+              ) : (
+                <ActivitiesTable
+                  data={rows}
+                  query={search}
+                  page={page}
+                  setPage={setPage}
+                  onEdit={(row) => setEditing(row)}
+                  onDelete={(row) => {
+                    const msg =
+                      "Deleting this activity will also remove its centre availabilities and patient schedules may be regenerated. Continue?";
+                    if (confirmAction(msg)) {
+                      remove.mutate(row.id, {
+                        onSuccess: () => toast.success("Activity deleted."),
+                        onError: (err: any) => toast.error(`Failed to delete. ${err?.message ?? ""}`),
+                      });
+                    }
+                  }}
+                />
+              )}
+
+              {/* Edit sheet */}
+              <Sheet open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
+                <SheetContent className="w-[480px] sm:w-[540px]">
+                  <SheetHeader><SheetTitle>Edit Activity</SheetTitle></SheetHeader>
+                  {editing && (
+                    <ActivityForm
+                      initial={{ id: editing.id, title: editing.title, description: editing.description ?? "" }}
+                      onSubmit={async (values, setErrors, setSubmitting) => {
+                        try {
+                          await update.mutateAsync({
+                            id: editing.id,
+                            title: values.title,
+                            description: values.description || undefined,
+                            is_deleted: editing.is_deleted,
+                          });
+                          toast.success("Activity updated.");
+                          setEditing(null);
+                        } catch (err: any) {
+                          toast.error(`Failed to update. ${err?.message ?? ""}`);
+                          setErrors({ _summary: [`Failed to update. ${err?.message ?? ""}`] });
+                        } finally {
+                          setSubmitting(false);
+                        }
+                      }}
+                      submitting={update.isPending}
+                    />
+                  )}
+                </SheetContent>
+              </Sheet>
             </CardContent>
           </Card>
         </main>
       </div>
-      {activeModal.name == "addActivity" && <AddActivityModal />}
-      {activeModal.name == "editActivity" && <EditActivityModal />}
-      {activeModal.name == "deleteActivity" && <DeleteActivityModal />}
     </div>
   );
-};
-
-export default ManageActivities;
+}
