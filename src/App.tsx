@@ -23,6 +23,7 @@ import ForgotPassword from "./pages/auth/ForgotPassword";
 import ViewMedicationSchedule from "./pages/Supervisor/ViewMedicationSchedule";
 import ManageMedication from "./pages/Supervisor/ManageMedication";
 import ManageActivities from "./pages/Supervisor/ManageActivities";
+import ManageCentreActivities from "./pages/Supervisor/ManageCentreActivities";
 import ViewLists from "./pages/Supervisor/ViewLists";
 import ViewPatient from "./pages/ViewPatient";
 import TestGeocode from "./pages/testGeocode";
@@ -56,6 +57,7 @@ import AccountTable from "./pages/Admin/AccountTable";
 import ViewAccount from "./pages/Admin/ViewAccount";
 import { ViewAccountProvider } from "./hooks/admin/useViewAccount";
 import ManageSocialHistory from "./pages/Admin/ManageSocialHistory";
+import ManageCentre from "./pages/Admin/ManageCentre";
 import CustomRoleProtectedRoute from "./components/CustomRoleProtectedRoute";
 import PatientScheduleView from "./pages/Supervisor/PatientScheduleView";
 import SchedulerSystemTest from "./pages/Supervisor/SchedulerSystemTest";
@@ -151,6 +153,7 @@ const App: React.FC = () => {
                         path="manage-activities"
                         element={<ManageActivities />}
                       />
+                      <Route path="manage-centre-activities" element={<ManageCentreActivities />} />
                       <Route path="manage-adhoc" element={<ManageAdhoc />} />
                       <Route path="add-adhoc" element={<AddAdhoc />} />
                       <Route
@@ -209,6 +212,10 @@ const App: React.FC = () => {
                       <Route
                         path="register-account"
                         element={<RegisterAccount />}
+                      />
+                      <Route
+                        path="manage-centre"
+                        element={<ManageCentre />}
                       />
                       <Route path="edit-roles" element={<EditRoles />} />
                       <Route path="create-role" element={<CreateRole />} />
