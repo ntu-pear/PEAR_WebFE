@@ -68,6 +68,11 @@ const supervisorMenu: MenuSection[] = [
         icon: "List",
         path: "/supervisor/manage-centre-activities",
       },
+      {
+        title: "Activity Preference",
+        icon: "List",
+        path: "/supervisor/view-patient/{id}?tab=activity-preference",
+      },
     ],
   },
   {

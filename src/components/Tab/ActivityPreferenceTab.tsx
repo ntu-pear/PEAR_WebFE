@@ -1,7 +1,7 @@
 import { TabsContent } from "../ui/tabs";
 import { useModal } from "@/hooks/useModal";
-import AddActivityPreferenceModal from "../Modal/Add/AddActivityPreferenceModal";
 import ActivityPreferenceCard from "../Card/ActivityPreferenceCard";
+import EditActivityPreferenceModal from "../Modal/Edit/EditActivityPreferenceModal";
 
 const ActivityPreferenceTab: React.FC = () => {
   const { activeModal } = useModal();
@@ -13,8 +13,8 @@ const ActivityPreferenceTab: React.FC = () => {
           <ActivityPreferenceCard />
         </div>
       </TabsContent>
-      {activeModal.name == "addActivityPreference" && (
-        <AddActivityPreferenceModal />
+      {activeModal.name === "editActivityPreference" && (
+        <EditActivityPreferenceModal />
       )}
     </>
   );
