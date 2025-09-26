@@ -46,3 +46,12 @@ export const getTimeDiffFromServer = (serverDateTime: string) => {
   const clientInUTC = dayjs.utc();
   return serverInUTC.diff(clientInUTC);
 };
+
+// Format datetime to "dd/mmm/yyyy time" format
+export const formatDateTime = (date: string | null) => {
+  if (!date) return "-";
+  return dayjs
+    .utc(date) // Parse the date in UTC
+    .tz("Asia/Singapore") // Convert to Singapore timezone
+    .format("DD/MMM/YYYY hh:mm A"); // Format as "21/Jan/2025 08:53 PM"
+};

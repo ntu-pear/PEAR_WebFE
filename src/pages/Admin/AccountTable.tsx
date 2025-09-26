@@ -27,8 +27,10 @@ import {
   AccountTableDataServer,
   fetchUsersByFields,
   User,
+  exportUsers,
 } from "@/api/admin/user";
 import { Badge } from "@/components/ui/badge";
+import { formatDateTime } from "@/utils/formatDate";
 
 const AccountTable: React.FC = () => {
   const [accountTDServer, setAccountTDServer] =
@@ -42,6 +44,8 @@ const AccountTable: React.FC = () => {
   const [activeStatus, setActiveStatus] = useState("All");
   const [searchItem, setSearchItem] = useState("");
   const [tabValue, setTabValue] = useState("all");
+  const [sortBy, setSortBy] = useState<string | null>(null);
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
   const debouncedActiveStatus = useDebounce(activeStatus, 300);
   const debouncedSearch = useDebounce(searchItem, 300);
 
@@ -53,7 +57,7 @@ const AccountTable: React.FC = () => {
     []
   );
 
-  const handleFilter = async (pageNo: number, pageSize: number) => {
+  const handleFilter = async (pageNo: number, pageSize: number, sortColumn?: string, sortDirection?: "asc" | "desc") => {
     try {
       const apiFilterJson = {
         nric_FullName: debouncedSearch,
@@ -74,8 +78,12 @@ const AccountTable: React.FC = () => {
         Object.entries(apiFilterJson).filter(([_, value]) => value !== "")
       );
 
+      // Use provided sort parameters or current state
+      const currentSortBy = sortColumn !== undefined ? sortColumn : sortBy;
+      const currentSortDir = sortDirection !== undefined ? sortDirection : sortDir;
+
       const fetchedAccountTDServer: AccountTableDataServer =
-        await fetchUsersByFields(pageNo, pageSize, filteredJsonList);
+        await fetchUsersByFields(pageNo, pageSize, filteredJsonList, currentSortBy, currentSortDir);
 
       //let filteredAccountTDList = fetchedAccountTDServer.users;
 
@@ -91,21 +99,78 @@ const AccountTable: React.FC = () => {
     }
   };
 
+  const handleSort = (column: string) => {
+    const newSortDir = sortBy === column && sortDir === "asc" ? "desc" : "asc";
+    setSortBy(column);
+    setSortDir(newSortDir);
+    handleFilter(accountTDServer.page, accountTDServer.page_size, column, newSortDir);
+  };
+
+  const handlePageSizeChange = (newPageSize: number) => {
+    // Reset to first page when changing page size
+    const newAccountTDServer = {
+      ...accountTDServer,
+      page: 0,
+      page_size: newPageSize,
+    };
+    setAccountTDServer(newAccountTDServer);
+    handleFilter(0, newPageSize);
+  };
+
+  const handleExport = async () => {
+    let loadingToast;
+    try {
+      // Build the same filters used for the table
+      const apiFilterJson = {
+        nric_FullName: debouncedSearch,
+        isDeleted: "",
+      };
+
+      // Map the active field to actual values (same logic as handleFilter)
+      if (debouncedActiveStatus === "All") {
+        apiFilterJson.isDeleted = "";
+      } else if (debouncedActiveStatus === "Active") {
+        apiFilterJson.isDeleted = "false";
+      } else if (debouncedActiveStatus === "Inactive") {
+        apiFilterJson.isDeleted = "true";
+      }
+
+      // Remove items that are empty (same logic as handleFilter)
+      const filteredJsonList = Object.fromEntries(
+        Object.entries(apiFilterJson).filter(([_, value]) => value !== "")
+      );
+
+      loadingToast = toast.loading("Exporting users...");
+      await exportUsers(filteredJsonList);
+      toast.dismiss(loadingToast);
+      toast.success("Users exported successfully!");
+    } catch (error) {
+      if (loadingToast) toast.dismiss(loadingToast);
+      toast.error("Failed to export users");
+      console.error("Export error:", error);
+    }
+  };
+
   useEffect(() => {
     handleFilter(accountTDServer.page, accountTDServer.page_size);
   }, [debouncedActiveStatus, debouncedSearch]);
 
   const renderLoginTimeStamp = (loginTimeStamp: string | null) => {
-    return loginTimeStamp ? loginTimeStamp : "-";
+    return formatDateTime(loginTimeStamp);
+  };
+
+  const renderCreatedDate = (createdDate: string | null) => {
+    return formatDateTime(createdDate);
   };
 
   const columns: {
     key: keyof User;
     header: string;
+    sortable?: boolean;
     render?: (value: any) => React.ReactNode;
   }[] = [
-    { key: "id", header: "ID" },
-    { key: "nric_FullName", header: "Name" },
+    { key: "id", header: "ID", sortable: true },
+    { key: "nric_FullName", header: "Name", sortable: true },
     {
       key: "isDeleted",
       header: "Status",
@@ -123,14 +188,20 @@ const AccountTable: React.FC = () => {
         return <Badge variant={variant}>{status}</Badge>;
       },
     },
-    { key: "email", header: "Email" },
+    { key: "email", header: "Email", sortable: true },
     {
       key: "loginTimeStamp",
       header: "Last Login",
+      sortable: true,
       render: renderLoginTimeStamp,
     },
-    { key: "createdDate", header: "Created Date" },
-    { key: "roleName", header: "Role" },
+    {
+      key: "createdDate",
+      header: "Created Date",
+      sortable: true,
+      render: renderCreatedDate,
+    },
+    { key: "roleName", header: "Role", sortable: true },
   ];
 
   return (
@@ -173,7 +244,7 @@ const AccountTable: React.FC = () => {
               </DropdownMenu>
             </div>
             <div className="flex">
-              <Button size="sm" variant="outline" className="h-8 gap-1">
+              <Button size="sm" variant="outline" className="h-8 gap-1" onClick={handleExport}>
                 <File className="h-4 w-4" />
                 <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
                   Export
@@ -208,6 +279,11 @@ const AccountTable: React.FC = () => {
                     viewMoreBaseLink={"/admin/view-account"}
                     activeTab={""}
                     fetchData={handleFilter}
+                    sortBy={sortBy}
+                    sortDir={sortDir}
+                    onSort={handleSort}
+                    onPageSizeChange={handlePageSizeChange}
+                    pageSizeOptions={[5, 10, 20, 50, 100]}
                   />
                 </CardContent>
               </Card>
