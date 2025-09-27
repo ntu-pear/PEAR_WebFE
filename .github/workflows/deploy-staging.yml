@@ -23,6 +23,7 @@ jobs:
       - name: Create .env file from GitHub Secrets
         run: |
 
+          echo "VITE_ACTIVITY_SERVICE_URL=${{ vars.VITE_ACTIVITY_SERVICE_URL }}" > .env
           echo "VITE_PATIENT_SERVICE_URL=${{ vars.VITE_PATIENT_SERVICE_URL }}" >> .env
           echo "VITE_GEOCODE_SERVICE_URL=${{ vars.VITE_GEOCODE_SERVICE_URL }}" >> .env
           echo "VITE_USER_SERVICE_URL=${{ vars.VITE_USER_SERVICE_URL }}" >> .env
