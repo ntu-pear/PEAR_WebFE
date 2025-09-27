@@ -3,7 +3,7 @@ import { CardHeader, CardTitle, CardContent, Card } from "../ui/card";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
-import { Heart, HeartCrack, Edit, Search, ThumbsUp, ThumbsDown, Minus } from "lucide-react";
+import { Heart, HeartCrack, Edit, Search, ThumbsUp, ThumbsDown} from "lucide-react";
 import { DataTableClient } from "../Table/DataTable";
 import { useActivityPreferences } from "@/hooks/activity/useActivityPreferences";
 import { useAuth } from "@/hooks/useAuth";
