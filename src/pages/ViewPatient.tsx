@@ -153,7 +153,7 @@ const ViewPatient: React.FC = () => {
               }
               {currentUser?.roleName === "SUPERVISOR" && (
                 <TabsTrigger value="activity-preference">
-                  Activity Preference
+                  Manage Centre Activity Preference
                 </TabsTrigger>
               )}
               {currentUser?.roleName === "SUPERVISOR" && (
@@ -179,7 +179,7 @@ const ViewPatient: React.FC = () => {
               )}
               {currentUser?.roleName === "SUPERVISOR" && (
                 <TabsTrigger value="activity-exclusion">
-                  Activity Exclusion
+                  Centre Activity Exclusion
                 </TabsTrigger>
               )}
             </TabsList>
