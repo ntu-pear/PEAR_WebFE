@@ -10,7 +10,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useModal } from "@/hooks/useModal";
 
 const CentreActivityExclusionCard: React.FC = () => {
-  const { centreActivityExclusions, loading, error, refreshCentreActivityExclusions } = useCentreActivityExclusions();
+  const { centreActivityExclusions, loading, error } = useCentreActivityExclusions();
   const { currentUser } = useAuth();
   const { openModal } = useModal();
   const [patientNameFilter, setPatientNameFilter] = useState("");
@@ -47,7 +47,7 @@ const CentreActivityExclusionCard: React.FC = () => {
     const now = new Date();
     
     if (now < start) {
-      return <Badge variant="outline">Scheduled</Badge>;
+      return <Badge variant="outline">Pending</Badge>;
     } else if (!end) {
       return <Badge variant="destructive">Active (Indefinite)</Badge>;
     } else if (now <= end) {
@@ -89,7 +89,7 @@ const CentreActivityExclusionCard: React.FC = () => {
       ),
     },
     {
-      key: "exclusionRemarks" as keyof typeof activityExclusions[0],
+      key: "exclusionRemarks" as keyof typeof centreActivityExclusions[0],
       header: "Remarks",
       className: "min-w-[200px] max-w-[300px]",
       render: (value: string | null | undefined) => {
@@ -127,10 +127,7 @@ const CentreActivityExclusionCard: React.FC = () => {
               activityName: item.activityName,
               currentStartDate: item.startDate,
               currentEndDate: item.endDate,
-              currentRemarks: item.exclusionRemarks,
-              onUpdate: () => {
-                refreshActivityExclusions();
-              }
+              currentRemarks: item.exclusionRemarks
             })}
             disabled={!currentUser || (currentUser.roleName !== "SUPERVISOR" && currentUser.roleName !== "PRIMARY_GUARDIAN")}
           >
@@ -184,11 +181,7 @@ const CentreActivityExclusionCard: React.FC = () => {
               />
             </div>
             <Button
-              onClick={() => openModal("addActivityExclusion", {
-                onUpdate: () => {
-                  refreshActivityExclusions();
-                }
-              })}
+              onClick={() => openModal("addActivityExclusion", {})}
               disabled={!currentUser || (currentUser.roleName !== "SUPERVISOR" && currentUser.roleName !== "PRIMARY_GUARDIAN")}
             >
               <Plus className="h-4 w-4 mr-2" />
@@ -213,4 +206,4 @@ const CentreActivityExclusionCard: React.FC = () => {
   );
 };
 
-export default ActivityExclusionCard;
+export default CentreActivityExclusionCard;

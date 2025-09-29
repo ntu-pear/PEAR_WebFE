@@ -24,7 +24,7 @@ function confirmAction(message: string) {
   return window.confirm(message);
 }
 
-type StatusFilter = "all" | "scheduled" | "active" | "expired";
+type StatusFilter = "all" | "pending" | "active" | "expired";
 
 export default function ManageCentreActivityExclusions() {
   const [search, setSearch] = useState("");
@@ -57,7 +57,7 @@ export default function ManageCentreActivityExclusions() {
         const end = exclusion.endDate && !exclusion.isIndefinite ? new Date(exclusion.endDate) : null;
         
         switch (statusFilter) {
-          case "scheduled":
+          case "pending":
             return now < start;
           case "active":
             return exclusion.isIndefinite || (end && now <= end && now >= start);
@@ -80,7 +80,7 @@ export default function ManageCentreActivityExclusions() {
       const end = exclusion.endDate && !exclusion.isIndefinite ? new Date(exclusion.endDate) : null;
       
       if (now < start) {
-        counts.scheduled++;
+        counts.pending++;
       } else if (exclusion.isIndefinite || (end && now <= end)) {
         counts.active++;
       } else if (end && now > end) {
@@ -88,7 +88,7 @@ export default function ManageCentreActivityExclusions() {
       }
       
       return counts;
-    }, { scheduled: 0, active: 0, expired: 0 });
+    }, { pending: 0, active: 0, expired: 0 });
   }, [centreActivityExclusions]);
 
   const handleCreate = async (values: CentreActivityExclusionFormValues) => {
@@ -190,10 +190,10 @@ export default function ManageCentreActivityExclusions() {
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Scheduled</CardTitle>
+              <CardTitle className="text-sm font-medium">Pending</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-blue-600">{statusCounts.scheduled}</div>
+              <div className="text-2xl font-bold text-blue-600">{statusCounts.pending}</div>
             </CardContent>
           </Card>
           <Card>
@@ -225,7 +225,7 @@ export default function ManageCentreActivityExclusions() {
               <SelectContent>
                 <SelectItem value="all">All Status</SelectItem>
                 <SelectItem value="active">Active</SelectItem>
-                <SelectItem value="scheduled">Scheduled</SelectItem>
+                <SelectItem value="pending">Pending</SelectItem>
                 <SelectItem value="expired">Expired</SelectItem>
               </SelectContent>
             </Select>

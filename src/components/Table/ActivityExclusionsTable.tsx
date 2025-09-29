@@ -112,7 +112,7 @@ export default function CentreActivityExclusionsTable({
                         const end = row.endDate && !row.isIndefinite ? new Date(row.endDate) : null;
                         
                         if (now < start) {
-                          return <Badge variant="outline">Scheduled</Badge>;
+                          return <Badge variant="outline">Pending</Badge>;
                         } else if (row.isIndefinite || (end && now <= end)) {
                           return <Badge className="bg-green-100 text-green-800 border-green-300">Active</Badge>;
                         } else {
