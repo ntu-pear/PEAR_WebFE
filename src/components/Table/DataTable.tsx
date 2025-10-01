@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from "react";
+import { ChevronUp, ChevronDown, ChevronsUpDown } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -6,6 +7,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import DataTableRow from "./DataTableRow";
 import { Button } from "@/components/ui/button";
 
@@ -45,6 +53,7 @@ interface DataTableServerProps<T extends TableRowData> {
   columns: Array<{
     key: keyof T;
     header: string;
+    sortable?: boolean; // Add sortable property
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     render?: (value: any, item: T) => React.ReactNode;
     className?: string;
@@ -56,7 +65,12 @@ interface DataTableServerProps<T extends TableRowData> {
   hideActionsHeader?: boolean;
   className?: string;
   renderActions?: (item: T) => React.ReactNode; // New prop to customize actions column
-  fetchData: (pageNo: number, pageSize: number) => void;
+  fetchData: (pageNo: number, pageSize: number, sortColumn?: string, sortDirection?: "asc" | "desc") => void;
+  sortBy?: string | null; // Add sorting props
+  sortDir?: "asc" | "desc";
+  onSort?: (column: string) => void;
+  onPageSizeChange?: (pageSize: number) => void; // Add page size change handler
+  pageSizeOptions?: number[]; // Add configurable page size options
 }
 
 // Data Table with Client Pagination
@@ -184,6 +198,11 @@ export function DataTableServer<T extends TableRowData>({
   className = "",
   renderActions, // Accept renderActions function as a prop
   fetchData,
+  sortBy,
+  sortDir,
+  onSort,
+  onPageSizeChange,
+  pageSizeOptions = [5, 10, 20, 50, 100], // Default page size options
 }: DataTableServerProps<T>) {
   const { pageNo, pageSize, totalRecords, totalPages } = pagination;
 
@@ -215,9 +234,25 @@ export function DataTableServer<T extends TableRowData>({
               {columns.map((column) => (
                 <TableHead
                   key={column.key.toString()}
-                  className={`cursor-pointer ${column.className || ""}`}
+                  className={`${column.className || ""} ${column.sortable ? "cursor-pointer select-none" : ""}`}
+                  onClick={() => column.sortable && onSort && onSort(column.key.toString())}
                 >
-                  {column.header}
+                  <div className="flex items-center space-x-1">
+                    <span>{column.header}</span>
+                    {column.sortable && (
+                      <div className="flex flex-col">
+                        {sortBy === column.key.toString() ? (
+                          sortDir === "asc" ? (
+                            <ChevronUp className="h-4 w-4" />
+                          ) : (
+                            <ChevronDown className="h-4 w-4" />
+                          )
+                        ) : (
+                          <ChevronsUpDown className="h-4 w-4 text-gray-400" />
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </TableHead>
               ))}
               {hideActionsHeader ? null : (
@@ -249,12 +284,34 @@ export function DataTableServer<T extends TableRowData>({
       */}
       {data.length > 0 && (
         <div className="flex items-center justify-between py-4">
-          <div className="text-xs text-muted-foreground">
-            Showing{" "}
-            <strong>
-              {pageNo * pageSize + 1}-{pageNo * pageSize + data.length}
-            </strong>{" "}
-            of <strong>{totalRecords}</strong> records
+          <div className="flex items-center space-x-6">
+            <div className="text-xs text-muted-foreground">
+              Showing{" "}
+              <strong>
+                {pageNo * pageSize + 1}-{pageNo * pageSize + data.length}
+              </strong>{" "}
+              of <strong>{totalRecords}</strong> records
+            </div>
+            {onPageSizeChange && (
+              <div className="flex items-center">
+                <p className="text-sm font-medium">Items per page</p>
+                <Select
+                  value={pageSize.toString()}
+                  onValueChange={(value) => onPageSizeChange(parseInt(value))}
+                >
+                  <SelectTrigger className="h-8 w-[70px]">
+                    <SelectValue placeholder={pageSize.toString()} />
+                  </SelectTrigger>
+                  <SelectContent side="top">
+                    {pageSizeOptions.map((size) => (
+                      <SelectItem key={size} value={size.toString()}>
+                        {size}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
           </div>
           <div className="flex items-center space-x-2">
             <Button
