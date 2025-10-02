@@ -93,6 +93,9 @@ const ActivityRecCard: React.FC = () => {
         });
       }
     });
+    toast.success(
+      `Successfully updated ${selectedActivities.length} recommendations`
+    );
 
     setSelectedActivities([]);
   };

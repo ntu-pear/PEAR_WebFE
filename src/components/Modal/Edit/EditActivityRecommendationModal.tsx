@@ -47,6 +47,10 @@ const EditActivityRecommendationModal = () => {
       value: "NOT_RECOMMENDED",
       label: "Not Recommended",
     },
+    {
+      value: "NEUTRAL",
+      label: "Neutral",
+    },
   ];
 
   const editActivityRecommendation = useUpdateActivityRecommendation();

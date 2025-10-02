@@ -34,6 +34,10 @@ const AddActivityRecommendationModal = () => {
       value: "NOT_RECOMMENDED",
       label: "Not Recommended",
     },
+    {
+      value: "NEUTRAL",
+      label: "Neutral",
+    },
   ];
 
   const addActivityRecommendation = useAddActivityRecommendation();
