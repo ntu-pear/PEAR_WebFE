@@ -23,15 +23,20 @@ export interface TableRowData {
   [key: string]: any;
 }
 
+type DataTableColumn<T extends Record<string, any>> = {
+  key: keyof T;
+  header: string;
+  render?: (value: T[keyof T], item: T) => React.ReactNode;
+  className?: string;
+};
+
+export type DataTableColumns<T extends Record<string, any>> = Array<
+  DataTableColumn<T>
+>;
+
 interface DataTableClientProps<T extends TableRowData> {
   data: T[];
-  columns: Array<{
-    key: keyof T;
-    header: string;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    render?: (value: any, item: T) => React.ReactNode;
-    className?: string;
-  }>;
+  columns: DataTableColumns<T>;
   itemsPerPage?: number; // Optional prop to specify number of items per page
   viewMore: boolean;
   viewMoreBaseLink?: string;
