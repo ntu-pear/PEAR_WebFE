@@ -21,7 +21,7 @@ const AddActivityRecommendationModal = () => {
     activeModal.props as {
       patientId: number;
       centreActivityId: number;
-      submitterId: number;
+      submitterId: string;
       activityName: string;
     };
 

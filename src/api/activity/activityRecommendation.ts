@@ -20,7 +20,7 @@ export interface CentreActivityRecommendation {
 export interface CreateActivityRecommendationPayload {
   patientId: number;
   centreActivityId: number;
-  doctorId: number;
+  doctorId: string;
   doctorRecommendation: number; // 1=RECOMMENDED, 0=NEUTRAL, -1=NOT_RECOMMENDED
   doctorRemarks?: string;
 }
@@ -28,7 +28,7 @@ export interface CreateActivityRecommendationPayload {
 export interface UpdateActivityRecommendationPayload {
   patientId: number;
   centreActivityId: number;
-  doctorId: number;
+  doctorId: string;
   recommendationId: number;
   doctorRecommendation?: number; // 1=RECOMMENDED, 0=NEUTRAL, -1=NOT_RECOMMENDED
   doctorRemarks?: string;
