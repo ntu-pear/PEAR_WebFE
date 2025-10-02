@@ -153,7 +153,7 @@ const ViewPatient: React.FC = () => {
               }
               {currentUser?.roleName === "SUPERVISOR" && (
                 <TabsTrigger value="activity-preference">
-                  Manage Centre Activity Preference
+                  Activity Preference
                 </TabsTrigger>
               )}
               {currentUser?.roleName === "SUPERVISOR" && (

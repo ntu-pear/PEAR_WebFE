@@ -73,11 +73,6 @@ const supervisorMenu: MenuSection[] = [
         icon: "ShieldX",
         path: "/supervisor/manage-exclusions",
       },
-      {
-        title: "Manage Centre Activity Preferences",
-        icon: "List",
-        path: "/supervisor/view-patient/{id}?tab=activity-preference",
-      },
     ],
   },
   {
