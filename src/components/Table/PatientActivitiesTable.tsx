@@ -69,6 +69,9 @@ const PatientActivitiesTable = ({
               onClick={() =>
                 activity.recommendationId
                   ? openModal("editActivityRecommendation", {
+                      patientId: patientId,
+                      centreActivityId: String(activity.id),
+                      submitterId: currentUser?.userId,
                       activityName: activity.name,
                       recommendationId: String(activity.recommendationId),
                     })

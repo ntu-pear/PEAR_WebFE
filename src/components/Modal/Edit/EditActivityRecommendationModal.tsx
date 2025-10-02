@@ -24,7 +24,16 @@ const EditActivityRecommendationModal = () => {
   const editActivityRecommendationForm =
     useForm<TEditActivityRecommendationForm>();
   const { modalRef, activeModal, closeModal } = useModal();
-  const { recommendationId, activityName } = activeModal.props as {
+  const {
+    patientId,
+    centreActivityId,
+    submitterId,
+    recommendationId,
+    activityName,
+  } = activeModal.props as {
+    patientId: number;
+    centreActivityId: number;
+    submitterId: number;
     recommendationId: number;
     activityName: string;
   };
@@ -46,6 +55,9 @@ const EditActivityRecommendationModal = () => {
     TEditActivityRecommendationForm
   > = ({ recommendation, doctorRemarks }) => {
     const payload: UpdateActivityRecommendationPayload = {
+      patientId,
+      centreActivityId,
+      doctorId: submitterId,
       recommendationId,
       doctorRecommendation: recommendationToInt(recommendation),
       doctorRemarks: doctorRemarks,
@@ -79,7 +91,7 @@ const EditActivityRecommendationModal = () => {
 
   useEffect(() => {
     handleFetchActivityRecommendationById();
-  });
+  }, []);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">

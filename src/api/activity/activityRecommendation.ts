@@ -1,3 +1,4 @@
+import { getDateTimeNowInUTC } from "@/utils/formatDate";
 import { activityAPI } from "../apiConfig";
 import { retrieveAccessTokenFromCookie } from "../users/auth";
 
@@ -25,6 +26,9 @@ export interface CreateActivityRecommendationPayload {
 }
 
 export interface UpdateActivityRecommendationPayload {
+  patientId: number;
+  centreActivityId: number;
+  doctorId: number;
   recommendationId: number;
   doctorRecommendation?: number; // 1=RECOMMENDED, 0=NEUTRAL, -1=NOT_RECOMMENDED
   doctorRemarks?: string;
@@ -170,15 +174,23 @@ export const createActivityRecommendation = async ({
   doctorRecommendation,
   doctorRemarks,
 }: CreateActivityRecommendationPayload): Promise<CentreActivityRecommendation> => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No authentication token found");
+
   try {
     const response = await activityAPI.post(
       "/centre_activity_recommendations",
       {
         centre_activity_id: centreActivityId,
         patient_id: patientId,
-        doctor_id: doctorId,
         doctor_recommendation: doctorRecommendation,
         doctor_remarks: doctorRemarks,
+        created_by_id: doctorId,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       }
     );
     return response.data;
@@ -190,22 +202,34 @@ export const createActivityRecommendation = async ({
 
 // Update activity recommendation
 export const updateActivityRecommendation = async ({
+  patientId,
+  centreActivityId,
+  doctorId,
   recommendationId,
   doctorRecommendation,
   doctorRemarks,
 }: UpdateActivityRecommendationPayload): Promise<CentreActivityRecommendation> => {
-  try {
-    const payload: any = {};
-    if (doctorRecommendation !== undefined) {
-      payload.doctor_recommendation = doctorRecommendation;
-    }
-    if (doctorRemarks !== undefined) {
-      payload.doctor_remarks = doctorRemarks;
-    }
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No authentication token found");
 
+  try {
     const response = await activityAPI.put(
       `/centre_activity_recommendations/${recommendationId}`,
-      payload
+      {
+        centre_activity_id: centreActivityId,
+        patient_id: patientId,
+        doctor_recommendation: doctorRecommendation,
+        doctor_remarks: doctorRemarks,
+        id: recommendationId,
+        is_deleted: false,
+        modified_by_id: doctorId,
+        modified_date: getDateTimeNowInUTC() as string,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
     );
     return response.data;
   } catch (error) {
