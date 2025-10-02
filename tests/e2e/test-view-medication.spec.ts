@@ -61,11 +61,11 @@ test.describe("Supervisor: Manage Medication", () => {
       expect(rows.length).toBeGreaterThanOrEqual(1);
     });
 
-    await test.step("Open medication modal for the first patient", async () => {
+    await test.step("Open medication for the first patient", async () => {
       const patient = page.locator("tbody tr").first();
       await expect(patient).toBeVisible();
 
-      await patient.getByRole("button", { name: "Show Medication" }).click();
+      await patient.locator("svg.lucide-chevron-right").click();
 
       await expect(
         page.getByRole("heading", { name: "Medication Details for" })
@@ -75,22 +75,22 @@ test.describe("Supervisor: Manage Medication", () => {
     });
 
     await test.step("Check medication table is visible or no data", async () => {
-      const modalTable = await page.getByRole("table").last(); // table inside modal
+      const medicationTable = await page.getByRole("table").last();
 
-      if (await modalTable.isVisible()) {
+      if (await medicationTable.isVisible()) {
         const headers = [
           "Drug Name",
+          "Administer Time",
           "Dosage",
-          "Frequency Per Day",
           "Instruction",
           "Start Date",
           "End Date",
-          "After Meal",
+          "Remarks",
           "Actions",
         ];
         for (const column of headers) {
           await expect(
-            modalTable.locator("th", { hasText: column })
+            medicationTable.locator("th", { hasText: column })
           ).toBeVisible();
         }
       } else {
@@ -100,14 +100,15 @@ test.describe("Supervisor: Manage Medication", () => {
 
     await test.step("Add new medication", async () => {
       await page.getByRole("button", { name: "Add" }).click();
-      await expect(page.getByText("Add Medical Prescription")).toBeVisible();
+      await expect(
+        page.getByRole("heading", { name: "Add Medication" })
+      ).toBeVisible();
 
       await page
         .locator('select[name="PrescriptionListId"]')
         .selectOption({ index: 1 });
-      await page.locator('select[name="IsAfterMeal"]').selectOption("1");
+      await page.locator('input[name="AdministerTime"]').fill("19:00");
       await page.locator('input[name="Dosage"]').fill("1");
-      await page.locator('input[name="FrequencyPerDay"]').fill("2");
       const instruction = "E2E test add";
       await page.locator('textarea[name="Instruction"]').fill(instruction);
       const toYMD = (d: Date) => d.toISOString().slice(0, 10);
@@ -117,7 +118,6 @@ test.describe("Supervisor: Manage Medication", () => {
       end.setDate(start.getDate() + 14);
       await page.locator('input[name="StartDate"]').fill(toYMD(start));
       await page.locator('input[name="EndDate"]').fill(toYMD(end));
-      await page.locator('select[name="Status"]').selectOption("0");
       await page
         .locator('textarea[name="PrescriptionRemarks"]')
         .fill("created via e2e");
@@ -125,38 +125,41 @@ test.describe("Supervisor: Manage Medication", () => {
       await page.locator("button[type=submit]").click();
       await page.waitForTimeout(1200);
 
-      const modalTable = await page.getByRole("table").last();
-      await expect(modalTable.locator("tbody tr").first()).toContainText(
+      const medicationTable = await page.getByRole("table").last();
+      await expect(medicationTable.locator("tbody tr").first()).toContainText(
+        "1900"
+      );
+      await expect(medicationTable.locator("tbody tr").first()).toContainText(
         instruction
       );
     });
 
-    await test.step("Open Edit prescription modal and close it", async () => {
-      const modalTable = page.getByRole("table").last();
-      modalTable
+    await test.step("Edit medication", async () => {
+      const medicationTable = page.getByRole("table").last();
+      medicationTable
         .locator("tbody tr")
         .first()
         .getByRole("button", { name: "Edit" })
         .click();
 
       await expect(
-        page.getByRole("heading", { name: "Medical Prescription" })
+        page.getByRole("heading", { name: "Edit Medication" })
       ).toBeVisible();
       const instruction = "E2E test edit";
       await page.locator('textarea[name="Instruction"]').fill(instruction);
       await page.getByRole("button", { name: "Save Changes" }).click();
       await page.waitForTimeout(1200);
 
-      await expect(modalTable.locator("tbody tr").first()).toContainText(
+      await expect(medicationTable.locator("tbody tr").first()).toContainText(
         instruction
       );
     });
 
-    await test.step("Open Delete prescription modal and close it", async () => {
-      const modalTable = page.getByRole("table").last();
-      const rows = await modalTable.locator("tbody tr").all();
+    await test.step("Delete medication", async () => {
+      const medicationTable = page.getByRole("table").last();
+      const rows = await medicationTable.locator("tbody tr").all();
 
-      rows[rows.length - 1].getByRole("button", { name: "Delete" }).click();
+      rows[0].getByRole("button", { name: "Delete" }).click();
 
       await expect(
         page.getByRole("heading", { name: "Are you sure?" })
@@ -165,13 +168,15 @@ test.describe("Supervisor: Manage Medication", () => {
       await page.locator("[type=submit]").first().click();
       await page.waitForTimeout(1200);
 
-      await expect(await modalTable.locator("tbody tr").all()).toHaveLength(
-        rows.length - 1
-      );
+      await expect(
+        await medicationTable.locator("tbody tr").all()
+      ).toHaveLength(rows.length - 1);
     });
 
-    await test.step("Close medication modal", async () => {
-      await page.getByRole("button", { name: "✕" }).click();
+    await test.step("Close medication dropdown", async () => {
+      const patient = page.locator("tbody tr").first();
+      await patient.locator("svg.lucide-chevron-down").click();
+
       await expect(
         page.getByRole("heading", { name: "Medication Details for" })
       ).not.toBeVisible();
@@ -185,7 +190,7 @@ test.describe("Supervisor: Manage Medication", () => {
         .locator("tr", { hasNot: page.locator("th") })
         .first()
         .getByRole("cell")
-        .nth(0)
+        .nth(1)
         .textContent();
       expect(cell).toContain(keyword.toUpperCase());
 
