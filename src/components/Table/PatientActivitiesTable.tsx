@@ -10,11 +10,15 @@ import { useAuth } from "@/hooks/useAuth";
 type PatientActivitiesTableProps = {
   patientId: number;
   activities: PatientActivity[];
+  selectedActivities?: PatientActivity[];
+  onSelectedActivitiesChange?: (activities: PatientActivity[]) => void;
 };
 
 const PatientActivitiesTable = ({
   patientId,
   activities,
+  selectedActivities,
+  onSelectedActivitiesChange,
 }: PatientActivitiesTableProps) => {
   const { currentUser } = useAuth();
   const { openModal } = useModal();
@@ -83,11 +87,14 @@ const PatientActivitiesTable = ({
                     })
               }
             >
-              Recommend
+              Add Recommendation
             </Button>
           )}
         </div>
       )}
+      selectable={true}
+      selectedItems={selectedActivities}
+      onSelectChange={onSelectedActivitiesChange}
     />
   );
 };

@@ -33,7 +33,7 @@ const EditActivityRecommendationModal = () => {
   } = activeModal.props as {
     patientId: number;
     centreActivityId: number;
-    submitterId: number;
+    submitterId: string;
     recommendationId: number;
     activityName: string;
   };
