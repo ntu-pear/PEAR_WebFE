@@ -1,10 +1,13 @@
-import { mockPrescriptionListData } from "@/mocks/mockPatientDetails";
 import {
   convertIsAfterMeal,
   getStatusDescription,
 } from "@/utils/convertToYesNo";
 import { formatDateString } from "@/utils/formatDate";
-import { patientPrescriptionAPI, prescriptionAPI } from "../apiConfig";
+import {
+  patientPrescriptionAPI,
+  prescriptionAPI,
+  prescriptionListAPI,
+} from "../apiConfig";
 import { TableRowData } from "@/components/Table/DataTable";
 import { retrieveAccessTokenFromCookie } from "../users/auth";
 
@@ -33,6 +36,14 @@ export interface PrescriptionList {
   CreatedDateTime: string;
   UpdatedDateTime: string;
   Value: string;
+}
+
+export interface PrescriptionListView {
+  data: PrescriptionList[];
+  pageNo: number;
+  pageSize: number;
+  totalRecords: number;
+  totalPages: number;
 }
 
 // prescriptions response body from api
@@ -171,6 +182,34 @@ const convertToPrescriptionTDServer = (
   return updatedTD;
 };
 
+export const fetchPrescriptionList = async (
+  pageNo: number = 0,
+  pageSize: number = 100
+): Promise<PrescriptionListView> => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+
+  try {
+    const response = await prescriptionListAPI.get<PrescriptionListView>(
+      `/?pageNo=${pageNo}&pageSize=${pageSize}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    console.log("GET all prescription List", response.data);
+    return {
+      ...response.data,
+      data: response.data.data.sort((a, b) => a.Value.localeCompare(b.Value)),
+    };
+  } catch (error) {
+    console.error("GET all prescription List", error);
+    throw error;
+  }
+};
+
 export const fetchPatientPrescription = async (
   patientId: number,
   pageNo: number = 0,
@@ -180,7 +219,7 @@ export const fetchPatientPrescription = async (
   if (!token) throw new Error("No token found.");
 
   try {
-    const dlResponse = mockPrescriptionListData;
+    const dlResponse = await fetchPrescriptionList();
     console.log("GET all prescription List", dlResponse.data);
 
     const ddResponse = await patientPrescriptionAPI.get<PrescriptionViewList>(

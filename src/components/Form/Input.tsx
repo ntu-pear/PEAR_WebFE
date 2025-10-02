@@ -29,7 +29,7 @@ export default function Input<T extends FieldValues>({
   return (
     <div className="pb-2 flex flex-col">
       {/* This label appears on top of the input component */}
-      <label className="mb-1" htmlFor={name}>
+      <label className="mb-1 text-sm font-medium" htmlFor={name}>
         {label}
         {/* This red asterisk appears if the field is required */}
         {(!validation ||

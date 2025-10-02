@@ -39,6 +39,9 @@ interface DataTableClientProps<T extends TableRowData> {
   hideActionsHeader?: boolean;
   className?: string;
   renderActions?: (item: T) => React.ReactNode; // New prop to customize actions column
+  expandable?: boolean;
+  renderExpandedContent?: (item: T) => React.ReactNode;
+  onExpand?: (item: T) => void;
 }
 
 export interface ServerPagination {
@@ -65,12 +68,20 @@ interface DataTableServerProps<T extends TableRowData> {
   hideActionsHeader?: boolean;
   className?: string;
   renderActions?: (item: T) => React.ReactNode; // New prop to customize actions column
-  fetchData: (pageNo: number, pageSize: number, sortColumn?: string, sortDirection?: "asc" | "desc") => void;
+  fetchData: (
+    pageNo: number,
+    pageSize: number,
+    sortColumn?: string,
+    sortDirection?: "asc" | "desc"
+  ) => void;
   sortBy?: string | null; // Add sorting props
   sortDir?: "asc" | "desc";
   onSort?: (column: string) => void;
   onPageSizeChange?: (pageSize: number) => void; // Add page size change handler
   pageSizeOptions?: number[]; // Add configurable page size options
+  expandable?: boolean;
+  renderExpandedContent?: (item: T) => React.ReactNode;
+  onExpand?: (item: T) => void;
 }
 
 // Data Table with Client Pagination
@@ -84,6 +95,9 @@ export function DataTableClient<T extends TableRowData>({
   hideActionsHeader = false, //default show actions header
   className = "",
   renderActions, // Accept renderActions function as a prop
+  expandable = false,
+  renderExpandedContent,
+  onExpand,
 }: DataTableClientProps<T>) {
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -122,6 +136,7 @@ export function DataTableClient<T extends TableRowData>({
         <Table className={className}>
           <TableHeader>
             <TableRow>
+              {expandable && <TableHead className="w-12"></TableHead>}
               {columns.map((column) => (
                 <TableHead
                   key={column.key.toString()}
@@ -146,6 +161,9 @@ export function DataTableClient<T extends TableRowData>({
                   activeTab ? `?tab=${activeTab}` : ""
                 }`}
                 renderActions={renderActions} // Pass the custom renderActions function
+                expandable={expandable}
+                renderExpandedContent={renderExpandedContent}
+                onExpand={onExpand}
               />
             ))}
           </TableBody>
@@ -203,6 +221,9 @@ export function DataTableServer<T extends TableRowData>({
   onSort,
   onPageSizeChange,
   pageSizeOptions = [5, 10, 20, 50, 100], // Default page size options
+  expandable = false,
+  renderExpandedContent,
+  onExpand,
 }: DataTableServerProps<T>) {
   const { pageNo, pageSize, totalRecords, totalPages } = pagination;
 
@@ -231,11 +252,14 @@ export function DataTableServer<T extends TableRowData>({
         <Table className={className}>
           <TableHeader>
             <TableRow>
+              {expandable && <TableHead className="w-12"></TableHead>}
               {columns.map((column) => (
                 <TableHead
                   key={column.key.toString()}
                   className={`${column.className || ""} ${column.sortable ? "cursor-pointer select-none" : ""}`}
-                  onClick={() => column.sortable && onSort && onSort(column.key.toString())}
+                  onClick={() =>
+                    column.sortable && onSort && onSort(column.key.toString())
+                  }
                 >
                   <div className="flex items-center space-x-1">
                     <span>{column.header}</span>
@@ -271,6 +295,9 @@ export function DataTableServer<T extends TableRowData>({
                   activeTab ? `?tab=${activeTab}` : ""
                 }`}
                 renderActions={renderActions} // Pass the custom renderActions function
+                expandable={expandable}
+                renderExpandedContent={renderExpandedContent}
+                onExpand={onExpand}
               />
             ))}
           </TableBody>

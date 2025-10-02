@@ -132,7 +132,12 @@ const VerifyAccount: React.FC = () => {
                       label="Role"
                       name="role"
                       form={form}
-                      options={data?.map((role) => role.roleName) || []}
+                      options={
+                        data?.map(({ roleName }) => ({
+                          value: roleName,
+                          name: roleName,
+                        })) || []
+                      }
                     />
                     <Input
                       type="password"
