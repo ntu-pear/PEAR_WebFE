@@ -60,9 +60,9 @@ const PatientScheduleView: React.FC = () => {
   // Function to get patient name for CSV export
   const getPatientNameForExport = useCallback((calendarItem: CalendarScheduleItem) => {
     // Try to get the patient name from schedule data first
-    const patientPreferredName = calendarItem.patientPreferredName;
-    if (patientPreferredName) {
-      return patientPreferredName;
+    const patientName = calendarItem.patientName;
+    if (patientName) {
+      return patientName;
     }
 
     return `Patient ID: ${calendarItem.patientId}`; // default fallback value
@@ -71,9 +71,9 @@ const PatientScheduleView: React.FC = () => {
   // Function to get patient display name for activity details modal
   const getPatientDisplayNameFromActivity = useCallback((activity: ScheduledPatientActivity) => {
     // Try to get the patient name from schedule data first
-    const patientPreferredName = activity.patientPreferredName;
-    if (patientPreferredName) {
-      return `${patientPreferredName} (ID: ${activity.patientId})`;
+    const patientName = activity.patientName;
+    if (patientName) {
+      return `${patientName} (ID: ${activity.patientId})`;
     }
 
     return `Patient ID: ${activity.patientId}`; // default fallback value
@@ -152,7 +152,7 @@ const PatientScheduleView: React.FC = () => {
       .map(scheduleItem => ({
         id: scheduleItem.id,
         patientId: patientId, // Keep the original string format for calendar
-        patientPreferredName: scheduleItem.patientPreferredName,
+        patientName: scheduleItem.patientName,
         activityTemplateId: `generated-${scheduleItem.id}`, // Use unique ID to identify each generated activity
         startTime: scheduleItem.startTime,
         endTime: scheduleItem.endTime,
@@ -184,7 +184,7 @@ const PatientScheduleView: React.FC = () => {
       .map(scheduleItem => ({
         id: scheduleItem.id,
         patientId: patientId, // Keep the original string format for calendar
-        patientPreferredName: scheduleItem.patientPreferredName,
+        patientName: scheduleItem.patientName,
         activityTemplateId: `generated-${scheduleItem.id}`, // Use unique ID to identify each generated activity
         startTime: scheduleItem.startTime,
         endTime: scheduleItem.endTime,
@@ -267,7 +267,7 @@ const PatientScheduleView: React.FC = () => {
         const scheduleItem = scheduleData.find(item => item.patientId === patientId);
         return {
           id: String(patientId),
-          name: scheduleItem ? `${scheduleItem.patientPreferredName} (ID: ${patientId})` : `Patient ID: ${patientId}`,
+          name: scheduleItem ? `${scheduleItem.patientName} (ID: ${patientId})` : `Patient ID: ${patientId}`,
           isActive: true
         };
       });
