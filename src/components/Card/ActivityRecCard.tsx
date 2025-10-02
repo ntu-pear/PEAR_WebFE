@@ -110,7 +110,7 @@ const ActivityRecCard: React.FC = () => {
       </CardHeader>
       <CardContent>
         {selectedActivities.length > 0 && (
-          <div className="flex items-center justify-between space-x-4 mb-4 bg-gray-100 p-3 rounded-md">
+          <div className="flex items-center justify-between space-x-4 mb-4 bg-gray-100 p-4 rounded-md border border-gray-200">
             <span className="text-sm">
               <strong className="font-bold">{selectedActivities.length}</strong>{" "}
               of {filteredActivities.length} items selected
