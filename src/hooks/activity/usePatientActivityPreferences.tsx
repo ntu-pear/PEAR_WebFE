@@ -23,6 +23,7 @@ export interface PatientActivityPreferenceWithRecommendation {
   doctorRecommendation?: "RECOMMENDED" | "NOT_RECOMMENDED" | "NEUTRAL" | null;
   doctorNotes?: string;
   canEdit?: boolean;
+  preferenceId?: number; // Actual database ID if preference exists
 }
 
 export const usePatientActivityPreferences = (patientId: string) => {
@@ -68,11 +69,14 @@ export const usePatientActivityPreferences = (patientId: string) => {
         }
       });
 
-      // Create preference mapping for this patient
-      const preferenceMap = new Map<number, string>();
+      // Create preference mapping for this patient (including actual preference IDs)
+      const preferenceMap = new Map<number, { preference: string; preferenceId?: number }>();
       preferences.forEach(pref => {
         if (pref.patient_id === parseInt(patientId)) {
-          preferenceMap.set(pref.centre_activity_id, intToPreference(pref.is_like));
+          preferenceMap.set(pref.centre_activity_id, {
+            preference: intToPreference(pref.is_like),
+            preferenceId: pref.id
+          });
         }
       });
 
@@ -92,7 +96,8 @@ export const usePatientActivityPreferences = (patientId: string) => {
 
       // Loop through all centre activities to show complete list for the patient
       centreActivityMap.forEach(({ activity }, centreActivityId) => {
-        const patientPreference = preferenceMap.get(centreActivityId) as "LIKE" | "DISLIKE" | "NEUTRAL" | undefined;
+        const preferenceData = preferenceMap.get(centreActivityId);
+        const patientPreference = preferenceData?.preference as "LIKE" | "DISLIKE" | "NEUTRAL" | undefined;
         const recommendation = recommendationMap.get(centreActivityId);
         const doctorRecommendation = recommendation?.recommendation as "RECOMMENDED" | "NOT_RECOMMENDED" | "NEUTRAL" | undefined;
 
@@ -107,6 +112,7 @@ export const usePatientActivityPreferences = (patientId: string) => {
           doctorRecommendation,
           doctorNotes: recommendation?.notes,
           canEdit: true, // Supervisors can edit preferences
+          preferenceId: preferenceData?.preferenceId, // Include actual database ID if it exists
         });
       });
 
