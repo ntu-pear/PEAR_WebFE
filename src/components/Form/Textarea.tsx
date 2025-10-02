@@ -4,16 +4,16 @@ type Props<T extends FieldValues> = {
   label: string;
   name: Path<T>;
   form: UseFormReturn<T>;
+  maxLength?: number;
   required?: boolean;
-  options: { value: string; name: string }[];
 };
 
-export default function Select<T extends FieldValues>({
+export default function Textarea<T extends FieldValues>({
   label,
   name,
   form,
+  maxLength = 255,
   required = true,
-  options,
 }: Props<T>) {
   const {
     register,
@@ -22,26 +22,18 @@ export default function Select<T extends FieldValues>({
 
   return (
     <div className="pb-2 flex flex-col">
-      {/* This label appears on top of the select component */}
+      {/* This label appears on top of the textarea component */}
       <label className="mb-1 text-sm font-medium" htmlFor={name}>
         {label} {required && <span className="text-red-600">*</span>}
       </label>
       {/* This is the select input registered as a React Hook Form input */}
-      <select
+      <textarea
         {...register(name)}
         id={name}
         className="border border-gray-300 rounded-md p-2 bg-white dark:bg-slate-700"
-      >
-        {/* This is the placeholder when no role is selected */}
-        <option value="">Please select an option</option>
-        {/* These are the options for the select input */}
-        {options.map(({ value, name }) => (
-          <option key={value} value={value}>
-            {name}
-          </option>
-        ))}
-      </select>
-      {/* This is the error message that appears under the select input if validation fails */}
+        maxLength={maxLength}
+      />
+      {/* This is the error message that appears under the textarea input if validation fails */}
       {errors[name] && (
         <p role="alert" className="text-red-600 text-sm">
           The {label} field is required.
