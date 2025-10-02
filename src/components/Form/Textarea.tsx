@@ -13,7 +13,7 @@ export default function Textarea<T extends FieldValues>({
   name,
   form,
   maxLength = 255,
-  required = true,
+  required = false,
 }: Props<T>) {
   const {
     register,
@@ -22,18 +22,15 @@ export default function Textarea<T extends FieldValues>({
 
   return (
     <div className="pb-2 flex flex-col">
-      {/* This label appears on top of the textarea component */}
       <label className="mb-1 text-sm font-medium" htmlFor={name}>
         {label} {required && <span className="text-red-600">*</span>}
       </label>
-      {/* This is the select input registered as a React Hook Form input */}
       <textarea
-        {...register(name)}
+        {...register(name, { required })}
         id={name}
         className="border border-gray-300 rounded-md p-2 bg-white dark:bg-slate-700"
         maxLength={maxLength}
       />
-      {/* This is the error message that appears under the textarea input if validation fails */}
       {errors[name] && (
         <p role="alert" className="text-red-600 text-sm">
           The {label} field is required.

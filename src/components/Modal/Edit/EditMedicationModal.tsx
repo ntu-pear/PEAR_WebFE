@@ -115,8 +115,7 @@ const EditMedicationModal: React.FC = () => {
   };
 
   useEffect(() => {
-    handleFetchPrescriptionList();
-    handleFetchMedicationById();
+    handleFetchPrescriptionList().then(() => handleFetchMedicationById());
   }, [medicationId]);
 
   return (

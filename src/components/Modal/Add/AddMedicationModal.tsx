@@ -123,7 +123,7 @@ const AddMedicationModal: React.FC = () => {
             label="Dosage"
             name="Dosage"
             formReturn={addMedicationForm}
-            required={true}
+            validation={{ required: true }}
           />
           <div className="col-span-2">
             <Textarea

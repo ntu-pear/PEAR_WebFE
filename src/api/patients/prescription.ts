@@ -200,7 +200,10 @@ export const fetchPrescriptionList = async (
     );
 
     console.log("GET all prescription List", response.data);
-    return response.data;
+    return {
+      ...response.data,
+      data: response.data.data.sort((a, b) => a.Value.localeCompare(b.Value)),
+    };
   } catch (error) {
     console.error("GET all prescription List", error);
     throw error;

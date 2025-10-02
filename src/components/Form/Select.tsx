@@ -1,4 +1,9 @@
-import { FieldValues, Path, UseFormReturn } from "react-hook-form";
+import {
+  FieldValues,
+  Path,
+  RegisterOptions,
+  UseFormReturn,
+} from "react-hook-form";
 
 type Props<T extends FieldValues> = {
   label: string;
@@ -6,6 +11,7 @@ type Props<T extends FieldValues> = {
   form: UseFormReturn<T>;
   required?: boolean;
   options: { value: string; name: string }[];
+  validation?: RegisterOptions<T>;
 };
 
 export default function Select<T extends FieldValues>({
@@ -14,6 +20,7 @@ export default function Select<T extends FieldValues>({
   form,
   required = true,
   options,
+  validation,
 }: Props<T>) {
   const {
     register,
@@ -28,7 +35,7 @@ export default function Select<T extends FieldValues>({
       </label>
       {/* This is the select input registered as a React Hook Form input */}
       <select
-        {...register(name)}
+        {...register(name, { required, ...validation })}
         id={name}
         className="border border-gray-300 rounded-md p-2 bg-white dark:bg-slate-700"
       >

@@ -106,15 +106,12 @@ export default function TimeInput<T extends FieldValues>({
 
   return (
     <div className="pb-2 flex flex-col">
-      {/* This label appears on top of the time input component */}
       <label className="mb-1 text-sm font-medium" htmlFor={name}>
         {label} {required && <span className="text-red-600">*</span>}
       </label>
-      {/* This is the time input registered as a React Hook Form input */}
       <Controller
         name={name}
         control={control}
-        // Apply required rule here for react-hook-form validation
         rules={{
           required: required
             ? `Please select a value for ${label}.`
@@ -135,7 +132,6 @@ export default function TimeInput<T extends FieldValues>({
           />
         )}
       />
-      {/* This is the error message that appears under the input if validation fails */}
       {errors[name] && (
         <p role="alert" className="text-red-600 text-sm">
           The {label} field is required.
