@@ -39,7 +39,7 @@ const ActivityRecCard: React.FC = () => {
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
+      <CardHeader className="flex flex-row items-center justify-between pr-0">
         <CardTitle className="text-lg">Activity Recommendation</CardTitle>
         <Searchbar searchItem={searchItem} onSearchChange={handleInputChange} />
       </CardHeader>
