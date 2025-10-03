@@ -134,7 +134,7 @@ const CentreActivityExclusionCard: React.FC<ActivityExclusionCardProps> = ({ pat
       const updateData = {
         id: editingExclusion.id,
         centre_activity_id: values.centre_activity_id,
-        patient_id: parseInt(patientId),
+        patient_id: editingExclusion.patientId, // Keep existing patient, don't allow change
         exclusion_remarks: values.exclusion_remarks,
         start_date: values.start_date,
         end_date: values.end_date
@@ -396,6 +396,7 @@ const CentreActivityExclusionCard: React.FC<ActivityExclusionCardProps> = ({ pat
                         start_date: editingExclusion.startDate,
                         end_date: editingExclusion.endDate
                       }}
+                      isEditing={true}
                       onSubmit={handleUpdateExclusion}
                       onCancel={() => setEditingExclusion(null)}
                       submitting={isUpdating}
