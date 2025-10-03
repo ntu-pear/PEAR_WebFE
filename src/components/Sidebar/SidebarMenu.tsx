@@ -68,11 +68,6 @@ const supervisorMenu: MenuSection[] = [
         icon: "List",
         path: "/supervisor/manage-centre-activities",
       },
-      {
-        title: "Manage Centre Activity Exclusions",
-        icon: "ShieldX",
-        path: "/supervisor/manage-exclusions",
-      },
     ],
   },
   {
