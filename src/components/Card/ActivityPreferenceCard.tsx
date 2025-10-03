@@ -192,6 +192,7 @@ const ActivityPreferenceCard: React.FC = () => {
           data={filteredPreferences}
           columns={columns as any}
           viewMore={false}
+          hideActionsHeader={true}
         />
         {filteredPreferences.length === 0 && (
           <div className="text-center py-4 text-gray-500">
