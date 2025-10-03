@@ -177,11 +177,7 @@ export default function BulkActivityExclusionForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {/* Debug info */}
-      <div className="text-xs text-gray-500 p-2 bg-gray-50 rounded">
-        Debug: Form loaded, {centreActivities.length} activities available, {selectedActivityIds.size} selected, submitting: {submitting}
-      </div>
-      
+
       {/* Activity Selection Section */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">

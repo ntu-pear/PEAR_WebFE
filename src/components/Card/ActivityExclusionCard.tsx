@@ -361,9 +361,7 @@ const CentreActivityExclusionCard: React.FC<ActivityExclusionCardProps> = ({ pat
                 </Button>
               </SheetTrigger>
               <SheetContent className="overflow-y-auto">
-                <SheetHeader className="sticky top-0 bg-white z-10 pb-4">
-                  <SheetTitle>Add Activity Exclusions</SheetTitle>
-                </SheetHeader>
+
                 <div className="mt-6 pb-6">
                   <BulkActivityExclusionForm
                     initial={{
