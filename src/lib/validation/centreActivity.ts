@@ -1,16 +1,17 @@
 export type CentreActivityFormValues = { 
-    id?: number; 
+    id?: number | null; 
     activity_id: number;
-    is_deleted: boolean;
     is_fixed: boolean;
     is_group: boolean;
     is_compulsory: boolean;
     start_date: string;
-    end_date: string;
+    end_date?: string | null;
     min_duration: number;
     max_duration: number;
-    min_people_req: number;
+    min_people_req: number | 0;
+    is_deleted: boolean | false;
 };
+
 
 export type FormErrors = { 
     activity_id?: number;

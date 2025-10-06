@@ -49,7 +49,6 @@ export default function CentreActivitiesTable({
             <TableHeader>
               <TableRow>
                 <TableHead>ID</TableHead>
-                {/* <TableHead>Activity_ID</TableHead> */}
                 <TableHead>Activity Title</TableHead>
                 <TableHead>Compulsory?</TableHead>
                 <TableHead>Fixed?</TableHead>
@@ -62,7 +61,7 @@ export default function CentreActivitiesTable({
                 <TableHead className="w-40">Created Date</TableHead>
                 <TableHead className="w-40">Modified Date</TableHead>
                 <TableHead className="w-28">Deleted?</TableHead>
-                <TableHead className="w-56">Actions</TableHead>
+                <TableHead className="w-96">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -79,13 +78,13 @@ export default function CentreActivitiesTable({
                   <TableCell>{a.is_compulsory ? "Yes" : "No"}</TableCell>
                   <TableCell>{a.is_fixed ? "Yes" : "No"}</TableCell>
                   <TableCell>{a.is_group ? "Yes" : "No"}</TableCell>
-                  <TableCell>{a.is_group ? a.min_people_req : "NIL"}</TableCell>
-                  <TableCell>{a.min_duration}</TableCell>
-                  <TableCell>{a.max_duration}</TableCell>
+                  <TableCell>{a.is_group ? a.min_people_req : "-"}</TableCell>
+                  <TableCell>{a.min_duration} mins</TableCell>
+                  <TableCell>{a.max_duration} mins</TableCell>
                   <TableCell>{dayjs(a.start_date).format("YYYY-MM-DD")}</TableCell>
                   <TableCell>{dayjs(a.end_date).format("YYYY-MM-DD")}</TableCell>
                   <TableCell>{dayjs(a.created_date).format("YYYY-MM-DD")}</TableCell>
-                  <TableCell>{dayjs(a.modified_date).format("YYYY-MM-DD")}</TableCell>
+                  <TableCell>{a.modified_date === null ? dayjs(a.modified_date).format("YYYY-MM-DD") : "-"}</TableCell>
                   <TableCell>{a.is_deleted ? "Yes" : "No"}</TableCell>
                   <TableCell className="space-x-2">
                     <Button size="sm" variant="secondary" onClick={() => onEdit(a)} disabled={a.is_deleted}>

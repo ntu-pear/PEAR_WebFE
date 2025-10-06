@@ -7,7 +7,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import Searchbar from "@/components/Searchbar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuRadioGroup,
   DropdownMenuRadioItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
@@ -119,40 +118,43 @@ export default function ManageCentreActivities() {
                       Add Centre Activity
                     </Button>
                   </SheetTrigger>
-                  <SheetContent className="w-[480px] sm:w-[540px]">
+                  <SheetContent className="w-[680px] sm:w-[540px]">
                     <SheetHeader><SheetTitle>Create Centre Activity</SheetTitle></SheetHeader>
-                    <CentreActivityForm
-                      submitting={create.isPending}
-                      onSubmit={async (values, setErrors, setSubmitting) => {
-                        try {
-                          await create.mutateAsync({ 
-                            activity_id: values.activity_id,
-                            is_fixed: values.is_fixed,
-                            is_compulsory: values.is_compulsory,
-                            is_group: values.is_group,
-                            start_date: values.start_date,
-                            end_date: values.end_date,
-                            min_duration: values.min_duration,
-                            max_duration: values.max_duration,
-                            min_people_req: values.min_people_req
-                          });
-                          toast.success("Centre activity created.");
-                          setCreatingOpen(false);
-                        } catch (err: any) {
-                          toast.error(`Failed to create. ${err?.message ?? ""}`);
-                          setErrors({ _summary: [`Failed to create. ${err?.message ?? ""}`] });
-                        } finally {
-                          setSubmitting(false);
-                        }
-                      }}
-                      onCancel={() => setCreatingOpen(false)}
-                    />
+                    <div className="h-[90vh] overflow-y-auto">
+                      <CentreActivityForm
+                        submitting={create.isPending}
+                        onSubmit={async (values, setErrors, setSubmitting) => {
+                          try {
+                            await create.mutateAsync({ 
+                              activity_id: values.activity_id,
+                              is_fixed: values.is_fixed,
+                              is_compulsory: values.is_compulsory,
+                              is_group: values.is_group,
+                              start_date: values.start_date,
+                              end_date: values.end_date,
+                              min_duration: values.min_duration,
+                              max_duration: values.max_duration,
+                              min_people_req: values.min_people_req
+                            });
+                            toast.success("Centre activity created.");
+                            setCreatingOpen(false);
+                          } catch (err: any) {
+                            toast.error(`Failed to create. ${err?.message ?? ""}`);
+                            setErrors({ _summary: [`Failed to create. ${err?.message ?? ""}`] });
+                          } finally {
+                            setSubmitting(false);
+                          }
+                        }}
+                        onCancel={() => setCreatingOpen(false)}
+                      />
+
+                    </div>
                   </SheetContent>
                 </Sheet>
               </div>
             </CardHeader>
 
-            <CardContent className='className="overflow-x-auto"'>
+            <CardContent className="overflow-x-auto">
               {isLoading ? (<div className="p-4 text-sm text-muted-foreground">Loading…</div>) : (
                 <CentreActivitiesTable
                   data={rows}
@@ -177,33 +179,36 @@ export default function ManageCentreActivities() {
                 <SheetContent className="w-[480px] sm:w-[540px]">
                   <SheetHeader><SheetTitle>Edit Activity</SheetTitle></SheetHeader>
                   {editing && (
-                    <CentreActivityForm
-                      onSubmit={async (values, setErrors, setSubmitting) => {
-                        try {
-                          await update.mutateAsync({
-                            id: editing.id,
-                            activity_id: values.activity_id,
-                            is_fixed: values.is_fixed,
-                            is_compulsory: values.is_compulsory,
-                            is_group: values.is_group,
-                            start_date: values.start_date,
-                            end_date: values.end_date,
-                            min_duration: values.min_duration,
-                            max_duration: values.max_duration,
-                            min_people_req: values.min_people_req,
-                            is_deleted: values.is_deleted
-                          });
-                          toast.success("Centre activity updated.");
-                          setEditing(null);
-                        } catch (err: any) {
-                          toast.error(`Failed to update. ${err?.message ?? ""}`);
-                          setErrors({ _summary: [`Failed to update. ${err?.message ?? ""}`] });
-                        } finally {
-                          setSubmitting(false);
-                        }
-                      }}
-                      submitting={update.isPending}
-                    />
+                    <div className="h-[90vh] overflow-y-auto">  
+                      <CentreActivityForm
+                        onSubmit={async (values, setErrors, setSubmitting) => {
+                          try {
+                            await update.mutateAsync({
+                              id: editing.id,
+                              activity_id: values.activity_id,
+                              is_fixed: values.is_fixed,
+                              is_compulsory: values.is_compulsory,
+                              is_group: values.is_group,
+                              start_date: values.start_date,
+                              end_date: values.end_date,
+                              min_duration: values.min_duration,
+                              max_duration: values.max_duration,
+                              min_people_req: values.min_people_req,
+                              is_deleted: values.is_deleted
+                            });
+                            toast.success("Centre activity updated.");
+                            setEditing(null);
+                          } catch (err: any) {
+                            toast.error(`Failed to update. ${err?.message ?? ""}`);
+                            setErrors({ _summary: [`Failed to update. ${err?.message ?? ""}`] });
+                          } finally {
+                            setSubmitting(false);
+                          }
+                        }}
+                        submitting={update.isPending}
+                        onCancel={() => setCreatingOpen(false)}
+                      />
+                    </div>
                   )}
                 </SheetContent>
               </Sheet>
