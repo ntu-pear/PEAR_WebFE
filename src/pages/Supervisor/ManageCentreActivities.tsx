@@ -1,39 +1,31 @@
 import { useState, useMemo, useEffect } from "react";
 import { toast } from "sonner";
-import { Filter, ListFilter, Plus } from "lucide-react";
+import { Filter, Plus } from "lucide-react";
 import {
   Card, CardContent, CardDescription, CardHeader, CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuRadioGroup,
-  DropdownMenuRadioItem, DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 
 import CentreActivityForm from "@/components/Form/CentreActivityForm";
 import CentreActivitiesTable from "@/components/Table/CentreActivitiesTable";
 import { useCentreActivities, useCentreActivityMutations, toRows, type CentreActivityRow } from "@/hooks/activities/useCentreActivities";
+import { CentreActivityFormValues } from "@/lib/validation/centreActivity";
 
 function confirmAction(message: string) {
   return window.confirm(message);
 }
 
 export default function ManageCentreActivities() {
-  const booleanOptions = [
-    { key: "All", value: "all" },
-    { key: "Yes", value: "true" },
-    { key: "No", value: "false" },
-  ];
-
   const [includeDeleted, setIncludeDeleted] = useState(false);
   const [search, setSearch] = useState("");
   const [creatingOpen, setCreatingOpen] = useState(false);
   const [editing, setEditing] = useState<CentreActivityRow | null>(null);
   const [page, setPage] = useState(1);
-  const [compulsory, setCompulsory] = useState("all");
-  const [fixed, setFixed] = useState("all");
-  const [group, setGroup] = useState("all");
+  // const [compulsory, setCompulsory] = useState("all");
+  // const [fixed, setFixed] = useState("all");
+  // const [group, setGroup] = useState("all");
 
   const {data, isLoading, isError, error} = useCentreActivities(includeDeleted);
   const {create, update, remove} = useCentreActivityMutations();
@@ -43,33 +35,58 @@ export default function ManageCentreActivities() {
   }, [isError, error]);
 
   // reset to first page whenever list or search/toggle changes
-  useEffect(() => setPage(1), [search, compulsory, fixed, group, includeDeleted, data]);
+  useEffect(() => setPage(1), [search, includeDeleted, data]);
 
   const rows = useMemo(() => toRows(data ?? []), [data])
 
-  const renderFilter = (
-    title: string,
-    value: string,
-    setValue: (value: string) => void
-  ) => (
-    <DropdownMenu modal={false}>
-      <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="sm" className="h-8 gap-1">
-          <ListFilter className="h-4 w-4" />
-          <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-            {title}
-          </span>
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <DropdownMenuRadioGroup value={value} onValueChange={setValue}>
-          {booleanOptions.map(({ key, value }) => (
-            <DropdownMenuRadioItem value={value}>{key}</DropdownMenuRadioItem>
-          ))}
-        </DropdownMenuRadioGroup>
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
+  const handleCreate = async (values: CentreActivityFormValues) => {
+    try {
+      await create.mutateAsync({
+        activity_id: values.activity_id,
+        is_compulsory: values.is_compulsory,
+        is_fixed: values.is_fixed,
+        is_group: values.is_group,
+        min_people_req: values.min_people_req,
+        start_date: values.start_date,
+        end_date: values.end_date,
+        min_duration: values.min_duration,
+        max_duration: values.max_duration,
+        fixed_time_slots: values.fixed_time_slots
+      });
+      setCreatingOpen(false);
+      toast.success("Centre Activity created.");
+    }
+    catch (error: any) {
+      console.error("Error creating centre activity:", error)
+      toast.error(`Failed to create. ${error?.message ?? ""}`);
+    }
+  };
+  
+  const handleUpdate = async (values: CentreActivityFormValues) => {
+    if (!editing) return;
+
+    try {
+      await update.mutateAsync({
+        id: editing.id,
+        activity_id: values.activity_id,
+        is_compulsory: values.is_compulsory,
+        is_fixed: values.is_fixed,
+        is_group: values.is_group,
+        min_people_req: values.min_people_req,
+        start_date: values.start_date,
+        end_date: values.end_date,
+        min_duration: values.min_duration,
+        max_duration: values.max_duration,
+        is_deleted: values.is_deleted,
+        fixed_time_slots: values.fixed_time_slots
+      });
+      toast.success("Centre Activity updated.");
+    }
+    catch (error: any) {
+      console.error("Error creating centre activity:", error)
+      toast.error(`Failed to create. ${error?.message ?? ""}`);
+    }
+  };
 
   return (
     <div className="flex min-h-screen w-full flex-col container mx-auto px-0 sm:px-4">
@@ -86,9 +103,6 @@ export default function ManageCentreActivities() {
             />
           </div>
           <div className="flex space-x-2">
-            {renderFilter("Compulsory", compulsory, setCompulsory)}
-            {renderFilter("Fixed", fixed, setFixed)}
-            {renderFilter("Group", group, setGroup)}
             <Button
               type="button"
               variant="outline"
@@ -123,31 +137,9 @@ export default function ManageCentreActivities() {
                     <div className="h-[90vh] overflow-y-auto">
                       <CentreActivityForm
                         submitting={create.isPending}
-                        onSubmit={async (values, setErrors, setSubmitting) => {
-                          try {
-                            await create.mutateAsync({ 
-                              activity_id: values.activity_id,
-                              is_fixed: values.is_fixed,
-                              is_compulsory: values.is_compulsory,
-                              is_group: values.is_group,
-                              start_date: values.start_date,
-                              end_date: values.end_date,
-                              min_duration: values.min_duration,
-                              max_duration: values.max_duration,
-                              min_people_req: values.min_people_req
-                            });
-                            toast.success("Centre activity created.");
-                            setCreatingOpen(false);
-                          } catch (err: any) {
-                            toast.error(`Failed to create. ${err?.message ?? ""}`);
-                            setErrors({ _summary: [`Failed to create. ${err?.message ?? ""}`] });
-                          } finally {
-                            setSubmitting(false);
-                          }
-                        }}
+                        onSubmit={handleCreate}
                         onCancel={() => setCreatingOpen(false)}
                       />
-
                     </div>
                   </SheetContent>
                 </Sheet>
@@ -181,30 +173,21 @@ export default function ManageCentreActivities() {
                   {editing && (
                     <div className="h-[90vh] overflow-y-auto">  
                       <CentreActivityForm
-                        onSubmit={async (values, setErrors, setSubmitting) => {
-                          try {
-                            await update.mutateAsync({
-                              id: editing.id,
-                              activity_id: values.activity_id,
-                              is_fixed: values.is_fixed,
-                              is_compulsory: values.is_compulsory,
-                              is_group: values.is_group,
-                              start_date: values.start_date,
-                              end_date: values.end_date,
-                              min_duration: values.min_duration,
-                              max_duration: values.max_duration,
-                              min_people_req: values.min_people_req,
-                              is_deleted: values.is_deleted
-                            });
-                            toast.success("Centre activity updated.");
-                            setEditing(null);
-                          } catch (err: any) {
-                            toast.error(`Failed to update. ${err?.message ?? ""}`);
-                            setErrors({ _summary: [`Failed to update. ${err?.message ?? ""}`] });
-                          } finally {
-                            setSubmitting(false);
-                          }
+                        initial={{
+                          id: editing.id,
+                          activity_id: editing.activity_id,
+                          is_fixed: editing.is_fixed,
+                          is_compulsory: editing.is_compulsory,
+                          is_group: editing.is_group,
+                          min_duration: editing.min_duration,
+                          max_duration: editing.max_duration,
+                          start_date: editing.start_date,
+                          end_date: editing.end_date,
+                          min_people_req: editing.min_people_req,
+                          fixed_time_slots: editing.fixed_time_slots,
+                          is_deleted: editing.is_deleted
                         }}
+                        onSubmit={handleUpdate}
                         submitting={update.isPending}
                         onCancel={() => setCreatingOpen(false)}
                       />

@@ -5,7 +5,6 @@ import {
   createCentreActivity,
   updateCentreActivity,
   softDeleteCentreActivity,
-  // type CentreActivity,
   type CreateCentreActivityInput,
   type UpdateCentreActivityInput,
   type CentreActivityWithTitle,
@@ -59,6 +58,7 @@ export type CentreActivityRow = {
   max_duration: number;
   start_date: string;
   end_date: string;
+  fixed_time_slots: string;
   created_date: string;
   modified_date: string;
   is_deleted: boolean;
@@ -77,6 +77,7 @@ export function toRows(list: CentreActivityWithTitle[]): CentreActivityRow[] {
     max_duration: a.max_duration,
     start_date: a.start_date,
     end_date: a.end_date,
+    fixed_time_slots: a.fixed_time_slots,
     created_by_id: a.created_by_id,
     created_date: a.created_date,
     modified_by_id: a.modified_by_id ?? "",

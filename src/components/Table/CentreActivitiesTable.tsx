@@ -49,15 +49,17 @@ export default function CentreActivitiesTable({
             <TableHeader>
               <TableRow>
                 <TableHead>ID</TableHead>
-                <TableHead>Activity Title</TableHead>
-                <TableHead>Compulsory?</TableHead>
+                <TableHead className="w-28">Activity Title</TableHead>
+                <TableHead>Compulsory?/Fixed?Group?</TableHead>
+                {/* <TableHead>Compulsory?</TableHead>
                 <TableHead>Fixed?</TableHead>
-                <TableHead>Group Activity?</TableHead>
-                <TableHead>Minimum people required</TableHead>
-                <TableHead>Minimum Activity Duration</TableHead>
-                <TableHead>Maximum Activity Duration</TableHead>
+                <TableHead>Group Activity?</TableHead> */}
+                <TableHead>Minimum People Required</TableHead>
+                <TableHead>Minimum Duration</TableHead>
+                <TableHead>Maximum Duration</TableHead>
                 <TableHead>Start Date</TableHead>
                 <TableHead>End Date</TableHead>
+                <TableHead>Fixed Time Slots</TableHead>
                 <TableHead className="w-40">Created Date</TableHead>
                 <TableHead className="w-40">Modified Date</TableHead>
                 <TableHead className="w-28">Deleted?</TableHead>
@@ -73,18 +75,19 @@ export default function CentreActivitiesTable({
               {items.map((a) => (
                 <TableRow key={a.id} className={a.is_deleted ? "opacity-60" : ""}>
                   <TableCell className="font-medium">{a.id}</TableCell>
-                  {/* <TableCell className="max-w-[420px] truncate">{a.activity_id}</TableCell> */}
                   <TableCell className="max-w-[420px] truncate">{a.activity_title}</TableCell>
-                  <TableCell>{a.is_compulsory ? "Yes" : "No"}</TableCell>
+                  {/* <TableCell>{a.is_compulsory ? "Yes" : "No"}</TableCell>
                   <TableCell>{a.is_fixed ? "Yes" : "No"}</TableCell>
-                  <TableCell>{a.is_group ? "Yes" : "No"}</TableCell>
-                  <TableCell>{a.is_group ? a.min_people_req : "-"}</TableCell>
+                  <TableCell>{a.is_group ? "Yes" : "No"}</TableCell> */}
+                  <TableCell>{a.is_compulsory ? "Yes" : "No"}/{a.is_fixed ? "Yes" : "No"}/{a.is_group ? "Yes" : "No"}</TableCell>
+                  <TableCell>{a.min_people_req ? a.min_people_req : "-"}</TableCell>
                   <TableCell>{a.min_duration} mins</TableCell>
                   <TableCell>{a.max_duration} mins</TableCell>
                   <TableCell>{dayjs(a.start_date).format("YYYY-MM-DD")}</TableCell>
                   <TableCell>{dayjs(a.end_date).format("YYYY-MM-DD")}</TableCell>
+                  <TableCell>{a.fixed_time_slots ? a.fixed_time_slots : "-"}</TableCell>
                   <TableCell>{dayjs(a.created_date).format("YYYY-MM-DD")}</TableCell>
-                  <TableCell>{a.modified_date === null ? dayjs(a.modified_date).format("YYYY-MM-DD") : "-"}</TableCell>
+                  <TableCell>{a.modified_date ? dayjs(a.modified_date).format("YYYY-MM-DD") : "-"}</TableCell>
                   <TableCell>{a.is_deleted ? "Yes" : "No"}</TableCell>
                   <TableCell className="space-x-2">
                     <Button size="sm" variant="secondary" onClick={() => onEdit(a)} disabled={a.is_deleted}>

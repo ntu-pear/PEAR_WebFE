@@ -1,4 +1,7 @@
-import { activitiesAPI, centreActivitiesAPI } from "@/api/apiConfig";
+import { activitiesAPI, 
+        centreActivitiesAPI,
+        getCurrentUserAPI
+} from "@/api/apiConfig";
 import { retrieveAccessTokenFromCookie } from "@/api/users/auth";
 
 export interface Activity {
@@ -22,8 +25,8 @@ export interface CentreActivity {
   end_date: string;
   min_duration: number;
   max_duration: number;
-  min_people_req: number;
-  fixed_time_slots?: string | null;
+  min_people_req: number | 1;
+  fixed_time_slots: string;
   is_deleted: boolean;
   created_date: string;
   modified_date?: string | null;
@@ -38,6 +41,7 @@ export interface CreateCentreActivityInput {
   is_compulsory: boolean;
   start_date: string;
   end_date: string;
+  fixed_time_slots: string;
   min_duration: number;
   max_duration: number;
   min_people_req: number;
@@ -51,6 +55,7 @@ export interface UpdateCentreActivityInput {
   is_compulsory: boolean;
   start_date: string;
   end_date: string;
+  fixed_time_slots: string;
   min_duration: number;
   max_duration: number;
   min_people_req: number;
@@ -65,6 +70,25 @@ const authHeader = () => {
   const token = retrieveAccessTokenFromCookie();
   if (!token) throw new Error("Not authenticated");
   return { Authorization: `Bearer ${token}` };
+};
+
+export const getCurrentUser = async () => {
+  try {
+    const token = retrieveAccessTokenFromCookie();
+    if (!token) throw new Error("No token found.");
+
+    const response = await getCurrentUserAPI.get("/", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    console.log("GET current user", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("GET current user", error);
+    throw error;
+  }
 };
 
 // CRUD
@@ -108,7 +132,7 @@ export async function listCentreActivities(params?: { include_deleted?: boolean;
   return centreActivitiesWithTitle.sort((a,b) => a.id - b.id);
 };
 
-export async function getActivityById(id: number) {
+export async function getCentreActivityById(id: number) {
   const res = await centreActivitiesAPI.get<CentreActivity>(`/${id}`, { headers: authHeader() });
   return res.data;
 };
@@ -119,18 +143,29 @@ export async function createCentreActivity(input: CreateCentreActivityInput) {
 };
 
 export async function updateCentreActivity(input: UpdateCentreActivityInput) {
-  const headers = authHeader();
+  // Get current user to set modified_by_id
+  const currentUser = await getCurrentUser();
+  
+  // const payload = {
+  //   id: input.id,
+  //   activity_id: input.activity_id,
+  //   is_fixed: typeof input.is_fixed === "boolean" ? input.is_fixed : false,
+  //   is_group: typeof input.is_group === "boolean" ? input.is_group : false,
+  //   is_compulsory: typeof input.is_compulsory === "boolean" ? input.is_group : false,
+  //   start_date: input.start_date,
+  //   end_date: input. end_date,
+  //   min_duration: input.min_duration,
+  //   max_duration: input.max_duration,
+  //   min_people_req: input.is_group == true ? input.min_people_req : 0,
+  //   is_deleted: typeof input.is_deleted === "boolean" ? input.is_deleted : false,
+  //   modified_by_id: currentUser.userId.toString()
+  // };
   const payload = {
-    id: input.id,
-    is_deleted: typeof input.is_deleted === "boolean" ? input.is_deleted : false,
-    is_fixed: typeof input.is_fixed === "boolean" ? input.is_fixed : false,
-    is_group: typeof input.is_group === "boolean" ? input.is_group : false,
-    min_duration: input.min_duration,
-    max_duration: input.max_duration,
-    min_people_req: input.is_group == true ? input.min_people_req : 0
-  };
+    ...input,
+    modified_by_id: currentUser.userId.toString(),
+  }
 
-  const res = await centreActivitiesAPI.put<CentreActivity>(`${input.id}`, payload, { headers });
+  const res = await centreActivitiesAPI.put<CentreActivity>("/", payload, { headers: authHeader() });
   return res.data;
 };
 
@@ -138,3 +173,4 @@ export async function softDeleteCentreActivity(id: number) {
   const res = await centreActivitiesAPI.delete<CentreActivity>(`/${id}`, { headers: authHeader() });
   return res.data;
 };
+
