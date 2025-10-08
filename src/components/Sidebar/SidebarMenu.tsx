@@ -334,9 +334,9 @@ const guardianMenu: MenuSection[] = [
     title: "PATIENTS",
     items: [
       {
-        title: "Patient Information",
+        title: "Manage Patients",
         icon: "UserRound",
-        path: "/guardian/patient-information",
+        path: "/guardian/manage-patients",
       },
     ],
   },

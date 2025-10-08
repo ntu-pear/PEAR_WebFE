@@ -151,7 +151,7 @@ const App: React.FC = () => {
                         path="view-highlights"
                         element={<HighlightTable />}
                       />
-                      <Route path="manage-approval-requests" element={<ManageApprovalRequest/>}/>
+                      <Route path="manage-approval-requests" element={<ManageApprovalRequest />} />
                       <Route
                         path="view-patient-logs"
                         element={<PatientLogs />}
@@ -227,7 +227,12 @@ const App: React.FC = () => {
                       path="guardian/*"
                       element={<ProtectedRoute allowedRoles={["GUARDIAN"]} />}
                     >
-                      <Route path="temp-page" element={<TempPage />} />
+                      <Route path="manage-patients" element={<PatientTable />} />
+                      <Route
+                        path="view-patient/:id"
+                        element={<ViewPatientWrapper />}
+                      />
+                      {/* <Route path="temp-page" element={<TempPage />} /> */}
                       <Route path="settings/*" element={<UserSettings />}>
                         {settingsRoutes.map(({ path, element }) => (
                           <Route key={path} path={path} element={element} />
