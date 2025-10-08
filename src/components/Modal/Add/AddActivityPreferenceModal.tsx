@@ -191,8 +191,8 @@ const AddActivityPreferenceModal: React.FC = () => {
               required
             >
               <option value="">Please select an option</option>
-              <option value="like">Like</option>
-              <option value="dislike">Dislike</option>
+              <option value="LIKE">Like</option>
+              <option value="DISLIKE">Dislike</option>
             </select>
           </div>
 

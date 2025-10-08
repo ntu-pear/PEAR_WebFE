@@ -1,5 +1,8 @@
 import axios from "axios";
 
+export const VITE_ACTIVITY_SERVICE_URL: string = import.meta.env
+  .VITE_ACTIVITY_SERVICE_URL;
+
 export const VITE_PATIENT_SERVICE_URL: string = import.meta.env
   .VITE_PATIENT_SERVICE_URL;
 
@@ -11,6 +14,19 @@ const VITE_LOGGER_SERVICE_URL: string = import.meta.env.VITE_LOGGER_SERVICE_URL;
 
 export const VITE_USER_SERVICE_URL: string = import.meta.env
   .VITE_USER_SERVICE_URL;
+
+// activity service
+export const activityAPI = axios.create({
+  baseURL: `${VITE_ACTIVITY_SERVICE_URL}`,
+});
+
+export const activitiesAPI = axios.create({
+  baseURL: `${VITE_ACTIVITY_SERVICE_URL}/activities`,
+});
+
+export const careCentreAPI = axios.create({
+  baseURL: `${VITE_ACTIVITY_SERVICE_URL}/care_centres`,
+});
 
 // patient
 export const patientsAPI = axios.create({
@@ -111,6 +127,14 @@ export const prescriptionAPI = axios.create({
 
 export const patientPrescriptionAPI = axios.create({
   baseURL: `${VITE_PATIENT_SERVICE_URL}/Prescription/PatientPrescription`,
+});
+
+export const prescriptionListAPI = axios.create({
+  baseURL: `${VITE_PATIENT_SERVICE_URL}/PrescriptionList`,
+});
+
+export const medicationAPI = axios.create({
+  baseURL: `${VITE_PATIENT_SERVICE_URL}/Medication`,
 });
 
 export const guardianAPI = axios.create({

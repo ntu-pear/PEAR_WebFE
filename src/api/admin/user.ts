@@ -35,6 +35,11 @@ export interface AccountTableDataServer {
   total: number;
 }
 
+export interface ExportUserFilters {
+  nric_FullName?: string;
+  isDeleted?: string;
+}
+
 export const fetchUsers = async () => {
   try {
     const token = retrieveAccessTokenFromCookie();
@@ -76,14 +81,27 @@ export const fetchUserNRIC = async (userid: string) => {
 export const fetchUsersByFields = async (
   pageNo: number = 0,
   pageSize: number = 10,
-  filters: any = {}
+  filters: ExportUserFilters = {},
+  sortBy?: string | null,
+  sortDir: "asc" | "desc" = "asc"
 ): Promise<AccountTableDataServer> => {
   const token = retrieveAccessTokenFromCookie();
   if (!token) throw new Error("No token found.");
 
   try {
+    // Build query parameters
+    const params = new URLSearchParams({
+      page: pageNo.toString(),
+      page_size: pageSize.toString(),
+      sort_dir: sortDir,
+    });
+
+    if (sortBy) {
+      params.append("sort_by", sortBy);
+    }
+
     const response = await adminAPI.post<AccountTableDataServer>(
-      `/get_users_by_fields?page=${pageNo}&page_size=${pageSize}`,
+      `/get_users_by_fields?${params.toString()}`,
       filters,
       {
         headers: {
@@ -207,6 +225,29 @@ export const deleteUserById = async (userId: string) => {
   }
 }
 
+export const permanentDeleteUserById = async (userId: string) => {
+  try {
+    const token = retrieveAccessTokenFromCookie();
+    if (!token) throw new Error("Token not found");
+    const response = await adminAPI.delete<User>(
+      `/${userId}`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    console.log("Permanent delete user", response.data);
+    return response.data;
+  } catch (error: any) {
+    if (error.response?.status === 404) {
+      toast.error("User not found.");
+    } else if (error.response?.status === 403) {
+      toast.error("Insufficient permissions to permanently delete user.");
+    } else {
+      toast.error("Failed to permanently delete user.");
+    }
+    console.error("Permanent delete user", error);
+    throw error;
+  }
+}
+
 export const getGuardian = async (nric: string) => {
   try {
     const token = retrieveAccessTokenFromCookie();
@@ -218,6 +259,67 @@ export const getGuardian = async (nric: string) => {
     return response.data;
   } catch (error) {
     console.error("Get guardian", error);
+    throw error;
+  }
+};
+
+export const exportUsers = async (
+  filters: ExportUserFilters = {}
+) => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+
+  try {
+    // Build query parameters from filters
+    const params = new URLSearchParams();
+    
+    // Add all filter parameters if they exist
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== '') {
+        params.append(key, value.toString());
+      }
+    });
+
+    const response = await adminAPI.get(
+      `/users/export${params.toString() ? `?${params.toString()}` : ''}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        responseType: 'blob', // Important for file downloads
+      }
+    );
+
+    // Create download link
+    const blob = new Blob([response.data], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    
+    // Extract filename from response headers if available
+    const contentDisposition = response.headers['content-disposition'];
+    let filename = `users_export_${new Date().toISOString().split('T')[0]}.csv`;
+    
+    if (contentDisposition) {
+      const filenameMatch = contentDisposition.match(/filename="(.+)"/);
+      if (filenameMatch) {
+        filename = filenameMatch[1];
+      }
+    } else {
+      // Fallback filename if not found in headers
+      filename = `users_export_${new Date().toISOString().split('T')[0]}.csv`;
+    }
+    
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+
+    console.log("Export users successful");
+    return response.data;
+  } catch (error) {
+    console.error("Export users", error);
     throw error;
   }
 };

@@ -23,10 +23,17 @@ jobs:
       - name: Create .env file from GitHub Secrets
         run: |
 
+          echo "VITE_ACTIVITY_SERVICE_URL=${{ vars.VITE_ACTIVITY_SERVICE_URL }}" > .env
           echo "VITE_PATIENT_SERVICE_URL=${{ vars.VITE_PATIENT_SERVICE_URL }}" >> .env
           echo "VITE_GEOCODE_SERVICE_URL=${{ vars.VITE_GEOCODE_SERVICE_URL }}" >> .env
           echo "VITE_USER_SERVICE_URL=${{ vars.VITE_USER_SERVICE_URL }}" >> .env
           echo "VITE_LOGGER_SERVICE_URL=${{ vars.VITE_LOGGER_SERVICE_URL }}" >> .env
+          echo "VITE_SCHEDULER_SERVICE_URL=${{ vars.VITE_SCHEDULER_SERVICE_URL }}" >> .env
+          
+          # Feature Flags
+          if [ -n "${{ vars.FEATURE_FLAGS }}" ]; then
+            echo "${{ vars.FEATURE_FLAGS }}" >> .env
+          fi
 
       - name: Build and push Docker image
         run: |

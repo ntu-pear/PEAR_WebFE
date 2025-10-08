@@ -4,11 +4,12 @@ import { getDateTimeNowInUTC } from "@/utils/formatDate";
 import { toast } from "sonner";
 import {
   addPatientPrescription,
+  fetchPrescriptionList,
   PrescriptionFormData,
   PrescriptionList,
+  PrescriptionListView,
 } from "@/api/patients/prescription";
 import { useEffect, useState } from "react";
-import { mockPrescriptionList } from "@/mocks/mockPatientDetails";
 
 const AddPrescriptionModal: React.FC = () => {
   const { modalRef, activeModal, closeModal } = useModal();
@@ -24,12 +25,11 @@ const AddPrescriptionModal: React.FC = () => {
   const [startDate, setStartDate] = useState("");
   const handleFetchPrescriptionList = async () => {
     try {
-      const fetchedPrescriptionList: PrescriptionList[] = mockPrescriptionList;
-
-      setPrescriptionList(fetchedPrescriptionList);
-
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const prescriptionList: PrescriptionListView =
+        await fetchPrescriptionList();
+      setPrescriptionList(prescriptionList.data);
     } catch (error) {
+      console.error(error);
       toast.error("Failed to fetch Prescription List");
     }
   };

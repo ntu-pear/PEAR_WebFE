@@ -1,22 +1,26 @@
 import { TabsContent } from "../ui/tabs";
-import { useModal } from "@/hooks/useModal";
-import AddActivityExclusionModal from "../Modal/Add/AddActivityExclusionModal";
 import ActivityExclusionCard from "../Card/ActivityExclusionCard";
+import { useViewPatient } from "@/hooks/patient/useViewPatient";
 
 const ActivityExclusionTab: React.FC = () => {
-  const { activeModal } = useModal();
-
-  return (
-    <>
+  const { id: patientId } = useViewPatient();
+  
+  if (!patientId) {
+    return (
       <TabsContent value="activity-exclusion">
-        <div className="my-2">
-          <ActivityExclusionCard />
+        <div className="text-center py-8 text-gray-500">
+          Patient not found
         </div>
       </TabsContent>
-      {activeModal.name == "addActivityExclusion" && (
-        <AddActivityExclusionModal />
-      )}
-    </>
+    );
+  }
+
+  return (
+    <TabsContent value="activity-exclusion">
+      <div className="my-2">
+        <ActivityExclusionCard patientId={patientId} />
+      </div>
+    </TabsContent>
   );
 };
 
