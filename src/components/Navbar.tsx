@@ -118,7 +118,7 @@ const Navbar: React.FC = () => {
       case "GAME THERAPIST":
         return "/game-therapist/temp-page";
       case "GUARDIAN":
-        return "/guardian/temp-page";
+        return "/guardian/manage-patients";
       default:
         return `/${formattedRoleName}/temp-page`;
     }

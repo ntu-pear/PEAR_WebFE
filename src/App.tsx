@@ -282,6 +282,12 @@ const App: React.FC = () => {
                       path="guardian/*"
                       element={<ProtectedRoute allowedRoles={["GUARDIAN"]} />}
                     >
+                      <Route path="manage-patients" element={<PatientTable />} />
+                      <Route
+                        path="view-patient/:id"
+                        element={<ViewPatientWrapper />}
+                      />
+                      {/* <Route path="temp-page" element={<TempPage />} /> */}
                       <Route path="temp-page" element={<TempPage />} />
                       {(useFeatureFlag("staging") ||
                         !useFeatureFlag("production")) && (
