@@ -7,10 +7,11 @@ import {
   Prescription,
   PrescriptionList,
   PrescriptionUpdate,
+  PrescriptionListView,
+  fetchPrescriptionList,
 } from "@/api/patients/prescription";
 import { getDateTimeNowInUTC } from "@/utils/formatDate";
 import { useEffect, useState } from "react";
-import { mockPrescriptionList } from "@/mocks/mockPatientDetails";
 
 const EditPrescriptionModal: React.FC = () => {
   const { modalRef, activeModal, closeModal } = useModal();
@@ -30,7 +31,9 @@ const EditPrescriptionModal: React.FC = () => {
   useEffect(() => {
     const handleFetchPrescriptionList = async () => {
       try {
-        setPrescriptionList(mockPrescriptionList);
+        const prescriptionList: PrescriptionListView =
+          await fetchPrescriptionList();
+        setPrescriptionList(prescriptionList.data);
       } catch (error) {
         toast.error("Failed to fetch Prescription List");
       }

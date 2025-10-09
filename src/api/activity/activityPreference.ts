@@ -1,5 +1,5 @@
 import { activityAPI } from "../apiConfig";
-import { retrieveAccessTokenFromCookie, getCurrentUser } from "../users/auth";
+import { retrieveAccessTokenFromCookie } from "../users/auth";
 
 // Activity Preference API - Centre Activity Preferences only
 export interface CentreActivityPreference {
@@ -245,7 +245,8 @@ export const getAllCentreActivities = async (): Promise<CentreActivity[]> => {
 export const createActivityPreference = async (
   patientId: number,
   centreActivityId: number,
-  isLike: number // 1=LIKE, 0=NEUTRAL, -1=DISLIKE
+  isLike: number, // 1=LIKE, 0=NEUTRAL, -1=DISLIKE
+  userId: string
 ): Promise<CentreActivityPreference> => {
   try {
     const token = retrieveAccessTokenFromCookie();
@@ -253,14 +254,11 @@ export const createActivityPreference = async (
       throw new Error("No authentication token found");
     }
 
-    // Get current user to set created_by_id
-    const currentUser = await getCurrentUser();
-
     const response = await activityAPI.post("/centre_activity_preferences", {
       centre_activity_id: centreActivityId,
       patient_id: patientId,
       is_like: isLike,
-      created_by_id: currentUser.userId.toString(), // Backend expects string
+      created_by_id: userId, // Use provided userId
     }, {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -276,16 +274,14 @@ export const createActivityPreference = async (
 // Update activity preference
 export const updateActivityPreference = async (
   existingPreference: CentreActivityPreference,
-  isLike: number // 1=LIKE, 0=NEUTRAL, -1=DISLIKE
+  isLike: number, // 1=LIKE, 0=NEUTRAL, -1=DISLIKE
+  userId: string
 ): Promise<CentreActivityPreference> => {
   try {
     const token = retrieveAccessTokenFromCookie();
     if (!token) {
       throw new Error("No authentication token found");
     }
-
-    // Get current user to set modified_by_id
-    const currentUser = await getCurrentUser();
     
     // Send complete payload including modified_by_id
     const updatePayload = {
@@ -296,7 +292,7 @@ export const updateActivityPreference = async (
       is_deleted: existingPreference.is_deleted,
       created_date: existingPreference.created_date,
       created_by_id: existingPreference.created_by_id,
-      modified_by_id: currentUser.userId.toString() // Backend expects string
+      modified_by_id: userId // Use provided userId
     };
 
     const response = await activityAPI.put(`/centre_activity_preferences/${existingPreference.id}`, updatePayload, {

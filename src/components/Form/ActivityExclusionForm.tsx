@@ -19,6 +19,7 @@ export interface CentreActivityExclusionFormValues {
 type Props = {
   initial?: CentreActivityExclusionFormValues & { id?: number };
   submitting?: boolean;
+  isEditing?: boolean;
   onSubmit: (values: CentreActivityExclusionFormValues) => void | Promise<void>;
   onCancel?: () => void;
 };
@@ -36,6 +37,7 @@ interface Patient {
 export default function CentreActivityExclusionForm({ 
   initial, 
   submitting, 
+  isEditing = false,
   onSubmit, 
   onCancel 
 }: Props) {
@@ -120,7 +122,7 @@ export default function CentreActivityExclusionForm({
     if (!centreActivityId) {
       newErrors.centre_activity_id = ["Activity is required"];
     }
-    if (!patientId) {
+    if (!isEditing && !patientId) {
       newErrors.patient_id = ["Patient is required"];
     }
     if (!startDate) {
@@ -185,32 +187,34 @@ export default function CentreActivityExclusionForm({
         )}
       </div>
 
-      {/* Patient Selection */}
-      <div className="space-y-2">
-        <Label htmlFor="patient">Patient *</Label>
-        <select
-          id="patient"
-          value={patientId}
-          onChange={(e) => setPatientId(e.target.value)}
-          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 appearance-none cursor-pointer"
-        >
-          <option value="" disabled>Select a patient</option>
-          {patients.map((patient) => {
-            const patientIdStr = typeof patient.id === 'string' ? patient.id : patient.id.toString();
-            const patientName = patient.name || patient.preferredName || `Patient ${patient.id}`;
-            return (
-              <option key={patientIdStr} value={patientIdStr}>
-                {patientName}
-              </option>
-            );
-          })}
-        </select>
-        {errors.patient_id && (
-          <div className="text-sm text-red-600">
-            {errors.patient_id.join(", ")}
-          </div>
-        )}
-      </div>
+      {/* Patient Selection - Only show when not editing */}
+      {!isEditing && (
+        <div className="space-y-2">
+          <Label htmlFor="patient">Patient *</Label>
+          <select
+            id="patient"
+            value={patientId}
+            onChange={(e) => setPatientId(e.target.value)}
+            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 appearance-none cursor-pointer"
+          >
+            <option value="" disabled>Select a patient</option>
+            {patients.map((patient) => {
+              const patientIdStr = typeof patient.id === 'string' ? patient.id : patient.id.toString();
+              const patientName = patient.name || patient.preferredName || `Patient ${patient.id}`;
+              return (
+                <option key={patientIdStr} value={patientIdStr}>
+                  {patientName}
+                </option>
+              );
+            })}
+          </select>
+          {errors.patient_id && (
+            <div className="text-sm text-red-600">
+              {errors.patient_id.join(", ")}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Start Date */}
       <div className="space-y-2">

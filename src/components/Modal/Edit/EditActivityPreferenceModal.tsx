@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useModal } from "@/hooks/useModal";
+import { useAuth } from "@/hooks/useAuth";
 import { Button } from "../../ui/button";
 import { Heart, HeartOff, Minus } from "lucide-react";
 import { 
@@ -13,6 +14,7 @@ import { preferenceToInt } from "@/utils/activityConversions";
 
 const EditActivityPreferenceModal: React.FC = () => {
   const { modalRef, closeModal, activeModal } = useModal();
+  const { currentUser } = useAuth();
   const [patientPreference, setPatientPreference] = useState<string>("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -20,13 +22,15 @@ const EditActivityPreferenceModal: React.FC = () => {
   // Get the data passed to the modal
   const modalData = (activeModal as any).props || {};
   const { 
-    activityName, 
-    patientName, 
-    currentPreference, 
-    centreActivityId, 
-    patientId,
-    onUpdate 
+    preference, 
+    refreshPreferences 
   } = modalData;
+  
+  // Extract data from the preference object
+  const activityName = preference?.activityName;
+  const patientId = preference?.patientId;
+  const centreActivityId = preference?.centreActivityId;
+  const currentPreference = preference?.patientPreference;
 
 
   useEffect(() => {
@@ -44,7 +48,6 @@ const EditActivityPreferenceModal: React.FC = () => {
       console.log("Updating preference:", {
         centreActivityId,
         patientId,
-        patientName,
         activityName,
         currentPreference,
         newPreference: patientPreference,
@@ -78,11 +81,11 @@ const EditActivityPreferenceModal: React.FC = () => {
         
         if (existingPreference) {
           // Update existing preference
-          await updateActivityPreference(existingPreference, preferenceValue);
+          await updateActivityPreference(existingPreference, preferenceValue, currentUser?.userId?.toString() || "");
           console.log("Preference updated");
         } else {
           // Create new preference
-          await createActivityPreference(patientId, centreActivityId, preferenceValue);
+          await createActivityPreference(patientId, centreActivityId, preferenceValue, currentUser?.userId?.toString() || "");
           console.log("New preference created");
         }
       }
@@ -90,8 +93,8 @@ const EditActivityPreferenceModal: React.FC = () => {
       closeModal();
       
       // Refresh the data
-      if (onUpdate) {
-        onUpdate();
+      if (refreshPreferences) {
+        refreshPreferences();
       }
     } catch (error) {
       console.error("Error updating preference:", error);
@@ -142,12 +145,11 @@ const EditActivityPreferenceModal: React.FC = () => {
         
         <div className="mb-4 p-4 bg-gray-50 rounded-lg space-y-2">
           <div>
-            <p className="text-sm font-medium text-gray-600">Patient:</p>
-            <p className="text-base font-semibold text-gray-900">{patientName || "Unknown Patient"}</p>
-          </div>
-          <div>
             <p className="text-sm font-medium text-gray-600">Activity:</p>
             <p className="text-base font-semibold text-gray-900">{activityName || "Unknown Activity"}</p>
+          </div>
+          <div>
+            <p className="text-sm text-gray-600">Set the patient's preference for this activity.</p>
           </div>
         </div>
 

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { ListFilter, PlusCircle } from "lucide-react";
+import { ListFilter } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -26,19 +26,13 @@ import {
 } from "@/api/patients/patients";
 import useDebounce from "@/hooks/useDebounce";
 import { mockCaregiverID } from "@/mocks/mockPatientTableData";
-import { useAuth } from "@/hooks/useAuth";
 import { useModal } from "@/hooks/useModal";
-import {
-  fetchPatientPrescription,
-  PrescriptionTDServer,
-} from "@/api/patients/prescription";
-import { toast } from "sonner";
-import AddPrescriptionModal from "@/components/Modal/Add/AddPrescriptionModal";
-import DeletePrescriptionModal from "@/components/Modal/Delete/DeletePrescriptionModal";
-import EditPrescriptionModal from "@/components/Modal/Edit/EditPrescriptionModal";
+import MedicationTable from "@/components/Table/MedicationTable";
+import AddMedicationModal from "@/components/Modal/Add/AddMedicationModal";
+import DeleteMedicationModal from "@/components/Modal/Delete/DeleteMedicationModal";
+import EditMedicationModal from "@/components/Modal/Edit/EditMedicationModal";
 
 const ManageMedication: React.FC = () => {
-  const { currentUser } = useAuth();
   const { activeModal, openModal } = useModal();
 
   // Filters
@@ -90,54 +84,20 @@ const ManageMedication: React.FC = () => {
   }, [debouncedSearch, debouncedTab, debouncedRole]);
 
   // Patient Medication
-  const [expandedPatient, setExpandedPatient] =
-    useState<PatientTableData | null>(null);
-  const [patientMedication, setPatientMedication] =
-    useState<PrescriptionTDServer>({
-      prescriptions: [],
-      pagination: {
-        pageNo: 0,
-        pageSize: 0,
-        totalRecords: 0,
-        totalPages: 0,
-      },
-    });
-  const handleFetchMedication = async (pageNo: number, patientId?: number) => {
-    const pid = patientId ?? expandedPatient?.id;
-    if (!pid || Number.isNaN(pid)) return;
+  const [expandedPatientIds, setExpandedPatientIds] = useState<number[]>([]);
 
-    try {
-      const fetchedPrescription = await fetchPatientPrescription(
-        Number(pid),
-        pageNo
+  const handleExpandPatient = async (patient: PatientTableData) => {
+    const patientId = Number(patient.id);
+
+    if (expandedPatientIds.includes(patientId)) {
+      setExpandedPatientIds((prevIds) =>
+        prevIds.filter((id) => id !== patientId)
       );
-      setPatientMedication(fetchedPrescription);
 
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (error) {
-      toast.error("Failed to fetch prescription for patient");
+      return;
     }
-  };
-  const refreshPatientMedication = () =>
-    handleFetchMedication(patientMedication.pagination.pageNo || 0);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const openMedicationModal = (patient: PatientTableData) => {
-    setExpandedPatient(patient);
-    handleFetchMedication(0, Number(patient.id));
-    setIsModalOpen(true);
-  };
-  const closeMedicationModal = () => {
-    setExpandedPatient(null);
-    setPatientMedication({
-      prescriptions: [],
-      pagination: {
-        pageNo: 0,
-        pageSize: 0,
-        totalRecords: 0,
-        totalPages: 0,
-      },
-    });
-    setIsModalOpen(false);
+
+    setExpandedPatientIds((prevIds) => prevIds.concat(patientId));
   };
 
   // Patient Table
@@ -174,28 +134,10 @@ const ManageMedication: React.FC = () => {
         ]
       : []),
   ];
-  const renderActions = (item: PatientTableData) => (
-    <div className="ml-4 sm:ml-2">
-      <Button
-        variant="destructive"
-        size="sm"
-        onClick={() => openMedicationModal(item)}
-      >
-        Show Medication
-      </Button>
-    </div>
-  );
 
-  // Medication Details Modal Table
-  const prescriptionColumns = [
-    { key: "drugName", header: "Drug Name", className: "truncate-column" },
-    { key: "dosage", header: "Dosage", className: "truncate-column" },
-    { key: "frequencyPerDay", header: "Frequency Per Day" },
-    { key: "instruction", header: "Instruction", className: "truncate-column" },
-    { key: "startDate", header: "Start Date" },
-    { key: "endDate", header: "End Date" },
-    { key: "afterMeal", header: "After Meal" },
-  ];
+  const renderExpandedContent = (patient: PatientTableData) => (
+    <MedicationTable patient={patient} openModal={openModal} />
+  );
 
   return (
     <div className="flex min-h-screen w-full flex-col container mx-auto px-4">
@@ -258,7 +200,9 @@ const ManageMedication: React.FC = () => {
                     viewMoreBaseLink={"/supervisor/view-patient"}
                     activeTab={"information"}
                     fetchData={handleFilter}
-                    renderActions={renderActions}
+                    expandable={true}
+                    renderExpandedContent={renderExpandedContent}
+                    onExpand={handleExpandPatient}
                   />
                 </CardContent>
               </Card>
@@ -280,6 +224,9 @@ const ManageMedication: React.FC = () => {
                     viewMoreBaseLink={"/supervisor/view-patient"}
                     activeTab={"information"}
                     fetchData={handleFilter}
+                    expandable={true}
+                    renderExpandedContent={renderExpandedContent}
+                    onExpand={handleExpandPatient}
                   />
                 </CardContent>
               </Card>
@@ -288,85 +235,9 @@ const ManageMedication: React.FC = () => {
         </main>
       </div>
 
-      {/* Patient Medication Details Modal */}
-      {isModalOpen && expandedPatient && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white p-8 rounded-md w-full max-w-[80vw] h-auto max-h-[80vh] overflow-y-auto relative">
-            <button
-              onClick={closeMedicationModal}
-              className="absolute top-5 right-10 text-gray-500 hover:text-black"
-            >
-              ✕
-            </button>
-            <div className="flex items-center justify-between mt-6">
-              <h3 className="text-lg font-medium">
-                Medication Details for {expandedPatient.preferredName}
-              </h3>
-              <Button
-                size="sm"
-                className="h-8 w-24 gap-1"
-                onClick={() =>
-                  openModal("addPrescription", {
-                    patientId: expandedPatient.id,
-                    submitterId: currentUser?.userId,
-                    refreshPrescriptionData: refreshPatientMedication,
-                  })
-                }
-              >
-                <PlusCircle className="h-4 w-4" />
-                <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                  Add
-                </span>
-              </Button>
-            </div>
-            <div className="mt-4">
-              <DataTableServer
-                data={patientMedication.prescriptions}
-                pagination={patientMedication.pagination}
-                fetchData={handleFetchMedication}
-                columns={prescriptionColumns}
-                viewMore={false}
-                renderActions={(item) => (
-                  <div className="flex flex-col">
-                    <Button
-                      variant="default"
-                      size="sm"
-                      className="mt-2"
-                      onClick={() => {
-                        openModal("editPrescription", {
-                          prescriptionId: String(item.id),
-                          submitterId: currentUser?.userId,
-                          refreshPrescriptionData: refreshPatientMedication,
-                        });
-                      }}
-                    >
-                      Edit
-                    </Button>
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      className="mt-2"
-                      onClick={() => {
-                        openModal("deletePrescription", {
-                          prescriptionId: String(item.id),
-                          submitterId: currentUser?.userId,
-                          refreshPrescriptionData: refreshPatientMedication,
-                        });
-                      }}
-                    >
-                      Delete
-                    </Button>
-                  </div>
-                )}
-              />
-            </div>
-          </div>
-        </div>
-      )}
-
-      {activeModal.name === "addPrescription" && <AddPrescriptionModal />}
-      {activeModal.name === "deletePrescription" && <DeletePrescriptionModal />}
-      {activeModal.name === "editPrescription" && <EditPrescriptionModal />}
+      {activeModal.name === "addMedication" && <AddMedicationModal />}
+      {activeModal.name === "deleteMedication" && <DeleteMedicationModal />}
+      {activeModal.name === "editMedication" && <EditMedicationModal />}
     </div>
   );
 };
