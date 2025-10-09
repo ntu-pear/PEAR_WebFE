@@ -6,19 +6,22 @@ import {Activity} from "@/api/activities/activities";
 import dayjs from "dayjs";
 import { toast } from "sonner";
 import { getAllActivities } from "@/api/activity/activityPreference";
-import { type FormErrors, type CentreActivityFormValues } from "@/lib/validation/centreActivity";
-
-export interface RadioBtnOption {
-  value: string;
-  label: string;
-}
+import { type FormErrors, type CentreActivityFormValues, validateLocal } from "@/lib/validation/centreActivity";
 
 type Props = {
   initial?: CentreActivityFormValues & {id?: number};
   submitting?: boolean;
-  onSubmit: (values: CentreActivityFormValues) => void | Promise<void>;
+  onSubmit: (
+    values: CentreActivityFormValues,
+    setErrors: (e: FormErrors) => void
+  ) => void | Promise<void>;
   onCancel?: () => void;
 };
+
+export interface RadioBtnOption {
+  label: string;
+  value: boolean;
+}
 
 export default function CentreActivityForm({ 
   initial, 
@@ -38,55 +41,67 @@ export default function CentreActivityForm({
   const [fixed_time_slots, setFixed_time_slots] = useState(initial?.fixed_time_slots ?? "");
   const [is_deleted] = useState(false);
 
-  const [is_indefinite, setIsIndefinite] = useState(false);
+  const [is_indefinite, setIs_indefinite] = useState(false);
   const indefiniteDate = dayjs(new Date(2999, 0, 1).toDateString()).format("YYYY-MM-DD");
-  
   const [errors, setErrors] = useState<FormErrors>({ _summary: [] });
-
   const [activities, setActivities] = useState<Activity[]>([]);
 
   useEffect(() => {
     const fetchData = async () => {
-        try {
-            const[activitiesData] = await Promise.all([
-              getAllActivities()
-            ]);
-          setActivities(activitiesData);
-        }
-        catch(error) {
-            console.error("Error fetching form data:", error);
-            toast.error("Failed to load form data");
-        }
+      try {
+        const[activitiesData] = await Promise.all([
+          getAllActivities()
+        ]);
+        setActivities(activitiesData);
+      }
+      catch(error) {
+          console.error("Error fetching form data:", error);
+          toast.error("Failed to load form data");
+      }
     };
   
     fetchData();
   }, []);
+
+  const runSync = (v: CentreActivityFormValues) => {
+    const e = validateLocal(v);
+    setErrors(e);
+    return e;
+  };
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrors({ _summary: [] });
 
     try {
-      await onSubmit({ 
-          activity_id: parseInt(activity_id),
-          is_fixed: is_fixed,
-          is_compulsory: is_compulsory,
-          is_group: is_group,
-          start_date: start_date,
-          end_date: end_date,
-          min_duration: min_duration,
-          max_duration: max_duration,
-          min_people_req: min_people_req,
-          fixed_time_slots: fixed_time_slots,
-          is_deleted: is_deleted
-        }
-      );
+      const formValues = { 
+        activity_id: parseInt(activity_id),
+        is_fixed: is_fixed,
+        is_compulsory: is_compulsory,
+        is_group: is_group,
+        start_date: start_date,
+        end_date: end_date,
+        min_duration: min_duration,
+        max_duration: max_duration,
+        min_people_req: min_people_req,
+        fixed_time_slots: fixed_time_slots,
+        is_deleted: is_deleted
+      };
+
+      const local = runSync(formValues);
+      if (local._summary && local._summary.length) return;
+
+      await onSubmit(formValues, setErrors);
     }
     catch(error: any) {
       console.error("Form submission error:", error);
     }
-        
   };
+  
+  const radioBtnOptions : RadioBtnOption[] = [
+    { value: true, label: "Yes"},
+    { value: false, label: "No"}
+  ];
 
   return (
     <form 
@@ -107,7 +122,9 @@ export default function CentreActivityForm({
         <select
           id="activity_id"
           value={activity_id}         
-          onChange={(e) => setActivityID(e.target.value)}
+          onChange={(e) => {
+            setActivityID(e.target.value)
+          }}
           className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 appearance-none cursor-pointer"
         >
           <option value="" disabled>Select an activity</option>
@@ -119,10 +136,45 @@ export default function CentreActivityForm({
         </select>
         {errors.activity_id && <p className="text-sm text-red-600">{errors.activity_id}</p>}
       </div>
+      
+      <div className="space-y-2 space-x-2">
+        {/* <input
+          id="is_compulsory"
+          type="checkbox"
+          checked={is_compulsory}
+          onChange={(e) => {
+            setIs_Compulsory(e.target.checked);
+          }}
+        /> */}
+        <Label htmlFor="is_compulsory">Is this activity compulsory for patients?</Label>
+        <div className="space-x-2">
+          {radioBtnOptions.map((choice) => (
+            <Label className="space-x-1">
+              <input
+                type="radio"
+                id = {choice.value.toString()}
+                name="is_compulsory"
+                value={choice.value.toString()}
+                checked={is_compulsory === choice.value ? true : false}
+                onChange={(e) =>{
+                  setIs_Compulsory(choice.value);
+
+                  /*Business rule, Compulsory activities must be fixed */
+                  if (e.target.value) {
+                    setIs_Fixed(true);
+                  }
+                }}
+              />
+              <label>{choice.label}</label>
+            </Label>
+          ))}
+        </div>
+        {errors.is_compulsory && <p className="text-sm text-red-600">{errors.is_compulsory}</p>}
+      </div>
 
       {/* From this point onwards, create centre activity */}
       <div className="space-y-2 space-x-2">
-        <input
+        {/* <input
           id="is_fixed"
           type="checkbox"
           checked={is_fixed}
@@ -132,8 +184,30 @@ export default function CentreActivityForm({
               setFixed_time_slots("");
             }
           }}
-        />
+        /> */}
         <Label htmlFor="is_fixed">Is this activity fixed to a timeslot?</Label>
+        <div className="space-x-2">
+          {radioBtnOptions.map((choice) => (
+            <Label className="space-x-1">
+              <input
+                type="radio"
+                id = {choice.value.toString()}
+                name="is_fixed"
+                value={choice.value.toString()}
+                checked={is_fixed === choice.value ? true : false}
+                onChange={(e) =>{
+                  setIs_Fixed(choice.value);
+
+                  if (!choice.value && fixed_time_slots.length > 0) {
+                    setFixed_time_slots("");
+                  }
+                }}
+              />
+              <label>{choice.label}</label>
+            </Label>
+          ))}
+        </div>
+        
         {errors.is_fixed && <p className="text-sm text-red-600">{errors.is_fixed}</p>}
       </div>
       
@@ -148,28 +222,14 @@ export default function CentreActivityForm({
           {errors.fixed_time_slots && <p className="text-sm text-red-600">{errors.fixed_time_slots}</p>}
         </div>
       )}
-      
-      <div className="space-y-2 space-x-2">
-        <input
-          id="is_compulsory"
-          type="checkbox"
-          checked={is_compulsory}
-          onChange={(e) => {
-            setIs_Compulsory(e.target.checked);
-          }}
-        />
-        <Label htmlFor="is_compulsory">Is this activity compulsory for patients?</Label>
-        {errors.is_compulsory && <p className="text-sm text-red-600">{errors.is_compulsory}</p>}
-      </div>
 
       {/* Indefinite Checkbox */}
       <div className="space-y-2 space-x-2">
-        <input
+        {/* <input
           id="is_indefinite"
           type="checkbox"
           checked={end_date.includes("999") ? true : false}
           onChange={(e) => {
-            setIsIndefinite(e.target.checked);
             if (e.target.checked) {
               setEnd_date(indefiniteDate);
             }
@@ -177,23 +237,69 @@ export default function CentreActivityForm({
               setEnd_date("");
             }
           }}
-        />
+        /> */}
         <Label htmlFor="is_indefinite">Is this activity end date indefinite?</Label>
+        <div className="space-x-2">
+          {radioBtnOptions.map((choice) => (
+            <Label className="space-x-1">
+              <input
+                type="radio"
+                id = {choice.value.toString()}
+                name="is_indefinite"
+                value={choice.value.toString()}
+                checked={end_date.includes("999") ? true === choice.value : false === choice.value}
+                // checked={end_date === "" ? is_indefinite === choice.value : end_date.includes("999") ? is_indefinite === choice.value : false}
+                onChange={(e) =>{
+                  if (choice.value) {
+                    setEnd_date(indefiniteDate);
+                  }
+                  else {
+                    setEnd_date("");
+                  }
+                }}
+              />
+              <label>{choice.label}</label>
+            </Label>
+          ))}
+        </div>
       </div>
 
       <div className="space-y-2 space-x-2">
-        <input
+        {/* <input
           id="is_group"
           type="checkbox"
           checked={is_group}
           onChange={(e) => {
             setIs_Group(e.target.checked);
+
             if (!e.target.checked) {
               setMin_people_req(1);
             } 
           }}
-        />
+        /> */}
         <Label htmlFor="is_group">Is this a group activity?</Label>
+        <div className="space-x-2">
+          {radioBtnOptions.map((choice) => (
+            <Label className="space-x-1">
+              <input
+                type="radio"
+                id = {choice.value.toString()}
+                name="is_group"
+                value={choice.value.toString()}
+                checked={is_group === choice.value ? true : false}
+                onChange={(e) =>{
+                  setIs_Group(choice.value);
+
+                  /*Business rule, Individual activities requires at least 1 person. */
+                  if (!choice.value) {
+                    setMin_people_req(1);
+                  } 
+                }}
+              />
+              <label>{choice.label}</label>
+            </Label>
+          ))}
+        </div>
         {errors.is_group && <p className="text-sm text-red-600">{errors.is_group}</p>}
       </div>
 

@@ -7,10 +7,9 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-
 import CentreActivityForm from "@/components/Form/CentreActivityForm";
 import CentreActivitiesTable from "@/components/Table/CentreActivitiesTable";
-import { useCentreActivities, useCentreActivityMutations, toRows, type CentreActivityRow } from "@/hooks/activities/useCentreActivities";
+import { useCentreActivities, useCentreActivityMutations, type CentreActivityRow } from "@/hooks/activities/useCentreActivities";
 import { CentreActivityFormValues } from "@/lib/validation/centreActivity";
 
 function confirmAction(message: string) {
@@ -23,21 +22,29 @@ export default function ManageCentreActivities() {
   const [creatingOpen, setCreatingOpen] = useState(false);
   const [editing, setEditing] = useState<CentreActivityRow | null>(null);
   const [page, setPage] = useState(1);
-  // const [compulsory, setCompulsory] = useState("all");
-  // const [fixed, setFixed] = useState("all");
-  // const [group, setGroup] = useState("all");
 
-  const {data, isLoading, isError, error} = useCentreActivities(includeDeleted);
+  const {centreActivities, loading, error, refreshCentreActivities} = useCentreActivities(includeDeleted);
   const {create, update, remove} = useCentreActivityMutations();
 
    useEffect(() => {
-    if (isError) toast.error(`Failed to load centre activities. ${(error as Error)?.message ?? ""}`);
-  }, [isError, error]);
+    if (error) toast.error(`Failed to load centre activities. ${error}`);
+  }, [error, error]);
 
   // reset to first page whenever list or search/toggle changes
-  useEffect(() => setPage(1), [search, includeDeleted, data]);
+  useEffect(() => setPage(1), [search, includeDeleted, centreActivities]);
 
-  const rows = useMemo(() => toRows(data ?? []), [data])
+  const filteredData = useMemo(() => {
+    let filtered = centreActivities;
+
+    if (!includeDeleted) {
+      filtered = filtered.filter(ca => ca.is_deleted === false);
+      console.log(filtered);
+    }
+
+    return filtered;
+  }, [centreActivities]);
+
+  // const rows = useMemo(() => toRows(centreActivities ?? []), [centreActivities]);
 
   const handleCreate = async (values: CentreActivityFormValues) => {
     try {
@@ -54,6 +61,7 @@ export default function ManageCentreActivities() {
         fixed_time_slots: values.fixed_time_slots
       });
       setCreatingOpen(false);
+      refreshCentreActivities(includeDeleted);
       toast.success("Centre Activity created.");
     }
     catch (error: any) {
@@ -107,7 +115,10 @@ export default function ManageCentreActivities() {
               type="button"
               variant="outline"
               className={`h-9 ${includeDeleted ? "border-primary" : ""}`}
-              onClick={() => setIncludeDeleted(v => !v)}
+              onClick={() => {
+                setIncludeDeleted(v => !v)
+                refreshCentreActivities(includeDeleted);
+              }}
             >
               <Filter className="mr-2 h-4 w-4" />
               {includeDeleted ? "Showing Deleted" : "Deleted Hidden"}
@@ -147,9 +158,9 @@ export default function ManageCentreActivities() {
             </CardHeader>
 
             <CardContent className="overflow-x-auto">
-              {isLoading ? (<div className="p-4 text-sm text-muted-foreground">Loading…</div>) : (
+              {loading ? (<div className="p-4 text-sm text-muted-foreground">Loading…</div>) : (
                 <CentreActivitiesTable
-                  data={rows}
+                  data={filteredData}
                   query={search}
                   page={page}
                   setPage={setPage}

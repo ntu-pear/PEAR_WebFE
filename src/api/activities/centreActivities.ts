@@ -92,44 +92,21 @@ export const getCurrentUser = async () => {
 };
 
 // CRUD
-export async function listCentreActivities(params?: { include_deleted?: boolean; skip?: number; limit?: number; }) {
-  const centreActivitiesData = await centreActivitiesAPI.get<CentreActivity[]>("/", {
+export async function listCentreActivities(params?: {include_deleted?: boolean;}) {
+  const res = await centreActivitiesAPI.get<CentreActivity[]>("/", {
     headers: authHeader(),
     params: {
-      include_deleted: params?.include_deleted ?? false,
-      skip: params?.skip ?? 0,
-      limit: params?.limit ?? 200,
+      include_deleted: params?.include_deleted
     },
   });
+  return res.data;
+};
 
-  //Code to merge activity title to table.
-  const activitiesData = await activitiesAPI.get<Activity[]>("/", {
+export async function getActivities() {
+  const res = await activitiesAPI.get<Activity[]>("/", {
     headers: authHeader(),
-    params: {
-      include_deleted: params?.include_deleted ?? false,
-      skip: params?.skip ?? 0,
-      limit: params?.limit ?? 999,
-    },
   });
-
-  const activityMap = new Map<number, Activity>();
-  activitiesData.data.forEach(activity => {
-    if (!activity.is_deleted) {
-      activityMap.set(activity.id, activity);
-    }
-  });
-
-  const centreActivitiesWithTitle: CentreActivityWithTitle[] = 
-    centreActivitiesData.data
-      .filter(ca => !ca.is_deleted)
-      .map(ca => ({
-        ...ca,
-        activity_title: activityMap.get(ca.activity_id)?.title || 'Unknown Activity'
-      }))
-      .sort((a, b) => (a.activity_title || '')
-      .localeCompare(b.activity_title || ''));
-
-  return centreActivitiesWithTitle.sort((a,b) => a.id - b.id);
+  return res.data;
 };
 
 export async function getCentreActivityById(id: number) {
@@ -138,33 +115,23 @@ export async function getCentreActivityById(id: number) {
 };
 
 export async function createCentreActivity(input: CreateCentreActivityInput) {
-  const res = await centreActivitiesAPI.post<CentreActivity>("/", input, { headers: authHeader() });
+  // Get current user to set modified_by_id
+  const currentUser = await getCurrentUser();
+  const payload = {
+    ...input,
+    created_by_id: currentUser.userId.toString(),
+  }
+  const res = await centreActivitiesAPI.post<CentreActivity>("/", payload, { headers: authHeader() });
   return res.data;
 };
 
 export async function updateCentreActivity(input: UpdateCentreActivityInput) {
   // Get current user to set modified_by_id
   const currentUser = await getCurrentUser();
-  
-  // const payload = {
-  //   id: input.id,
-  //   activity_id: input.activity_id,
-  //   is_fixed: typeof input.is_fixed === "boolean" ? input.is_fixed : false,
-  //   is_group: typeof input.is_group === "boolean" ? input.is_group : false,
-  //   is_compulsory: typeof input.is_compulsory === "boolean" ? input.is_group : false,
-  //   start_date: input.start_date,
-  //   end_date: input. end_date,
-  //   min_duration: input.min_duration,
-  //   max_duration: input.max_duration,
-  //   min_people_req: input.is_group == true ? input.min_people_req : 0,
-  //   is_deleted: typeof input.is_deleted === "boolean" ? input.is_deleted : false,
-  //   modified_by_id: currentUser.userId.toString()
-  // };
   const payload = {
     ...input,
     modified_by_id: currentUser.userId.toString(),
   }
-
   const res = await centreActivitiesAPI.put<CentreActivity>("/", payload, { headers: authHeader() });
   return res.data;
 };
