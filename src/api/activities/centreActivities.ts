@@ -3,6 +3,7 @@ import { activitiesAPI,
         getCurrentUserAPI
 } from "@/api/apiConfig";
 import { retrieveAccessTokenFromCookie } from "@/api/users/auth";
+import { skip } from "node:test";
 
 export interface Activity {
   id: number;
@@ -92,11 +93,13 @@ export const getCurrentUser = async () => {
 };
 
 // CRUD
-export async function listCentreActivities(params?: {include_deleted?: boolean;}) {
+export async function listCentreActivities(params?: {include_deleted?: boolean; skip?: number; limit?: number; }) {
   const res = await centreActivitiesAPI.get<CentreActivity[]>("/", {
     headers: authHeader(),
     params: {
-      include_deleted: params?.include_deleted
+      include_deleted: params?.include_deleted ?? false,
+       skip: params?.skip ?? 0,
+      limit: params?.limit ?? 200,
     },
   });
   return res.data;

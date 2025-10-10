@@ -41,7 +41,7 @@ export default function CentreActivityForm({
   const [fixed_time_slots, setFixed_time_slots] = useState(initial?.fixed_time_slots ?? "");
   const [is_deleted] = useState(false);
 
-  const [is_indefinite, setIs_indefinite] = useState(false);
+  // const [is_indefinite, setIs_indefinite] = useState(false);
   const indefiniteDate = dayjs(new Date(2999, 0, 1).toDateString()).format("YYYY-MM-DD");
   const [errors, setErrors] = useState<FormErrors>({ _summary: [] });
   const [activities, setActivities] = useState<Activity[]>([]);

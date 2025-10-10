@@ -8,55 +8,54 @@ import {
   softDeleteCentreActivity,
   type CreateCentreActivityInput,
   type UpdateCentreActivityInput,
-  CentreActivity,
-  Activity
+  Activity,
+  CentreActivityWithTitle
 } from "@/api/activities/centreActivities";
+import { listActivities } from "@/api/activities/activities";
 import { useEffect, useState } from "react";
 
+
+// export async function useCentreActivities(includeDeleted: boolean) {
+//   const ca = useQuery({
+//     queryKey: ["centre_activities", { includeDeleted }],
+//     queryFn: () => listCentreActivities({ include_deleted: includeDeleted, limit: 200 }),
+//   });
+//   return ca; 
+// }
+
 export const useCentreActivities = (includeDeleted: boolean) => {
-  const [centreActivities, setCentreActivities] = useState<CentreActivityRow[]>([])
+  const [centreActivities, setCentreActivities] = useState<CentreActivityWithTitle[]>([])
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchCentreActivities = async (includeDeleted: boolean) => {
+  const fetchCentreActivities = async () => {
     try {
       setLoading(true);
       setError(null);
 
       const [activitiesData, centreActivitiesData] = await Promise.all([
         getActivities(),
-        listCentreActivities({ include_deleted: includeDeleted})
+        listCentreActivities({ include_deleted: includeDeleted })
       ]);
       
-      // const activityMap = new Map<number, Activity>();
-      // activitiesData.forEach(activity => {
-      //   if (!activity.is_deleted) {
-      //     activityMap.set(activity.id, activity);
-      //   }
-      // });
-
-      // const centreActivitiesWithTitle: CentreActivityWithTitle[] = 
-      //   centreActivitiesData
-      //   .map(ca => ({
-      //     ...ca,
-      //     activity_title: activityMap.get(ca.activity_id)?.title || 'Unknown Activity'
-      //   }))
-      //   .sort((a, b) => (a.activity_title || '')
-      //   .localeCompare(b.activity_title || ''))
-      //   .sort((a,b) => a.id - b.id);
-
-      //Map centre activities activity id to respective activity
-      const ActivityMap = new Map<number, {activity: Activity; centreActivity: CentreActivity}>();
-
-      centreActivities.forEach(centreActivity => {
-        const activity = activitiesData.find(a => a.id === centreActivity.activity_id);
-        
-        if (activity && !activity.is_deleted && !centreActivity.is_deleted) {
-          ActivityMap.set(centreActivity.id, { activity, centreActivity });
+      const activityMap = new Map<number, Activity>();
+      activitiesData.forEach(activity => {
+        if (!activity.is_deleted) {
+          activityMap.set(activity.id, activity);
         }
       });
 
-      setCentreActivities(centreActivities.sort((a,b) => a.id - b.id));
+      const centreActivitiesWithTitle: CentreActivityWithTitle[] = 
+        centreActivitiesData
+        .map(ca => ({
+          ...ca,
+          activity_title: activityMap.get(ca.activity_id)?.title || 'Unknown Activity'
+        }))
+        .sort((a, b) => (a.activity_title || '')
+        .localeCompare(b.activity_title || ''))
+        .sort((a,b) => a.id - b.id);
+      
+      setCentreActivities(centreActivitiesWithTitle.sort((a,b) => a.id - b.id));
     }
     catch(error) {
       console.error("Error fetching centre activities:", error);
@@ -67,15 +66,15 @@ export const useCentreActivities = (includeDeleted: boolean) => {
     }
   };
 
-  const refreshCentreActivities = (includeDeleted: boolean) => {
-    fetchCentreActivities(includeDeleted);
+  const refreshCentreActivities = () => {
+    fetchCentreActivities();
   };
 
   useEffect(() => {
-    fetchCentreActivities(includeDeleted);
+    fetchCentreActivities();
   }, []);
 
-  return {
+  return { 
     centreActivities,
     loading, 
     error,
@@ -132,24 +131,24 @@ export type CentreActivityRow = {
   is_deleted: boolean;
 };
 
-// export function toRows(list: CentreActivityWithTitle[]): CentreActivityRow[] {
-//   return list.map(a => ({
-//     id: a.id,
-//     activity_id: a.activity_id,
-//     activity_title: a.activity_title,
-//     is_fixed: a.is_fixed,
-//     is_group: a.is_group,
-//     is_compulsory: a.is_compulsory,
-//     min_people_req: a.min_people_req,
-//     min_duration: a.min_duration,
-//     max_duration: a.max_duration,
-//     start_date: a.start_date,
-//     end_date: a.end_date,
-//     fixed_time_slots: a.fixed_time_slots,
-//     created_by_id: a.created_by_id,
-//     created_date: a.created_date,
-//     modified_by_id: a.modified_by_id ?? "",
-//     modified_date: a.modified_date ?? "",
-//     is_deleted: a.is_deleted,
-//   }));
-// }
+export function toRows(list: CentreActivityWithTitle[]): CentreActivityRow[] {
+  return list.map(a => ({
+    id: a.id,
+    activity_id: a.activity_id,
+    activity_title: a.activity_title,
+    is_fixed: a.is_fixed,
+    is_group: a.is_group,
+    is_compulsory: a.is_compulsory,
+    min_people_req: a.min_people_req,
+    min_duration: a.min_duration,
+    max_duration: a.max_duration,
+    start_date: a.start_date,
+    end_date: a.end_date,
+    fixed_time_slots: a.fixed_time_slots,
+    created_by_id: a.created_by_id,
+    created_date: a.created_date,
+    modified_by_id: a.modified_by_id ?? "",
+    modified_date: a.modified_date ?? "",
+    is_deleted: a.is_deleted,
+  }));
+}

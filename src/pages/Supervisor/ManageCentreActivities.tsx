@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
 import { toast } from "sonner";
-import { Filter, Plus } from "lucide-react";
+import { ListFilter, Filter, Plus } from "lucide-react";
 import {
   Card, CardContent, CardDescription, CardHeader, CardTitle,
 } from "@/components/ui/card";
@@ -9,8 +9,12 @@ import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import CentreActivityForm from "@/components/Form/CentreActivityForm";
 import CentreActivitiesTable from "@/components/Table/CentreActivitiesTable";
-import { useCentreActivities, useCentreActivityMutations, type CentreActivityRow } from "@/hooks/activities/useCentreActivities";
+import { useCentreActivities, useCentreActivityMutations, type CentreActivityRow, toRows } from "@/hooks/activities/useCentreActivities";
 import { CentreActivityFormValues } from "@/lib/validation/centreActivity";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuRadioGroup,
+  DropdownMenuRadioItem, DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { groupCollapsed } from "console";
 
 function confirmAction(message: string) {
   return window.confirm(message);
@@ -22,29 +26,63 @@ export default function ManageCentreActivities() {
   const [creatingOpen, setCreatingOpen] = useState(false);
   const [editing, setEditing] = useState<CentreActivityRow | null>(null);
   const [page, setPage] = useState(1);
+  const [compulsory, setCompulsory] = useState("all");
+  const [fixed, setFixed] = useState("all");
+  const [group, setGroup] = useState("all");
 
-  const {centreActivities, loading, error, refreshCentreActivities} = useCentreActivities(includeDeleted);
+  // const {centreActivities, loading, error, refreshCentreActivities} = useCentreActivities(includeDeleted);
+  const {centreActivities, loading, error, refreshCentreActivities} = useCentreActivities(true);
   const {create, update, remove} = useCentreActivityMutations();
 
    useEffect(() => {
     if (error) toast.error(`Failed to load centre activities. ${error}`);
-  }, [error, error]);
+  }, [error]);
 
   // reset to first page whenever list or search/toggle changes
-  useEffect(() => setPage(1), [search, includeDeleted, centreActivities]);
+  useEffect(() => {
+    setPage(1)
+  }, [search, includeDeleted, fixed, compulsory, group, centreActivities] );
+
+  // const rows = useMemo(() => toRows(centreActivities ?? []), [centreActivities]);
 
   const filteredData = useMemo(() => {
     let filtered = centreActivities;
 
+    //Show or hide deleted from list
     if (!includeDeleted) {
-      filtered = filtered.filter(ca => ca.is_deleted === false);
-      console.log(filtered);
+      setIncludeDeleted(false);
+      filtered = filtered.filter(ca => ca.is_deleted == false);
+    }
+    
+    if (compulsory != "all") {
+      if (compulsory == "true") {
+        filtered = filtered.filter(ca => ca.is_compulsory == true);
+      }
+      else {
+        filtered = filtered.filter(ca => ca.is_compulsory == false);
+      }
     }
 
-    return filtered;
-  }, [centreActivities]);
+    if (fixed != "all") {
+      if (fixed == "true") {
+        filtered = filtered.filter(ca => ca.is_fixed == true);
+      }
+      else {
+        filtered = filtered.filter(ca => ca.is_fixed == false);
+      }
+    }
 
-  // const rows = useMemo(() => toRows(centreActivities ?? []), [centreActivities]);
+    if (group != "all") {
+      if (group == "true") {
+        filtered = filtered.filter(ca => ca.is_group == true);
+      }
+      else {
+        filtered = filtered.filter(ca => ca.is_group == false);
+      }
+    }
+                
+    return toRows(filtered ?? []);
+  }, [centreActivities, includeDeleted, fixed, compulsory, group]);
 
   const handleCreate = async (values: CentreActivityFormValues) => {
     try {
@@ -61,7 +99,8 @@ export default function ManageCentreActivities() {
         fixed_time_slots: values.fixed_time_slots
       });
       setCreatingOpen(false);
-      refreshCentreActivities(includeDeleted);
+      refreshCentreActivities();
+      
       toast.success("Centre Activity created.");
     }
     catch (error: any) {
@@ -96,6 +135,36 @@ export default function ManageCentreActivities() {
     }
   };
 
+  const booleanOptions = [
+    { key: "All", value: "all"},
+    { key: "Yes", value: "true" },
+    { key: "No", value: "false" },
+  ];
+
+  const renderFilter = (
+    title: string,
+    value: string,
+    setValue: (value: string) => void
+  ) => (
+    <DropdownMenu modal={false}>
+      <DropdownMenuTrigger asChild>
+        <Button variant="outline" size="sm" className="h-8 gap-1">
+          <ListFilter className="h-4 w-4" />
+          <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+            {title}
+          </span>
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuRadioGroup value={value} onValueChange={setValue}>
+          {booleanOptions.map(({ key, value }) => (
+            <DropdownMenuRadioItem value={value}>{key}</DropdownMenuRadioItem>
+          ))}
+        </DropdownMenuRadioGroup>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+
   return (
     <div className="flex min-h-screen w-full flex-col container mx-auto px-0 sm:px-4">
 
@@ -111,14 +180,14 @@ export default function ManageCentreActivities() {
             />
           </div>
           <div className="flex space-x-2">
+            {renderFilter("Compulsory", compulsory, setCompulsory)}
+            {renderFilter("Fixed", fixed, setFixed)}
+            {renderFilter("Group", group, setGroup)}
             <Button
               type="button"
               variant="outline"
               className={`h-9 ${includeDeleted ? "border-primary" : ""}`}
-              onClick={() => {
-                setIncludeDeleted(v => !v)
-                refreshCentreActivities(includeDeleted);
-              }}
+              onClick={() => setIncludeDeleted(v => !v)}
             >
               <Filter className="mr-2 h-4 w-4" />
               {includeDeleted ? "Showing Deleted" : "Deleted Hidden"}
@@ -160,6 +229,7 @@ export default function ManageCentreActivities() {
             <CardContent className="overflow-x-auto">
               {loading ? (<div className="p-4 text-sm text-muted-foreground">Loading…</div>) : (
                 <CentreActivitiesTable
+                  // data={rows}
                   data={filteredData}
                   query={search}
                   page={page}
