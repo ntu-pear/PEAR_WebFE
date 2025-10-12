@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from 'sonner';
 import {
   listCentreActivities,
@@ -11,17 +11,7 @@ import {
   Activity,
   CentreActivityWithTitle
 } from "@/api/activities/centreActivities";
-import { listActivities } from "@/api/activities/activities";
 import { useEffect, useState } from "react";
-
-
-// export async function useCentreActivities(includeDeleted: boolean) {
-//   const ca = useQuery({
-//     queryKey: ["centre_activities", { includeDeleted }],
-//     queryFn: () => listCentreActivities({ include_deleted: includeDeleted, limit: 200 }),
-//   });
-//   return ca; 
-// }
 
 export const useCentreActivities = (includeDeleted: boolean) => {
   const [centreActivities, setCentreActivities] = useState<CentreActivityWithTitle[]>([])

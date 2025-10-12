@@ -41,7 +41,6 @@ export default function CentreActivityForm({
   const [fixed_time_slots, setFixed_time_slots] = useState(initial?.fixed_time_slots ?? "");
   const [is_deleted] = useState(false);
 
-  // const [is_indefinite, setIs_indefinite] = useState(false);
   const indefiniteDate = dayjs(new Date(2999, 0, 1).toDateString()).format("YYYY-MM-DD");
   const [errors, setErrors] = useState<FormErrors>({ _summary: [] });
   const [activities, setActivities] = useState<Activity[]>([]);
@@ -138,14 +137,6 @@ export default function CentreActivityForm({
       </div>
       
       <div className="space-y-2 space-x-2">
-        {/* <input
-          id="is_compulsory"
-          type="checkbox"
-          checked={is_compulsory}
-          onChange={(e) => {
-            setIs_Compulsory(e.target.checked);
-          }}
-        /> */}
         <Label htmlFor="is_compulsory">Is this activity compulsory for patients?</Label>
         <div className="space-x-2">
           {radioBtnOptions.map((choice) => (
@@ -172,19 +163,7 @@ export default function CentreActivityForm({
         {errors.is_compulsory && <p className="text-sm text-red-600">{errors.is_compulsory}</p>}
       </div>
 
-      {/* From this point onwards, create centre activity */}
       <div className="space-y-2 space-x-2">
-        {/* <input
-          id="is_fixed"
-          type="checkbox"
-          checked={is_fixed}
-          onChange={(e) => {
-            setIs_Fixed(e.target.checked);
-            if (!e.target.checked) {
-              setFixed_time_slots("");
-            }
-          }}
-        /> */}
         <Label htmlFor="is_fixed">Is this activity fixed to a timeslot?</Label>
         <div className="space-x-2">
           {radioBtnOptions.map((choice) => (
@@ -225,19 +204,6 @@ export default function CentreActivityForm({
 
       {/* Indefinite Checkbox */}
       <div className="space-y-2 space-x-2">
-        {/* <input
-          id="is_indefinite"
-          type="checkbox"
-          checked={end_date.includes("999") ? true : false}
-          onChange={(e) => {
-            if (e.target.checked) {
-              setEnd_date(indefiniteDate);
-            }
-            else {
-              setEnd_date("");
-            }
-          }}
-        /> */}
         <Label htmlFor="is_indefinite">Is this activity end date indefinite?</Label>
         <div className="space-x-2">
           {radioBtnOptions.map((choice) => (
@@ -265,18 +231,6 @@ export default function CentreActivityForm({
       </div>
 
       <div className="space-y-2 space-x-2">
-        {/* <input
-          id="is_group"
-          type="checkbox"
-          checked={is_group}
-          onChange={(e) => {
-            setIs_Group(e.target.checked);
-
-            if (!e.target.checked) {
-              setMin_people_req(1);
-            } 
-          }}
-        /> */}
         <Label htmlFor="is_group">Is this a group activity?</Label>
         <div className="space-x-2">
           {radioBtnOptions.map((choice) => (

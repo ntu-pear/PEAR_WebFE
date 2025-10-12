@@ -12,7 +12,6 @@ export type CentreActivityFormValues = {
     is_deleted: boolean | false;
 };
 
-
 export type FormErrors = { 
     activity_id?: number;
     is_fixed?: boolean;

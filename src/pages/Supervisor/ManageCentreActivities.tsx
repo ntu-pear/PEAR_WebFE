@@ -14,7 +14,6 @@ import { CentreActivityFormValues } from "@/lib/validation/centreActivity";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuRadioGroup,
   DropdownMenuRadioItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { groupCollapsed } from "console";
 
 function confirmAction(message: string) {
   return window.confirm(message);
@@ -29,12 +28,10 @@ export default function ManageCentreActivities() {
   const [compulsory, setCompulsory] = useState("all");
   const [fixed, setFixed] = useState("all");
   const [group, setGroup] = useState("all");
-
-  // const {centreActivities, loading, error, refreshCentreActivities} = useCentreActivities(includeDeleted);
   const {centreActivities, loading, error, refreshCentreActivities} = useCentreActivities(true);
   const {create, update, remove} = useCentreActivityMutations();
 
-   useEffect(() => {
+  useEffect(() => {
     if (error) toast.error(`Failed to load centre activities. ${error}`);
   }, [error]);
 
@@ -42,8 +39,6 @@ export default function ManageCentreActivities() {
   useEffect(() => {
     setPage(1)
   }, [search, includeDeleted, fixed, compulsory, group, centreActivities] );
-
-  // const rows = useMemo(() => toRows(centreActivities ?? []), [centreActivities]);
 
   const filteredData = useMemo(() => {
     let filtered = centreActivities;
@@ -111,7 +106,7 @@ export default function ManageCentreActivities() {
   
   const handleUpdate = async (values: CentreActivityFormValues) => {
     if (!editing) return;
-
+    
     try {
       await update.mutateAsync({
         id: editing.id,
@@ -130,8 +125,8 @@ export default function ManageCentreActivities() {
       toast.success("Centre Activity updated.");
     }
     catch (error: any) {
-      console.error("Error creating centre activity:", error)
-      toast.error(`Failed to create. ${error?.message ?? ""}`);
+      console.error("Error updating centre activity:", error)
+      toast.error(`Failed to update. ${error?.message ?? ""}`);
     }
   };
 
@@ -229,7 +224,6 @@ export default function ManageCentreActivities() {
             <CardContent className="overflow-x-auto">
               {loading ? (<div className="p-4 text-sm text-muted-foreground">Loading…</div>) : (
                 <CentreActivitiesTable
-                  // data={rows}
                   data={filteredData}
                   query={search}
                   page={page}

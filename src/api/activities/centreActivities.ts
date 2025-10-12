@@ -3,7 +3,6 @@ import { activitiesAPI,
         getCurrentUserAPI
 } from "@/api/apiConfig";
 import { retrieveAccessTokenFromCookie } from "@/api/users/auth";
-import { skip } from "node:test";
 
 export interface Activity {
   id: number;

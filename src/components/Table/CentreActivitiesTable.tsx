@@ -51,9 +51,6 @@ export default function CentreActivitiesTable({
                 <TableHead>ID</TableHead>
                 <TableHead className="w-28">Activity Title</TableHead>
                 <TableHead>Compulsory?/Fixed?Group?</TableHead>
-                {/* <TableHead>Compulsory?</TableHead>
-                <TableHead>Fixed?</TableHead>
-                <TableHead>Group Activity?</TableHead> */}
                 <TableHead>Minimum People Required</TableHead>
                 <TableHead>Minimum Duration</TableHead>
                 <TableHead>Maximum Duration</TableHead>
@@ -76,9 +73,6 @@ export default function CentreActivitiesTable({
                 <TableRow key={a.id} className={a.is_deleted ? "opacity-60" : ""}>
                   <TableCell className="font-medium">{a.id}</TableCell>
                   <TableCell className="max-w-[420px] truncate">{a.activity_title}</TableCell>
-                  {/* <TableCell>{a.is_compulsory ? "Yes" : "No"}</TableCell>
-                  <TableCell>{a.is_fixed ? "Yes" : "No"}</TableCell>
-                  <TableCell>{a.is_group ? "Yes" : "No"}</TableCell> */}
                   <TableCell>{a.is_compulsory ? "Yes" : "No"}/{a.is_fixed ? "Yes" : "No"}/{a.is_group ? "Yes" : "No"}</TableCell>
                   <TableCell>{a.min_people_req ? a.min_people_req : "-"}</TableCell>
                   <TableCell>{a.min_duration} mins</TableCell>
@@ -95,6 +89,11 @@ export default function CentreActivitiesTable({
                     </Button>
                     <Button size="sm" variant="destructive" onClick={() => onDelete(a)}>
                       Delete
+                    </Button>
+                  </TableCell>
+                  <TableCell className="space-x-2">
+                    <Button size="sm" variant="secondary"  disabled={a.is_deleted}>
+                      Manage Availability
                     </Button>
                   </TableCell>
                 </TableRow>
