@@ -67,7 +67,7 @@ export default function AvailabilityTable({
                         </TableRow>
                     )}
                     {items.map((a) => (
-                    <TableRow key={a.id} className={a.is_deleted ? "opacity-60" : ""}>
+                    <TableRow key={a.id}>
                         <TableCell className="font-medium">{a.id}</TableCell>
                         <TableCell>{dayjs(a.start_time).format("YYYY-MM-DD")}</TableCell>
                         <TableCell>{dayjs(a.end_time).format("YYYY-MM-DD")}</TableCell>
@@ -77,10 +77,10 @@ export default function AvailabilityTable({
                         <TableCell>{a.modified_date ? dayjs(a.modified_date).format("YYYY-MM-DD") : "-"}</TableCell>
                         <TableCell>{a.is_deleted ? "Yes" : "No"}</TableCell>
                         <TableCell className="space-x-2">
-                        <Button size="sm" variant="secondary" onClick={() => onEdit(a)} disabled={a.is_deleted}>
+                        <Button size="sm" variant="secondary" onClick={() => onEdit(a)}>
                             Edit
                         </Button>
-                        <Button size="sm" variant="destructive" onClick={() => onDelete(a)}>
+                        <Button size="sm" variant="destructive" onClick={() => onDelete(a)}  disabled={a.is_deleted}>
                             Delete
                         </Button>
                         </TableCell>

@@ -122,6 +122,7 @@ export default function ManageCentreActivities() {
         is_deleted: values.is_deleted,
         fixed_time_slots: values.fixed_time_slots
       });
+      refreshCentreActivities();
       toast.success("Centre Activity updated.");
     }
     catch (error: any) {
@@ -233,7 +234,10 @@ export default function ManageCentreActivities() {
                     const msg = "Deleting this centre activity will remove its availabilities and patient schedules may be regenerated. Do you wish to continue?";
                     if (confirmAction(msg)) {
                       remove.mutate(row.id, {
-                        onSuccess: () => toast.success("Centre Activity Deleted."),
+                        onSuccess: () => {
+                          refreshCentreActivities();
+                          toast.success("Centre Activity Deleted.");
+                        },
                         onError: (err: any) => toast.error(`Failed to delete. ${err.message ?? ""}`),
                       })
                     }

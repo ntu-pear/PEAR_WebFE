@@ -1,12 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from 'sonner';
-import {
-  listCentreActivities,
-  getActivities,
-  Activity,
-  CentreActivity,
-  CentreActivityWithTitle
-} from "@/api/activities/centreActivities";
 import { useEffect, useState } from "react";
 import { 
     listCentreActivityAvailabilities,

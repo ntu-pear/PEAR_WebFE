@@ -21,6 +21,7 @@ export interface CreateCentreActivityAvailabilityInput {
   // is_fixed: boolean; //Commented out, awaiting changes to scheduler service to handle 30 minute activities.
   start_time: string;
   end_time: string;
+  is_everyday: boolean;
 }
 
 export interface UpdateCentreActivityAvailabilityInput {
@@ -83,10 +84,15 @@ export async function createCentreActivityAvailability(input: CreateCentreActivi
   // Get current user to set modified_by_id
   const currentUser = await getCurrentUser();
   const payload = {
-    ...input,
+    centre_activity_id: input.centre_activity_id,
+    start_time: input.start_time,
+    end_time: input.end_time,
     created_by_id: currentUser.userId.toString(),
   }
-  const res = await centreActivityAvailabilitiesAPI.post<CentreActivityAvailability>("/", payload, { headers: authHeader() });
+  const res = await centreActivityAvailabilitiesAPI.post<CentreActivityAvailability>("/", payload, { 
+    headers: authHeader(),
+    params: {is_recurring_everyday: input.is_everyday}
+  });
   return res.data;
 };
 

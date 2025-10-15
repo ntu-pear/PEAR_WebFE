@@ -70,7 +70,7 @@ export default function CentreActivitiesTable({
                 </TableRow>
               )}
               {items.map((a) => (
-                <TableRow key={a.id} className={a.is_deleted ? "opacity-60" : ""}>
+                <TableRow key={a.id} >
                   <TableCell className="font-medium">{a.id}</TableCell>
                   <TableCell className="max-w-[420px] truncate">{a.activity_title}</TableCell>
                   <TableCell>{a.is_compulsory ? "Yes" : "No"}/{a.is_fixed ? "Yes" : "No"}/{a.is_group ? "Yes" : "No"}</TableCell>
@@ -84,16 +84,11 @@ export default function CentreActivitiesTable({
                   <TableCell>{a.modified_date ? dayjs(a.modified_date).format("YYYY-MM-DD") : "-"}</TableCell>
                   <TableCell>{a.is_deleted ? "Yes" : "No"}</TableCell>
                   <TableCell className="space-x-2">
-                    <Button size="sm" variant="secondary" onClick={() => onEdit(a)} disabled={a.is_deleted}>
+                    <Button size="sm" variant="secondary" onClick={() => onEdit(a)}>
                       Edit
                     </Button>
-                    <Button size="sm" variant="destructive" onClick={() => onDelete(a)}>
+                    <Button size="sm" variant="destructive" onClick={() => onDelete(a)} disabled={a.is_deleted}>
                       Delete
-                    </Button>
-                  </TableCell>
-                  <TableCell className="space-x-2">
-                    <Button size="sm" variant="secondary"  disabled={a.is_deleted}>
-                      Manage Availability
                     </Button>
                   </TableCell>
                 </TableRow>

@@ -2,15 +2,12 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {Activity} from "@/api/activities/activities";
-import dayjs from "dayjs";
-import { toast } from "sonner";
 import { useCentreActivities } from "@/hooks/activities/useCentreActivities";
 import { type FormErrors, type CentreActivityAvailabilityFormValues,} from "@/lib/validation/activityAvailability";
-import { start } from "repl";
+import dayjs from "dayjs";
 
 type Props = {
-  initial?: CentreActivityAvailabilityFormValues & {id?: number};
+  initial?: CentreActivityAvailabilityFormValues & {id?: number} & {editing?: boolean};
   submitting?: boolean;
   onSubmit: (
     values: CentreActivityAvailabilityFormValues,
@@ -31,28 +28,41 @@ export default function ActivityAvailabilityForm({
   onCancel
 }: Props) {
     const [centre_activity_id, setCentreActivityID] = useState<string>(initial?.centre_activity_id?.toString() ?? "");
-    const [start_time, setStart_date] = useState(initial?.start_time ?? "");
-    const [end_time, setEnd_date] = useState(initial?.end_time ?? "");
-    const [is_deleted] = useState(false);
+    const [date, setDate] = useState(dayjs(initial?.start_time).format("YYYY-MM-DD") ?? "");
+    const [start_time, setStartTime] = useState(dayjs(initial?.start_time).format("HH:mm") ?? "");
+    const [end_time, setEndTime] = useState(dayjs(initial?.end_time).format("HH:mm") ?? "");
+    const [is_everyday, setIsEveryday] = useState(false);
+    const [deleted] = useState(initial?.is_deleted ?? false);
+    const [is_deleted, setIsDeleted] = useState(initial?.is_deleted ?? false);
     const {centreActivities} = useCentreActivities(false);
     const [errors, setErrors] = useState<FormErrors>({ _summary: [] });
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setErrors({ _summary: [] });
-
+        
         try {
-        const formValues = { 
-            centre_activity_id: parseInt(centre_activity_id),
-            start_time: start_time,
-            end_time: end_time,
-            is_deleted: is_deleted
-        };
+            // let date_of_activity = new Date(date)
 
-        // const local = runSync(formValues);
-        // if (local._summary && local._summary.length) return;
+            let [startHours, startMinutes] = start_time.split(":").map(Number);
+            let [endHours, endMinutes] = end_time.split(":").map(Number);
+            const [year, month, day] = date.split("-").map(Number);
 
-        await onSubmit(formValues, setErrors);
+            let startDateTime = new Date(Date.UTC(year, month -1, day, startHours, startMinutes)).toISOString();
+            let endDateTime = new Date(Date.UTC(year, month -1, day, endHours, endMinutes)).toISOString();
+
+            const formValues = { 
+                centre_activity_id: parseInt(centre_activity_id),
+                start_time: startDateTime.toString(),
+                end_time: endDateTime.toString(),
+                is_deleted: is_deleted,
+                is_everyday: is_everyday
+            };
+            
+            // const local = runSync(formValues);
+            // if (local._summary && local._summary.length) return;
+
+            await onSubmit(formValues, setErrors);
         }
         catch(error: any) {
             console.error("Form submission error:", error);
@@ -66,6 +76,29 @@ export default function ActivityAvailabilityForm({
 
     return(
         <form className="mt-4 space-y-4" onSubmit={handleSubmit}>
+            {deleted && (
+                <div className="space-y-2">
+                    <Label htmlFor="is_deleted">Undo deletion of this centre activity?</Label>
+                    <div className="space-x-2">
+                        <Label className="space-x-1">
+                            <input
+                                type="checkbox"
+                                id = "is_deleted"
+                                onChange={(e) =>{
+                                    if (e.target.value) {
+                                        setIsDeleted(false);
+                                    }
+                                    else {
+                                        setIsDeleted(true);
+                                    }
+                                }}
+                            />
+                            <label>Yes</label>
+                        </Label>
+                    </div>
+                </div>
+            )}
+
             <div className="space-y-2">
                 <Label htmlFor="centre_activity_id">Centre Activity</Label>
                 <select
@@ -84,27 +117,64 @@ export default function ActivityAvailabilityForm({
                     ))}
                 </select>
             </div>
+            <div className="space-y-2 space-x-2">
+                <Label htmlFor="is_everyday">Recurr this activity over a selected week?</Label>
+                <div className="space-x-2">
+                    {radioBtnOptions.map((choice) => (
+                    <Label className="space-x-1">
+                        <input
+                            type="radio"
+                            id = {choice.value.toString()}
+                            name="is_everyday"
+                            value={choice.value.toString()}
+                            checked={is_everyday === choice.value ? true : false}
+                            onChange={(e) => setIsEveryday(choice.value)}
+                        />
+                        <label>{choice.label}</label>
+                        </Label>
+                    ))}
+                </div>
+            </div>
+
+            {is_everyday && (
+                <div className="space-y-2">
+                    <Label>Note: Select a date on the week that the activity will recurr everyday.</Label>
+                </div>
+            )}
+
             <div className="space-y-2">
-                <Label htmlFor="start_date">Start Date of this activity</Label>
+                <Label htmlFor="date_of_activity">Date of this activity</Label>
                 <Input
-                    id="start_time"
-                    type="datetime-local"
-                    step={1800}
-                    value={start_time}
-                    onChange={(e) => setStart_date(e.target.value)}
+                    id="date_of_activity"
+                    type="date"
+                    value={date}
+                    onChange={(e) => setDate(e.target.value)}
                 />
                 {errors.start_time && <p className="text-sm text-red-600">{errors.start_time}</p>}
             </div>
+
             <div className="space-y-2">
-                <Label htmlFor="end_date">End Date of this activity</Label>
+                <Label htmlFor="start_time">Start time of this activity</Label>
+                <Input
+                    id="start_time"
+                    type="time"
+                    value={start_time}
+                    onChange={(e) => setStartTime(e.target.value)}
+                />
+                {errors.start_time && <p className="text-sm text-red-600">{errors.start_time}</p>}
+            </div>
+
+            <div className="space-y-2">
+                <Label htmlFor="end_time">End time of this activity</Label>
                 <Input
                     id="end_time"
-                    type="datetime-local"
+                    type="time"
                     value={end_time}
-                    onChange={(e) => setEnd_date(e.target.value)}
+                    onChange={(e) => setEndTime(e.target.value)}
                 />
-                {errors.end_time && <p className="text-sm text-red-600">{errors.end_time}</p>}
+                {errors.start_time && <p className="text-sm text-red-600">{errors.start_time}</p>}
             </div>
+
             <div className="flex justify-end gap-2">
                 <Button type="submit" disabled={submitting} className="min-w-24">
                     {submitting ? "Saving…" : initial?.id ? "Update" : "Create"}

@@ -39,7 +39,8 @@ export default function CentreActivityForm({
   const [is_group, setIs_Group] = useState(initial?.is_group ?? false);
   const [min_people_req, setMin_people_req] = useState(initial?.min_people_req ?? 1);
   const [fixed_time_slots, setFixed_time_slots] = useState(initial?.fixed_time_slots ?? "");
-  const [is_deleted] = useState(false);
+  const [is_deleted, setIsDeleted] = useState(initial?.is_deleted ?? false);
+  const [deleted] = useState(initial?.is_deleted ?? false);
 
   const indefiniteDate = dayjs(new Date(2999, 0, 1).toDateString()).format("YYYY-MM-DD");
   const [errors, setErrors] = useState<FormErrors>({ _summary: [] });
@@ -112,6 +113,29 @@ export default function CentreActivityForm({
           <ul className="list-disc pl-5 space-y-1">
             {errors._summary.map((msg, i) => <li key={i}>{msg}</li>)}
           </ul>
+        </div>
+      )}
+
+      {deleted && (
+        <div className="space-y-2">
+          <Label htmlFor="is_deleted">Undo deletion of this centre activity?</Label>
+          <div className="space-x-2">
+            <Label className="space-x-1">
+              <input
+                type="checkbox"
+                id = "is_deleted"
+                onChange={(e) =>{
+                  if (e.target.value) {
+                    setIsDeleted(false);
+                  }
+                  else {
+                    setIsDeleted(true);
+                  }
+                }}
+              />
+              <label>Yes</label>
+            </Label>
+          </div>
         </div>
       )}
 

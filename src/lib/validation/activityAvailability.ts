@@ -3,6 +3,7 @@ export type CentreActivityAvailabilityFormValues = {
     start_time: string;
     end_time: string;
     is_deleted: boolean | false;
+    is_everyday: boolean | false;
 };
 
 export type FormErrors = { 

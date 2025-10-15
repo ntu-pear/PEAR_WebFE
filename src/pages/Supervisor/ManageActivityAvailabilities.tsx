@@ -24,7 +24,7 @@ export default function ManageActivityAvailabilities() {
     const [creatingOpen, setCreatingOpen] = useState(false);
     const [editing, setEditing] = useState<CentreActivityAvailabilityRow | null>(null);
     const [page, setPage] = useState(1);
-    const {centreActivityAvailabilities, loading, error} = useCentreActivityAvailabilities(true);
+    const {centreActivityAvailabilities, loading, error, refreshCentreActivityAvailabilities} = useCentreActivityAvailabilities(true);
     const {create, update, remove} = useCentreActivityAvailabilityMutations();
     const {centreActivities} = useCentreActivities(false);
     const [selectedCentreActivity, setSelectedCentreActivity] = useState("0");
@@ -35,20 +35,20 @@ export default function ManageActivityAvailabilities() {
 
     useEffect(() => {
         setPage(1)
-    }, [search, includeDeleted, centreActivityAvailabilities] );
+    }, [search, includeDeleted, centreActivityAvailabilities]);
 
     const filteredData = useMemo(() => {
         let filtered = centreActivityAvailabilities;
+
+        if (selectedCentreActivity != "") {
+            setSelectedCentreActivity(selectedCentreActivity);
+            filtered = filtered.filter(caa => caa.centre_activity_id == parseInt(selectedCentreActivity))
+        }
 
         //Show or hide deleted from list
         if (!includeDeleted) {
             setIncludeDeleted(false);
             filtered = filtered.filter(caa => caa.is_deleted == false);
-        }
-
-        if (selectedCentreActivity != "") {
-            setSelectedCentreActivity(selectedCentreActivity);
-            filtered = filtered.filter(caa => caa.centre_activity_id == parseInt(selectedCentreActivity))
         }
 
         return toRows(filtered ?? []);
@@ -60,9 +60,10 @@ export default function ManageActivityAvailabilities() {
             centre_activity_id: values.centre_activity_id,
             start_time: values.start_time,
             end_time: values.end_time,
+            is_everyday: values.is_everyday
           });
           setCreatingOpen(false);
-          
+            refreshCentreActivityAvailabilities();
           toast.success("Centre Activity created.");
         }
         catch (error: any) {
@@ -82,6 +83,8 @@ export default function ManageActivityAvailabilities() {
                 end_time: values.end_time,
                 is_deleted: values.is_deleted,
             });
+            refreshCentreActivityAvailabilities();
+            
             toast.success("Centre Activity Availability updated.");
         }
         catch (error: any) {
@@ -137,6 +140,15 @@ export default function ManageActivityAvailabilities() {
                                     <SheetHeader><SheetTitle>Create Availability</SheetTitle></SheetHeader>
                                     <div className="h-[90vh] overflow-y-auto">
                                         <ActivityAvailabilityForm
+                                            initial={{
+                                                id: 0,
+                                                centre_activity_id: 0,
+                                                start_time: "",
+                                                end_time: "",
+                                                is_deleted: false,
+                                                is_everyday: false,
+                                                editing: true
+                                            }}
                                             submitting={create.isPending}
                                             onSubmit={handleCreate}
                                             onCancel={() => setCreatingOpen(false)}
@@ -179,7 +191,10 @@ export default function ManageActivityAvailabilities() {
                                         const msg = "Deleting this availability will remove it from patient schedules. Schedules may have to be regenerated. Do you wish to continue?";
                                         if (confirmAction(msg)) {
                                             remove.mutate(row.id, {
-                                            onSuccess: () => toast.success("Availability Deleted."),
+                                            onSuccess: () => {
+                                                refreshCentreActivityAvailabilities();
+                                                toast.success("Availability Deleted.");
+                                            },
                                             onError: (err: any) => toast.error(`Failed to delete. ${err.message ?? ""}`),
                                             })
                                         }
@@ -201,7 +216,9 @@ export default function ManageActivityAvailabilities() {
                                             centre_activity_id: editing.centre_activity_id,
                                             start_time: editing.start_time,
                                             end_time: editing.end_time,
-                                            is_deleted: editing.is_deleted
+                                            is_deleted: editing.is_deleted,
+                                            is_everyday: false,
+                                            editing: true
                                         }}
                                         onSubmit={handleUpdate}
                                         submitting={create.isPending}
