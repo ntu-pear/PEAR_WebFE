@@ -62,6 +62,8 @@ import CustomRoleProtectedRoute from "./components/CustomRoleProtectedRoute";
 import PatientScheduleView from "./pages/Supervisor/PatientScheduleView";
 import SchedulerSystemTest from "./pages/Supervisor/SchedulerSystemTest";
 import FeatureFlagSettings from "./pages/FeatureFlagSettings";
+import DoctorSearch from "./pages/Doctor/Search";
+import ManageDementia from "./pages/Doctor/ManageDementia";
 
 export const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: false, staleTime: Infinity } },
@@ -153,7 +155,10 @@ const App: React.FC = () => {
                         path="manage-activities"
                         element={<ManageActivities />}
                       />
-                      <Route path="manage-centre-activities" element={<ManageCentreActivities />} />
+                      <Route
+                        path="manage-centre-activities"
+                        element={<ManageCentreActivities />}
+                      />
                       <Route path="manage-adhoc" element={<ManageAdhoc />} />
                       <Route path="add-adhoc" element={<AddAdhoc />} />
                       <Route
@@ -213,10 +218,7 @@ const App: React.FC = () => {
                         path="register-account"
                         element={<RegisterAccount />}
                       />
-                      <Route
-                        path="manage-centre"
-                        element={<ManageCentre />}
-                      />
+                      <Route path="manage-centre" element={<ManageCentre />} />
                       <Route path="edit-roles" element={<EditRoles />} />
                       <Route path="create-role" element={<CreateRole />} />
                       <Route path="edit-role/:id" element={<EditRole />} />
@@ -263,6 +265,11 @@ const App: React.FC = () => {
                         path="view-patient/:id"
                         element={<ViewPatientWrapper />}
                       />
+                      <Route
+                        path="manage-dementia"
+                        element={<ManageDementia />}
+                      />
+                      <Route path="search" element={<DoctorSearch />} />
                       {(useFeatureFlag("staging") ||
                         !useFeatureFlag("production")) && (
                         <Route
