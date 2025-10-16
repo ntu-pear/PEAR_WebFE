@@ -23,7 +23,7 @@ export default function RadioGroup<T extends FieldValues>({
   return (
     <div className="pb-2 flex flex-col">
       {/* This label appears on top of the radio group component */}
-      <label className="mb-1">
+      <label className="mb-1 text-sm font-medium">
         {label} {label && required && <span className="text-red-600">*</span>}
       </label>
       <div className="flex flex-row gap-4">
