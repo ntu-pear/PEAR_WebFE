@@ -41,6 +41,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const expiryTimeout = useRef<NodeJS.Timeout | null>(null);
+  
+  // Activity tracking variables for automatic token refresh
+  const activityCheckInterval = 30000; // Check every 30 seconds
+  const lastActivityRef = useRef(Date.now());
+  const activityIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const isWarningToastShownRef = useRef(false);
 
   const login = async (formData: FormData) => {
     try {
@@ -109,6 +115,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   const logout = async () => {
     const roleName = currentUser?.roleName;
     setCurrentUser(null);
+    isWarningToastShownRef.current = false;
     await sendLogout();
 
     if (roleName !== "CAREGIVER") {
@@ -167,6 +174,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     if (timeLeft >= 10000 && timeLeft <= 300000) {
       // if (timeLeft >= 10000) {
       toast.dismiss();
+      isWarningToastShownRef.current = true;
       toast.warning(
         <div className="flex flex-col">
           <div className="flex items-center gap-2">
@@ -181,9 +189,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
               size="sm"
               onClick={async () => {
                 toast.dismiss();
+                isWarningToastShownRef.current = false;
                 try {
                   await refreshAccessToken();
                   toast.success("Session extended.");
+                  
+                  // Reschedule the next toast after successful refresh
+                  checkAccessTokenExpiry();
 
                   // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 } catch (error) {
@@ -199,6 +211,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
               variant="secondary"
               onClick={async () => {
                 toast.dismiss();
+                isWarningToastShownRef.current = false; // Reset flag when user logs out
                 await logout();
               }}
             >
@@ -212,6 +225,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       //Auto logout once the token starts to expire
       expiryTimeout.current = setTimeout(async () => {
         toast.dismiss();
+        isWarningToastShownRef.current = false;
         toast.warning("Session expired. Logging out.");
         setTimeout(async () => {
           toast.dismiss();
@@ -226,6 +240,55 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     }
   };
 
+  // Activity tracking for automatic token refresh
+  useEffect(() => {
+    if (!currentUser) return; // Only track activity when user is logged in
+
+    const updateActivity = () => {
+      lastActivityRef.current = Date.now();
+    };
+
+    const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'];
+    events.forEach(event => {
+      document.addEventListener(event, updateActivity, true);
+    });
+
+    return () => {
+      events.forEach(event => {
+        document.removeEventListener(event, updateActivity, true);
+      });
+    };
+  }, [currentUser]);
+
+  // Automatic token refresh every activityCheckInterval if user is active
+  useEffect(() => {
+    if (currentUser) {
+      activityIntervalRef.current = setInterval(async () => {
+        // Skip refresh if warning toast is already shown
+        if (isWarningToastShownRef.current) return;
+
+        const timeSinceActivity = Date.now() - lastActivityRef.current;
+
+        // If user was active in the last activityCheckInterval period, refresh the token silently
+        if (timeSinceActivity <= activityCheckInterval) {
+          try {
+            await refreshAccessToken();
+          } catch (error) {
+            console.error('Automatic token refresh failed:', error);
+            // Don't logout immediately, let the existing expiry toast handle it
+          }
+        } 
+      }, activityCheckInterval);
+    }
+
+    return () => {
+      if (activityIntervalRef.current) {
+        clearInterval(activityIntervalRef.current);
+        activityIntervalRef.current = null;
+      }
+    };
+  }, [currentUser]);
+
   useEffect(() => {
     const token = retrieveAccessTokenFromCookie();
     if (token && !currentUser) {
@@ -239,6 +302,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     return () => {
       if (expiryTimeout.current !== null) {
         clearTimeout(expiryTimeout.current);
+      }
+      if (activityIntervalRef.current !== null) {
+        clearInterval(activityIntervalRef.current);
       }
     };
   }, [currentUser]);

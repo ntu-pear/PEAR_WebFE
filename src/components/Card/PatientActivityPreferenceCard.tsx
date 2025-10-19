@@ -3,30 +3,48 @@ import { CardHeader, CardTitle, CardContent, Card } from "../ui/card";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import { Checkbox } from "../ui/checkbox";
-import { 
+import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
-import { Heart, HeartCrack, ThumbsUp, ThumbsDown, Users, X } from "lucide-react";
-import { DataTableClient } from "../Table/DataTable";
-import { usePatientActivityPreferences, PatientActivityPreferenceWithRecommendation } from "@/hooks/activity/usePatientActivityPreferences";
+import {
+  Heart,
+  HeartCrack,
+  ThumbsUp,
+  ThumbsDown,
+  Users,
+  X,
+} from "lucide-react";
+import { DataTableClient, DataTableColumns } from "../Table/DataTable";
+import {
+  usePatientActivityPreferences,
+  PatientActivityPreferenceWithRecommendation,
+} from "@/hooks/activity/usePatientActivityPreferences";
 import { useAuth } from "@/hooks/useAuth";
-import { updateActivityPreference, createActivityPreference } from "@/api/activity/activityPreference";
+import {
+  updateActivityPreference,
+  createActivityPreference,
+} from "@/api/activity/activityPreference";
 import { toast } from "sonner";
 
 interface PatientActivityPreferenceCardProps {
   patientId: string;
 }
 
-const PatientActivityPreferenceCard: React.FC<PatientActivityPreferenceCardProps> = ({ 
-  patientId
-}) => {
-  const { activityPreferences, loading, error, refreshPatientActivityPreferences } = usePatientActivityPreferences(patientId);
+const PatientActivityPreferenceCard: React.FC<
+  PatientActivityPreferenceCardProps
+> = ({ patientId }) => {
+  const {
+    activityPreferences,
+    loading,
+    error,
+    refreshPatientActivityPreferences,
+  } = usePatientActivityPreferences(patientId);
   const { currentUser } = useAuth();
-  
+
   // Bulk selection state
   const [selectedItems, setSelectedItems] = useState<Set<number>>(new Set());
   const [bulkPreference, setBulkPreference] = useState<string>("");
@@ -45,7 +63,7 @@ const PatientActivityPreferenceCard: React.FC<PatientActivityPreferenceCardProps
 
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
-      setSelectedItems(new Set(activityPreferences.map(item => item.id)));
+      setSelectedItems(new Set(activityPreferences.map((item) => item.id)));
     } else {
       setSelectedItems(new Set());
     }
@@ -59,50 +77,55 @@ const PatientActivityPreferenceCard: React.FC<PatientActivityPreferenceCardProps
 
     setIsBulkUpdating(true);
     try {
-      const selectedPreferences = activityPreferences.filter(item => 
+      const selectedPreferences = activityPreferences.filter((item) =>
         selectedItems.has(item.id)
       );
 
       // Convert preference string to number for API
-      const preferenceValue = bulkPreference === "LIKE" ? 1 : 
-                            bulkPreference === "DISLIKE" ? -1 : 0;
+      const preferenceValue =
+        bulkPreference === "LIKE" ? 1 : bulkPreference === "DISLIKE" ? -1 : 0;
 
       console.log("Bulk updating preferences:", {
         selectedCount: selectedPreferences.length,
         preference: bulkPreference,
         preferenceValue,
-        userId: currentUser.userId
+        userId: currentUser.userId,
       });
 
       // Update all selected preferences
       const updatePromises = selectedPreferences.map(async (pref) => {
         try {
           // Check if this preference has an existing database record
-          const hasExistingPreference = pref.preferenceId !== undefined && pref.preferenceId !== null;
-          
+          const hasExistingPreference =
+            pref.preferenceId !== undefined && pref.preferenceId !== null;
+
           if (hasExistingPreference) {
             // Update existing preference using the actual database ID
             const existingPreference = {
               id: pref.preferenceId!, // Use actual database ID
               centre_activity_id: pref.centreActivityId,
               patient_id: pref.patientId,
-              is_like: pref.patientPreference === "LIKE" ? 1 : 
-                      pref.patientPreference === "DISLIKE" ? -1 : 0,
+              is_like:
+                pref.patientPreference === "LIKE"
+                  ? 1
+                  : pref.patientPreference === "DISLIKE"
+                    ? -1
+                    : 0,
               is_deleted: false,
               created_date: new Date().toISOString(),
               modified_date: null,
               created_by_id: currentUser.userId,
-              modified_by_id: null
+              modified_by_id: null,
             };
-            
+
             console.log("Updating existing preference:", {
               activityName: pref.activityName,
               preferenceId: pref.preferenceId,
               centreActivityId: pref.centreActivityId,
               currentValue: pref.patientPreference,
-              newValue: bulkPreference
+              newValue: bulkPreference,
             });
-            
+
             return updateActivityPreference(
               existingPreference,
               preferenceValue,
@@ -114,9 +137,9 @@ const PatientActivityPreferenceCard: React.FC<PatientActivityPreferenceCardProps
               activityName: pref.activityName,
               centreActivityId: pref.centreActivityId,
               patientId: pref.patientId,
-              newValue: bulkPreference
+              newValue: bulkPreference,
             });
-            
+
             return createActivityPreference(
               pref.patientId,
               pref.centreActivityId,
@@ -125,22 +148,29 @@ const PatientActivityPreferenceCard: React.FC<PatientActivityPreferenceCardProps
             );
           }
         } catch (error) {
-          console.error(`Error updating preference for ${pref.activityName}:`, error);
+          console.error(
+            `Error updating preference for ${pref.activityName}:`,
+            error
+          );
           throw error;
         }
       });
 
       await Promise.all(updatePromises);
 
-      toast.success(`Successfully updated ${selectedItems.size} activity preferences`);
-      
+      toast.success(
+        `Successfully updated ${selectedItems.size} activity preferences`
+      );
+
       // Clear selections and refresh data
       setSelectedItems(new Set());
       setBulkPreference("");
       refreshPatientActivityPreferences();
     } catch (error) {
       console.error("Error bulk updating preferences:", error);
-      toast.error("Failed to update activity preferences. Check console for details.");
+      toast.error(
+        "Failed to update activity preferences. Check console for details."
+      );
     } finally {
       setIsBulkUpdating(false);
     }
@@ -162,19 +192,38 @@ const PatientActivityPreferenceCard: React.FC<PatientActivityPreferenceCardProps
     }
     if (preference === "DISLIKE") {
       return (
-        <Badge variant="destructive" className="inline-flex items-center gap-1 px-2 py-1 min-h-[28px] text-xs whitespace-nowrap">
+        <Badge
+          variant="destructive"
+          className="inline-flex items-center gap-1 px-2 py-1 min-h-[28px] text-xs whitespace-nowrap"
+        >
           <HeartCrack className="h-3 w-3" />
           Dislike
         </Badge>
       );
     }
     if (preference === "NEUTRAL") {
-      return <Badge variant="secondary" className="px-2 py-1 min-h-[28px] text-xs whitespace-nowrap">Neutral</Badge>;
+      return (
+        <Badge
+          variant="secondary"
+          className="px-2 py-1 min-h-[28px] text-xs whitespace-nowrap"
+        >
+          Neutral
+        </Badge>
+      );
     }
-    return <Badge variant="outline" className="px-2 py-1 min-h-[28px] text-xs whitespace-nowrap">Neutral</Badge>;
+    return (
+      <Badge
+        variant="outline"
+        className="px-2 py-1 min-h-[28px] text-xs whitespace-nowrap"
+      >
+        Neutral
+      </Badge>
+    );
   };
 
-  const renderRecommendationBadge = (recommendation: string | null | undefined) => {
+  const renderRecommendationBadge = (
+    recommendation: string | null | undefined
+  ) => {
     if (recommendation === "RECOMMENDED") {
       return (
         <Badge className="bg-blue-500 text-white inline-flex items-center gap-1 px-2 py-1 min-h-[28px] text-xs whitespace-nowrap">
@@ -185,106 +234,133 @@ const PatientActivityPreferenceCard: React.FC<PatientActivityPreferenceCardProps
     }
     if (recommendation === "NOT_RECOMMENDED") {
       return (
-        <Badge variant="destructive" className="inline-flex items-center gap-1 px-2 py-1 min-h-[28px] text-xs whitespace-nowrap">
+        <Badge
+          variant="destructive"
+          className="inline-flex items-center gap-1 px-2 py-1 min-h-[28px] text-xs whitespace-nowrap"
+        >
           <ThumbsDown className="h-3 w-3" />
           Not Recommended
         </Badge>
       );
     }
-    return <Badge variant="outline" className="px-2 py-1 min-h-[28px] text-xs whitespace-nowrap">Not Set</Badge>;
+    return (
+      <Badge
+        variant="outline"
+        className="px-2 py-1 min-h-[28px] text-xs whitespace-nowrap"
+      >
+        Not Set
+      </Badge>
+    );
   };
 
-  const columns = [
-    // Checkbox column for bulk selection (only for supervisors)
-    ...(currentUser?.roleName === "SUPERVISOR" ? [{
-      key: "select" as keyof typeof activityPreferences[0],
-      header: "Select",
-      className: "w-[70px]",
-      render: (_: any, item: PatientActivityPreferenceWithRecommendation) => (
-        <Checkbox
-          checked={selectedItems.has(item.id)}
-          onCheckedChange={(checked: boolean) => handleSelectItem(item.id, checked)}
-          aria-label={`Select ${item.activityName}`}
-        />
-      ),
-    }] : []),
-    {
-      key: "activityName" as keyof typeof activityPreferences[0],
-      header: "Activity Name",
-      className: "min-w-[200px]",
-    },
-    {
-      key: "activityDescription" as keyof typeof activityPreferences[0],
-      header: "Description",
-      className: "min-w-[250px]",
-      render: (value: string | null | undefined) => (
-        <div className="text-sm text-muted-foreground">
-          {value || "No description available"}
-        </div>
-      ),
-    },
-    {
-      key: "patientPreference" as keyof typeof activityPreferences[0],
-      header: "Patient Preference",
-      headerClassName: "text-center",
-      className: "w-[160px] text-center",
-      render: (value: string | null | undefined) => (
-        <div className="flex justify-center items-center w-full min-h-[40px]">
-          {renderPreferenceBadge(value)}
-        </div>
-      ),
-    },
-    {
-      key: "doctorRecommendation" as keyof typeof activityPreferences[0],
-      header: "Doctor Recommendation", 
-      headerClassName: "text-center",
-      className: "w-[180px] text-center",
-      render: (value: string | null | undefined) => (
-        <div className="flex justify-center items-center w-full min-h-[40px]">
-          {renderRecommendationBadge(value)}
-        </div>
-      ),
-    },
-    {
-      key: "doctorNotes" as keyof typeof activityPreferences[0],
-      header: "Doctor Notes",
-      className: "min-w-[200px]",
-      render: (value: string | null | undefined) => (
-        <div className="text-sm text-muted-foreground">
-          {value || "No notes provided"}
-        </div>
-      ),
-    },
-  ];
+  const columns: DataTableColumns<PatientActivityPreferenceWithRecommendation> =
+    [
+      // Checkbox column for bulk selection (only for supervisors)
+      ...(currentUser?.roleName === "SUPERVISOR"
+        ? [
+            {
+              key: "select" as keyof (typeof activityPreferences)[0],
+              header: "Select",
+              className: "w-[70px]",
+              render: (
+                _: any,
+                item: PatientActivityPreferenceWithRecommendation
+              ) => (
+                <Checkbox
+                  checked={selectedItems.has(item.id)}
+                  onCheckedChange={(checked: boolean) =>
+                    handleSelectItem(item.id, checked)
+                  }
+                  aria-label={`Select ${item.activityName}`}
+                />
+              ),
+            },
+          ]
+        : []),
+      {
+        key: "activityName" as keyof (typeof activityPreferences)[0],
+        header: "Activity Name",
+        className: "min-w-[200px]",
+      },
+      {
+        key: "activityDescription" as keyof (typeof activityPreferences)[0],
+        header: "Description",
+        className: "min-w-[250px]",
+        render: (value) => (
+          <div className="text-sm text-muted-foreground">
+            {value || "No description available"}
+          </div>
+        ),
+      },
+      {
+        key: "patientPreference" as keyof (typeof activityPreferences)[0],
+        header: "Patient Preference",
+        className: "w-[160px] text-center",
+        render: (value) => (
+          <div className="flex justify-center items-center w-full min-h-[40px]">
+            {renderPreferenceBadge(String(value))}
+          </div>
+        ),
+      },
+      {
+        key: "doctorRecommendation" as keyof (typeof activityPreferences)[0],
+        header: "Doctor Recommendation",
+        className: "w-[180px] text-center",
+        render: (value) => (
+          <div className="flex justify-center items-center w-full min-h-[40px]">
+            {renderRecommendationBadge(String(value))}
+          </div>
+        ),
+      },
+      {
+        key: "doctorNotes" as keyof (typeof activityPreferences)[0],
+        header: "Doctor Notes",
+        className: "min-w-[200px]",
+        render: (value) => (
+          <div className="text-sm text-muted-foreground">
+            {value || "No notes provided"}
+          </div>
+        ),
+      },
+    ];
 
   // Handle individual preference update
-  const handleSingleUpdate = async (item: PatientActivityPreferenceWithRecommendation, newPreference: "LIKE" | "NEUTRAL" | "DISLIKE") => {
+  const handleSingleUpdate = async (
+    item: PatientActivityPreferenceWithRecommendation,
+    newPreference: "LIKE" | "NEUTRAL" | "DISLIKE"
+  ) => {
     if (!currentUser?.userId) {
       toast.error("User not authenticated");
       return;
     }
 
     try {
-      const preferenceValue = newPreference === "LIKE" ? 1 : newPreference === "DISLIKE" ? -1 : 0;
-      
+      const preferenceValue =
+        newPreference === "LIKE" ? 1 : newPreference === "DISLIKE" ? -1 : 0;
+
       // Check if this preference has an existing database record
-      const hasExistingPreference = item.preferenceId !== undefined && item.preferenceId !== null;
-      
+      const hasExistingPreference =
+        item.preferenceId !== undefined && item.preferenceId !== null;
+
       if (hasExistingPreference) {
         // Update existing preference
         const existingPreference = {
           id: item.preferenceId!,
           centre_activity_id: item.centreActivityId,
           patient_id: item.patientId,
-          is_like: item.patientPreference === "LIKE" ? 1 : 
-                  item.patientPreference === "DISLIKE" ? -1 : 0,
+          is_like:
+            item.patientPreference === "LIKE"
+              ? 1
+              : item.patientPreference === "DISLIKE"
+                ? -1
+                : 0,
           is_deleted: false,
           created_date: new Date().toISOString(),
           modified_date: null,
           created_by_id: currentUser.userId,
-          modified_by_id: null
+          modified_by_id: null,
         };
-        
+
         await updateActivityPreference(
           existingPreference,
           preferenceValue,
@@ -309,37 +385,54 @@ const PatientActivityPreferenceCard: React.FC<PatientActivityPreferenceCardProps
   };
 
   // Define actions render function for supervisors
-  const renderActions = currentUser?.roleName === "SUPERVISOR" ? (item: PatientActivityPreferenceWithRecommendation) => (
-    <div className="flex justify-center gap-2">
-      <Button
-        variant={item.patientPreference === "LIKE" ? "default" : "outline"}
-        size="default"
-        onClick={() => handleSingleUpdate(item, "LIKE")}
-        className={`px-4 py-2 min-w-[44px] min-h-[44px] ${item.patientPreference === "LIKE" ? "bg-green-500 hover:bg-green-600" : "hover:bg-green-50"}`}
-        title="Set to Like"
-      >
-        <Heart className={`h-4 w-4 ${item.patientPreference === "LIKE" ? "fill-current text-white" : "text-green-500"}`} />
-      </Button>
-      <Button
-        variant={item.patientPreference === "NEUTRAL" || !item.patientPreference ? "default" : "outline"}
-        size="default"
-        onClick={() => handleSingleUpdate(item, "NEUTRAL")}
-        className={`px-4 py-2 min-w-[44px] min-h-[44px] ${item.patientPreference === "NEUTRAL" || !item.patientPreference ? "bg-gray-500 hover:bg-gray-600" : "hover:bg-gray-50"}`}
-        title="Set to Neutral"
-      >
-        <span className={`h-4 w-4 rounded-full ${item.patientPreference === "NEUTRAL" || !item.patientPreference ? "bg-white" : "bg-gray-400"}`} />
-      </Button>
-      <Button
-        variant={item.patientPreference === "DISLIKE" ? "destructive" : "outline"}
-        size="default"
-        onClick={() => handleSingleUpdate(item, "DISLIKE")}
-        className={`px-4 py-2 min-w-[44px] min-h-[44px] ${item.patientPreference !== "DISLIKE" ? "hover:bg-red-50" : ""}`}
-        title="Set to Dislike"
-      >
-        <HeartCrack className={`h-4 w-4 ${item.patientPreference === "DISLIKE" ? "text-white" : "text-red-500"}`} />
-      </Button>
-    </div>
-  ) : undefined;
+  const renderActions =
+    currentUser?.roleName === "SUPERVISOR"
+      ? (item: PatientActivityPreferenceWithRecommendation) => (
+          <div className="flex justify-center gap-2">
+            <Button
+              variant={
+                item.patientPreference === "LIKE" ? "default" : "outline"
+              }
+              size="default"
+              onClick={() => handleSingleUpdate(item, "LIKE")}
+              className={`px-4 py-2 min-w-[44px] min-h-[44px] ${item.patientPreference === "LIKE" ? "bg-green-500 hover:bg-green-600" : "hover:bg-green-50"}`}
+              title="Set to Like"
+            >
+              <Heart
+                className={`h-4 w-4 ${item.patientPreference === "LIKE" ? "fill-current text-white" : "text-green-500"}`}
+              />
+            </Button>
+            <Button
+              variant={
+                item.patientPreference === "NEUTRAL" || !item.patientPreference
+                  ? "default"
+                  : "outline"
+              }
+              size="default"
+              onClick={() => handleSingleUpdate(item, "NEUTRAL")}
+              className={`px-4 py-2 min-w-[44px] min-h-[44px] ${item.patientPreference === "NEUTRAL" || !item.patientPreference ? "bg-gray-500 hover:bg-gray-600" : "hover:bg-gray-50"}`}
+              title="Set to Neutral"
+            >
+              <span
+                className={`h-4 w-4 rounded-full ${item.patientPreference === "NEUTRAL" || !item.patientPreference ? "bg-white" : "bg-gray-400"}`}
+              />
+            </Button>
+            <Button
+              variant={
+                item.patientPreference === "DISLIKE" ? "destructive" : "outline"
+              }
+              size="default"
+              onClick={() => handleSingleUpdate(item, "DISLIKE")}
+              className={`px-4 py-2 min-w-[44px] min-h-[44px] ${item.patientPreference !== "DISLIKE" ? "hover:bg-red-50" : ""}`}
+              title="Set to Dislike"
+            >
+              <HeartCrack
+                className={`h-4 w-4 ${item.patientPreference === "DISLIKE" ? "text-white" : "text-red-500"}`}
+              />
+            </Button>
+          </div>
+        )
+      : undefined;
 
   if (loading) {
     return (
@@ -363,9 +456,7 @@ const PatientActivityPreferenceCard: React.FC<PatientActivityPreferenceCardProps
           <CardTitle>Activity Preferences</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-red-500 text-center">
-            {error}
-          </div>
+          <div className="text-red-500 text-center">{error}</div>
         </CardContent>
       </Card>
     );
@@ -374,12 +465,11 @@ const PatientActivityPreferenceCard: React.FC<PatientActivityPreferenceCardProps
   return (
     <Card>
       <CardHeader>
-        <CardTitle>
-          Activity Preferences
-        </CardTitle>
+        <CardTitle>Activity Preferences</CardTitle>
         <p className="text-sm text-muted-foreground">
-          View and manage activity preferences and doctor recommendations for this patient.
-          This shows all available centre activities with their current preference settings.
+          View and manage activity preferences and doctor recommendations for
+          this patient. This shows all available centre activities with their
+          current preference settings.
         </p>
       </CardHeader>
       <CardContent>
@@ -389,25 +479,34 @@ const PatientActivityPreferenceCard: React.FC<PatientActivityPreferenceCardProps
             <div className="flex items-center gap-4 flex-wrap">
               <div className="flex items-center gap-2">
                 <Checkbox
-                  checked={selectedItems.size === activityPreferences.length && activityPreferences.length > 0}
-                  onCheckedChange={(checked: boolean) => handleSelectAll(checked)}
+                  checked={
+                    selectedItems.size === activityPreferences.length &&
+                    activityPreferences.length > 0
+                  }
+                  onCheckedChange={(checked: boolean) =>
+                    handleSelectAll(checked)
+                  }
                   aria-label="Select all"
                 />
                 <span className="text-sm font-medium">
                   Select All ({selectedItems.size}/{activityPreferences.length})
                 </span>
               </div>
-              
+
               {selectedItems.size > 0 && (
                 <>
                   <div className="flex items-center gap-2">
                     <Users className="h-4 w-4" />
                     <span className="text-sm">
-                      {selectedItems.size} item{selectedItems.size > 1 ? 's' : ''} selected
+                      {selectedItems.size} item
+                      {selectedItems.size > 1 ? "s" : ""} selected
                     </span>
                   </div>
-                  
-                  <Select value={bulkPreference} onValueChange={setBulkPreference}>
+
+                  <Select
+                    value={bulkPreference}
+                    onValueChange={setBulkPreference}
+                  >
                     <SelectTrigger className="w-[180px]">
                       <SelectValue placeholder="Set preference to..." />
                     </SelectTrigger>
@@ -432,7 +531,7 @@ const PatientActivityPreferenceCard: React.FC<PatientActivityPreferenceCardProps
                       </SelectItem>
                     </SelectContent>
                   </Select>
-                  
+
                   <Button
                     onClick={handleBulkUpdate}
                     disabled={!bulkPreference || isBulkUpdating}
@@ -440,7 +539,7 @@ const PatientActivityPreferenceCard: React.FC<PatientActivityPreferenceCardProps
                   >
                     {isBulkUpdating ? "Updating..." : "Update Selected"}
                   </Button>
-                  
+
                   <Button
                     variant="outline"
                     onClick={clearSelection}
