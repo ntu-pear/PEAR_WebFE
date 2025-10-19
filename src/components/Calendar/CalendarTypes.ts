@@ -2,7 +2,12 @@ export type ViewMode = 'centre-daily' | 'centre-weekly' | 'centre-monthly' | 'pa
 
 // Time slot definitions for Week/Day view itself
 // Currently using 8 slots to add padding for view
-export const TIME_SLOTS = Array.from({ length: 8 }, (_, i) => `${(9 + i).toString().padStart(2, '0')}:00`);
+// Updated to show time ranges (start - end time)
+export const TIME_SLOTS = Array.from({ length: 8 }, (_, i) => {
+  const startHour = 9 + i;
+  const endHour = startHour + 1;
+  return `${startHour.toString().padStart(2, '0')}:00 - ${endHour.toString().padStart(2, '0')}:00`;
+});
 
 // API time slots - includes start hours and final end hour 
 // ie length must be one more than the number of slots
