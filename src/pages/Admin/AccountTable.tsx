@@ -60,8 +60,14 @@ const AccountTable: React.FC = () => {
   // Client-side sorting function
   const sortUsers = (users: User[], column: string, direction: "asc" | "desc") => {
     return [...users].sort((a, b) => {
-      const aValue = a[column as keyof User];
-      const bValue = b[column as keyof User];
+      let aValue = a[column as keyof User];
+      let bValue = b[column as keyof User];
+
+      // Special handling for Status field (isDeleted)
+      if (column === "isDeleted") {
+        aValue = aValue === false ? "Active" : aValue === true ? "Inactive" : "";
+        bValue = bValue === false ? "Active" : bValue === true ? "Inactive" : "";
+      }
 
       // Handle null/undefined values
       if (aValue == null && bValue == null) return 0;
@@ -205,6 +211,7 @@ const AccountTable: React.FC = () => {
     {
       key: "isDeleted",
       header: "Status",
+      sortable: true,
       render: (value: boolean | undefined) => {
         const status =
           value === false ? "Active" : value === true ? "Inactive" : "";
