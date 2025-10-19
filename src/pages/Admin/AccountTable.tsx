@@ -46,6 +46,7 @@ const AccountTable: React.FC = () => {
   const [tabValue, setTabValue] = useState("all");
   const [sortBy, setSortBy] = useState<string | null>(null);
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
+  const [totalRecords, setTotalRecords] = useState(0);
   const debouncedActiveStatus = useDebounce(activeStatus, 300);
   const debouncedSearch = useDebounce(searchItem, 300);
 
@@ -121,6 +122,9 @@ const AccountTable: React.FC = () => {
         ...fetchedAccountTDServer,
         users: sortedUsers
       });
+
+      // Update total records for "All" option
+      setTotalRecords(fetchedAccountTDServer.total);
     } catch (error) {
       if (error instanceof Error) {
         toast.error("Error fetching accounts: " + error.message);
@@ -143,15 +147,33 @@ const AccountTable: React.FC = () => {
     });
   };
 
-  const handlePageSizeChange = (newPageSize: number) => {
+  const handlePageSizeChange = (newPageSize: number | string) => {
+    // Handle "All" option by setting page size to total records
+    const actualPageSize = newPageSize === "All" ? totalRecords : Number(newPageSize);
+    
     // Reset to first page when changing page size
     const newAccountTDServer = {
       ...accountTDServer,
       page: 0,
-      page_size: newPageSize,
+      page_size: actualPageSize,
     };
     setAccountTDServer(newAccountTDServer);
-    handleFilter(0, newPageSize);
+    handleFilter(0, actualPageSize);
+  };
+
+  // Generate page size options including "All" option
+  const getPageSizeOptions = () => {
+    const baseOptions = [5, 10, 20, 50, 100];
+    
+    // Filter out options that are larger than total records
+    const filteredOptions = baseOptions.filter(option => option <= totalRecords);
+    
+    // Always include "All" option if there are records
+    if (totalRecords > 0) {
+      return [...filteredOptions, "All"];
+    }
+    
+    return filteredOptions.length > 0 ? filteredOptions : [5, 10]; // Fallback options
   };
 
   const handleExport = async () => {
@@ -321,7 +343,7 @@ const AccountTable: React.FC = () => {
                     sortDir={sortDir}
                     onSort={handleSort}
                     onPageSizeChange={handlePageSizeChange}
-                    pageSizeOptions={[5, 10, 20, 50, 100]}
+                    pageSizeOptions={getPageSizeOptions()}
                   />
                 </CardContent>
               </Card>

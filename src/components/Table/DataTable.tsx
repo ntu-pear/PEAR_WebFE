@@ -85,8 +85,8 @@ interface DataTableServerProps<T extends TableRowData> {
   sortBy?: string | null; // Add sorting props
   sortDir?: "asc" | "desc";
   onSort?: (column: string) => void;
-  onPageSizeChange?: (pageSize: number) => void; // Add page size change handler
-  pageSizeOptions?: number[]; // Add configurable page size options
+  onPageSizeChange?: (pageSize: number | string) => void; // Add page size change handler
+  pageSizeOptions?: (number | string)[]; // Add configurable page size options
   expandable?: boolean;
   renderExpandedContent?: (item: T) => React.ReactNode;
   onExpand?: (item: T) => void;
@@ -362,14 +362,14 @@ export function DataTableServer<T extends TableRowData>({
               of <strong>{totalRecords}</strong> records
             </div>
             {onPageSizeChange && (
-              <div className="flex items-center">
+              <div className="flex items-center space-x-2">
                 <p className="text-sm font-medium">Items per page</p>
                 <Select
-                  value={pageSize.toString()}
-                  onValueChange={(value) => onPageSizeChange(parseInt(value))}
+                  value={pageSize >= totalRecords ? "All" : pageSize.toString()}
+                  onValueChange={(value) => onPageSizeChange(value === "All" ? "All" : parseInt(value))}
                 >
                   <SelectTrigger className="h-8 w-[70px]">
-                    <SelectValue placeholder={pageSize.toString()} />
+                    <SelectValue placeholder={pageSize >= totalRecords ? "All" : pageSize.toString()} />
                   </SelectTrigger>
                   <SelectContent side="top">
                     {pageSizeOptions.map((size) => (
@@ -387,7 +387,7 @@ export function DataTableServer<T extends TableRowData>({
               variant="outline"
               size="sm"
               onClick={() => handlePageChange(currentPage - 1)}
-              disabled={currentPage === 1}
+              disabled={currentPage === 1 || pageSize >= totalRecords}
             >
               Previous
             </Button>
@@ -395,7 +395,7 @@ export function DataTableServer<T extends TableRowData>({
               variant="outline"
               size="sm"
               onClick={() => handlePageChange(currentPage + 1)}
-              disabled={currentPage === totalPages}
+              disabled={currentPage === totalPages || pageSize >= totalRecords}
             >
               Next
             </Button>
