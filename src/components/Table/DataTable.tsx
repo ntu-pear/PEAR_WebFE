@@ -23,15 +23,20 @@ export interface TableRowData {
   [key: string]: any;
 }
 
+type DataTableColumn<T extends Record<string, any>> = {
+  key: keyof T;
+  header: string;
+  render?: (value: T[keyof T], item: T) => React.ReactNode;
+  className?: string;
+};
+
+export type DataTableColumns<T extends Record<string, any>> = Array<
+  DataTableColumn<T>
+>;
+
 interface DataTableClientProps<T extends TableRowData> {
   data: T[];
-  columns: Array<{
-    key: keyof T;
-    header: string;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    render?: (value: any, item: T) => React.ReactNode;
-    className?: string;
-  }>;
+  columns: DataTableColumns<T>;
   itemsPerPage?: number; // Optional prop to specify number of items per page
   viewMore: boolean;
   viewMoreBaseLink?: string;
@@ -42,6 +47,9 @@ interface DataTableClientProps<T extends TableRowData> {
   expandable?: boolean;
   renderExpandedContent?: (item: T) => React.ReactNode;
   onExpand?: (item: T) => void;
+  selectable?: boolean;
+  selectedItems?: T[];
+  onSelectChange?: (selected: T[]) => void;
 }
 
 export interface ServerPagination {
@@ -98,6 +106,9 @@ export function DataTableClient<T extends TableRowData>({
   expandable = false,
   renderExpandedContent,
   onExpand,
+  selectable = false,
+  selectedItems,
+  onSelectChange,
 }: DataTableClientProps<T>) {
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -136,6 +147,21 @@ export function DataTableClient<T extends TableRowData>({
         <Table className={className}>
           <TableHeader>
             <TableRow>
+              {selectable && selectedItems && onSelectChange && (
+                <TableHead className="w-12 flex items-center justify-center">
+                  <input
+                    type="checkbox"
+                    checked={
+                      selectedItems.length === data.length && data.length > 0
+                    }
+                    onChange={() => {
+                      const allSelected = selectedItems.length === data.length;
+                      onSelectChange(allSelected ? [] : data);
+                    }}
+                    className="form-checkbox h-4 w-4 text-primary rounded border-gray-300"
+                  />
+                </TableHead>
+              )}
               {expandable && <TableHead className="w-12"></TableHead>}
               {columns.map((column) => (
                 <TableHead
@@ -164,6 +190,17 @@ export function DataTableClient<T extends TableRowData>({
                 expandable={expandable}
                 renderExpandedContent={renderExpandedContent}
                 onExpand={onExpand}
+                selectable={selectable}
+                isSelected={
+                  selectable && selectedItems && selectedItems.includes(item)
+                }
+                onToggleSelect={() => {
+                  if (!selectedItems || !onSelectChange) return;
+                  const newSelected = selectedItems.includes(item)
+                    ? selectedItems.filter((i) => i.id !== item.id)
+                    : [...selectedItems, item];
+                  onSelectChange(newSelected);
+                }}
               />
             ))}
           </TableBody>
