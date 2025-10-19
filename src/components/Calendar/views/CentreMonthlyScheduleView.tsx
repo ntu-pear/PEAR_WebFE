@@ -9,7 +9,6 @@ import {
   isSameDay,
   parseISO,
 } from "date-fns";
-import { enUS } from "date-fns/locale";
 import {
   ScheduledCentreActivity,
   ActivityTemplate,
@@ -36,8 +35,8 @@ const CentreMonthlyScheduleView: React.FC<CentreMonthlyScheduleViewProps> = ({
   const calendarDays = useMemo(() => {
     const startMonth = startOfMonth(currentDate);
     const endMonth = endOfMonth(currentDate);
-    const startDate = startOfWeek(startMonth, { locale: enUS });
-    const endDate = endOfWeek(endMonth, { locale: enUS });
+    const startDate = startOfWeek(startMonth, { weekStartsOn: 1 });
+    const endDate = endOfWeek(endMonth, { weekStartsOn: 1 });
     const days = [];
     let day = startDate;
 
@@ -52,7 +51,7 @@ const CentreMonthlyScheduleView: React.FC<CentreMonthlyScheduleViewProps> = ({
   return (
     <div className="grid grid-cols-7 gap-px bg-gray-200 border border-gray-200 rounded-lg overflow-hidden min-h-[600px]">
       {/* Days of the week header */}
-      {["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"].map((day) => (
+      {["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"].map((day) => (
         <div
           key={day}
           className="p-2 text-center text-sm font-medium bg-white border-b border-gray-200"
