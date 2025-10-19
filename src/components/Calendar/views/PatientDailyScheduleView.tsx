@@ -28,7 +28,9 @@ const PatientDailyScheduleView: React.FC<PatientDailyScheduleViewProps> = ({
   const dateString = format(currentDate, "yyyy-MM-dd");
 
   const renderActivityCell = (patientId: string, timeSlot: string) => {
-    const activities = getPatientActivitiesForTimeSlot(patientId, dateString, timeSlot);
+    // Extract start time from "HH:MM - HH:MM" format for the API call
+    const startTime = timeSlot.split(' - ')[0];
+    const activities = getPatientActivitiesForTimeSlot(patientId, dateString, startTime);
     
     return (
       <div className="relative h-16 border-b border-r border-gray-200 bg-white">
@@ -36,7 +38,9 @@ const PatientDailyScheduleView: React.FC<PatientDailyScheduleViewProps> = ({
         {activities
           .filter(activity => {
             const startHour = parseInt(activity.startTime.split(':')[0]);
-            const slotHour = parseInt(timeSlot.split(':')[0]);
+            // Extract start hour from "HH:MM - HH:MM" format
+            const slotStartTimeStr = timeSlot.split(' - ')[0];
+            const slotHour = parseInt(slotStartTimeStr.split(':')[0]);
             return startHour === slotHour;
           })
           .map(activity => {
@@ -64,9 +68,12 @@ const PatientDailyScheduleView: React.FC<PatientDailyScheduleViewProps> = ({
             let totalWidth = (hoursSpanned * CELL_WIDTH) + ((endOffsetMinutes / 60) * CELL_WIDTH) - leftOffset;
             
             // Boundary check: prevent activities from extending beyond the last time slot
-            const activityStartSlotIndex = TIME_SLOTS.findIndex(slot => 
-              parseInt(slot.split(':')[0]) === startHour
-            );
+            const activityStartSlotIndex = TIME_SLOTS.findIndex(slot => {
+              // Extract start hour from "HH:MM - HH:MM" format
+              const startTimeStr = slot.split(' - ')[0];
+              const slotStartHour = parseInt(startTimeStr.split(':')[0]);
+              return slotStartHour === startHour;
+            });
             
             if (activityStartSlotIndex !== -1) {
               // Calculate maximum allowed width from current slot to end of calendar
