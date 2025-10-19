@@ -57,7 +57,28 @@ const AccountTable: React.FC = () => {
     []
   );
 
-  const handleFilter = async (pageNo: number, pageSize: number, sortColumn?: string, sortDirection?: "asc" | "desc") => {
+  // Client-side sorting function
+  const sortUsers = (users: User[], column: string, direction: "asc" | "desc") => {
+    return [...users].sort((a, b) => {
+      const aValue = a[column as keyof User];
+      const bValue = b[column as keyof User];
+
+      // Handle null/undefined values
+      if (aValue == null && bValue == null) return 0;
+      if (aValue == null) return direction === "asc" ? 1 : -1;
+      if (bValue == null) return direction === "asc" ? -1 : 1;
+
+      // Convert to string for comparison (handles dates, numbers, strings)
+      const aStr = String(aValue).toLowerCase();
+      const bStr = String(bValue).toLowerCase();
+
+      if (aStr < bStr) return direction === "asc" ? -1 : 1;
+      if (aStr > bStr) return direction === "asc" ? 1 : -1;
+      return 0;
+    });
+  };
+
+  const handleFilter = async (pageNo: number, pageSize: number) => {
     try {
       const apiFilterJson = {
         nric_FullName: debouncedSearch,
@@ -78,18 +99,22 @@ const AccountTable: React.FC = () => {
         Object.entries(apiFilterJson).filter(([_, value]) => value !== "")
       );
 
-      // Use provided sort parameters or current state
-      const currentSortBy = sortColumn !== undefined ? sortColumn : sortBy;
-      const currentSortDir = sortDirection !== undefined ? sortDirection : sortDir;
-
+      // Backend should always sorts by name, client side will sort by current page locally
       const fetchedAccountTDServer: AccountTableDataServer =
-        await fetchUsersByFields(pageNo, pageSize, filteredJsonList, currentSortBy, currentSortDir);
+        await fetchUsersByFields(pageNo, pageSize, filteredJsonList, "nric_FullName", "asc");
 
-      //let filteredAccountTDList = fetchedAccountTDServer.users;
-
-      //const sortedAccountTDList = sortByName(filteredAccountTDList, "asc");
       console.log("fetchedAccountTDServer", fetchedAccountTDServer);
-      setAccountTDServer(fetchedAccountTDServer);
+      
+      // Apply client-side sorting if sortBy is set
+      let sortedUsers = [...fetchedAccountTDServer.users];
+      if (sortBy) {
+        sortedUsers = sortUsers(sortedUsers, sortBy, sortDir);
+      }
+      
+      setAccountTDServer({
+        ...fetchedAccountTDServer,
+        users: sortedUsers
+      });
     } catch (error) {
       if (error instanceof Error) {
         toast.error("Error fetching accounts: " + error.message);
@@ -103,7 +128,13 @@ const AccountTable: React.FC = () => {
     const newSortDir = sortBy === column && sortDir === "asc" ? "desc" : "asc";
     setSortBy(column);
     setSortDir(newSortDir);
-    handleFilter(accountTDServer.page, accountTDServer.page_size, column, newSortDir);
+    
+    // Sort only the current page data locally
+    const sortedUsers = sortUsers(accountTDServer.users, column, newSortDir);
+    setAccountTDServer({
+      ...accountTDServer,
+      users: sortedUsers
+    });
   };
 
   const handlePageSizeChange = (newPageSize: number) => {
