@@ -230,6 +230,7 @@ const PatientTable: React.FC = () => {
   useEffect(() => {
     if (currentUser?.roleName === "GUARDIAN" && patientTDServer.patients.length > 0 && (!tabValue || !patientTDServer.patients.some(p => p.id.toString() === tabValue))) {
       setTabValue(patientTDServer.patients[0].id.toString())
+      console.log(currentUser.userId)
     }
   }, [patientTDServer.patients, currentUser, tabValue])
 
@@ -304,10 +305,6 @@ const PatientTable: React.FC = () => {
                       <div className="flex flex-col">
                         <h1 className="font-bold text-md">Date Of Birth:</h1>
                         <p>{patient?.dateOfBirth ? new Date(patient.dateOfBirth).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }) : "N/A"}</p>
-                      </div>
-                      <div className="flex flex-col">
-                        <h1 className="font-bold text-md">NRIC:</h1>
-                        <p>{patient?.nric}</p>
                       </div>
                       <div className="flex flex-col">
                         <h1 className="font-bold text-md">Gender:</h1>

@@ -288,7 +288,6 @@ const App: React.FC = () => {
                         element={<ViewPatientWrapper />}
                       />
                       {/* <Route path="temp-page" element={<TempPage />} /> */}
-                      <Route path="temp-page" element={<TempPage />} />
                       {(useFeatureFlag("staging") ||
                         !useFeatureFlag("production")) && (
                         <Route
