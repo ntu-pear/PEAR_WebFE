@@ -37,13 +37,13 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
       case 'centre-monthly':
         return `Centre Activity Schedule - ${format(currentDate, 'MMMM yyyy')}`;
       case 'centre-weekly':
-        return `Centre Activity Schedule - ${format(startOfWeek(currentDate, { locale: enUS }), 'MMM dd')} - ${format(endOfWeek(currentDate, { locale: enUS }), 'MMM dd, yyyy')}`;
+        return `Centre Activity Schedule - ${format(startOfWeek(currentDate, { weekStartsOn: 1 }), 'MMM dd')} - ${format(endOfWeek(currentDate, { weekStartsOn: 1 }), 'MMM dd, yyyy')}`;
       case 'centre-daily':
         return `Centre Activity Schedule - ${format(currentDate, 'EEEE, MMMM dd, yyyy')}`;
       case 'patient-daily':
         return `Patient Schedule - ${format(currentDate, 'EEEE, MMMM dd, yyyy')}`;
       case 'patient-weekly':
-        return `Patient Schedule - ${format(startOfWeek(currentDate, { locale: enUS }), 'MMM dd')} - ${format(endOfWeek(currentDate, { locale: enUS }), 'MMM dd, yyyy')}`;
+        return `Patient Schedule - ${format(startOfWeek(currentDate, { weekStartsOn: 1 }), 'MMM dd')} - ${format(endOfWeek(currentDate, { weekStartsOn: 1 }), 'MMM dd, yyyy')}`;
       default:
         return '';
     }
