@@ -1,0 +1,35 @@
+name: PR Merge Actions
+
+on:
+  pull_request:
+    branches: [ main ]
+    types: [ opened, reopened, synchronize ]
+
+jobs:
+  build:
+    name: Build Application Successfully
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build application
+        run: npm run build
+
+      - name: Upload build artifacts for caching
+        uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: build-files
+          path: dist/
+          retention-days: 7
