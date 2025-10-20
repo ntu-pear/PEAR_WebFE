@@ -190,29 +190,59 @@ const EditAccountInfoModal: React.FC = () => {
             </div>
             <div>
               <label className="block text-sm font-medium">Gender</label>
-              <select
-                name="nric_Gender"
-                value={account?.nric_Gender || ""}
-                onChange={handleChange}
-                className="mt-1 block w-full p-2 border rounded-md text-gray-900"
-              >
-                <option value="M">Male</option>
-                <option value="F">Female</option>
-              </select>
+              <div className="flex flex-row mt-3 space-x-2">
+                <label className="flex items-center">
+                  <input
+                    type="radio"
+                    name="nric_Gender"
+                    value="M"
+                    checked={account?.nric_Gender === "M"}
+                    onChange={handleChange}
+                    className="mr-2"
+                  />
+                  Male
+                </label>
+                <label className="flex items-center">
+                  <input
+                    type="radio"
+                    name="nric_Gender"
+                    value="F"
+                    checked={account?.nric_Gender === "F"}
+                    onChange={handleChange}
+                    className="mr-2"
+                  />
+                  Female
+                </label>
+              </div>
             </div>
             <div>
               <label className="block text-sm font-medium">
                 Lockout Enabled
               </label>
-              <select
-                name="lockOutEnabled"
-                value={account?.lockOutEnabled ? "true" : "false"}
-                onChange={handleChange}
-                className="mt-1 block w-full p-2 border rounded-md text-gray-900"
-              >
-                <option value="false">No</option>
-                <option value="true">Yes</option>
-              </select>
+              <div className="flex flex-row mt-3 space-x-2">
+                <label className="flex items-center">
+                  <input
+                    type="radio"
+                    name="lockOutEnabled"
+                    value="false"
+                    checked={account?.lockOutEnabled === false}
+                    onChange={handleChange}
+                    className="mr-2"
+                  />
+                  No
+                </label>
+                <label className="flex items-center">
+                  <input
+                    type="radio"
+                    name="lockOutEnabled"
+                    value="true"
+                    checked={account?.lockOutEnabled === true}
+                    onChange={handleChange}
+                    className="mr-2"
+                  />
+                  Yes
+                </label>
+              </div>
             </div>
             <div>
               <label className="block text-sm font-medium">
