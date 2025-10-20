@@ -1,6 +1,5 @@
 import React from 'react';
 import { format, startOfWeek, endOfWeek } from 'date-fns';
-import { enUS } from 'date-fns/locale';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ViewMode } from './CalendarTypes';
