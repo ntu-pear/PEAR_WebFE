@@ -166,7 +166,7 @@ const AccountTable: React.FC = () => {
     const baseOptions = [5, 10, 20, 50, 100];
     
     // Filter out options that are larger than total records
-    const filteredOptions = baseOptions.filter(option => option <= totalRecords);
+    const filteredOptions = baseOptions.filter(option => option < totalRecords);
     
     // Always include "All" option if there are records
     if (totalRecords > 0) {
