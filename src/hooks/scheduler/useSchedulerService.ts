@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { generateAndGetSchedule, getSchedule, convertScheduleToCalendarFormat, type WeeklyScheduleData } from '@/api/scheduler/scheduler';
+import { generateAndGetSchedule, getSchedule, convertScheduleToCalendarFormat, regenerateScheduleForSupervisor, type WeeklyScheduleData } from '@/api/scheduler/scheduler';
 import { toast } from 'sonner';
 
 export interface CalendarScheduleItem {
@@ -26,22 +26,25 @@ export const useSchedulerService = () => {
     setError(null);
     
     try {
-      const result = await generateAndGetSchedule();
+      // Use the new supervisor regenerate endpoint that returns schedule directly
+      const result = await regenerateScheduleForSupervisor();
       
-      if (result.success) {
-        setScheduleData(result.data);
-        setRawScheduleData(result.rawData);
-        toast.success('Schedule generated successfully!');
-        return result.data;
+      if (result.Status === "200" && result.Data) {
+        // Convert to calendar format
+        const calendarSchedule = convertScheduleToCalendarFormat(result.Data);
+        setScheduleData(calendarSchedule);
+        setRawScheduleData(result.Data);
+        toast.success('Schedule regenerated successfully!');
+        return calendarSchedule;
       } else {
-        setError(result.message);
-        toast.error(`Failed to generate schedule: ${result.message}`);
+        setError(result.Message);
+        toast.error(`Failed to regenerate schedule: ${result.Message}`);
         return [];
       }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
       setError(errorMessage);
-      toast.error(`Error generating schedule: ${errorMessage}`);
+      toast.error(`Error regenerating schedule: ${errorMessage}`);
       return [];
     } finally {
       setIsLoading(false);
