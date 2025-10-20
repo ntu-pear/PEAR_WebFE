@@ -1,5 +1,11 @@
 import { TableRowData } from "@/components/Table/DataTable";
-import { highlightsAPI, highlightTypesAPI } from "../apiConfig";
+import {
+  createHighlightTypesAPI,
+  deleteHighlightTypesAPI,
+  highlightsAPI,
+  highlightTypesAPI,
+  updateHighlightTypesAPI,
+} from "../apiConfig";
 import { mockCaregiverNameList } from "@/mocks/mockHighlightTableData";
 import { retrieveAccessTokenFromCookie } from "../users/auth";
 import { fetchPatientInfo } from "./patients";
@@ -150,6 +156,77 @@ export const fetchHighlightTypes = async (): Promise<HighlightTypeList[]> => {
     }, []);
   } catch (error) {
     console.error("GET all highlight types", error);
+    throw error;
+  }
+};
+
+export const addHighlightType = async (value: string) => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+
+  try {
+    const res = await createHighlightTypesAPI.post(
+      "",
+      {
+        Value: value,
+        IsDeleted: "0",
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    console.log("POST add highlight type", res.data);
+
+    return res.data;
+  } catch (error) {
+    console.error("POST add highlight type", error);
+    throw error;
+  }
+};
+
+export const updateHighlightType = async (id: number, value: string) => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+
+  try {
+    const res = await updateHighlightTypesAPI.put(
+      `/${id}`,
+      {
+        Value: value,
+        IsDeleted: "0",
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    console.log("PUT update highlight type", res.data);
+
+    return res.data;
+  } catch (error) {
+    console.error("PUT update highlight type", error);
+    throw error;
+  }
+};
+
+export const deleteHighlightType = async (id: number) => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+
+  try {
+    const res = await deleteHighlightTypesAPI.delete(`/${id}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    console.log("DELETE highlight type", res.data);
+
+    return res.data;
+  } catch (error) {
+    console.error("DELETE highlight type", error);
     throw error;
   }
 };

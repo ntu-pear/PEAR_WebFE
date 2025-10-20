@@ -74,6 +74,74 @@ export const fetchDementiaTypeList = async (): Promise<DementiaType[]> => {
   }
 };
 
+export const addDementiaType = async (value: string) => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+  try {
+    const response = await dementiaListAPI.post(
+      "",
+      {
+        Value: value,
+        IsDeleted: "0",
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    console.log("POST add dementia Type", response.data);
+
+    return response.data;
+  } catch (error) {
+    console.error("POST add dementia Type", error);
+    throw error;
+  }
+};
+
+export const updateDementiaType = async (id: number, value: string) => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+  try {
+    const response = await dementiaListAPI.put(
+      `/${id}`,
+      {
+        Value: value,
+        IsDeleted: "0",
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    console.log("PUT update dementia Type", response.data);
+
+    return response.data;
+  } catch (error) {
+    console.error("PUT update dementia Type", error);
+    throw error;
+  }
+};
+
+export const deleteDementiaType = async (id: number) => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+  try {
+    const response = await dementiaListAPI.delete(`/${id}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    console.log("DELETE dementia Type", response.data);
+
+    return response.data;
+  } catch (error) {
+    console.error("DELETE dementia Type", error);
+    throw error;
+  }
+};
+
 export const convertToDiagnosedDementiaTD = (
   dementiaList: DementiaType[],
   viewDiagnosedDementiaList: ViewDiagnosedDementiaList

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { ChevronUp, ChevronDown, ChevronsUpDown } from "lucide-react";
 import {
   Table,
@@ -132,6 +132,11 @@ export function DataTableClient<T extends TableRowData>({
       setCurrentPage(newPage);
     }
   };
+
+  useEffect(() => {
+    if (data.length !== 0 && totalPages < currentPage)
+      setCurrentPage(totalPages);
+  }, []);
 
   if (data.length === 0) {
     return (

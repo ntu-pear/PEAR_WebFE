@@ -1,4 +1,16 @@
 import {
+  createDietListAPI,
+  createEducationListAPI,
+  createLiveWithListAPI,
+  createOccupationListAPI,
+  createPetListAPI,
+  createReligionListAPI,
+  deleteDietListAPI,
+  deleteEducationListAPI,
+  deleteLiveWithListAPI,
+  deleteOccupationListAPI,
+  deletePetListAPI,
+  deleteReligionListAPI,
   dietListAPI,
   educationListAPI,
   liveWithListAPI,
@@ -6,6 +18,12 @@ import {
   petListAPI,
   religionListAPI,
   socialHistoryAPI,
+  updateDietListAPI,
+  updateEducationListAPI,
+  updateLiveWithListAPI,
+  updateOccupationListAPI,
+  updatePetListAPI,
+  updateReligionListAPI,
 } from "../apiConfig";
 import { convertSocialHistoryYesNo } from "@/utils/convertToYesNo";
 import { TableRowData } from "@/components/Table/DataTable";
@@ -241,6 +259,74 @@ export const fetchDietList = async (): Promise<SocialHistoryDDItem[]> => {
   }
 };
 
+export const createDietList = async (value: string) => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+
+  try {
+    const response = await createDietListAPI.post(
+      "",
+      {
+        Value: value,
+        IsDeleted: "0",
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    console.log("POST add diet list", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("POST add diet list", error);
+    throw error;
+  }
+};
+
+export const updateDietList = async (id: number, value: string) => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+
+  try {
+    const response = await updateDietListAPI.put(
+      `/${id}`,
+      {
+        Value: value,
+        IsDeleted: "0",
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    console.log("PUT update diet list", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("PUT update diet list", error);
+    throw error;
+  }
+};
+
+export const deleteDietList = async (id: number) => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+
+  try {
+    const response = await deleteDietListAPI.delete(`/${id}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    console.log("DELETE diet list", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("DELETE diet list", error);
+    throw error;
+  }
+};
+
 export const fetchEducationList = async (): Promise<SocialHistoryDDItem[]> => {
   const token = retrieveAccessTokenFromCookie();
   if (!token) throw new Error("No token found.");
@@ -255,6 +341,74 @@ export const fetchEducationList = async (): Promise<SocialHistoryDDItem[]> => {
     return response.data;
   } catch (error) {
     console.error("GET get education list", error);
+    throw error;
+  }
+};
+
+export const createEducationList = async (value: string) => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+
+  try {
+    const response = await createEducationListAPI.post(
+      "",
+      {
+        Value: value,
+        IsDeleted: "0",
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    console.log("POST add education list", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("POST add education list", error);
+    throw error;
+  }
+};
+
+export const updateEducationList = async (id: number, value: string) => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+
+  try {
+    const response = await updateEducationListAPI.put(
+      `/${id}`,
+      {
+        Value: value,
+        IsDeleted: "0",
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    console.log("PUT update education list", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("PUT update education list", error);
+    throw error;
+  }
+};
+
+export const deleteEducationList = async (id: number) => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+
+  try {
+    const response = await deleteEducationListAPI.delete(`/${id}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    console.log("DELETE education list", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("DELETE education list", error);
     throw error;
   }
 };
@@ -277,6 +431,74 @@ export const fetchLiveWithList = async (): Promise<SocialHistoryDDItem[]> => {
   }
 };
 
+export const createLiveWithList = async (value: string) => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+
+  try {
+    const response = await createLiveWithListAPI.post(
+      "",
+      {
+        Value: value,
+        IsDeleted: "0",
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    console.log("POST add live with list", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("POST add live with list", error);
+    throw error;
+  }
+};
+
+export const updateLiveWithList = async (id: number, value: string) => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+
+  try {
+    const response = await updateLiveWithListAPI.put(
+      `/${id}`,
+      {
+        Value: value,
+        IsDeleted: "0",
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    console.log("PUT update live with list", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("PUT update live with list", error);
+    throw error;
+  }
+};
+
+export const deleteLiveWithList = async (id: number) => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+
+  try {
+    const response = await deleteLiveWithListAPI.delete(`/${id}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    console.log("DELETE live with list", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("DELETE live with list", error);
+    throw error;
+  }
+};
+
 export const fetchOccupationList = async (): Promise<SocialHistoryDDItem[]> => {
   const token = retrieveAccessTokenFromCookie();
   if (!token) throw new Error("No token found.");
@@ -291,6 +513,74 @@ export const fetchOccupationList = async (): Promise<SocialHistoryDDItem[]> => {
     return response.data;
   } catch (error) {
     console.error("GET get occupation list", error);
+    throw error;
+  }
+};
+
+export const createOccupationList = async (value: string) => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+
+  try {
+    const response = await createOccupationListAPI.post(
+      "",
+      {
+        Value: value,
+        IsDeleted: "0",
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    console.log("POST add occupation list", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("POST add occupation list", error);
+    throw error;
+  }
+};
+
+export const updateOccupationList = async (id: number, value: string) => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+
+  try {
+    const response = await updateOccupationListAPI.put(
+      `/${id}`,
+      {
+        Value: value,
+        IsDeleted: "0",
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    console.log("PUT update occupation list", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("PUT update occupation list", error);
+    throw error;
+  }
+};
+
+export const deleteOccupationList = async (id: number) => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+
+  try {
+    const response = await deleteOccupationListAPI.delete(`/${id}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    console.log("DELETE occupation list", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("DELETE occupation list", error);
     throw error;
   }
 };
@@ -313,6 +603,74 @@ export const fetchPetList = async (): Promise<SocialHistoryDDItem[]> => {
   }
 };
 
+export const createPetList = async (value: string) => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+
+  try {
+    const response = await createPetListAPI.post(
+      "",
+      {
+        Value: value,
+        IsDeleted: "0",
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    console.log("POST add pet list", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("POST add pet list", error);
+    throw error;
+  }
+};
+
+export const updatePetList = async (id: number, value: string) => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+
+  try {
+    const response = await updatePetListAPI.put(
+      `/${id}`,
+      {
+        Value: value,
+        IsDeleted: "0",
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    console.log("PUT update pet list", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("PUT update pet list", error);
+    throw error;
+  }
+};
+
+export const deletePetList = async (id: number) => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+
+  try {
+    const response = await deletePetListAPI.delete(`/${id}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    console.log("DELETE pet list", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("DELETE pet list", error);
+    throw error;
+  }
+};
+
 export const fetchReligionList = async (): Promise<SocialHistoryDDItem[]> => {
   const token = retrieveAccessTokenFromCookie();
   if (!token) throw new Error("No token found.");
@@ -327,6 +685,74 @@ export const fetchReligionList = async (): Promise<SocialHistoryDDItem[]> => {
     return response.data;
   } catch (error) {
     console.error("GET get religion list", error);
+    throw error;
+  }
+};
+
+export const createReligionList = async (value: string) => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+
+  try {
+    const response = await createReligionListAPI.post(
+      "",
+      {
+        Value: value,
+        IsDeleted: "0",
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    console.log("POST add religion list", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("POST add religion list", error);
+    throw error;
+  }
+};
+
+export const updateReligionList = async (id: number, value: string) => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+
+  try {
+    const response = await updateReligionListAPI.put(
+      `/${id}`,
+      {
+        Value: value,
+        IsDeleted: "0",
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    console.log("PUT update religion list", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("PUT update religion list", error);
+    throw error;
+  }
+};
+
+export const deleteReligionList = async (id: number) => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+
+  try {
+    const response = await deleteReligionListAPI.delete(`/${id}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    console.log("DELETE religion list", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("DELETE religion list", error);
     throw error;
   }
 };
