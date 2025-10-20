@@ -246,7 +246,7 @@ const EditAccountInfoModal: React.FC = () => {
             </div>
             <div>
               <label className="block text-sm font-medium">
-                Lockout Reason
+                Lockout Reason {account?.lockOutEnabled && <span className="text-red-600">*</span>}
               </label>
               <input
                 type="text"
