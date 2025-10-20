@@ -1,6 +1,5 @@
 import React from "react";
 import { format, startOfWeek, addDays } from "date-fns";
-import { enUS } from "date-fns/locale";
 import { useNavigate } from "react-router-dom";
 import { Settings } from "lucide-react";
 import {
@@ -26,7 +25,7 @@ const PatientWeeklyScheduleView: React.FC<PatientWeeklyScheduleViewProps> = ({
   onActivityClick,
 }) => {
   const navigate = useNavigate();
-  const weekStart = startOfWeek(currentDate, { locale: enUS });
+  const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 });
   const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
 
   const renderActivityCell = (patientId: string, date: Date) => {
