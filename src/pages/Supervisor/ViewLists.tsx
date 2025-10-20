@@ -24,9 +24,7 @@ import { DataTableClient } from "@/components/Table/DataTable";
 const ViewLists: React.FC = () => {
   const [listItems, setListItems] = useState<ListItem[]>([]);
 
-  const [selectedType, setSelectedType] = useState<string>(
-    mockListTypes[0].type
-  );
+  const [selectedType, setSelectedType] = useState<string>(mockListTypes[0]);
   const [search, setSearch] = useState<string>("");
   const debouncedSelectedType = useDebounce(selectedType, 300);
   const debouncedSearch = useDebounce(search, 300);
@@ -90,7 +88,7 @@ const ViewLists: React.FC = () => {
                 value={selectedType}
                 onValueChange={setSelectedType}
               >
-                {mockListTypes.map(({ type }) => (
+                {mockListTypes.map((type) => (
                   <DropdownMenuRadioItem value={type}>
                     {type}
                   </DropdownMenuRadioItem>

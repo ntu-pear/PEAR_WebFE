@@ -1,9 +1,15 @@
 import {
   allergyReactionTypeAPI,
   allergyTypeAPI,
+  createAllergyReactionTypeAPI,
+  createAllergyTypeAPI,
   createPatientAllergyAPI,
+  deleteAllergyReactionTypeAPI,
+  deleteAllergyTypeAPI,
   deletePatientAllergyAPI,
   patientAllergyAPI,
+  updateAllergyReactionTypeAPI,
+  updateAllergyTypeAPI,
   updatePatientAllergyAPI,
 } from "../apiConfig";
 import { retrieveAccessTokenFromCookie } from "../users/auth";
@@ -252,6 +258,77 @@ export const fetchAllAllergyTypes = async (
   }
 };
 
+export const addAllergyType = async (value: string): Promise<void> => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+
+  try {
+    const response = await createAllergyTypeAPI.post<void>(
+      "",
+      {
+        Value: value,
+        IsDeleted: "0",
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    console.log("POST add allergy type", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("POST add allergy type", error);
+    throw error;
+  }
+};
+
+export const updateAllergyType = async (
+  id: string,
+  value: string
+): Promise<void> => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+
+  try {
+    const response = await updateAllergyTypeAPI.put<void>(
+      `/${id}`,
+      {
+        Value: value,
+        IsDeleted: "0",
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    console.log("PUT update allergy type", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("PUT update allergy type", error);
+    throw error;
+  }
+};
+
+export const deleteAllergyType = async (id: string): Promise<void> => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+
+  try {
+    const response = await deleteAllergyTypeAPI.delete<void>(`/${id}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    console.log("DELETE allergy type", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("DELETE allergy type", error);
+    throw error;
+  }
+};
+
 export const fetchAllAllergyReactionTypes = async (
   pageNo: number = 0,
   pageSize: number = 25
@@ -273,6 +350,83 @@ export const fetchAllAllergyReactionTypes = async (
     return response.data;
   } catch (error) {
     console.error("GET all Allergy Reaction Types", error);
+    throw error;
+  }
+};
+
+export const addAllergyReactionType = async (value: string): Promise<void> => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+
+  try {
+    const response = await createAllergyReactionTypeAPI.post<void>(
+      "",
+      {
+        Value: value,
+        IsDeleted: "0",
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    console.log("POST add allergy reaction type", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("POST add allergy reaction type", error);
+    throw error;
+  }
+};
+
+export const updateAllergyReactionType = async (
+  id: string,
+  value: string
+): Promise<void> => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+
+  try {
+    const response = await updateAllergyReactionTypeAPI.put<void>(
+      `/${id}`,
+      {
+        Value: value,
+        IsDeleted: "0",
+      },
+      {
+        params: {
+          allergy_reaction_type_id: id,
+        },
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    console.log("PUT update allergy reaction type", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("PUT update allergy reaction type", error);
+    throw error;
+  }
+};
+
+export const deleteAllergyReactionType = async (id: string): Promise<void> => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+
+  try {
+    const response = await deleteAllergyReactionTypeAPI.delete<void>(`/${id}`, {
+      params: {
+        allergy_reaction_type_id: id,
+      },
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    console.log("DELETE allergy reaction type", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("DELETE allergy reaction type", error);
     throw error;
   }
 };
