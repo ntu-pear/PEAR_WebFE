@@ -1,5 +1,6 @@
 import { mockActivityTemplates, mockScheduledCentreActivities } from "@/mocks/mockScheduledActivity";
 import { API_TIME_SLOTS } from "@/components/Calendar/CalendarTypes";
+import { retrieveAccessTokenFromCookie } from "../users/auth";
 
 const SCHEDULER_BASE_URL = import.meta.env.VITE_SCHEDULER_SERVICE_URL;
 export interface Patient {
@@ -134,6 +135,33 @@ export const getSchedule = async (): Promise<SchedulerResponse<WeeklyScheduleDat
     return data;
   } catch (error) {
     console.error('Error getting schedule:', error);
+    throw error;
+  }
+};
+
+// Regenerate schedule for supervisor (returns schedule directly)
+export const regenerateScheduleForSupervisor = async (): Promise<SchedulerResponse<WeeklyScheduleData[]>> => {
+  try {
+    const token = retrieveAccessTokenFromCookie();
+    if (!token) throw new Error("No token found.");
+
+    const response = await fetch(`${SCHEDULER_BASE_URL}/schedule/regenerate/supervisor/`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    
+    return data;
+  } catch (error) {
+    console.error('Error regenerating schedule for supervisor:', error);
     throw error;
   }
 };
