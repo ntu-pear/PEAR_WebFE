@@ -55,7 +55,7 @@ const ViewPatient: React.FC = () => {
     new URLSearchParams(location.search).get("tab") || "information";
 
   const { currentUser } = useAuth();
-  const { id, patientInfo, refreshPatientData } = useViewPatient();
+  const { id, patientInfo, refreshPatientData, patientAllocation } = useViewPatient();
   const { activeModal, openModal } = useModal();
 
   const handleTabChange = (value: string) => {
@@ -65,6 +65,7 @@ const ViewPatient: React.FC = () => {
       search: `?tab=${value}`, // Set the selected tab in the URL query
     });
   };
+
 
   return (
     <>
@@ -86,7 +87,7 @@ const ViewPatient: React.FC = () => {
                   </p>
                 </AvatarFallback>
               </Avatar>
-              {currentUser?.roleName === "SUPERVISOR" && (
+              {(currentUser?.roleName === "SUPERVISOR" || patientAllocation?.guardianApplicationUserId === currentUser?.userId)&& (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button size="sm" className="absolute bottom-2 left-2">
@@ -109,20 +110,20 @@ const ViewPatient: React.FC = () => {
                     {patientInfo?.profilePicture?.includes(
                       "https://res.cloudinary.com"
                     ) && (
-                      <DropdownMenuItem
-                        className="text-destructive focus:text-destructive"
-                        onClick={() =>
-                          openModal("deleteProfilePhoto", {
-                            refreshProfile: refreshPatientData,
-                            isUser: false,
-                            patientId: id,
-                          })
-                        }
-                      >
-                        <Trash2 className="mr-2 h-4 w-4" />
-                        Remove Photo
-                      </DropdownMenuItem>
-                    )}
+                        <DropdownMenuItem
+                          className="text-destructive focus:text-destructive"
+                          onClick={() =>
+                            openModal("deleteProfilePhoto", {
+                              refreshProfile: refreshPatientData,
+                              isUser: false,
+                              patientId: id,
+                            })
+                          }
+                        >
+                          <Trash2 className="mr-2 h-4 w-4" />
+                          Remove Photo
+                        </DropdownMenuItem>
+                      )}
                   </DropdownMenuContent>
                 </DropdownMenu>
               )}
@@ -151,12 +152,12 @@ const ViewPatient: React.FC = () => {
                   Problem History
                 </TabsTrigger>
               }
-              {currentUser?.roleName === "SUPERVISOR" && (
+              {(currentUser?.roleName === "SUPERVISOR") && (
                 <TabsTrigger value="activity-preference">
                   Activity Preference
                 </TabsTrigger>
               )}
-              {currentUser?.roleName === "SUPERVISOR" && (
+              {(currentUser?.roleName === "SUPERVISOR" || patientAllocation?.guardianApplicationUserId === currentUser?.userId) && (
                 <TabsTrigger value="routine">Routine</TabsTrigger>
               )}
               <TabsTrigger value="prescription">Prescription</TabsTrigger>
@@ -171,7 +172,7 @@ const ViewPatient: React.FC = () => {
                 </TabsTrigger>
               )}
 
-              {currentUser?.roleName === "SUPERVISOR" && (
+              {(currentUser?.roleName === "SUPERVISOR" || patientAllocation?.guardianApplicationUserId===currentUser?.userId)&& (
                 <TabsTrigger value="photo-album">Photo Album</TabsTrigger>
               )}
               {currentUser?.roleName === "SUPERVISOR" && (
@@ -190,11 +191,11 @@ const ViewPatient: React.FC = () => {
               {activeTab === "vital" && <VitalTab />}
               {activeTab === "personal-preference" && <PersonalPreferenceTab />}
               {activeTab === "problem-history" && <ProblemLogTab />}
-              {currentUser?.roleName === "SUPERVISOR" &&
+              {(currentUser?.roleName === "SUPERVISOR") &&
                 activeTab === "activity-preference" && (
                   <ActivityPreferenceTab />
                 )}
-              {currentUser?.roleName === "SUPERVISOR" &&
+              {(currentUser?.roleName === "SUPERVISOR" || patientAllocation?.guardianApplicationUserId === currentUser?.userId) &&
                 activeTab === "routine" && <RoutineTab />}
               {activeTab === "prescription" && <PrescriptionTab />}
 
@@ -205,7 +206,7 @@ const ViewPatient: React.FC = () => {
                   <ActivityRecTab />
                 )}
 
-              {currentUser?.roleName === "SUPERVISOR" &&
+              {(currentUser?.roleName === "SUPERVISOR" || patientAllocation?.guardianApplicationUserId === currentUser?.userId) &&
                 activeTab === "photo-album" && <PhotoAlbumTab />}
               {currentUser?.roleName === "SUPERVISOR" &&
                 activeTab === "guardian" && <GuardianTab />}
@@ -216,15 +217,15 @@ const ViewPatient: React.FC = () => {
         </div>
       </div>
 
-      {currentUser?.roleName === "SUPERVISOR" &&
+      {(currentUser?.roleName === "SUPERVISOR" ||  patientAllocation?.guardianApplicationUserId === currentUser?.userId) &&
         activeModal.name === "uploadProfilePhoto" && (
           <UploadProfilePhotoModal />
         )}
-      {currentUser?.roleName === "SUPERVISOR" &&
+      {(currentUser?.roleName === "SUPERVISOR" ||  patientAllocation?.guardianApplicationUserId === currentUser?.userId) &&
         activeModal.name === "confirmProfilePhoto" && (
           <ConfirmProfilePhotoModal />
         )}
-      {currentUser?.roleName === "SUPERVISOR" &&
+      {(currentUser?.roleName === "SUPERVISOR" ||  patientAllocation?.guardianApplicationUserId === currentUser?.userId) &&
         activeModal.name === "deleteProfilePhoto" && (
           <DeleteProfilePhotoModal />
         )}

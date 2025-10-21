@@ -165,6 +165,10 @@ export const listTypesAPI = axios.create({
   baseURL: `${VITE_PATIENT_SERVICE_URL}/GetAllListTypes`,
 });
 
+export const patientAllocationAPI = axios.create({
+  baseURL : `${VITE_PATIENT_SERVICE_URL}/allocation`
+});
+
 //geocode
 export const geocodeAPI = axios.create({
   baseURL: `${VITE_GEOCODE_SERVICE_URL}/geocode`,

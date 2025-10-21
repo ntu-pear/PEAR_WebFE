@@ -6,17 +6,19 @@ import { Button } from "../ui/button";
 import { personalPreferenceColumns } from "../Tab/PersonalPreferenceTab";
 import { useModal } from "@/hooks/useModal";
 import { useAuth } from "@/hooks/useAuth";
+import { useViewPatient } from "@/hooks/patient/useViewPatient";
 
 const HobbyCard: React.FC = () => {
   const { currentUser } = useAuth();
   const { openModal } = useModal();
+  const { patientAllocation } = useViewPatient();
   return (
     <>
       <Card className="my-2">
         <CardHeader>
           <CardTitle className="text-lg flex items-center justify-between">
             <span>Hobbies</span>
-            {currentUser?.roleName === "SUPERVISOR" && (
+            {(currentUser?.roleName === "SUPERVISOR" || patientAllocation?.guardianApplicationUserId === currentUser?.userId)&& (
               <Button
                 size="sm"
                 className="h-8 w-24 gap-1"

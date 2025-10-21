@@ -5,11 +5,13 @@ import { DataTableClient } from "../Table/DataTable";
 import { Card, CardHeader, CardTitle, CardContent } from "../ui/card";
 import { Button } from "../ui/button";
 import { useAuth } from "@/hooks/useAuth";
+import { useViewPatient } from "@/hooks/patient/useViewPatient";
 
 //Renamed to Problem History from Problem Log to avoid confusion with logs from logging service
 const ProblemHistoryCard: React.FC = () => {
   const { currentUser } = useAuth();
   const { openModal } = useModal();
+  const { patientAllocation } = useViewPatient()
   const problemLogColumns = [
     { key: "author", header: "Author" },
     { key: "description", header: "Description" },
@@ -22,7 +24,7 @@ const ProblemHistoryCard: React.FC = () => {
         <CardHeader>
           <CardTitle className="text-lg flex items-center justify-between">
             <span>Problem History</span>
-            {currentUser?.roleName === "SUPERVISOR" && (
+            {(currentUser?.roleName === "SUPERVISOR" || patientAllocation?.guardianApplicationUserId === currentUser?.userId)&& (
               <Button
                 size="sm"
                 className="h-8 w-24 gap-1"
