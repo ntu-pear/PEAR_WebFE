@@ -157,7 +157,7 @@ const ViewPatient: React.FC = () => {
                   Activity Preference
                 </TabsTrigger>
               )}
-              {(currentUser?.roleName === "SUPERVISOR" || patientAllocation?.guardianApplicationUserId === currentUser?.userId) && (
+              {(currentUser?.roleName === "SUPERVISOR" || currentUser?.roleName === "GUARDIAN") && (
                 <TabsTrigger value="routine">Routine</TabsTrigger>
               )}
               <TabsTrigger value="prescription">Prescription</TabsTrigger>
@@ -172,7 +172,7 @@ const ViewPatient: React.FC = () => {
                 </TabsTrigger>
               )}
 
-              {(currentUser?.roleName === "SUPERVISOR" || patientAllocation?.guardianApplicationUserId===currentUser?.userId)&& (
+              {(currentUser?.roleName === "SUPERVISOR" || currentUser?.roleName === "GUARDIAN")&& (
                 <TabsTrigger value="photo-album">Photo Album</TabsTrigger>
               )}
               {currentUser?.roleName === "SUPERVISOR" && (
@@ -206,7 +206,7 @@ const ViewPatient: React.FC = () => {
                   <ActivityRecTab />
                 )}
 
-              {(currentUser?.roleName === "SUPERVISOR" || patientAllocation?.guardianApplicationUserId === currentUser?.userId) &&
+              {(currentUser?.roleName === "SUPERVISOR" || currentUser?.roleName === "GUARDIAN") &&
                 activeTab === "photo-album" && <PhotoAlbumTab />}
               {currentUser?.roleName === "SUPERVISOR" &&
                 activeTab === "guardian" && <GuardianTab />}
