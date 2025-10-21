@@ -50,7 +50,7 @@ const ProfilePhotoInputModal: React.FC = () => {
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
       <div ref={modalRef} className="bg-background p-8 rounded-md w-[400px]">
         <h3 className="text-lg font-medium mb-1">Upload Profile Photo </h3>
-        <p className="mb-6 text-gray-600 dark:text-gray-200 mb-5">
+        <p className="mb-6 text-gray-600 dark:text-gray-200 ">
           Select a profile photo to upload.
         </p>
         <form className="grid grid-cols-2 gap-4">

@@ -15,7 +15,7 @@ import { DataTableServer } from "../Table/DataTable";
 
 const MobilityAidsCard: React.FC = () => {
   const { currentUser } = useAuth();
-  const { id } = useViewPatient();
+  const { id, patientAllocation } = useViewPatient();
   const { openModal } = useModal();
   const [mobilityAidsTDServer, setMobilityAidsTDServer] =
     useState<MobilityAidTDServer>({
@@ -60,7 +60,7 @@ const MobilityAidsCard: React.FC = () => {
 
   const renderActions = (item: MobilityAidTD) => {
     return (
-      currentUser?.roleName === "SUPERVISOR" && (
+      (currentUser?.roleName === "SUPERVISOR" || patientAllocation?.guardianApplicationUserId === currentUser?.userId) && (
         <div className="flex space-x-2">
           <Button
             size="sm"
@@ -98,7 +98,7 @@ const MobilityAidsCard: React.FC = () => {
         <CardHeader>
           <CardTitle className="text-lg flex items-center justify-between">
             <span>Mobility Aids</span>
-            {currentUser?.roleName === "SUPERVISOR" && (
+            {(currentUser?.roleName === "SUPERVISOR" || patientAllocation?.guardianApplicationUserId === currentUser?.userId) && (
               <Button
                 size="sm"
                 className="h-8 w-24 gap-1"

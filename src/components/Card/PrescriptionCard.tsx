@@ -68,22 +68,27 @@ const PrescriptionCard: React.FC = () => {
         <CardHeader>
           <CardTitle className="text-lg flex items-center justify-between">
             <span>Prescriptions</span>
-            <Button
-              size="sm"
-              className="h-8 w-24 gap-1"
-              onClick={() =>
-                openModal("addPrescription", {
-                  patientId: id,
-                  submitterId: currentUser?.userId,
-                  refreshPrescriptionData,
-                })
-              }
-            >
-              <PlusCircle className="h-4 w-4" />
-              <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                Add
-              </span>
-            </Button>
+            {
+              (currentUser?.roleName != "GUARDIAN") && (
+                <Button
+                  size="sm"
+                  className="h-8 w-24 gap-1"
+                  onClick={() =>
+                    openModal("addPrescription", {
+                      patientId: id,
+                      submitterId: currentUser?.userId,
+                      refreshPrescriptionData,
+                    })
+                  }
+                >
+                  <PlusCircle className="h-4 w-4" />
+                  <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+                    Add
+                  </span>
+                </Button>
+              )
+            }
+
           </CardTitle>
         </CardHeader>
         <CardContent>
