@@ -45,15 +45,33 @@ const EditAccountInfoModal: React.FC = () => {
   ) => {
     const { name, value } = e.target;
     if (!account) return;
+    
+    // Convert name fields to uppercase automatically
+    let processedValue = value;
+    if (name === "preferredName" || name === "nric_FullName") {
+      processedValue = value.toUpperCase();
+    }
+    
     setAccount({
       ...account,
-      [name]: name === "lockOutEnabled" ? value === "true" : value,
+      [name]: name === "lockOutEnabled" ? processedValue === "true" : processedValue,
     });
   };
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!account || !originalAccount) return;
+
+    // Validate that name fields are uppercase
+    if (account.preferredName && account.preferredName !== account.preferredName.toUpperCase()) {
+      toast.error("Input Error: Preferred Name must be in uppercase.");
+      return;
+    }
+    
+    if (account.nric_FullName && account.nric_FullName !== account.nric_FullName.toUpperCase()) {
+      toast.error("Input Error: Full Name must be in uppercase.");
+      return;
+    }
 
     // Validate NRIC before checking for changes
     if (account.nric !== originalAccount.nric) {
@@ -133,6 +151,7 @@ const EditAccountInfoModal: React.FC = () => {
             <div>
               <label className="block text-sm font-medium">
                 Preferred Name
+                <span className="text-xs text-gray-500 ml-1">(uppercase only)</span>
               </label>
               <input
                 type="text"
@@ -140,11 +159,13 @@ const EditAccountInfoModal: React.FC = () => {
                 value={account?.preferredName || ""}
                 onChange={handleChange}
                 className="mt-1 block w-full p-2 border rounded-md text-gray-900"
+                placeholder="Enter preferred name"
               />
             </div>
             <div>
               <label className="block text-sm font-medium">
                 Full Name <span className="text-red-600">*</span>
+                <span className="text-xs text-gray-500 ml-1">(uppercase only)</span>
               </label>
               <input
                 type="text"
@@ -152,6 +173,7 @@ const EditAccountInfoModal: React.FC = () => {
                 value={account?.nric_FullName || ""}
                 onChange={handleChange}
                 className="mt-1 block w-full p-2 border rounded-md text-gray-900"
+                placeholder="Enter full name"
                 required
               />
             </div>
