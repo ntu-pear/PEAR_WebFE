@@ -45,15 +45,48 @@ const EditAccountInfoModal: React.FC = () => {
   ) => {
     const { name, value } = e.target;
     if (!account) return;
+    
+    // Convert name fields to uppercase automatically and filter out invalid characters
+    let processedValue = value;
+    if (name === "preferredName" || name === "nric_FullName") {
+      // Only allow letters and spaces, remove numbers and special characters
+      const filteredValue = value.replace(/[^a-zA-Z\s]/g, '');
+      processedValue = filteredValue.toUpperCase();
+    }
+    
     setAccount({
       ...account,
-      [name]: name === "lockOutEnabled" ? value === "true" : value,
+      [name]: name === "lockOutEnabled" ? processedValue === "true" : processedValue,
     });
   };
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!account || !originalAccount) return;
+
+    // Validate that name fields only contain letters and spaces
+    const nameRegex = /^[A-Z\s]*$/;
+    
+    if (account.preferredName && !nameRegex.test(account.preferredName)) {
+      toast.error("Input Error: Preferred Name can only contain letters and spaces.");
+      return;
+    }
+    
+    if (account.nric_FullName && !nameRegex.test(account.nric_FullName)) {
+      toast.error("Input Error: Full Name can only contain letters and spaces.");
+      return;
+    }
+
+    // Validate that name fields are uppercase
+    if (account.preferredName && account.preferredName !== account.preferredName.toUpperCase()) {
+      toast.error("Input Error: Preferred Name must be in uppercase.");
+      return;
+    }
+    
+    if (account.nric_FullName && account.nric_FullName !== account.nric_FullName.toUpperCase()) {
+      toast.error("Input Error: Full Name must be in uppercase.");
+      return;
+    }
 
     // Validate NRIC before checking for changes
     if (account.nric !== originalAccount.nric) {
@@ -133,6 +166,7 @@ const EditAccountInfoModal: React.FC = () => {
             <div>
               <label className="block text-sm font-medium">
                 Preferred Name
+                <span className="text-xs text-gray-500 ml-1">(uppercase letters only)</span>
               </label>
               <input
                 type="text"
@@ -140,11 +174,13 @@ const EditAccountInfoModal: React.FC = () => {
                 value={account?.preferredName || ""}
                 onChange={handleChange}
                 className="mt-1 block w-full p-2 border rounded-md text-gray-900"
+                placeholder="Enter preferred name"
               />
             </div>
             <div>
               <label className="block text-sm font-medium">
                 Full Name <span className="text-red-600">*</span>
+                <span className="text-xs text-gray-500 ml-1">(uppercase letters only)</span>
               </label>
               <input
                 type="text"
@@ -152,6 +188,7 @@ const EditAccountInfoModal: React.FC = () => {
                 value={account?.nric_FullName || ""}
                 onChange={handleChange}
                 className="mt-1 block w-full p-2 border rounded-md text-gray-900"
+                placeholder="Enter full name"
                 required
               />
             </div>

@@ -117,9 +117,16 @@ test('Edit account modal updates preferred name and unmasks NRIC', async ({ page
     await expect(page.locator('input[name="nric"]')).toHaveValue(maskedNRIC);
 
     const originalPreferredName = await page.locator('input[name="preferredName"]').inputValue();
-    // increment last digit of preferred name
-    const lastDigit = parseInt(originalPreferredName.slice(-1)) + 1;
-    newPreferredName = originalPreferredName.slice(0, -1) + lastDigit;
+    // Append a letter since numbers are not allowed
+    // If name already ends with 'Z', cycle back to 'A', otherwise increment the last letter
+    const lastChar = originalPreferredName.slice(-1);
+    let nextChar = 'A';
+    if (lastChar && lastChar.match(/[A-Y]/)) {
+      nextChar = String.fromCharCode(lastChar.charCodeAt(0) + 1);
+    } else if (lastChar === 'Z') {
+      nextChar = 'A';
+    }
+    newPreferredName = originalPreferredName + nextChar;
     await page.locator('input[name="preferredName"]').fill(newPreferredName);
 
     newDateOfBirth = getRandDate(nric_DateOfBirth);
@@ -158,6 +165,20 @@ test('Edit account modal updates preferred name and unmasks NRIC', async ({ page
   await test.step('Check no changes behaviour', async () => {
     await page.getByRole('button', { name: 'Save' }).click();
     await expect(page.getByText('No changes detected.')).toBeVisible();
+  });
+
+  await test.step('Test name validation - numbers and special characters are filtered', async () => {
+    // Test that numbers and special characters are automatically removed from name fields
+    await page.locator('input[name="preferredName"]').fill('Test123@#$Name');
+    // The input should only contain letters (automatically converted to uppercase)
+    await expect(page.locator('input[name="preferredName"]')).toHaveValue('TESTNAME');
+    
+    await page.locator('input[name="nric_FullName"]').fill('John@123 Doe!456');
+    // The input should only contain letters and spaces (automatically converted to uppercase)
+    await expect(page.locator('input[name="nric_FullName"]')).toHaveValue('JOHN DOE');
+    
+    // Close the modal without saving these test changes
+    await page.getByRole('button', { name: 'Cancel' }).click();
   });
 });
 
