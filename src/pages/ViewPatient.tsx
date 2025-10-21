@@ -195,7 +195,7 @@ const ViewPatient: React.FC = () => {
                 activeTab === "activity-preference" && (
                   <ActivityPreferenceTab />
                 )}
-              {(currentUser?.roleName === "SUPERVISOR" || patientAllocation?.guardianApplicationUserId === currentUser?.userId) &&
+              {(currentUser?.roleName === "SUPERVISOR" || currentUser?.roleName === "GUARDIAN") &&
                 activeTab === "routine" && <RoutineTab />}
               {activeTab === "prescription" && <PrescriptionTab />}
 
