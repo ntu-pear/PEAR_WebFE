@@ -60,10 +60,6 @@ export function validateLocal(
     e._summary!.push(ERRORS.END_DATE_BEFORE_START_DATE);
   }
 
-  if (values.max_duration != 30) {
-    e._summary!.push(ERRORS.EXCEEDING_DURATION);
-  }
-
   if (values.max_duration < values.min_duration) {
     e._summary!.push(ERRORS.MAX_DURATION_ABOVE_MIN_DURATION)
   }
@@ -74,6 +70,6 @@ export function validateLocal(
   if (values.is_group == true && values.min_people_req < 2) {
     e._summary!.push(ERRORS.PEOPLE_REQ_TWO_OR_MORE)
   }
-
+  
   return e;
 }
