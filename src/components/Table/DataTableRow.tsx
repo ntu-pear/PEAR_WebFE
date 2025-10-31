@@ -22,6 +22,9 @@ interface DataTableRowProps<T extends TableRowData> {
   expandable?: boolean;
   renderExpandedContent?: (item: T) => React.ReactNode;
   onExpand?: (item: T) => void;
+  selectable?: boolean;
+  isSelected?: boolean;
+  onToggleSelect?: () => void;
 }
 
 // Utility function to access nested properties
@@ -39,6 +42,9 @@ function DataTableRow<T extends TableRowData>({
   expandable = false,
   renderExpandedContent,
   onExpand,
+  selectable,
+  isSelected,
+  onToggleSelect,
 }: DataTableRowProps<T>) {
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -53,6 +59,16 @@ function DataTableRow<T extends TableRowData>({
   return (
     <>
       <TableRow className={expandable ? "cursor-pointer" : ""}>
+        {selectable && (
+          <TableCell className="w-12" onClick={onToggleSelect}>
+            <input
+              type="checkbox"
+              checked={isSelected}
+              onChange={onToggleSelect}
+              className="form-checkbox h-4 w-4 text-primary rounded border-gray-300"
+            />
+          </TableCell>
+        )}
         {expandable && (
           <TableCell className="w-10" onClick={handleToggleExpand}>
             {isExpanded ? (
