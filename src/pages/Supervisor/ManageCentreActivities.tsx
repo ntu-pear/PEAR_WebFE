@@ -14,6 +14,7 @@ import { CentreActivityFormValues } from "@/lib/validation/centreActivity";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuRadioGroup,
   DropdownMenuRadioItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import dayjs from "dayjs";
 
 function confirmAction(message: string) {
   return window.confirm(message);
@@ -22,7 +23,7 @@ function confirmAction(message: string) {
 export default function ManageCentreActivities() {
   const [includeDeleted, setIncludeDeleted] = useState(false);
   const [search, setSearch] = useState("");
-  const [creatingOpen, setCreatingOpen] = useState(false);
+  const [creatingOpen, setCreatingOpen] = useState<any>(null);
   const [editing, setEditing] = useState<CentreActivityRow | null>(null);
   const [page, setPage] = useState(1);
   const [compulsory, setCompulsory] = useState("all");
@@ -30,6 +31,7 @@ export default function ManageCentreActivities() {
   const [group, setGroup] = useState("all");
   const {centreActivities, loading, error, refreshCentreActivities} = useCentreActivities(true);
   const {create, update, remove} = useCentreActivityMutations();
+  const todayDate = dayjs(new Date().toDateString()).format("YYYY-MM-DD");
 
   useEffect(() => {
     if (error) toast.error(`Failed to load centre activities. ${error}`);
@@ -260,7 +262,7 @@ export default function ManageCentreActivities() {
                           is_group: editing.is_group,
                           min_duration: editing.min_duration,
                           max_duration: editing.max_duration,
-                          start_date: editing.start_date,
+                          start_date: new Date(editing.start_date) < new Date() ? todayDate : editing.start_date, //Update start date to present date if it is in the past
                           end_date: editing.end_date,
                           min_people_req: editing.min_people_req,
                           fixed_time_slots: editing.fixed_time_slots,
@@ -268,7 +270,7 @@ export default function ManageCentreActivities() {
                         }}
                         onSubmit={handleUpdate}
                         submitting={update.isPending}
-                        onCancel={() => setCreatingOpen(false)}
+                        onCancel={() => setEditing(null)}
                       />
                     </div>
                   )}

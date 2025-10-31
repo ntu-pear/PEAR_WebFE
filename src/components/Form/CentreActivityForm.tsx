@@ -7,6 +7,7 @@ import dayjs from "dayjs";
 import { toast } from "sonner";
 import { getAllActivities } from "@/api/activity/activityPreference";
 import { type FormErrors, type CentreActivityFormValues, validateLocal } from "@/lib/validation/centreActivity";
+import { number } from "zod";
 
 type Props = {
   initial?: CentreActivityFormValues & {id?: number};
@@ -23,6 +24,11 @@ export interface RadioBtnOption {
   value: boolean;
 }
 
+export interface durationRadioBtn {
+  label: string;
+  value: number;
+}
+
 export default function CentreActivityForm({ 
   initial, 
   submitting,
@@ -34,8 +40,8 @@ export default function CentreActivityForm({
   const [is_compulsory, setIs_Compulsory] = useState(initial?.is_compulsory ?? false);
   const [start_date, setStart_date] = useState(initial?.start_date ?? "");
   const [end_date, setEnd_date] = useState(initial?.end_date ?? "");
-  const [min_duration, setMin_duration] = useState(initial?.min_duration ?? 60);
-  const [max_duration, setMax_duration] = useState(initial?.max_duration ?? 60);
+  const [min_duration, setMin_duration] = useState<number>(initial?.min_duration ?? 60);
+  const [max_duration, setMax_duration] = useState<number>(initial?.max_duration ?? 60);
   const [is_group, setIs_Group] = useState(initial?.is_group ?? false);
   const [min_people_req, setMin_people_req] = useState(initial?.min_people_req ?? 1);
   const [fixed_time_slots, setFixed_time_slots] = useState(initial?.fixed_time_slots ?? "");
@@ -101,6 +107,11 @@ export default function CentreActivityForm({
   const radioBtnOptions : RadioBtnOption[] = [
     { value: true, label: "Yes"},
     { value: false, label: "No"}
+  ];
+
+  const durationRadioBtn : durationRadioBtn[] = [
+    { value: 30, label: "30 mins"},
+    { value: 60, label: "60 mins"}
   ];
 
   return (
@@ -296,25 +307,48 @@ export default function CentreActivityForm({
       
       <div className="space-y-2">
         <Label htmlFor="min_duration">Minimum Duration </Label>
-        <Input
-          id="min_duration"
-          value={min_duration}
-          onChange={(e) => setMin_duration(parseInt(e.target.value))}
-        />
+        <div className="space-x-2">
+          {durationRadioBtn.map((choice) => (
+            <Label className="space-x-1">
+              <input
+                type="radio"
+                id = {choice.value.toString()}
+                name="min_duration"
+                value={choice.value.toString()}
+                checked={min_duration === choice.value ? true : false}
+                onChange={(e) =>{
+                  setMin_duration(choice.value)
+                }}
+              />
+              <label>{choice.label}</label>
+            </Label>
+          ))}
+        </div>
         {errors.min_duration && <p className="text-sm text-red-600">{errors.min_duration}</p>}
       </div>
 
       <div className="space-y-2">
         <Label htmlFor="max_duration">Maximum Duration </Label>
-        <Input
-          id="max_duration"
-          value={max_duration}
-          onChange={(e) => setMax_duration(parseInt(e.target.value))}
-        />
+        <div className="space-x-2">
+          {durationRadioBtn.map((choice) => (
+            <Label className="space-x-1">
+              <input
+                type="radio"
+                id = {choice.value.toString()}
+                name="max_duration"
+                value={choice.value.toString()}
+                checked={max_duration === choice.value ? true : false}
+                onChange={(e) =>{
+                  setMax_duration(choice.value)
+                }}
+              />
+              <label>{choice.label}</label>
+            </Label>
+          ))}
+        </div>
         {errors.max_duration && <p className="text-sm text-red-600">{errors.max_duration}</p>}
       </div>
 
-      
       <div className="space-y-2">
         <Label htmlFor="start_date">Start date of this activity</Label>
         <Input
@@ -332,6 +366,7 @@ export default function CentreActivityForm({
             id="end_date"
             type="date"
             value={end_date}
+            disabled = {indefiniteDate === end_date ? true : false}
             onChange={(e) => setEnd_date(e.target.value)}
           />
         {errors.end_date && <p className="text-sm text-red-600">{errors.end_date}</p>}
