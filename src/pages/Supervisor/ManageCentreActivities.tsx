@@ -125,6 +125,7 @@ export default function ManageCentreActivities() {
         fixed_time_slots: values.fixed_time_slots
       });
       refreshCentreActivities();
+      setEditing(null);
       toast.success("Centre Activity updated.");
     }
     catch (error: any) {

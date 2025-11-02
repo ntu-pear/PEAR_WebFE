@@ -7,7 +7,6 @@ import dayjs from "dayjs";
 import { toast } from "sonner";
 import { getAllActivities } from "@/api/activity/activityPreference";
 import { type FormErrors, type CentreActivityFormValues, validateLocal } from "@/lib/validation/centreActivity";
-import { number } from "zod";
 
 type Props = {
   initial?: CentreActivityFormValues & {id?: number};
@@ -212,7 +211,7 @@ export default function CentreActivityForm({
                 value={choice.value.toString()}
                 disabled={is_deleted ? true : false}
                 checked={is_fixed === choice.value ? true : false}
-                onChange={(e) =>{
+                onChange={() =>{
                   setIs_Fixed(choice.value);
 
                   if (!choice.value && fixed_time_slots.length > 0) {
@@ -255,7 +254,7 @@ export default function CentreActivityForm({
                 disabled={is_deleted ? true : false}
                 checked={end_date.includes("999") ? true === choice.value : false === choice.value}
                 // checked={end_date === "" ? is_indefinite === choice.value : end_date.includes("999") ? is_indefinite === choice.value : false}
-                onChange={(e) =>{
+                onChange={() =>{
                   if (choice.value) {
                     setEnd_date(indefiniteDate);
                   }
@@ -282,7 +281,7 @@ export default function CentreActivityForm({
                 value={choice.value.toString()}
                 disabled={is_deleted ? true : false}
                 checked={is_group === choice.value ? true : false}
-                onChange={(e) =>{
+                onChange={() =>{
                   setIs_Group(choice.value);
 
                   /*Business rule, Individual activities requires at least 1 person. */
@@ -324,7 +323,7 @@ export default function CentreActivityForm({
                 value={choice.value.toString()}
                 disabled={is_deleted ? true : false}
                 checked={min_duration === choice.value ? true : false}
-                onChange={(e) =>{
+                onChange={() =>{
                   setMin_duration(choice.value)
                 }}
               />
@@ -347,7 +346,7 @@ export default function CentreActivityForm({
                 value={choice.value.toString()}
                 disabled={is_deleted ? true : false}
                 checked={max_duration === choice.value ? true : false}
-                onChange={(e) =>{
+                onChange={() =>{
                   setMax_duration(choice.value)
                 }}
               />
