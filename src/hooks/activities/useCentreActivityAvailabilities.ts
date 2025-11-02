@@ -11,7 +11,6 @@ import {
     CentreActivityAvailability,
  } from "@/api/activities/centreActivityAvailabilities";
 
-
 export const useCentreActivityAvailabilities = (includeDeleted: boolean) => {
   const [centreActivityAvailabilities, setCentreActivityAvailabilities] = useState<CentreActivityAvailability[]>([])
   const [loading, setLoading] = useState(true);

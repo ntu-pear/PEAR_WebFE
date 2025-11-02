@@ -136,7 +136,7 @@ export default function CentreActivityForm({
                 type="checkbox"
                 id = "is_deleted"
                 onChange={(e) =>{
-                  if (e.target.value) {
+                  if (e.target.checked) {
                     setIsDeleted(false);
                   }
                   else {
@@ -155,7 +155,8 @@ export default function CentreActivityForm({
         <Label htmlFor="activity_id">Activity</Label>
         <select
           id="activity_id"
-          value={activity_id}         
+          value={activity_id}
+          disabled={is_deleted ? true : false}      
           onChange={(e) => {
             setActivityID(e.target.value)
           }}
@@ -181,6 +182,7 @@ export default function CentreActivityForm({
                 id = {choice.value.toString()}
                 name="is_compulsory"
                 value={choice.value.toString()}
+                disabled={is_deleted ? true : false}
                 checked={is_compulsory === choice.value ? true : false}
                 onChange={(e) =>{
                   setIs_Compulsory(choice.value);
@@ -208,6 +210,7 @@ export default function CentreActivityForm({
                 id = {choice.value.toString()}
                 name="is_fixed"
                 value={choice.value.toString()}
+                disabled={is_deleted ? true : false}
                 checked={is_fixed === choice.value ? true : false}
                 onChange={(e) =>{
                   setIs_Fixed(choice.value);
@@ -231,6 +234,7 @@ export default function CentreActivityForm({
           <Input
             id="fixed_time_slots"
             value={fixed_time_slots}
+            disabled={is_deleted ? true : false}
             onChange={(e) => setFixed_time_slots(e.target.value)}
           />
           {errors.fixed_time_slots && <p className="text-sm text-red-600">{errors.fixed_time_slots}</p>}
@@ -248,6 +252,7 @@ export default function CentreActivityForm({
                 id = {choice.value.toString()}
                 name="is_indefinite"
                 value={choice.value.toString()}
+                disabled={is_deleted ? true : false}
                 checked={end_date.includes("999") ? true === choice.value : false === choice.value}
                 // checked={end_date === "" ? is_indefinite === choice.value : end_date.includes("999") ? is_indefinite === choice.value : false}
                 onChange={(e) =>{
@@ -275,6 +280,7 @@ export default function CentreActivityForm({
                 id = {choice.value.toString()}
                 name="is_group"
                 value={choice.value.toString()}
+                disabled={is_deleted ? true : false}
                 checked={is_group === choice.value ? true : false}
                 onChange={(e) =>{
                   setIs_Group(choice.value);
@@ -299,6 +305,7 @@ export default function CentreActivityForm({
             <Input
               id="min_people_req"
               value={min_people_req}
+              disabled={is_deleted ? true : false}
               onChange={(e) => setMin_people_req(parseInt(e.target.value))}
             />
           {errors.min_people_req && <p className="text-sm text-red-600">{errors.min_people_req}</p>}
@@ -315,6 +322,7 @@ export default function CentreActivityForm({
                 id = {choice.value.toString()}
                 name="min_duration"
                 value={choice.value.toString()}
+                disabled={is_deleted ? true : false}
                 checked={min_duration === choice.value ? true : false}
                 onChange={(e) =>{
                   setMin_duration(choice.value)
@@ -337,6 +345,7 @@ export default function CentreActivityForm({
                 id = {choice.value.toString()}
                 name="max_duration"
                 value={choice.value.toString()}
+                disabled={is_deleted ? true : false}
                 checked={max_duration === choice.value ? true : false}
                 onChange={(e) =>{
                   setMax_duration(choice.value)
@@ -355,6 +364,7 @@ export default function CentreActivityForm({
           id="start_date"
           type="date"
           value={start_date}
+          disabled={is_deleted ? true : false}
           onChange={(e) => setStart_date(e.target.value)}
         />
         {errors.start_date && <p className="text-sm text-red-600">{errors.start_date}</p>}
@@ -366,7 +376,8 @@ export default function CentreActivityForm({
             id="end_date"
             type="date"
             value={end_date}
-            disabled = {indefiniteDate === end_date ? true : false}
+            disabled={is_deleted ? true : indefiniteDate === end_date ? true : false}
+            // disabled = {indefiniteDate === end_date ? true : false}
             onChange={(e) => setEnd_date(e.target.value)}
           />
         {errors.end_date && <p className="text-sm text-red-600">{errors.end_date}</p>}

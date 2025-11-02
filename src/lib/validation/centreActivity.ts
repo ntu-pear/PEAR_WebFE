@@ -33,7 +33,6 @@ export const ERRORS = {
   START_DATE_AFTER_END_DATE: "Start date must be before End date.",
   END_DATE_BEFORE_START_DATE: "End date must be After Start date.",
   PEOPLE_REQ_TWO_OR_MORE: "Minimum people required must be more than 2.",
-  EXCEEDING_DURATION: "Duration can only be set to 30 minutes or 60 minutes."
 } as const;
 
 export function validateLocal(

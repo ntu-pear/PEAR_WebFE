@@ -71,8 +71,8 @@ export default function AvailabilityTable({
                         <TableCell className="font-medium">{a.id}</TableCell>
                         <TableCell>{dayjs(a.start_time).format("YYYY-MM-DD")}</TableCell>
                         <TableCell>{dayjs(a.end_time).format("YYYY-MM-DD")}</TableCell>
-                        <TableCell>{dayjs(a.start_time).format("hh:mm A")}</TableCell>
-                        <TableCell>{dayjs(a.end_time).format("hh:mm A")}</TableCell>
+                        <TableCell>{dayjs(a.start_time).format("HH:mm")}</TableCell>
+                        <TableCell>{dayjs(a.end_time).format("HH:mm")}</TableCell>
                         <TableCell>{dayjs(a.created_date).format("YYYY-MM-DD")}</TableCell>
                         <TableCell>{a.modified_date ? dayjs(a.modified_date).format("YYYY-MM-DD") : "-"}</TableCell>
                         <TableCell>{a.is_deleted ? "Yes" : "No"}</TableCell>
