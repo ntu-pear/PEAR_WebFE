@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -147,7 +147,7 @@ export default function ActivityAvailabilityForm({
                                 value={choice.value.toString()}
                                 disabled={is_deleted ? true : false}
                                 checked={is_everyday === choice.value ? true : false}
-                                onChange={(e) => setIsEveryday(choice.value)}
+                                onChange={() => setIsEveryday(choice.value)}
                             />
                             <label>{choice.label}</label>
                             </Label>
