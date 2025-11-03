@@ -225,7 +225,7 @@ export default function ManageActivityAvailabilities() {
                                         initial={{
                                             id: editing.id,
                                             centre_activity_id: editing.centre_activity_id,
-                                            date: new Date(editing.start_time) < new Date() ? todayDate : dayjs(new Date(editing.start_time).toDateString().split('T')[0]).format("YYYY-MM-DD"),
+                                            date: new Date(editing.start_time) < new Date() ? todayDate : dayjs(editing.start_time.split('T')[0]).format("YYYY-MM-DD"),
                                             start_time: editing.start_time,
                                             end_time: editing.end_time,
                                             is_deleted: editing.is_deleted,
