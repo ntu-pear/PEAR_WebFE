@@ -49,15 +49,15 @@ export default function AvailabilityTable({
                 <Table>
                 <TableHeader>
                     <TableRow>
-                    <TableHead>ID</TableHead>
-                    <TableHead className="w-40">Start Date</TableHead>
-                    <TableHead className="w-40">End Date</TableHead>
-                    <TableHead className="w-40">Start Time</TableHead>
-                    <TableHead className="w-40">End Time</TableHead>
-                    <TableHead className="w-40">Created Date</TableHead>
-                    <TableHead className="w-40">Modified Date</TableHead>
-                    <TableHead className="w-28">Deleted?</TableHead>
-                    <TableHead className="w-96">Actions</TableHead>
+                        <TableHead>ID</TableHead>
+                        <TableHead className="w-40">Start Date</TableHead>
+                        <TableHead className="w-40">End Date</TableHead>
+                        <TableHead className="w-40">Start Time</TableHead>
+                        <TableHead className="w-40">End Time</TableHead>
+                        <TableHead className="w-40">Created Date</TableHead>
+                        <TableHead className="w-40">Modified Date</TableHead>
+                        <TableHead className="w-28">Deleted?</TableHead>
+                        <TableHead className="w-96">Actions</TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -67,24 +67,24 @@ export default function AvailabilityTable({
                         </TableRow>
                     )}
                     {items.map((a) => (
-                    <TableRow key={a.id}>
-                        <TableCell className="font-medium">{a.id}</TableCell>
-                        <TableCell>{dayjs(a.start_time).format("YYYY-MM-DD")}</TableCell>
-                        <TableCell>{dayjs(a.end_time).format("YYYY-MM-DD")}</TableCell>
-                        <TableCell>{dayjs(a.start_time).format("HH:mm")}</TableCell>
-                        <TableCell>{dayjs(a.end_time).format("HH:mm")}</TableCell>
-                        <TableCell>{dayjs(a.created_date).format("YYYY-MM-DD")}</TableCell>
-                        <TableCell>{a.modified_date ? dayjs(a.modified_date).format("YYYY-MM-DD") : "-"}</TableCell>
-                        <TableCell>{a.is_deleted ? "Yes" : "No"}</TableCell>
-                        <TableCell className="space-x-2">
-                        <Button size="sm" variant="secondary" onClick={() => onEdit(a)}>
-                            Edit
-                        </Button>
-                        <Button size="sm" variant="destructive" onClick={() => onDelete(a)}  disabled={a.is_deleted}>
-                            Delete
-                        </Button>
-                        </TableCell>
-                    </TableRow>
+                        <TableRow key={a.id}>
+                            <TableCell className="font-medium">{a.id}</TableCell>
+                            <TableCell>{dayjs(a.start_time).format("YYYY-MM-DD")}</TableCell>
+                            <TableCell>{dayjs(a.end_time).format("YYYY-MM-DD")}</TableCell>
+                            <TableCell>{dayjs(a.start_time).format("HH:mm")}</TableCell>
+                            <TableCell>{dayjs(a.end_time).format("HH:mm")}</TableCell>
+                            <TableCell>{dayjs(a.created_date).format("YYYY-MM-DD")}</TableCell>
+                            <TableCell>{a.modified_date ? dayjs(a.modified_date).format("YYYY-MM-DD") : "-"}</TableCell>
+                            <TableCell>{a.is_deleted ? "Yes" : "No"}</TableCell>
+                            <TableCell className="space-x-2">
+                            <Button size="sm" variant="secondary" onClick={() => onEdit(a)}>
+                                Edit
+                            </Button>
+                            <Button size="sm" variant="destructive" onClick={() => onDelete(a)}  disabled={a.is_deleted}>
+                                Delete
+                            </Button>
+                            </TableCell>
+                        </TableRow>
                     ))}
                 </TableBody>
                 </Table>
