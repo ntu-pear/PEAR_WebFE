@@ -63,6 +63,8 @@ import CustomRoleProtectedRoute from "./components/CustomRoleProtectedRoute";
 import PatientScheduleView from "./pages/Supervisor/PatientScheduleView";
 import SchedulerSystemTest from "./pages/Supervisor/SchedulerSystemTest";
 import FeatureFlagSettings from "./pages/FeatureFlagSettings";
+import ManageLists from "./pages/Admin/ManageLists";
+import ViewListLogs from "./pages/Admin/ViewListLogs";
 import DoctorSearch from "./pages/Doctor/Search";
 import ManageDementia from "./pages/Doctor/ManageDementia";
 
@@ -157,8 +159,11 @@ const App: React.FC = () => {
                         element={<ManageActivities />}
                       />
                       <Route
+                       
                         path="manage-centre-activities"
+                       
                         element={<ManageCentreActivities />}
+                     
                       />
                       <Route path="manage-activity-availabilities" element={<ManageActivityAvailabilities />} />
                       <Route path="manage-adhoc" element={<ManageAdhoc />} />
@@ -221,6 +226,8 @@ const App: React.FC = () => {
                         element={<RegisterAccount />}
                       />
                       <Route path="manage-centre" element={<ManageCentre />} />
+                      <Route path="manage-lists" element={<ManageLists />} />
+                      <Route path="view-lists-log" element={<ViewListLogs />} />
                       <Route path="edit-roles" element={<EditRoles />} />
                       <Route path="create-role" element={<CreateRole />} />
                       <Route path="edit-role/:id" element={<EditRole />} />
