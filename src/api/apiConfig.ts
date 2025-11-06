@@ -24,6 +24,14 @@ export const activitiesAPI = axios.create({
   baseURL: `${VITE_ACTIVITY_SERVICE_URL}/activities`,
 });
 
+export const centreActivitiesAPI = axios.create({
+  baseURL: `${VITE_ACTIVITY_SERVICE_URL}/centre_activities`,
+});
+
+export const centreActivityAvailabilitiesAPI = axios.create({
+  baseURL: `${VITE_ACTIVITY_SERVICE_URL}/centre_activity_availabilities`,
+});
+
 export const careCentreAPI = axios.create({
   baseURL: `${VITE_ACTIVITY_SERVICE_URL}/care_centres`,
 });

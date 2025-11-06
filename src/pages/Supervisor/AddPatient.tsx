@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { SubmitHandler, useForm } from "react-hook-form";
+import { SubmitHandler, useFieldArray, useForm } from "react-hook-form";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Label } from "@/components/ui/label";
@@ -21,6 +21,7 @@ import useUploadPatientPhoto from "@/hooks/patient/useUploadPatientPhoto";
 import { AddPatientSection } from "@/api/patients/patients";
 import useAddPatientPrivacyLevel from "@/hooks/patient/useAddPatientPrivacyLevel";
 import { AddPatientPrivacyLevel } from "@/api/patients/privacyLevel";
+import { addPatientGuardian, IGuardianFormData } from "@/api/patients/guardian";
 
 const patientInfoSchema = z
   .object({
@@ -116,16 +117,64 @@ const patientInfoSchema = z
     }
   });
 
+const guardianSchema = z.object({
+  firstName: z.string().trim().min(1, "First name is required"),
+  lastName: z.string().trim().min(1, "Last name is required"),
+  preferredName: z.string().trim().min(1, "Preferred name is required"),
+  gender: z.enum(["M", "F"], { message: "Gender is required" }),
+  contactNo: z
+    .string()
+    .trim()
+    .min(1, "Contact No. is required")
+    .regex(/^[689]\d{7}$/, "Contact must start with 6/8/9 and be 8 digits"),
+  nric: z
+    .string()
+    .trim()
+    .min(1, "NRIC is required")
+    .refine(
+      (v) => /^[STFGM]\d{7}[A-Z]$/.test(v),
+      "NRIC must be 9 chars: S/T/F/G/M + 7 digits + letter"
+    ),
+  email: z.string().trim().email("Invalid email"),
+  dateOfBirth: z.string().min(1, "Date of birth is required"),
+  address: z.string().trim().min(1, "Address is required"),
+  tempAddress: z.string().trim().optional().or(z.literal("")),
+  relationshipName: z
+    .string()
+    .refine(
+      (v): v is (typeof RELATIONSHIP_OPTIONS)[number] =>
+        RELATIONSHIP_OPTIONS.includes(v as any),
+      "Relationship is required"
+    ),
+});
+
 const formSchema = z.object({
   patientInfoSchema: patientInfoSchema,
+  guardians: z.array(guardianSchema).max(2, "Only up to 2 guardians"),
 });
 
 type FormInputs = z.infer<typeof formSchema>;
 
+type AddressPath =
+  | `patientInfoSchema.${"address" | "tempAddress"}`
+  | `guardians.${number}.${"address" | "tempAddress"}`;
+
+const RELATIONSHIP_OPTIONS = [
+  "Husband",
+  "Wife",
+  "Child",
+  "Parent",
+  "Sibling",
+  "Grandchild",
+  "Friend",
+  "Nephew",
+  "Niece",
+  "Aunt",
+  "Uncle",
+  "Grandparent",
+];
+
 const AddPatient: React.FC = () => {
-  {
-    /* Sidebar Navigation */
-  }
   const [activeSection, setActiveSection] = useState<string>("personal-info");
   const sections = useRef<{ [key: string]: HTMLElement | null }>({
     "personal-info": null,
@@ -135,6 +184,7 @@ const AddPatient: React.FC = () => {
   const [profilePhotoFile, setProfilePhotoFile] = useState<File | null>(null);
   const {
     register,
+    control,
     setValue,
     handleSubmit,
     formState: { errors },
@@ -156,9 +206,14 @@ const AddPatient: React.FC = () => {
         startDate: "",
         endDate: "",
       },
+      guardians: [],
     },
   });
-  //addPatient -> uploadProfilePhotoFile -> addPatientGuardian
+  const {
+    fields: guardianFields,
+    append,
+    remove,
+  } = useFieldArray({ control, name: "guardians" });
   const preferredLanguageListObj = useGetPreferredLanguageList();
   const { mutateAsync: addPatient } = useAddPatient();
   const { mutateAsync: addPatientPrivacyLevel } = useAddPatientPrivacyLevel();
@@ -181,10 +236,12 @@ const AddPatient: React.FC = () => {
   };
 
   const handleUpdateAddressField = (
-    fieldName: "address" | "tempAddress",
+    path: AddressPath,
     searchedAddress: string
   ) => {
-    setValue(`patientInfoSchema.${fieldName}`, searchedAddress, {
+    console.log(`PATH: ${path}`);
+    console.log(`SEARCHED ADDRESS: ${searchedAddress}`);
+    setValue(path, searchedAddress, {
       shouldValidate: true,
       shouldDirty: true,
     });
@@ -233,6 +290,38 @@ const AddPatient: React.FC = () => {
     console.log("addPatient formData", patientFormData);
     const response = await addPatient(patientFormData);
     const patientId = response.data.id;
+
+    if (patientId && data.guardians.length > 0 && currentUser?.userId) {
+      const creator = String(currentUser.userId);
+      const now = getDateTimeNowInUTC();
+
+      const guardians: IGuardianFormData[] = data.guardians.map((g) => ({
+        active: "Y",
+        firstName: g.firstName,
+        lastName: g.lastName,
+        preferredName: g.preferredName || "",
+        gender: g.gender,
+        contactNo: g.contactNo,
+        nric: g.nric,
+        email: g.email,
+        dateOfBirth: convertToUTCISOString(g.dateOfBirth),
+        address: g.address,
+        tempAddress: g.tempAddress || "",
+        status: "Y",
+        isDeleted: "0",
+        guardianApplicationUserId: null,
+        createdDate: now,
+        modifiedDate: now,
+        CreatedById: creator,
+        ModifiedById: creator,
+        patientId,
+        relationshipName: g.relationshipName,
+      }));
+
+      await Promise.all(
+        guardians.map((guardian) => addPatientGuardian(guardian))
+      );
+    }
 
     if (patientId) {
       const addPatientPrivacyLevelForm: AddPatientPrivacyLevel = {
@@ -347,189 +436,616 @@ const AddPatient: React.FC = () => {
       {/* Right Form Content */}
       <div className="w-full lg:w-3/4 p-6">
         <form onSubmit={handleSubmit(handleAddPatient)}>
-          <div className="space-y-12">
-            {/* Patient Information */}
-            <div id="personal-info" className="pb-12">
-              <Card className="shadow-sm">
-                <CardContent className="p-6">
-                  <div className="space-y-6">
-                    <div>
-                      <h2 className="text-xl font-semibold leading-7 text-foreground">
-                        Patient Information
-                      </h2>
-                      <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                        Add in patient's personal information
-                      </p>
-                      <Separator className="my-4" />
+          {/* Patient Information */}
+          <div id="personal-info" className="pb-12">
+            <Card className="shadow-sm">
+              <CardContent className="p-6">
+                <div className="space-y-6">
+                  <div>
+                    <h2 className="text-xl font-semibold leading-7 text-foreground">
+                      Patient Information
+                    </h2>
+                    <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                      Add in patient's personal information
+                    </p>
+                    <Separator className="my-4" />
 
-                      <div className="grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
-                        <div className="sm:col-span-2">
-                          <Label htmlFor="patient-name">
-                            Name{" "}
-                            <span className="text-destructive ml-1">*</span>
-                          </Label>
-                          <input
-                            id="patient-name"
-                            type="text"
-                            className=" block w-full p-2 border rounded-md text-gray-900"
-                            {...register("patientInfoSchema.name")}
-                          />
-                          {errors.patientInfoSchema?.name && (
-                            <div className="text-red-600 text-sm">
-                              {errors.patientInfoSchema?.name.message}
-                            </div>
-                          )}
-                        </div>
+                    <div className="grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
+                      <div className="sm:col-span-2">
+                        <Label htmlFor="patient-name">
+                          Name <span className="text-destructive ml-1">*</span>
+                        </Label>
+                        <input
+                          id="patient-name"
+                          type="text"
+                          className=" block w-full p-2 border rounded-md text-gray-900"
+                          {...register("patientInfoSchema.name")}
+                        />
+                        {errors.patientInfoSchema?.name && (
+                          <div className="text-red-600 text-sm">
+                            {errors.patientInfoSchema?.name.message}
+                          </div>
+                        )}
+                      </div>
 
-                        <div className="sm:col-span-2">
-                          <Label htmlFor="patient-preferred-name">
-                            Preferred Name{" "}
-                            <span className="text-destructive ml-1">*</span>
-                          </Label>
-                          <input
-                            id="patient-preferred-name"
-                            type="text"
-                            className=" block w-full p-2 border rounded-md text-gray-900"
-                            {...register("patientInfoSchema.preferredName")}
-                          />
+                      <div className="sm:col-span-2">
+                        <Label htmlFor="patient-preferred-name">
+                          Preferred Name{" "}
+                          <span className="text-destructive ml-1">*</span>
+                        </Label>
+                        <input
+                          id="patient-preferred-name"
+                          type="text"
+                          className=" block w-full p-2 border rounded-md text-gray-900"
+                          {...register("patientInfoSchema.preferredName")}
+                        />
 
-                          {errors.patientInfoSchema?.preferredName && (
-                            <div className="text-red-600 text-sm">
-                              {errors.patientInfoSchema?.preferredName.message}
-                            </div>
-                          )}
-                        </div>
+                        {errors.patientInfoSchema?.preferredName && (
+                          <div className="text-red-600 text-sm">
+                            {errors.patientInfoSchema?.preferredName.message}
+                          </div>
+                        )}
+                      </div>
 
-                        <div className="sm:col-span-1"></div>
-                        <div className="sm:col-span-2">
-                          <Label htmlFor="patient-nric">
-                            NRIC{" "}
-                            <span className="text-destructive ml-1">*</span>
-                          </Label>
-                          <input
-                            id="patient-nric"
-                            type="text"
-                            maxLength={9}
-                            className=" block w-full p-2 border rounded-md text-gray-900"
-                            {...register("patientInfoSchema.nric")}
-                          />
-                          {errors.patientInfoSchema?.nric && (
-                            <div className="text-red-600 text-sm">
-                              {errors.patientInfoSchema?.nric.message}
-                            </div>
-                          )}
-                        </div>
+                      <div className="sm:col-span-1"></div>
+                      <div className="sm:col-span-2">
+                        <Label htmlFor="patient-nric">
+                          NRIC <span className="text-destructive ml-1">*</span>
+                        </Label>
+                        <input
+                          id="patient-nric"
+                          type="text"
+                          maxLength={9}
+                          className=" block w-full p-2 border rounded-md text-gray-900"
+                          {...register("patientInfoSchema.nric")}
+                        />
+                        {errors.patientInfoSchema?.nric && (
+                          <div className="text-red-600 text-sm">
+                            {errors.patientInfoSchema?.nric.message}
+                          </div>
+                        )}
+                      </div>
 
-                        <div className="sm:col-span-2">
-                          <Label htmlFor="patient-dob">
-                            Date of Birth{" "}
-                            <span className="text-destructive ml-1">*</span>
-                          </Label>
-                          <input
-                            id="patient-dob"
-                            type="date"
-                            className=" block w-full p-2 border rounded-md text-gray-900"
-                            {...register("patientInfoSchema.dateOfBirth")}
-                          />
-                          {errors.patientInfoSchema?.dateOfBirth && (
-                            <div className="text-red-600 text-sm">
-                              {errors.patientInfoSchema?.dateOfBirth.message}
-                            </div>
-                          )}
-                        </div>
+                      <div className="sm:col-span-2">
+                        <Label htmlFor="patient-dob">
+                          Date of Birth{" "}
+                          <span className="text-destructive ml-1">*</span>
+                        </Label>
+                        <input
+                          id="patient-dob"
+                          type="date"
+                          className=" block w-full p-2 border rounded-md text-gray-900"
+                          {...register("patientInfoSchema.dateOfBirth")}
+                        />
+                        {errors.patientInfoSchema?.dateOfBirth && (
+                          <div className="text-red-600 text-sm">
+                            {errors.patientInfoSchema?.dateOfBirth.message}
+                          </div>
+                        )}
+                      </div>
 
-                        <div className="sm:col-span-2">
-                          <Label htmlFor="patient-gender">
-                            Gender{" "}
-                            <span className="text-destructive ml-1">*</span>
-                          </Label>
-                          <div className="flex gap-4 mt-2">
-                            <div className="border border-input rounded-md px-4 py-2">
-                              <div className="flex items-center">
-                                <input
-                                  type="radio"
-                                  id="patient-gender-male"
-                                  value="M"
-                                  {...register("patientInfoSchema.gender")}
-                                  className="h-4 w-4 text-primary border-gray-300 focus:ring-primary"
-                                />
-                                <Label
-                                  htmlFor="patient-gender-male"
-                                  className="ml-2 cursor-pointer"
-                                >
-                                  Male
-                                </Label>
-                              </div>
-                            </div>
-                            <div className="border border-input rounded-md px-4 py-2">
-                              <div className="flex items-center">
-                                <input
-                                  type="radio"
-                                  id="patient-gender-female"
-                                  value="F"
-                                  {...register("patientInfoSchema.gender")}
-                                  className="h-4 w-4 text-primary border-gray-300 focus:ring-primary"
-                                />
-                                <Label
-                                  htmlFor="patient-gender-female"
-                                  className="ml-2 cursor-pointer"
-                                >
-                                  Female
-                                </Label>
-                              </div>
+                      <div className="sm:col-span-2">
+                        <Label htmlFor="patient-gender">
+                          Gender{" "}
+                          <span className="text-destructive ml-1">*</span>
+                        </Label>
+                        <div className="flex gap-4 mt-2">
+                          <div className="border border-input rounded-md px-4 py-2">
+                            <div className="flex items-center">
+                              <input
+                                type="radio"
+                                id="patient-gender-male"
+                                value="M"
+                                {...register("patientInfoSchema.gender")}
+                                className="h-4 w-4 text-primary border-gray-300 focus:ring-primary"
+                              />
+                              <Label
+                                htmlFor="patient-gender-male"
+                                className="ml-2 cursor-pointer"
+                              >
+                                Male
+                              </Label>
                             </div>
                           </div>
-                          {errors.patientInfoSchema?.gender && (
+                          <div className="border border-input rounded-md px-4 py-2">
+                            <div className="flex items-center">
+                              <input
+                                type="radio"
+                                id="patient-gender-female"
+                                value="F"
+                                {...register("patientInfoSchema.gender")}
+                                className="h-4 w-4 text-primary border-gray-300 focus:ring-primary"
+                              />
+                              <Label
+                                htmlFor="patient-gender-female"
+                                className="ml-2 cursor-pointer"
+                              >
+                                Female
+                              </Label>
+                            </div>
+                          </div>
+                        </div>
+                        {errors.patientInfoSchema?.gender && (
+                          <div className="text-red-600 text-sm">
+                            {errors.patientInfoSchema?.gender.message}
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="sm:col-span-2">
+                        <Label htmlFor="patient-home-number">Home Number</Label>
+                        <input
+                          id="patient-home-number"
+                          maxLength={8}
+                          className="block w-full p-2 border rounded-md text-gray-900"
+                          {...register("patientInfoSchema.homeNo")}
+                        />
+                        {errors.patientInfoSchema?.homeNo && (
+                          <div className="text-red-600 text-sm">
+                            {errors.patientInfoSchema?.homeNo.message}
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="sm:col-span-2">
+                        <Label htmlFor="patient-handphone-number">
+                          Mobile Number
+                        </Label>
+                        <input
+                          id="patient-handphone-number"
+                          maxLength={8}
+                          className="block w-full p-2 border rounded-md text-gray-900"
+                          {...register("patientInfoSchema.handphoneNo")}
+                        />
+                        {errors.patientInfoSchema?.handphoneNo && (
+                          <div className="text-red-600 text-sm">
+                            {errors.patientInfoSchema?.handphoneNo.message}
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="sm:col-span-4">
+                        <Label htmlFor="patient-address">
+                          Address{" "}
+                          <span className="text-destructive ml-1">*</span>
+                        </Label>
+                        <div className="flex gap-2 mt-2">
+                          <input
+                            id="patient-address"
+                            className="block w-full p-2 border rounded-md text-gray-900"
+                            {...register("patientInfoSchema.address")}
+                          />
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="icon"
+                            onClick={() =>
+                              openModal("retrieveAddress", {
+                                path: "patientInfoSchema.address",
+                                handleUpdateAddressField,
+                              })
+                            }
+                          >
+                            <Search className="h-4 w-4" />
+                          </Button>
+                        </div>
+                        {errors.patientInfoSchema?.address && (
+                          <div className="text-red-600 text-sm">
+                            {errors.patientInfoSchema?.address.message}
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="sm:col-span-4">
+                        <Label htmlFor="patient-temporary-address">
+                          Temporary Address
+                        </Label>
+                        <div className="flex gap-2 mt-2">
+                          <input
+                            id="patient-temporary-address"
+                            className="block w-full p-2 border rounded-md text-gray-900"
+                            {...register("patientInfoSchema.tempAddress")}
+                          />
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="icon"
+                            onClick={() =>
+                              openModal("retrieveAddress", {
+                                path: "patientInfoSchema.tempAddress",
+                                handleUpdateAddressField,
+                              })
+                            }
+                          >
+                            <Search className="h-4 w-4" />
+                          </Button>
+                        </div>
+                        {errors.patientInfoSchema?.tempAddress && (
+                          <div className="text-red-600 text-sm">
+                            {errors.patientInfoSchema?.tempAddress.message}
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="sm:col-span-1" />
+
+                      <div className="sm:col-span-6">
+                        <Label>Patient Profile Photo </Label>
+                        <Card>
+                          <CardContent className="pt-6">
+                            <ProfilePhotoSet
+                              profilePhotoFile={profilePhotoFile}
+                              setProfilePhotoFile={setProfilePhotoFile}
+                            />
+                          </CardContent>
+                        </Card>
+                      </div>
+
+                      <div className="sm:col-span-2">
+                        <Label htmlFor="patient-preferred-language">
+                          Patient Preferred Language{" "}
+                          <span className="text-red-600">*</span>
+                        </Label>
+                        <select
+                          id="patient-preferred-language"
+                          className="mt-1 block w-full p-2 border rounded-md text-gray-900"
+                          {...register(
+                            "patientInfoSchema.preferredLanguageId",
+                            {
+                              setValueAs: (value) => Number(value),
+                            }
+                          )}
+                        >
+                          <option value="-1">Please select an option</option>
+                          {preferredLanguageListObj.data?.map((pl) => (
+                            <option key={pl.id} value={pl.id}>
+                              {pl.value}
+                            </option>
+                          ))}
+                        </select>
+
+                        {errors.patientInfoSchema?.preferredLanguageId && (
+                          <div className="text-red-600 text-sm">
+                            {
+                              errors.patientInfoSchema?.preferredLanguageId
+                                .message
+                            }
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="sm:col-span-2">
+                        <Label htmlFor="patient-respite-care">
+                          Under Respite Care{" "}
+                          <span className="text-destructive ml-1">*</span>
+                        </Label>
+                        <div className="flex gap-4 mt-2">
+                          <div className="border border-input rounded-md px-4 py-2">
+                            <div className="flex items-center">
+                              <input
+                                type="radio"
+                                id="patient-respite-care-yes"
+                                value="1"
+                                className="h-4 w-4 text-primary border-gray-300 focus:ring-primary"
+                                {...register("patientInfoSchema.isRespiteCare")}
+                              />
+                              <Label
+                                htmlFor="patient-respite-care-yes"
+                                className="ml-2 cursor-pointer"
+                              >
+                                Yes
+                              </Label>
+                            </div>
+                          </div>
+                          <div className="border border-input rounded-md px-4 py-2">
+                            <div className="flex items-center">
+                              <input
+                                type="radio"
+                                id="patient-respite-care-no"
+                                value="0"
+                                className="h-4 w-4 text-primary border-gray-300 focus:ring-primary"
+                                {...register("patientInfoSchema.isRespiteCare")}
+                              />
+                              <Label
+                                htmlFor="patient-respite-care-no"
+                                className="ml-2 cursor-pointer"
+                              >
+                                No
+                              </Label>
+                            </div>
+                          </div>
+                        </div>
+                        {errors.patientInfoSchema?.isRespiteCare && (
+                          <div className="text-red-600 text-sm">
+                            {errors.patientInfoSchema?.isRespiteCare.message}
+                          </div>
+                        )}
+                      </div>
+                      <div className="sm:col-span-2" />
+
+                      <div className="sm:col-span-2">
+                        <Label htmlFor="patient-joining-date">
+                          Joining Date{" "}
+                          <span className="text-destructive ml-1">*</span>
+                        </Label>
+                        <input
+                          id="patient-joining-date"
+                          type="date"
+                          className=" block w-full p-2 border rounded-md text-gray-900"
+                          {...register("patientInfoSchema.startDate")}
+                        />
+                        {errors.patientInfoSchema?.startDate && (
+                          <div className="text-red-600 text-sm">
+                            {errors.patientInfoSchema?.startDate.message}
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="sm:col-span-2">
+                        <Label htmlFor="patient-leaving-date">
+                          Leaving Date (if any)
+                        </Label>
+                        <input
+                          id="patient-leaving-date"
+                          type="date"
+                          className=" block w-full p-2 border rounded-md text-gray-900"
+                          {...register("patientInfoSchema.endDate")}
+                        />
+                        {errors.patientInfoSchema?.endDate && (
+                          <div className="text-red-600 text-sm">
+                            {errors.patientInfoSchema?.endDate.message}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+          {/* Guardian Information */}
+          <div id="guardian-info" className="pb-12">
+            <Card className="shadow-sm">
+              <CardContent className="p-6">
+                <div className="space-y-6">
+                  <div>
+                    <h2 className="text-xl font-semibold leading-7 text-foreground">
+                      Guardian Information
+                    </h2>
+                    <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                      Add up to two guardians linked to this patient.
+                    </p>
+                    <Separator className="my-4" />
+
+                    {guardianFields.length === 0 && (
+                      <div className="text-sm text-muted-foreground">
+                        No guardians added yet.
+                      </div>
+                    )}
+
+                    {/* Guardians list */}
+                    {guardianFields.map((g, index) => (
+                      <div
+                        key={g.id}
+                        className="border rounded-lg p-4 mb-6 grid grid-cols-1 gap-x-6 gap-y-5 sm:grid-cols-6"
+                      >
+                        <div className="sm:col-span-2">
+                          <Label>
+                            First Name{" "}
+                            <span className="text-destructive">*</span>
+                          </Label>
+                          <input
+                            className="mt-1 block w-full p-2 border rounded-md text-gray-900"
+                            {...register(`guardians.${index}.firstName`)}
+                          />
+                          {errors.guardians?.[index]?.firstName && (
                             <div className="text-red-600 text-sm">
-                              {errors.patientInfoSchema?.gender.message}
+                              {
+                                errors.guardians[index]!.firstName!
+                                  .message as string
+                              }
                             </div>
                           )}
                         </div>
 
                         <div className="sm:col-span-2">
-                          <Label htmlFor="patient-home-number">
-                            Home Number
+                          <Label>
+                            Last Name{" "}
+                            <span className="text-destructive">*</span>
                           </Label>
                           <input
-                            id="patient-home-number"
-                            maxLength={8}
-                            className="block w-full p-2 border rounded-md text-gray-900"
-                            {...register("patientInfoSchema.homeNo")}
+                            className="mt-1 block w-full p-2 border rounded-md text-gray-900"
+                            {...register(`guardians.${index}.lastName`)}
                           />
-                          {errors.patientInfoSchema?.homeNo && (
+                          {errors.guardians?.[index]?.lastName && (
                             <div className="text-red-600 text-sm">
-                              {errors.patientInfoSchema?.homeNo.message}
+                              {
+                                errors.guardians[index]!.lastName!
+                                  .message as string
+                              }
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="sm:col-span-2 flex items-start justify-end">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            className="text-red-600 border-red-200"
+                            onClick={() => remove(index)}
+                          >
+                            Remove
+                          </Button>
+                        </div>
+
+                        <div className="sm:col-span-3">
+                          <Label>
+                            Preferred Name
+                            <span className="text-destructive">*</span>
+                          </Label>
+                          <input
+                            className="mt-1 block w-full p-2 border rounded-md text-gray-900"
+                            {...register(`guardians.${index}.preferredName`)}
+                          />
+                          {errors.guardians?.[index]?.preferredName && (
+                            <div className="text-red-600 text-sm">
+                              {
+                                errors.guardians[index]!.preferredName!
+                                  .message as string
+                              }
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="sm:col-span-3">
+                          <Label>
+                            Relationship{" "}
+                            <span className="text-destructive">*</span>
+                          </Label>
+                          <select
+                            className="mt-1 block w-full p-2 border rounded-md text-gray-900"
+                            {...register(`guardians.${index}.relationshipName`)}
+                            defaultValue=""
+                          >
+                            <option value="" disabled>
+                              Please select a relationship
+                            </option>
+                            {RELATIONSHIP_OPTIONS.map((opt) => (
+                              <option key={opt} value={opt}>
+                                {opt}
+                              </option>
+                            ))}
+                          </select>
+                          {errors.guardians?.[index]?.relationshipName && (
+                            <div className="text-red-600 text-sm">
+                              {
+                                errors.guardians[index]!.relationshipName!
+                                  .message as string
+                              }
                             </div>
                           )}
                         </div>
 
                         <div className="sm:col-span-2">
-                          <Label htmlFor="patient-handphone-number">
-                            Mobile Number
+                          <Label>
+                            NRIC
+                            <span className="text-destructive">*</span>
                           </Label>
                           <input
-                            id="patient-handphone-number"
-                            maxLength={8}
-                            className="block w-full p-2 border rounded-md text-gray-900"
-                            {...register("patientInfoSchema.handphoneNo")}
+                            maxLength={9}
+                            className="mt-1 block w-full p-2 border rounded-md text-gray-900"
+                            {...register(`guardians.${index}.nric`)}
                           />
-                          {errors.patientInfoSchema?.handphoneNo && (
+                          {errors.guardians?.[index]?.nric && (
                             <div className="text-red-600 text-sm">
-                              {errors.patientInfoSchema?.handphoneNo.message}
+                              {errors.guardians[index]!.nric!.message as string}
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="sm:col-span-2">
+                          <Label>
+                            Date of Birth{" "}
+                            <span className="text-destructive">*</span>
+                          </Label>
+                          <input
+                            type="date"
+                            className="mt-1 block w-full p-2 border rounded-md text-gray-900"
+                            {...register(`guardians.${index}.dateOfBirth`)}
+                          />
+                          {errors.guardians?.[index]?.dateOfBirth && (
+                            <div className="text-red-600 text-sm">
+                              {
+                                errors.guardians[index]!.dateOfBirth!
+                                  .message as string
+                              }
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="sm:col-span-2">
+                          <Label>
+                            Gender <span className="text-destructive">*</span>
+                          </Label>
+                          <div className="flex gap-4 mt-2">
+                            <label className="border border-input rounded-md px-4 py-2 cursor-pointer">
+                              <input
+                                type="radio"
+                                value="M"
+                                {...register(`guardians.${index}.gender`)}
+                                className="mr-2"
+                              />
+                              Male
+                            </label>
+                            <label className="border border-input rounded-md px-4 py-2 cursor-pointer">
+                              <input
+                                type="radio"
+                                value="F"
+                                {...register(`guardians.${index}.gender`)}
+                                className="mr-2"
+                              />
+                              Female
+                            </label>
+                          </div>
+                          {errors.guardians?.[index]?.gender && (
+                            <div className="text-red-600 text-sm">
+                              {
+                                errors.guardians[index]!.gender!
+                                  .message as string
+                              }
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="sm:col-span-2">
+                          <Label>
+                            Contact No.{" "}
+                            <span className="text-destructive">*</span>
+                          </Label>
+                          <input
+                            maxLength={8}
+                            className="mt-1 block w-full p-2 border rounded-md text-gray-900"
+                            {...register(`guardians.${index}.contactNo`)}
+                          />
+                          {errors.guardians?.[index]?.contactNo && (
+                            <div className="text-red-600 text-sm">
+                              {
+                                errors.guardians[index]!.contactNo!
+                                  .message as string
+                              }
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="sm:col-span-2">
+                          <Label>
+                            Email
+                            <span className="text-destructive">*</span>
+                          </Label>
+                          <input
+                            type="email"
+                            className="mt-1 block w-full p-2 border rounded-md text-gray-900"
+                            {...register(`guardians.${index}.email`)}
+                          />
+                          {errors.guardians?.[index]?.email && (
+                            <div className="text-red-600 text-sm">
+                              {
+                                errors.guardians[index]!.email!
+                                  .message as string
+                              }
                             </div>
                           )}
                         </div>
 
                         <div className="sm:col-span-4">
-                          <Label htmlFor="patient-address">
+                          <Label>
                             Address{" "}
                             <span className="text-destructive ml-1">*</span>
                           </Label>
                           <div className="flex gap-2 mt-2">
                             <input
-                              id="patient-address"
                               className="block w-full p-2 border rounded-md text-gray-900"
-                              {...register("patientInfoSchema.address")}
+                              {...register(`guardians.${index}.address`)}
                             />
                             <Button
                               type="button"
@@ -537,7 +1053,7 @@ const AddPatient: React.FC = () => {
                               size="icon"
                               onClick={() =>
                                 openModal("retrieveAddress", {
-                                  fieldName: "address",
+                                  path: `guardians.${index}.address`,
                                   handleUpdateAddressField,
                                 })
                               }
@@ -545,22 +1061,22 @@ const AddPatient: React.FC = () => {
                               <Search className="h-4 w-4" />
                             </Button>
                           </div>
-                          {errors.patientInfoSchema?.address && (
+                          {errors.guardians?.[index]?.address && (
                             <div className="text-red-600 text-sm">
-                              {errors.patientInfoSchema?.address.message}
+                              {
+                                errors.guardians[index]!.address!
+                                  .message as string
+                              }
                             </div>
                           )}
                         </div>
 
                         <div className="sm:col-span-4">
-                          <Label htmlFor="patient-temporary-address">
-                            Temporary Address
-                          </Label>
+                          <Label>Temporary Address</Label>
                           <div className="flex gap-2 mt-2">
                             <input
-                              id="patient-temporary-address"
                               className="block w-full p-2 border rounded-md text-gray-900"
-                              {...register("patientInfoSchema.tempAddress")}
+                              {...register(`guardians.${index}.tempAddress`)}
                             />
                             <Button
                               type="button"
@@ -568,7 +1084,7 @@ const AddPatient: React.FC = () => {
                               size="icon"
                               onClick={() =>
                                 openModal("retrieveAddress", {
-                                  fieldName: "tempAddress",
+                                  path: `guardians.${index}.tempAddress`,
                                   handleUpdateAddressField,
                                 })
                               }
@@ -576,153 +1092,53 @@ const AddPatient: React.FC = () => {
                               <Search className="h-4 w-4" />
                             </Button>
                           </div>
-                          {errors.patientInfoSchema?.tempAddress && (
-                            <div className="text-red-600 text-sm">
-                              {errors.patientInfoSchema?.tempAddress.message}
-                            </div>
-                          )}
-                        </div>
-
-                        <div className="sm:col-span-1" />
-
-                        <div className="sm:col-span-6">
-                          <Label>Patient Profile Photo </Label>
-                          <Card>
-                            <CardContent className="pt-6">
-                              <ProfilePhotoSet
-                                profilePhotoFile={profilePhotoFile}
-                                setProfilePhotoFile={setProfilePhotoFile}
-                              />
-                            </CardContent>
-                          </Card>
-                        </div>
-
-                        <div className="sm:col-span-2">
-                          <Label htmlFor="patient-preferred-language">
-                            Patient Preferred Language{" "}
-                            <span className="text-red-600">*</span>
-                          </Label>
-                          <select
-                            id="patient-preferred-language"
-                            className="mt-1 block w-full p-2 border rounded-md text-gray-900"
-                            {...register(
-                              "patientInfoSchema.preferredLanguageId",
-                              {
-                                setValueAs: (value) => Number(value),
-                              }
-                            )}
-                          >
-                            <option value="-1">Please select an option</option>
-                            {preferredLanguageListObj.data?.map((pl) => (
-                              <option key={pl.id} value={pl.id}>
-                                {pl.value}
-                              </option>
-                            ))}
-                          </select>
-
-                          {errors.patientInfoSchema?.preferredLanguageId && (
+                          {errors.guardians?.[index]?.tempAddress && (
                             <div className="text-red-600 text-sm">
                               {
-                                errors.patientInfoSchema?.preferredLanguageId
-                                  .message
+                                errors.guardians[index]!.tempAddress!
+                                  .message as string
                               }
-                            </div>
-                          )}
-                        </div>
-
-                        <div className="sm:col-span-2">
-                          <Label htmlFor="patient-respite-care">
-                            Under Respite Care{" "}
-                            <span className="text-destructive ml-1">*</span>
-                          </Label>
-                          <div className="flex gap-4 mt-2">
-                            <div className="border border-input rounded-md px-4 py-2">
-                              <div className="flex items-center">
-                                <input
-                                  type="radio"
-                                  id="patient-respite-care-yes"
-                                  value="1"
-                                  className="h-4 w-4 text-primary border-gray-300 focus:ring-primary"
-                                  {...register(
-                                    "patientInfoSchema.isRespiteCare"
-                                  )}
-                                />
-                                <Label
-                                  htmlFor="patient-respite-care-yes"
-                                  className="ml-2 cursor-pointer"
-                                >
-                                  Yes
-                                </Label>
-                              </div>
-                            </div>
-                            <div className="border border-input rounded-md px-4 py-2">
-                              <div className="flex items-center">
-                                <input
-                                  type="radio"
-                                  id="patient-respite-care-no"
-                                  value="0"
-                                  className="h-4 w-4 text-primary border-gray-300 focus:ring-primary"
-                                  {...register(
-                                    "patientInfoSchema.isRespiteCare"
-                                  )}
-                                />
-                                <Label
-                                  htmlFor="patient-respite-care-no"
-                                  className="ml-2 cursor-pointer"
-                                >
-                                  No
-                                </Label>
-                              </div>
-                            </div>
-                          </div>
-                          {errors.patientInfoSchema?.isRespiteCare && (
-                            <div className="text-red-600 text-sm">
-                              {errors.patientInfoSchema?.isRespiteCare.message}
-                            </div>
-                          )}
-                        </div>
-                        <div className="sm:col-span-2" />
-
-                        <div className="sm:col-span-2">
-                          <Label htmlFor="patient-joining-date">
-                            Joining Date{" "}
-                            <span className="text-destructive ml-1">*</span>
-                          </Label>
-                          <input
-                            id="patient-joining-date"
-                            type="date"
-                            className=" block w-full p-2 border rounded-md text-gray-900"
-                            {...register("patientInfoSchema.startDate")}
-                          />
-                          {errors.patientInfoSchema?.startDate && (
-                            <div className="text-red-600 text-sm">
-                              {errors.patientInfoSchema?.startDate.message}
-                            </div>
-                          )}
-                        </div>
-
-                        <div className="sm:col-span-2">
-                          <Label htmlFor="patient-leaving-date">
-                            Leaving Date (if any)
-                          </Label>
-                          <input
-                            id="patient-leaving-date"
-                            type="date"
-                            className=" block w-full p-2 border rounded-md text-gray-900"
-                            {...register("patientInfoSchema.endDate")}
-                          />
-                          {errors.patientInfoSchema?.endDate && (
-                            <div className="text-red-600 text-sm">
-                              {errors.patientInfoSchema?.endDate.message}
                             </div>
                           )}
                         </div>
                       </div>
+                    ))}
+
+                    {/* Add / Remove buttons */}
+                    <div className="flex items-center gap-2 mt-3">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() =>
+                          guardianFields.length < 2 &&
+                          append({
+                            firstName: "",
+                            lastName: "",
+                            preferredName: "",
+                            gender: undefined as unknown as "M" | "F",
+                            contactNo: "",
+                            nric: "",
+                            email: "",
+                            dateOfBirth: "",
+                            address: "",
+                            tempAddress: "",
+                            relationshipName: "",
+                          })
+                        }
+                        disabled={guardianFields.length >= 2}
+                      >
+                        Add Guardian
+                      </Button>
+                      {guardianFields.length > 0 && (
+                        <span className="text-sm text-muted-foreground">
+                          {guardianFields.length}/2 added
+                        </span>
+                      )}
                     </div>
                   </div>
-                </CardContent>
-              </Card>
-            </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
           <div className="flex items-center justify-end gap-x-6">
             <button
