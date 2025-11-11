@@ -28,11 +28,11 @@ export const convertIsAfterMeal = (
   keyValue: string | null | undefined
 ): string => {
   if (keyValue === "1") {
-    return "YES";
+    return "AFTER FOOD";
   } else if (keyValue === "0") {
-    return "NO";
+    return "BEFORE FOOD";
   } else if (keyValue === "2") {
-    return `DOESN'T MATTER `;
+    return "DOES NOT MATTER";
   } else {
     return "";
   }
