@@ -123,26 +123,62 @@ const EditPrescriptionModal: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium">
+              <label className="block text-sm font-medium mb-2">
                 To be taken<span className="text-red-600">*</span>
               </label>
-              <select
-                name="IsAfterMeal"
-                className="mt-1 block w-full p-2 border rounded-md text-gray-900"
-                value={prescription.IsAfterMeal}
-                onChange={(e) =>
-                  setPrescription({
-                    ...prescription,
-                    IsAfterMeal: e.target.value,
-                  })
-                }
-                required
-              >
-                <option value="">Please select a option</option>
-                <option value="0">Before Meal</option>
-                <option value="1">After Meal</option>
-                <option value="2">Doesn't Matter</option>
-              </select>
+              <div className="space-y-2">
+                <label className="flex items-center">
+                  <input
+                    type="radio"
+                    name="IsAfterMeal"
+                    value="0"
+                    checked={prescription.IsAfterMeal === "0"}
+                    onChange={(e) =>
+                      setPrescription({
+                        ...prescription,
+                        IsAfterMeal: e.target.value,
+                      })
+                    }
+                    className="mr-2"
+                    required
+                  />
+                  <span className="text-sm">Before Meal</span>
+                </label>
+                <label className="flex items-center">
+                  <input
+                    type="radio"
+                    name="IsAfterMeal"
+                    value="1"
+                    checked={prescription.IsAfterMeal === "1"}
+                    onChange={(e) =>
+                      setPrescription({
+                        ...prescription,
+                        IsAfterMeal: e.target.value,
+                      })
+                    }
+                    className="mr-2"
+                    required
+                  />
+                  <span className="text-sm">After Meal</span>
+                </label>
+                <label className="flex items-center">
+                  <input
+                    type="radio"
+                    name="IsAfterMeal"
+                    value="2"
+                    checked={prescription.IsAfterMeal === "2"}
+                    onChange={(e) =>
+                      setPrescription({
+                        ...prescription,
+                        IsAfterMeal: e.target.value,
+                      })
+                    }
+                    className="mr-2"
+                    required
+                  />
+                  <span className="text-sm">Doesn't Matter</span>
+                </label>
+              </div>
             </div>
 
             <div>
@@ -181,22 +217,39 @@ const EditPrescriptionModal: React.FC = () => {
             </div>
 
             <div className="col-span-1">
-              <label className="block text-sm font-medium">
+              <label className="block text-sm font-medium mb-2">
                 Status<span className="text-red-600">*</span>
               </label>
-              <select
-                name="Status"
-                className="mt-1 block w-full p-2 border rounded-md text-gray-900"
-                value={prescription.Status}
-                onChange={(e) =>
-                  setPrescription({ ...prescription, Status: e.target.value })
-                }
-                required
-              >
-                <option value="">Please select a option</option>
-                <option value="0">NON-CHRONIC</option>
-                <option value="1">CHRONIC</option>
-              </select>
+              <div className="flex flex-row space-x-6">
+                <label className="flex items-center">
+                  <input
+                    type="radio"
+                    name="Status"
+                    value="0"
+                    checked={prescription.Status === "0"}
+                    onChange={(e) =>
+                      setPrescription({ ...prescription, Status: e.target.value })
+                    }
+                    className="mr-2"
+                    required
+                  />
+                  <span className="text-sm">NON-CHRONIC</span>
+                </label>
+                <label className="flex items-center">
+                  <input
+                    type="radio"
+                    name="Status"
+                    value="1"
+                    checked={prescription.Status === "1"}
+                    onChange={(e) =>
+                      setPrescription({ ...prescription, Status: e.target.value })
+                    }
+                    className="mr-2"
+                    required
+                  />
+                  <span className="text-sm">CHRONIC</span>
+                </label>
+              </div>
             </div>
 
             <div className="col-span-2">
