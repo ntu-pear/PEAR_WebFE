@@ -1,7 +1,8 @@
-import { EyeIcon, EyeOffIcon } from "lucide-react";
+import { EyeIcon, EyeOffIcon, Info } from "lucide-react";
 import { useViewAccount } from "@/hooks/admin/useViewAccount";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "../ui/button";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip";
 
 const AccountInfoTab: React.FC = () => {
   const {
@@ -87,7 +88,17 @@ const AccountInfoTab: React.FC = () => {
             <p id="accountinfo-status">{accountInfo?.isDeleted ? "Inactive" : "Active"}</p>
           </div>
           <div className="space-y-2">
-            <p className="text-sm font-medium">Account Verified</p>
+            <div className="flex items-center gap-1">
+              <p className="text-sm font-medium">Account Verified</p>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger><Info className="h-4 w-4 text-blue-500"/></TooltipTrigger>
+                  <TooltipContent>
+                    Indicates whether the account has been verified.
+                  </TooltipContent>
+                </Tooltip>
+                </TooltipProvider> 
+            </div>
             <p id="accountinfo-verified">{accountInfo?.verified ? "Yes" : "No"}</p>
           </div>
           <div className="space-y-2">
@@ -99,11 +110,31 @@ const AccountInfoTab: React.FC = () => {
             <p id="accountinfo-role">{accountInfo?.roleName || "NA"}</p>
           </div>
           <div className="space-y-2">
-            <p className="text-sm font-medium">Lockout Enabled</p>
+            <div className="flex items-center gap-1">
+              <p className="text-sm font-medium">Lockout Enabled</p>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger><Info className="h-4 w-4 text-blue-500"/></TooltipTrigger>
+                  <TooltipContent>
+                    Indicates whether the account has been temporarily disabled.
+                  </TooltipContent>
+                </Tooltip>
+                </TooltipProvider> 
+            </div>
             <p id="accountinfo-lockout-enabled">{accountInfo?.lockOutEnabled ? "Yes" : "No"}</p>
           </div>
           <div className="space-y-2">
-            <p className="text-sm font-medium">Lockout Reason</p>
+            <div className="flex items-center gap-1">
+              <p className="text-sm font-medium">Lockout Reason</p>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger><Info className="h-4 w-4 text-blue-500"/></TooltipTrigger>
+                  <TooltipContent>
+                    Reason for temporarily disabling the account.
+                  </TooltipContent>
+                </Tooltip>
+                </TooltipProvider> 
+            </div>
             <p id="accountinfo-lockout-reason">{accountInfo?.lockOutReason || "NA"}</p>
           </div>
           <div className="space-y-2">
