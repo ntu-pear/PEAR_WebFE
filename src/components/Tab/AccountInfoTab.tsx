@@ -99,16 +99,16 @@ const AccountInfoTab: React.FC = () => {
             <p id="accountinfo-role">{accountInfo?.roleName || "NA"}</p>
           </div>
           <div className="space-y-2">
-            <p className="text-sm font-medium">Two Factor Enabled</p>
-            <p id="accountinfo-2fa">{accountInfo?.twoFactorEnabled ? "Yes" : "No"}</p>
-          </div>
-          <div className="space-y-2">
             <p className="text-sm font-medium">Lockout Enabled</p>
             <p id="accountinfo-lockout-enabled">{accountInfo?.lockOutEnabled ? "Yes" : "No"}</p>
           </div>
           <div className="space-y-2">
             <p className="text-sm font-medium">Lockout Reason</p>
             <p id="accountinfo-lockout-reason">{accountInfo?.lockOutReason || "NA"}</p>
+          </div>
+          <div className="space-y-2">
+            <p className="text-sm font-medium">Two Factor Enabled</p>
+            <p id="accountinfo-2fa">{accountInfo?.twoFactorEnabled ? "Yes" : "No"}</p>
           </div>
           <div className="space-y-2">
             <p className="text-sm font-medium">Login Timestamp</p>
