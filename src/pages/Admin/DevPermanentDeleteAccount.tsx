@@ -54,7 +54,7 @@ const DevPermanentDelete: React.FC = () => {
 
   const handleFetchUser = async () => {
     if (!userId.trim()) {
-      toast.error("Please enter a valid user ID");
+      toast.error("Please enter a valid user ID.");
       return;
     }
 
@@ -62,9 +62,9 @@ const DevPermanentDelete: React.FC = () => {
     try {
       const user = await fetchUserById(userId.trim());
       setUserInfo(user);
-      toast.success("User information loaded");
+      toast.success("User information loaded.");
     } catch (error) {
-      toast.error("Failed to fetch user information");
+      toast.error("Failed to fetch user information.");
       setUserInfo(null);
     } finally {
       setIsLoading(false);
@@ -84,7 +84,7 @@ const DevPermanentDelete: React.FC = () => {
     try {
       await permanentDeleteUserById(userInfo.id);
       toast.success(
-        `User ${userInfo.nric_FullName} has been permanently deleted`
+        `User ${userInfo.nric_FullName} has been permanently deleted.`
       );
       setUserInfo(null);
       setUserId("");

@@ -117,14 +117,14 @@ const PatientScheduleView: React.FC = () => {
       );
       
       toast.success(
-        `Exported ${result.recordsExported} activities for ${result.exportDate}`,
+        `${result.recordsExported} activities for ${result.exportDate} exported successfully.`,
         {
           description: `File: ${result.filename}`,
         }
       );
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-      toast.error(`Export failed: ${errorMessage}`);
+      toast.error(`Export failed: ${errorMessage}.`);
     }
   };
 

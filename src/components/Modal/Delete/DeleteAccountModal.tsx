@@ -15,7 +15,7 @@ const DeleteAccountModal: React.FC = () => {
     try {
       const updatedUser = await deleteUserById(accountId);
       closeModal();
-      toast.success("Account deleted successfully");
+      toast.success("Account deleted successfully.");
       await refreshAccountData(updatedUser);
     } catch (error: any) {
       if (error instanceof AxiosError) {
@@ -24,7 +24,7 @@ const DeleteAccountModal: React.FC = () => {
             `Error ${error.response.status}: ${error.response.data.detail}`
           );
         } else {
-          toast.error("Error: Failed to delete account");
+          toast.error("Error: Failed to delete account.");
         }
       }
     }

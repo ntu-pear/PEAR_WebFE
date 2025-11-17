@@ -147,7 +147,7 @@ const EditAccountInfoModal: React.FC = () => {
       if (error instanceof AxiosError) {
         if (error.response && error.response.data.detail) {
           toast.error(
-            `Error ${error.response.status}: ${error.response.data.detail}`
+            `Error ${error.response.status}: ${error.response.data.detail}.`
           );
         } else {
           toast.error("Error: Failed to update account information.");
