@@ -307,7 +307,7 @@ const CentreActivityExclusionCard: React.FC<ActivityExclusionCardProps> = ({ pat
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Activity Exclusions</CardTitle>
+          <CardTitle>Centre Activity Exclusions</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="text-center py-8">Loading...</div>
@@ -320,7 +320,7 @@ const CentreActivityExclusionCard: React.FC<ActivityExclusionCardProps> = ({ pat
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Activity Exclusions</CardTitle>
+          <CardTitle>Centre Activity Exclusions</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="text-center py-8 text-red-600">{error}</div>
@@ -333,7 +333,7 @@ const CentreActivityExclusionCard: React.FC<ActivityExclusionCardProps> = ({ pat
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle>Activity Exclusions</CardTitle>
+          <CardTitle>Centre Activity Exclusions</CardTitle>
           <div className="flex items-center gap-3">
             {selectedItems.size > 0 && (
               <div className="flex items-center gap-2">
