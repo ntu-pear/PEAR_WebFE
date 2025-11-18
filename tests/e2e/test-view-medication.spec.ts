@@ -75,7 +75,7 @@ test.describe("Supervisor: Manage Medication", () => {
     });
 
     await test.step("Check medication table is visible or no data", async () => {
-      const medicationTable = await page.getByRole("table").last();
+      const medicationTable = await page.getByRole("table").nth(1);
 
       if (await medicationTable.isVisible()) {
         const headers = [
@@ -145,6 +145,7 @@ test.describe("Supervisor: Manage Medication", () => {
       await expect(
         page.getByRole("heading", { name: "Edit Medication" })
       ).toBeVisible();
+      await page.waitForTimeout(2000);
       const instruction = "E2E test edit";
       await page.locator('textarea[name="Instruction"]').fill(instruction);
       await page.getByRole("button", { name: "Save Changes" }).click();
@@ -156,7 +157,7 @@ test.describe("Supervisor: Manage Medication", () => {
     });
 
     await test.step("Delete medication", async () => {
-      const medicationTable = page.getByRole("table").last();
+      const medicationTable = page.getByRole("table").nth(1);
       const rows = await medicationTable.locator("tbody tr").all();
 
       rows[0].getByRole("button", { name: "Delete" }).click();
@@ -168,9 +169,13 @@ test.describe("Supervisor: Manage Medication", () => {
       await page.locator("[type=submit]").first().click();
       await page.waitForTimeout(1200);
 
-      await expect(
-        await medicationTable.locator("tbody tr").all()
-      ).toHaveLength(rows.length - 1);
+      if (rows.length - 1 > 0) {
+        await expect(
+          await medicationTable.locator("tbody tr").all()
+        ).toHaveLength(rows.length - 1);
+      } else {
+        expect(page.getByText("No data found")).toBeVisible();
+      }
     });
 
     await test.step("Close medication dropdown", async () => {

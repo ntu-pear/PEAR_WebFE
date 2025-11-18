@@ -64,10 +64,11 @@ const ManageMedication: React.FC = () => {
           pageNo
         );
 
+      // Mock caregiverID filtering -> Implement when patient allocation finalized
       const filteredPatientTDList = fetchedPatientTDServer.patients.filter(
         (ptd: PatientTableData) =>
           debouncedRole === "myPatients" && mockCaregiverID !== null
-            ? ptd.supervisorId === mockCaregiverID
+            ? (ptd.caregiverId ?? 0) === mockCaregiverID
             : true
       );
 
