@@ -813,7 +813,9 @@ const AddPatient: React.FC = () => {
                       Guardian Information
                     </h2>
                     <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                      Add up to two guardians linked to this patient.
+                      Add up to two guardians linked to this patient. <br /> The
+                      first guardian will be marked as the primary guardian, and
+                      the second as the secondary guardian.
                     </p>
                     <Separator className="my-4" />
 
@@ -829,6 +831,18 @@ const AddPatient: React.FC = () => {
                         key={g.id}
                         className="border rounded-lg p-4 mb-6 grid grid-cols-1 gap-x-6 gap-y-5 sm:grid-cols-6"
                       >
+                        <div className="sm:col-span-6 flex items-center justify-between mb-2">
+                          <p className="font-semibold">
+                            {index === 0
+                              ? "Primary guardian"
+                              : "Secondary guardian"}
+                          </p>
+                          <span className="text-xs text-muted-foreground">
+                            {index === 0
+                              ? "Main point of contact"
+                              : "Additional / backup contact"}
+                          </span>
+                        </div>
                         <div className="sm:col-span-2">
                           <Label>
                             First Name{" "}
