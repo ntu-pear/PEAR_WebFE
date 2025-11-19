@@ -34,8 +34,12 @@ import {
 import { useModal } from "@/hooks/useModal";
 import DeletePatientModal from "@/components/Modal/Delete/DeletePatientModal";
 import { useAuth } from "@/hooks/useAuth";
+import { fetchGuardianPatients } from "@/api/patients/patients";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useNavigate } from "react-router";
 
 const PatientTable: React.FC = () => {
+  const navigate = useNavigate();
   const { currentUser } = useAuth();
   const hasAccessToAllPatients: boolean = (() => {
     switch (currentUser?.roleName) {
@@ -44,6 +48,8 @@ const PatientTable: React.FC = () => {
       //temporary
       case "DOCTOR":
         return true;
+      case "GUARDIAN":
+        return false;
       default:
         return false;
     }
@@ -57,6 +63,8 @@ const PatientTable: React.FC = () => {
         return "/supervisor/view-patient";
       case "DOCTOR":
         return "/doctor/view-patient";
+      case "GUARDIAN":
+        return "/guardian/view-patient";
       default:
         return "";
     }
@@ -119,8 +127,34 @@ const PatientTable: React.FC = () => {
     }
   };
 
+  const handleGuardianFetch = async () => {
+    try {
+      const guardianId = String(currentUser?.userId)
+      const fetchedPatientTDServer = await fetchGuardianPatients(guardianId)
+      const patientOnly = fetchedPatientTDServer.patients.map(p => p.patient)
+
+      setPatientTDServer({
+        patients: patientOnly,
+        pagination: fetchedPatientTDServer.pagination || {
+          pageNo: 0,
+          pageSize: 1,
+          totalRecords: patientOnly.length,
+          totalPages: 1
+        }
+      })
+      console.log("From Guardian Patients: ", patientTDServer)
+    } catch (error) {
+      console.error("Error fetching patients:", error);
+    }
+  }
+
   const refreshData = () => {
-    handleFilter(patientTDServer.pagination.pageNo || 0);
+    if (currentUser?.roleName === "GUARDIAN") {
+      handleGuardianFetch()
+    }
+    else {
+      handleFilter(patientTDServer.pagination.pageNo || 0);
+    }
   };
 
   // when debounced active, search or tab changes, run refreshData which calls handlefilter
@@ -193,6 +227,124 @@ const PatientTable: React.FC = () => {
       </div>
     ) : null;
 
+  useEffect(() => {
+    if (currentUser?.roleName === "GUARDIAN" && patientTDServer.patients.length > 0 && (!tabValue || !patientTDServer.patients.some(p => p.id.toString() === tabValue))) {
+      setTabValue(patientTDServer.patients[0].id.toString())
+      console.log(currentUser.userId)
+    }
+  }, [patientTDServer.patients, currentUser, tabValue])
+
+  if (currentUser?.roleName === "GUARDIAN") {
+    return (
+      <div className="flex min-h-screen w-full flex-col container mx-auto px-0 sm:px-4">
+        <div className="flex flex-col sm:gap-4 sm:py-4 sm:pl-14">
+          <Tabs
+            className="px-4 py-2"
+            value={tabValue}
+            onValueChange={setTabValue}
+          >
+            <TabsList>
+              {patientTDServer.patients.map((patient) => (
+                <TabsTrigger
+                  key={patient.id}
+                  value={patient.id.toString()}
+                  className="flex items-center gap-2"
+                >
+                  <img src={patient.profilePicture} alt={patient.name} className="w-6 h-6 rounded-full"></img>
+                  <span>{patient.name}</span>
+                </TabsTrigger>
+              ))}
+            </TabsList>
+            {
+              patientTDServer.patients.map((patient) => (
+                <TabsContent key={patient.id} value={patient.id.toString()} className="p-4">
+
+                  <Card className="ml-4 mr-4 sm:ml-6 sm:mr-6 px-4 py-2">
+                    <CardHeader className="flex gap-4">
+                      <CardTitle className="">
+                        <div className="flex justify-end">
+                          <Button className="self-end" 
+                          onClick={()=>{navigate(`${viewMoreBaseLink}/${patient.id}?tab=information`)}}>View More</Button>
+                        </div>
+                        <div className="flex justify-center">
+                          <Avatar className="h-48 w-48">
+                            <AvatarImage
+                              src={patient?.profilePicture}
+                              alt={patient?.name}
+                            />
+                            <AvatarFallback>
+                              <p className="text-5xl">
+                                {patient?.name
+                                  .split(" ")
+                                  .map((n) => n[0])
+                                  .join("")}
+                              </p>
+                            </AvatarFallback>
+                          </Avatar>
+                        </div>
+                      </CardTitle>
+                      <CardDescription className="self-center text-center">
+                        <h1 className="font-bold text-3xl text-gray-600">{patient.name}</h1>
+                        <h1 className="font-bold text-xl text-gray-400">{patient.preferredName}</h1>
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
+
+                      <div className="flex flex-col">
+                        <h1 className="font-bold text-md">Name:</h1>
+                        <p>{patient?.name}</p>
+                      </div>
+                      <div className="flex flex-col">
+                        <h1 className="font-bold text-md">Preferred Name:</h1>
+                        <p >{patient?.preferredName}</p>
+                      </div>
+                      <div className="flex flex-col">
+                        <h1 className="font-bold text-md">NRIC:</h1>
+                        <p>{patient?.nric}</p>
+                      </div>
+                      <div className="flex flex-col">
+                        <h1 className="font-bold text-md">Date Of Birth:</h1>
+                        <p>{patient?.dateOfBirth ? new Date(patient.dateOfBirth).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }) : "N/A"}</p>
+                      </div>
+                      <div className="flex flex-col">
+                        <h1 className="font-bold text-md">Gender:</h1>
+                        <p>{patient?.gender === "M" ? "Male" : "Female"}</p>
+                      </div>
+                      <div className="flex flex-col">
+                        <h1 className="font-bold text-md">Address:</h1>
+                        <p>{patient?.address}</p>
+                      </div>
+                      <div className="flex flex-col">
+                        <h1 className="font-bold text-md">Temp Address:</h1>
+                        <p>{patient?.tempAddress ? patient.tempAddress : "-"}</p>
+                      </div>
+                      <div className="flex flex-col">
+                        <h1 className="font-bold text-md">Start Date:</h1>
+                        <p>{patient?.startDate ? new Date(patient.startDate).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }) : "N/A"}</p>
+                      </div>
+                      <div className="flex flex-col">
+                        <h1 className="font-bold text-md">End Date:</h1>
+                        <p>{patient?.endDate ? new Date(patient.endDate).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }) : "N/A"}</p>
+                      </div>
+                      <div className="flex flex-col">
+                        <h1 className="font-bold text-md">Home No:</h1>
+                        <p>{patient?.homeNo ? patient.homeNo : "-"}</p>
+                      </div>
+                      <div className="flex flex-col">
+                        <h1 className="font-bold text-md">Handphone No:</h1>
+                        <p>{patient?.handphoneNo ? patient.handphoneNo : "-"}</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                </TabsContent>
+              ))
+            }
+          </Tabs>
+        </div>
+      </div>
+    )
+  }
   return (
     <div className="flex min-h-screen w-full flex-col container mx-auto px-0 sm:px-4">
       <div className="flex flex-col sm:gap-4 sm:py-4 sm:pl-14">

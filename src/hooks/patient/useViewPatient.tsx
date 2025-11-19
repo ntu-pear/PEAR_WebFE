@@ -9,10 +9,12 @@ import {
 } from "react";
 import { useParams } from "react-router-dom";
 import { toast } from "sonner";
+import { PatientAllocation, fetchPatientAllocationById } from "@/api/patients/patientAllocation"
 
 export interface ViewPatientContextType {
   id: string | undefined;
   patientInfo: PatientInformation | null;
+  patientAllocation: PatientAllocation | null;
   nricData: {
     nric: string;
     isMasked: boolean;
@@ -30,6 +32,9 @@ export const ViewPatientProvider: React.FC<{ children: ReactNode }> = ({
 }) => {
   const { id } = useParams<{ id: string }>();
   const [patientInfo, setPatientInfo] = useState<PatientInformation | null>(
+    null
+  );
+  const [patientAllocation, setpatientAllocation] = useState<PatientAllocation | null>(
     null
   );
   const [nricData, setNricData] = useState<{ nric: string; isMasked: boolean }>(
@@ -57,6 +62,17 @@ export const ViewPatientProvider: React.FC<{ children: ReactNode }> = ({
     }
   };
 
+  const fetchAllocation = async () => {
+    if (!id || isNaN(Number(id)))return;
+    try{
+      const patientAllocation = await fetchPatientAllocationById(Number(id))
+      setpatientAllocation(patientAllocation)
+    }catch(error){
+      console.error("Failed to fetch patient allocation:", error);
+      toast.error("Failed to fetch patient allocation");
+    }
+  }
+
   const refreshPatientData = async () => {
     if (!id || isNaN(Number(id))) return;
 
@@ -80,6 +96,7 @@ export const ViewPatientProvider: React.FC<{ children: ReactNode }> = ({
 
   useEffect(() => {
     refreshPatientData();
+    fetchAllocation();
   }, []);
 
   // Debug patient info state changes
@@ -96,6 +113,7 @@ export const ViewPatientProvider: React.FC<{ children: ReactNode }> = ({
       value={{
         id,
         patientInfo,
+        patientAllocation,
         nricData,
         handleNRICToggle,
         refreshPatientData,

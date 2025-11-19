@@ -5,11 +5,13 @@ import { PlusCircle } from "lucide-react";
 import { DataTableClient } from "../Table/DataTable";
 import { mockMedicalDetails } from "@/mocks/mockPatientDetails";
 import { useAuth } from "@/hooks/useAuth";
+import { useViewPatient } from "@/hooks/patient/useViewPatient";
 
 const MedicalHistoryCard: React.FC = () => {
   const { currentUser } = useAuth();
   const { openModal } = useModal();
-
+  const { patientAllocation } = useViewPatient();
+  
   const medicalDetailsColumns = [
     { key: "medicalDetails", header: "Medical Details" },
     { key: "informationSource", header: "Information Source" },
@@ -23,7 +25,7 @@ const MedicalHistoryCard: React.FC = () => {
         <CardHeader>
           <CardTitle className="text-lg flex items-center justify-between">
             <span>Medical History</span>
-            {currentUser?.roleName === "SUPERVISOR" && (
+            {(currentUser?.roleName === "SUPERVISOR" || patientAllocation?.guardianApplicationUserId === currentUser?.userId) && (
               <Button
                 size="sm"
                 className="h-8 w-24 gap-1"

@@ -14,7 +14,7 @@ import { FilePenLine, PlusCircle } from "lucide-react";
 const SocialHistoryCard: React.FC = () => {
   const { currentUser } = useAuth();
   const { openModal } = useModal();
-  const { id } = useViewPatient();
+  const { id, patientAllocation } = useViewPatient();
   const [socialHistory, setSocialHistory] = useState<SocialHistoryTD | null>(
     null
   );
@@ -62,7 +62,7 @@ const SocialHistoryCard: React.FC = () => {
             <span>Social History</span>
 
             {!socialHistory
-              ? currentUser?.roleName === "SUPERVISOR" && (
+              ? (currentUser?.roleName === "SUPERVISOR" || patientAllocation?.guardianApplicationUserId === currentUser?.userId) && (
                   <Button
                     size="sm"
                     className="h-8 w-24 gap-1"
