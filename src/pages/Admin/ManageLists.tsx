@@ -143,6 +143,7 @@ const ManageLists: React.FC = () => {
                   openModal("addListItem", {
                     type: debouncedSelectedType,
                     onSave: handleAdd,
+                    existingItems: listItems.map(({ value }) => value),
                   })
                 }
               >
@@ -170,6 +171,7 @@ const ManageLists: React.FC = () => {
                         type: debouncedSelectedType,
                         listItem: row,
                         onSave: handleEdit,
+                        existingItems: listItems.map(({ value }) => value),
                       })
                     }
                   >

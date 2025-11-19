@@ -72,10 +72,10 @@ test("Supervisor: View and filter lists", async ({ page }) => {
 
   await test.step("Filter list items by type", async () => {
     const type = "Diet";
-    await page.getByRole("button", { name: "List Type" }).click();
+    await page.locator(".lucide-list-filter").first().click();
     await page.locator("role=menuitemradio", { hasText: type }).click();
     await page.waitForTimeout(2000);
-    await expect(page.getByText(type)).not.toBeVisible();
+    await expect(page.getByText(type)).toBeVisible();
 
     const rows = await page.locator("tr", { hasNot: page.locator("th") }).all();
     await expect(rows.length).toBeGreaterThanOrEqual(1);
