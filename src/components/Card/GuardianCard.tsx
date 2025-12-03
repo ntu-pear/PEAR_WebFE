@@ -7,7 +7,7 @@ import { useModal } from "@/hooks/useModal";
 import { DataTableClient, TableRowData } from "../Table/DataTable";
 import { CardHeader, CardTitle, CardContent, Card } from "../ui/card";
 import { Button } from "../ui/button";
-
+import { useAuth } from "@/hooks/useAuth";
 import { fetchGuardianByPatientId, IGuardian } from "@/api/patients/guardian";
 
 interface GuardianRow extends TableRowData {
@@ -24,7 +24,7 @@ const GuardianCard: React.FC = () => {
   const { id } = useViewPatient();
   const { openModal } = useModal();
   const [rows, setRows] = useState<GuardianRow[]>([]);
-
+  const { currentUser } = useAuth();
   useEffect(() => {
     const load = async () => {
       if (!id || isNaN(Number(id))) return;
@@ -74,7 +74,21 @@ const GuardianCard: React.FC = () => {
       <CardHeader>
         <CardTitle className="text-lg flex items-center justify-between">
           <span>Guardian</span>
-          <Button
+          {
+            (currentUser?.roleName !== "GUARDIAN") && (
+              <Button
+                size="sm"
+                className="h-8 w-24 gap-1"
+                onClick={() => openModal("addGuardian")}
+              >
+                <PlusCircle className="h-4 w-4" />
+                <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+                  Add
+                </span>
+              </Button>
+            )
+          }
+          {/* <Button
             size="sm"
             className="h-8 w-24 gap-1"
             onClick={() => openModal("addGuardian")}
@@ -83,7 +97,7 @@ const GuardianCard: React.FC = () => {
             <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
               Add
             </span>
-          </Button>
+          </Button> */}
         </CardTitle>
       </CardHeader>
       <CardContent>
