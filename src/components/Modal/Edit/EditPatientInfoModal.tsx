@@ -107,10 +107,17 @@ const EditPatientInfoModal: React.FC = () => {
     >
   ) => {
     const { name, value } = e.target;
-    const upperCaseValue = value.toUpperCase();
+    let filteredValue = value;
+    if(["preferredName","name"].includes(name)){
+      filteredValue = value.replace(/[^a-zA-Z ]/g,"");
+    }
+    if(["handphoneNo","homeNo"].includes(name)){
+      filteredValue = value.replace(/[^0-9]/g,"")
+    }
+    const upperCaseValue = filteredValue.toUpperCase();
     if (patient) {
       if (name === "isActive") {
-        const isActive = value === "1";
+        const isActive = filteredValue === "1";
         setPatient({
           ...patient,
           [name]: upperCaseValue,
@@ -865,7 +872,7 @@ const EditPatientInfoModal: React.FC = () => {
                     value={patient?.startDate || ""}
                     onChange={(e) => handleChange(e)}
                     readOnly={!editableFields.includes("startDate")}
-                    className={`mt-1 block w-full p-2 border rounded-md text-gray-900 ${!editableFields.includes("startDate") ? "bg-gray-100 dark:bg-gray-300 cursor-not-allowed" : ""}`} 
+                    className={`mt-1 block w-full p-2 border rounded-md text-gray-900 ${!editableFields.includes("startDate") ? "bg-gray-100 dark:bg-gray-300 cursor-not-allowed" : ""}`}
                     required
                   />
                 </div>
@@ -877,7 +884,7 @@ const EditPatientInfoModal: React.FC = () => {
                     value={patient?.endDate || ""}
                     onChange={(e) => handleChange(e)}
                     readOnly={!editableFields.includes("endDate")}
-                    className={`mt-1 block w-full p-2 border rounded-md text-gray-900 ${!editableFields.includes("endDate") ? "bg-gray-100 dark:bg-gray-300 cursor-not-allowed" : ""}`} 
+                    className={`mt-1 block w-full p-2 border rounded-md text-gray-900 ${!editableFields.includes("endDate") ? "bg-gray-100 dark:bg-gray-300 cursor-not-allowed" : ""}`}
                     min={
                       patient?.inActiveDate && patient.inActiveDate
                         ? patient.inActiveDate

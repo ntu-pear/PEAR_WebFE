@@ -175,7 +175,7 @@ const ViewPatient: React.FC = () => {
               {(currentUser?.roleName === "SUPERVISOR" || currentUser?.roleName === "GUARDIAN")&& (
                 <TabsTrigger value="photo-album">Photo Album</TabsTrigger>
               )}
-              {currentUser?.roleName === "SUPERVISOR" && (
+              {(currentUser?.roleName === "SUPERVISOR" || currentUser?.roleName === "GUARDIAN") && (
                 <TabsTrigger value="guardian">Guardian</TabsTrigger>
               )}
               {currentUser?.roleName === "SUPERVISOR" && (
@@ -191,7 +191,7 @@ const ViewPatient: React.FC = () => {
               {activeTab === "vital" && <VitalTab />}
               {activeTab === "personal-preference" && <PersonalPreferenceTab />}
               {activeTab === "problem-history" && <ProblemLogTab />}
-              {(currentUser?.roleName === "SUPERVISOR") &&
+              {(currentUser?.roleName === "SUPERVISOR" || currentUser?.roleName === "GUARDIAN") &&
                 activeTab === "activity-preference" && (
                   <ActivityPreferenceTab />
                 )}
@@ -208,7 +208,7 @@ const ViewPatient: React.FC = () => {
 
               {(currentUser?.roleName === "SUPERVISOR" || currentUser?.roleName === "GUARDIAN") &&
                 activeTab === "photo-album" && <PhotoAlbumTab />}
-              {currentUser?.roleName === "SUPERVISOR" &&
+              {(currentUser?.roleName === "SUPERVISOR" || currentUser?.roleName === "GUARDIAN") &&
                 activeTab === "guardian" && <GuardianTab />}
               {currentUser?.roleName === "SUPERVISOR" &&
                 activeTab === "activity-exclusion" && <ActivityExclusionTab />}
