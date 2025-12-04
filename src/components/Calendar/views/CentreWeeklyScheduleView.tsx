@@ -7,7 +7,6 @@ import {
   parseISO,
   parse,
 } from "date-fns";
-import { enUS } from "date-fns/locale";
 import {
   ScheduledCentreActivity,
   ActivityTemplate,
@@ -71,7 +70,7 @@ const CentreWeeklyScheduleView: React.FC<CentreWeeklyScheduleViewProps> = ({
     );
   };
 
-  const weekStart = startOfWeek(currentDate, { locale: enUS });
+  const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 });
 
   return (
     <div className="grid grid-cols-[50px_repeat(7,1fr)] gap-px bg-gray-200 border border-gray-200 rounded-lg overflow-hidden min-h-[600px]">

@@ -51,13 +51,13 @@ const PrescriptionCard: React.FC = () => {
   };
 
   const prescriptionColumns = [
-    { key: "drugName", header: "Drug Name", className: "truncate-column" },
+    { key: "drugName", header: "Drug Name"},
     { key: "dosage", header: "Dosage", className: "truncate-column" },
     { key: "frequencyPerDay", header: "Frequency Per Day" },
     { key: "instruction", header: "Instruction", className: "truncate-column" },
     { key: "startDate", header: "Start Date" },
     { key: "endDate", header: "End Date" },
-    { key: "afterMeal", header: "After Meal" },
+    { key: "afterMeal", header: "To Be Taken" },
     //{ key: 'remark', header: 'Remark', className: 'truncate-column' },
     { key: "status", header: "Status", className: "truncate-column" },
   ];

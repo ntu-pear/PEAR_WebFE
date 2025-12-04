@@ -5,6 +5,8 @@ import { updateUser, User } from "@/api/admin/user";
 import { toast } from "sonner";
 import { fetchRoleNames } from "@/api/role/roles";
 import { AxiosError } from "axios";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../../ui/tooltip";
+import { Info } from "lucide-react";
 
 // Accept accountInfo as a prop via modal props
 const EditAccountInfoModal: React.FC = () => {
@@ -45,15 +47,48 @@ const EditAccountInfoModal: React.FC = () => {
   ) => {
     const { name, value } = e.target;
     if (!account) return;
+    
+    // Convert name fields to uppercase automatically and filter out invalid characters
+    let processedValue = value;
+    if (name === "preferredName" || name === "nric_FullName") {
+      // Only allow letters and spaces, remove numbers and special characters
+      const filteredValue = value.replace(/[^a-zA-Z\s]/g, '');
+      processedValue = filteredValue.toUpperCase();
+    }
+    
     setAccount({
       ...account,
-      [name]: name === "lockOutEnabled" ? value === "true" : value,
+      [name]: name === "lockOutEnabled" ? processedValue === "true" : processedValue,
     });
   };
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!account || !originalAccount) return;
+
+    // Validate that name fields only contain letters and spaces
+    const nameRegex = /^[A-Z\s]*$/;
+    
+    if (account.preferredName && !nameRegex.test(account.preferredName)) {
+      toast.error("Input Error: Preferred Name can only contain letters and spaces.");
+      return;
+    }
+    
+    if (account.nric_FullName && !nameRegex.test(account.nric_FullName)) {
+      toast.error("Input Error: Full Name can only contain letters and spaces.");
+      return;
+    }
+
+    // Validate that name fields are uppercase
+    if (account.preferredName && account.preferredName !== account.preferredName.toUpperCase()) {
+      toast.error("Input Error: Preferred Name must be in uppercase.");
+      return;
+    }
+    
+    if (account.nric_FullName && account.nric_FullName !== account.nric_FullName.toUpperCase()) {
+      toast.error("Input Error: Full Name must be in uppercase.");
+      return;
+    }
 
     // Validate NRIC before checking for changes
     if (account.nric !== originalAccount.nric) {
@@ -112,7 +147,7 @@ const EditAccountInfoModal: React.FC = () => {
       if (error instanceof AxiosError) {
         if (error.response && error.response.data.detail) {
           toast.error(
-            `Error ${error.response.status}: ${error.response.data.detail}`
+            `Error ${error.response.status}: ${error.response.data.detail}.`
           );
         } else {
           toast.error("Error: Failed to update account information.");
@@ -133,6 +168,7 @@ const EditAccountInfoModal: React.FC = () => {
             <div>
               <label className="block text-sm font-medium">
                 Preferred Name
+                <span className="text-xs text-gray-500 ml-1">(uppercase letters only)</span>
               </label>
               <input
                 type="text"
@@ -140,11 +176,13 @@ const EditAccountInfoModal: React.FC = () => {
                 value={account?.preferredName || ""}
                 onChange={handleChange}
                 className="mt-1 block w-full p-2 border rounded-md text-gray-900"
+                placeholder="Enter preferred name"
               />
             </div>
             <div>
               <label className="block text-sm font-medium">
                 Full Name <span className="text-red-600">*</span>
+                <span className="text-xs text-gray-500 ml-1">(uppercase letters only)</span>
               </label>
               <input
                 type="text"
@@ -152,6 +190,7 @@ const EditAccountInfoModal: React.FC = () => {
                 value={account?.nric_FullName || ""}
                 onChange={handleChange}
                 className="mt-1 block w-full p-2 border rounded-md text-gray-900"
+                placeholder="Enter full name"
                 required
               />
             </div>
@@ -190,33 +229,83 @@ const EditAccountInfoModal: React.FC = () => {
             </div>
             <div>
               <label className="block text-sm font-medium">Gender</label>
-              <select
-                name="nric_Gender"
-                value={account?.nric_Gender || ""}
-                onChange={handleChange}
-                className="mt-1 block w-full p-2 border rounded-md text-gray-900"
-              >
-                <option value="M">Male</option>
-                <option value="F">Female</option>
-              </select>
+              <div className="flex flex-row mt-3 space-x-2">
+                <label className="flex items-center">
+                  <input
+                    type="radio"
+                    name="nric_Gender"
+                    value="M"
+                    checked={account?.nric_Gender === "M"}
+                    onChange={handleChange}
+                    className="mr-2"
+                  />
+                  Male
+                </label>
+                <label className="flex items-center">
+                  <input
+                    type="radio"
+                    name="nric_Gender"
+                    value="F"
+                    checked={account?.nric_Gender === "F"}
+                    onChange={handleChange}
+                    className="mr-2"
+                  />
+                  Female
+                </label>
+              </div>
             </div>
             <div>
               <label className="block text-sm font-medium">
-                Lockout Enabled
+                <div className="flex items-center gap-1">
+                  <p>Lockout Enabled</p>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger><Info className="h-4 w-4 text-blue-500"/></TooltipTrigger>
+                      <TooltipContent>
+                        Indicates whether the account has been temporarily disabled.
+                      </TooltipContent>
+                    </Tooltip>
+                    </TooltipProvider> 
+                </div>
               </label>
-              <select
-                name="lockOutEnabled"
-                value={account?.lockOutEnabled ? "true" : "false"}
-                onChange={handleChange}
-                className="mt-1 block w-full p-2 border rounded-md text-gray-900"
-              >
-                <option value="false">No</option>
-                <option value="true">Yes</option>
-              </select>
+              <div className="flex flex-row mt-3 space-x-2">
+                <label className="flex items-center">
+                  <input
+                    type="radio"
+                    name="lockOutEnabled"
+                    value="false"
+                    checked={account?.lockOutEnabled === false}
+                    onChange={handleChange}
+                    className="mr-2"
+                  />
+                  No
+                </label>
+                <label className="flex items-center">
+                  <input
+                    type="radio"
+                    name="lockOutEnabled"
+                    value="true"
+                    checked={account?.lockOutEnabled === true}
+                    onChange={handleChange}
+                    className="mr-2"
+                  />
+                  Yes
+                </label>
+              </div>
             </div>
             <div>
               <label className="block text-sm font-medium">
-                Lockout Reason
+                <div className="flex items-center gap-1">
+                  <p>Lockout Reason</p>{account?.lockOutEnabled && <span className="text-red-600">*</span>}
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger><Info className="h-4 w-4 text-blue-500"/></TooltipTrigger>
+                      <TooltipContent>
+                        Reason for temporarily disabling the account.
+                      </TooltipContent>
+                    </Tooltip>
+                    </TooltipProvider> 
+                </div>
               </label>
               <input
                 type="text"

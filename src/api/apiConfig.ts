@@ -24,6 +24,14 @@ export const activitiesAPI = axios.create({
   baseURL: `${VITE_ACTIVITY_SERVICE_URL}/activities`,
 });
 
+export const centreActivitiesAPI = axios.create({
+  baseURL: `${VITE_ACTIVITY_SERVICE_URL}/centre_activities`,
+});
+
+export const centreActivityAvailabilitiesAPI = axios.create({
+  baseURL: `${VITE_ACTIVITY_SERVICE_URL}/centre_activity_availabilities`,
+});
+
 export const careCentreAPI = axios.create({
   baseURL: `${VITE_ACTIVITY_SERVICE_URL}/care_centres`,
 });
@@ -69,31 +77,103 @@ export const dietListAPI = axios.create({
   baseURL: `${VITE_PATIENT_SERVICE_URL}/get_diet_types`,
 });
 
+export const createDietListAPI = axios.create({
+  baseURL: `${VITE_PATIENT_SERVICE_URL}/create_diet_type`,
+});
+
+export const updateDietListAPI = axios.create({
+  baseURL: `${VITE_PATIENT_SERVICE_URL}/update_diet_type`,
+});
+
+export const deleteDietListAPI = axios.create({
+  baseURL: `${VITE_PATIENT_SERVICE_URL}/delete_diet_type`,
+});
+
 export const educationListAPI = axios.create({
   baseURL: `${VITE_PATIENT_SERVICE_URL}/get_education_types`,
+});
+
+export const createEducationListAPI = axios.create({
+  baseURL: `${VITE_PATIENT_SERVICE_URL}/create_education_type`,
+});
+
+export const updateEducationListAPI = axios.create({
+  baseURL: `${VITE_PATIENT_SERVICE_URL}/update_education_type`,
+});
+
+export const deleteEducationListAPI = axios.create({
+  baseURL: `${VITE_PATIENT_SERVICE_URL}/delete_education_type`,
 });
 
 export const liveWithListAPI = axios.create({
   baseURL: `${VITE_PATIENT_SERVICE_URL}/get_livewith_types`,
 });
 
+export const createLiveWithListAPI = axios.create({
+  baseURL: `${VITE_PATIENT_SERVICE_URL}/create_livewith_type`,
+});
+
+export const updateLiveWithListAPI = axios.create({
+  baseURL: `${VITE_PATIENT_SERVICE_URL}/update_livewith_type`,
+});
+
+export const deleteLiveWithListAPI = axios.create({
+  baseURL: `${VITE_PATIENT_SERVICE_URL}/delete_livewith_type`,
+});
+
 export const occupationListAPI = axios.create({
   baseURL: `${VITE_PATIENT_SERVICE_URL}/get_occupation_types`,
+});
+
+export const createOccupationListAPI = axios.create({
+  baseURL: `${VITE_PATIENT_SERVICE_URL}/create_occupation_type`,
+});
+
+export const updateOccupationListAPI = axios.create({
+  baseURL: `${VITE_PATIENT_SERVICE_URL}/update_occupation_type`,
+});
+
+export const deleteOccupationListAPI = axios.create({
+  baseURL: `${VITE_PATIENT_SERVICE_URL}/delete_occupation_type`,
 });
 
 export const petListAPI = axios.create({
   baseURL: `${VITE_PATIENT_SERVICE_URL}/get_pet_types`,
 });
 
+export const createPetListAPI = axios.create({
+  baseURL: `${VITE_PATIENT_SERVICE_URL}/create_pet_type`,
+});
+
+export const updatePetListAPI = axios.create({
+  baseURL: `${VITE_PATIENT_SERVICE_URL}/update_pet_type`,
+});
+
+export const deletePetListAPI = axios.create({
+  baseURL: `${VITE_PATIENT_SERVICE_URL}/delete_pet_type`,
+});
+
 export const religionListAPI = axios.create({
   baseURL: `${VITE_PATIENT_SERVICE_URL}/get_religion_types`,
+});
+
+export const createReligionListAPI = axios.create({
+  baseURL: `${VITE_PATIENT_SERVICE_URL}/create_religion_type`,
+});
+
+export const updateReligionListAPI = axios.create({
+  baseURL: `${VITE_PATIENT_SERVICE_URL}/update_religion_type`,
+});
+
+export const deleteReligionListAPI = axios.create({
+  baseURL: `${VITE_PATIENT_SERVICE_URL}/delete_religion_type`,
 });
 
 export const vitalAPI = axios.create({
   baseURL: `${VITE_PATIENT_SERVICE_URL}/Vital`,
 });
 
-export const LanguageListPAI = axios.create({
+export const LanguageListAPI = axios.create({
   baseURL: `${VITE_PATIENT_SERVICE_URL}/PatientListLanguage/`,
 });
 
@@ -105,8 +185,32 @@ export const allergyTypeAPI = axios.create({
   baseURL: `${VITE_PATIENT_SERVICE_URL}/get_allergy_types`,
 });
 
+export const createAllergyTypeAPI = axios.create({
+  baseURL: `${VITE_PATIENT_SERVICE_URL}/create_allergy_type`,
+});
+
+export const updateAllergyTypeAPI = axios.create({
+  baseURL: `${VITE_PATIENT_SERVICE_URL}/update_allergy_type`,
+});
+
+export const deleteAllergyTypeAPI = axios.create({
+  baseURL: `${VITE_PATIENT_SERVICE_URL}/delete_allergy_type`,
+});
+
 export const allergyReactionTypeAPI = axios.create({
   baseURL: `${VITE_PATIENT_SERVICE_URL}/get_allergy_reaction_types`,
+});
+
+export const createAllergyReactionTypeAPI = axios.create({
+  baseURL: `${VITE_PATIENT_SERVICE_URL}/create_allergy_reaction_types`,
+});
+
+export const updateAllergyReactionTypeAPI = axios.create({
+  baseURL: `${VITE_PATIENT_SERVICE_URL}/update_allergy_reaction_type`,
+});
+
+export const deleteAllergyReactionTypeAPI = axios.create({
+  baseURL: `${VITE_PATIENT_SERVICE_URL}/delete_allergy_reaction_type`,
 });
 
 export const createPatientAllergyAPI = axios.create({
@@ -147,6 +251,18 @@ export const highlightsAPI = axios.create({
 
 export const highlightTypesAPI = axios.create({
   baseURL: `${VITE_PATIENT_SERVICE_URL}/get_highlight_types`,
+});
+
+export const createHighlightTypesAPI = axios.create({
+  baseURL: `${VITE_PATIENT_SERVICE_URL}/create_highlight_type`,
+});
+
+export const updateHighlightTypesAPI = axios.create({
+  baseURL: `${VITE_PATIENT_SERVICE_URL}/update_highlight_type`,
+});
+
+export const deleteHighlightTypesAPI = axios.create({
+  baseURL: `${VITE_PATIENT_SERVICE_URL}/delete_highlight_type`,
 });
 
 export const getPatientPrivacyLevelAPI = axios.create({

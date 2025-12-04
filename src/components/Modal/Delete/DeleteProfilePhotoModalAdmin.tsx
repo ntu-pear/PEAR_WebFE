@@ -19,7 +19,7 @@ const DeleteProfilePhotoModalAdmin: React.FC = () => {
       await deleteUserProfilePhotoByAdmin(userId);
       refreshProfile();
       closeModal();
-      toast.success(`Deleted profile photo for ${accountName} successfully.`);
+      toast.success(`Profile photo for ${accountName} deleted successfully.`);
     } catch (error) {
       closeModal();
 

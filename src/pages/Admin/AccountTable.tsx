@@ -46,6 +46,7 @@ const AccountTable: React.FC = () => {
   const [tabValue, setTabValue] = useState("all");
   const [sortBy, setSortBy] = useState<string | null>(null);
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
+  const [totalRecords, setTotalRecords] = useState(0);
   const debouncedActiveStatus = useDebounce(activeStatus, 300);
   const debouncedSearch = useDebounce(searchItem, 300);
 
@@ -57,7 +58,34 @@ const AccountTable: React.FC = () => {
     []
   );
 
-  const handleFilter = async (pageNo: number, pageSize: number, sortColumn?: string, sortDirection?: "asc" | "desc") => {
+  // Client-side sorting function
+  const sortUsers = (users: User[], column: string, direction: "asc" | "desc") => {
+    return [...users].sort((a, b) => {
+      let aValue = a[column as keyof User];
+      let bValue = b[column as keyof User];
+
+      // Special handling for Status field (isDeleted)
+      if (column === "isDeleted") {
+        aValue = aValue === false ? "Active" : aValue === true ? "Inactive" : "";
+        bValue = bValue === false ? "Active" : bValue === true ? "Inactive" : "";
+      }
+
+      // Handle null/undefined values
+      if (aValue == null && bValue == null) return 0;
+      if (aValue == null) return direction === "asc" ? 1 : -1;
+      if (bValue == null) return direction === "asc" ? -1 : 1;
+
+      // Convert to string for comparison (handles dates, numbers, strings)
+      const aStr = String(aValue).toLowerCase();
+      const bStr = String(bValue).toLowerCase();
+
+      if (aStr < bStr) return direction === "asc" ? -1 : 1;
+      if (aStr > bStr) return direction === "asc" ? 1 : -1;
+      return 0;
+    });
+  };
+
+  const handleFilter = async (pageNo: number, pageSize: number) => {
     try {
       const apiFilterJson = {
         nric_FullName: debouncedSearch,
@@ -78,18 +106,25 @@ const AccountTable: React.FC = () => {
         Object.entries(apiFilterJson).filter(([_, value]) => value !== "")
       );
 
-      // Use provided sort parameters or current state
-      const currentSortBy = sortColumn !== undefined ? sortColumn : sortBy;
-      const currentSortDir = sortDirection !== undefined ? sortDirection : sortDir;
-
+      // Backend should always sorts by name, client side will sort by current page locally
       const fetchedAccountTDServer: AccountTableDataServer =
-        await fetchUsersByFields(pageNo, pageSize, filteredJsonList, currentSortBy, currentSortDir);
+        await fetchUsersByFields(pageNo, pageSize, filteredJsonList, "nric_FullName", "asc");
 
-      //let filteredAccountTDList = fetchedAccountTDServer.users;
-
-      //const sortedAccountTDList = sortByName(filteredAccountTDList, "asc");
       console.log("fetchedAccountTDServer", fetchedAccountTDServer);
-      setAccountTDServer(fetchedAccountTDServer);
+      
+      // Apply client-side sorting if sortBy is set
+      let sortedUsers = [...fetchedAccountTDServer.users];
+      if (sortBy) {
+        sortedUsers = sortUsers(sortedUsers, sortBy, sortDir);
+      }
+      
+      setAccountTDServer({
+        ...fetchedAccountTDServer,
+        users: sortedUsers
+      });
+
+      // Update total records for "All" option
+      setTotalRecords(fetchedAccountTDServer.total);
     } catch (error) {
       if (error instanceof Error) {
         toast.error("Error fetching accounts: " + error.message);
@@ -103,18 +138,42 @@ const AccountTable: React.FC = () => {
     const newSortDir = sortBy === column && sortDir === "asc" ? "desc" : "asc";
     setSortBy(column);
     setSortDir(newSortDir);
-    handleFilter(accountTDServer.page, accountTDServer.page_size, column, newSortDir);
+    
+    // Sort only the current page data locally
+    const sortedUsers = sortUsers(accountTDServer.users, column, newSortDir);
+    setAccountTDServer({
+      ...accountTDServer,
+      users: sortedUsers
+    });
   };
 
-  const handlePageSizeChange = (newPageSize: number) => {
+  const handlePageSizeChange = (newPageSize: number | string) => {
+    // Handle "All" option by setting page size to total records
+    const actualPageSize = newPageSize === "All" ? totalRecords : Number(newPageSize);
+    
     // Reset to first page when changing page size
     const newAccountTDServer = {
       ...accountTDServer,
       page: 0,
-      page_size: newPageSize,
+      page_size: actualPageSize,
     };
     setAccountTDServer(newAccountTDServer);
-    handleFilter(0, newPageSize);
+    handleFilter(0, actualPageSize);
+  };
+
+  // Generate page size options including "All" option
+  const getPageSizeOptions = () => {
+    const baseOptions = [5, 10, 20, 50, 100];
+    
+    // Filter out options that are larger than total records
+    const filteredOptions = baseOptions.filter(option => option < totalRecords);
+    
+    // Always include "All" option if there are records
+    if (totalRecords > 0) {
+      return [...filteredOptions, "All"];
+    }
+    
+    return filteredOptions.length > 0 ? filteredOptions : [5, 10]; // Fallback options
   };
 
   const handleExport = async () => {
@@ -143,10 +202,10 @@ const AccountTable: React.FC = () => {
       loadingToast = toast.loading("Exporting users...");
       await exportUsers(filteredJsonList);
       toast.dismiss(loadingToast);
-      toast.success("Users exported successfully!");
+      toast.success("Users exported successfully.");
     } catch (error) {
       if (loadingToast) toast.dismiss(loadingToast);
-      toast.error("Failed to export users");
+      toast.error("Failed to export users.");
       console.error("Export error:", error);
     }
   };
@@ -174,6 +233,7 @@ const AccountTable: React.FC = () => {
     {
       key: "isDeleted",
       header: "Status",
+      sortable: true,
       render: (value: boolean | undefined) => {
         const status =
           value === false ? "Active" : value === true ? "Inactive" : "";
@@ -283,7 +343,7 @@ const AccountTable: React.FC = () => {
                     sortDir={sortDir}
                     onSort={handleSort}
                     onPageSizeChange={handlePageSizeChange}
-                    pageSizeOptions={[5, 10, 20, 50, 100]}
+                    pageSizeOptions={getPageSizeOptions()}
                   />
                 </CardContent>
               </Card>

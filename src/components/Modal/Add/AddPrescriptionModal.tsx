@@ -114,18 +114,40 @@ const AddPrescriptionModal: React.FC = () => {
 
           <div>
             <label className="block text-sm font-medium">
-              To be taken<span className="text-red-600">*</span>
+              To Be Taken<span className="text-red-600">*</span>
             </label>
-            <select
-              name="IsAfterMeal"
-              className="mt-1 block w-full p-2 border rounded-md text-gray-900"
-              required
-            >
-              <option value="">Please select a option</option>
-              <option value="0">Before Meal</option>
-              <option value="1">After Meal</option>
-              <option value="2">Doesn't Matter</option>
-            </select>
+            <div className="mt-1 space-y-2">
+              <label className="flex items-center">
+                <input
+                  type="radio"
+                  name="IsAfterMeal"
+                  value="0"
+                  className="mr-2"
+                  required
+                />
+                Before Food
+              </label>
+              <label className="flex items-center">
+                <input
+                  type="radio"
+                  name="IsAfterMeal"
+                  value="1"
+                  className="mr-2"
+                  required
+                />
+                After Food
+              </label>
+              <label className="flex items-center">
+                <input
+                  type="radio"
+                  name="IsAfterMeal"
+                  value="2"
+                  className="mr-2"
+                  required
+                />
+                Does Not Matter
+              </label>
+            </div>
           </div>
 
           <div>
@@ -158,15 +180,28 @@ const AddPrescriptionModal: React.FC = () => {
             <label className="block text-sm font-medium">
               Status<span className="text-red-600">*</span>
             </label>
-            <select
-              name="Status"
-              className="mt-1 block w-full p-2 border rounded-md text-gray-900"
-              required
-            >
-              <option value="">Please select a option</option>
-              <option value="0">NON-CHRONIC</option>
-              <option value="1">CHRONIC</option>
-            </select>
+            <div className="mt-1 space-y-2">
+              <label className="flex items-center">
+                <input
+                  type="radio"
+                  name="Status"
+                  value="0"
+                  className="mr-2"
+                  required
+                />
+                NON-CHRONIC
+              </label>
+              <label className="flex items-center">
+                <input
+                  type="radio"
+                  name="Status"
+                  value="1"
+                  className="mr-2"
+                  required
+                />
+                CHRONIC
+              </label>
+            </div>
           </div>
 
           <div className="col-span-2">

@@ -68,6 +68,11 @@ const supervisorMenu: MenuSection[] = [
         icon: "List",
         path: "/supervisor/manage-centre-activities",
       },
+      {
+        title: "Manage Availabilities",
+        icon: "List",
+        path: "/supervisor/manage-activity-availabilities"
+      }
     ],
   },
   {

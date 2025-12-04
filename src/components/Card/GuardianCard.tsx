@@ -20,11 +20,24 @@ interface GuardianRow extends TableRowData {
   email: string;
 }
 
+import { fetchGuardianByPatientId, IGuardian } from "@/api/patients/guardian";
+
+interface GuardianRow extends TableRowData {
+  guardianName: string;
+  preferredName?: string;
+  nric: string;
+  relationshipWithPatient: string;
+  contactNo: string;
+  address: string;
+  email: string;
+}
+
 const GuardianCard: React.FC = () => {
   const { id } = useViewPatient();
   const { openModal } = useModal();
   const [rows, setRows] = useState<GuardianRow[]>([]);
   const { currentUser } = useAuth();
+
   useEffect(() => {
     const load = async () => {
       if (!id || isNaN(Number(id))) return;

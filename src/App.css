@@ -172,3 +172,9 @@ html body[data-scroll-locked] {
   overflow: visible !important;
   margin-right: 0 !important;
 }
+
+/*make number inputs always show the up and down arrows*/
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button {
+   opacity: 1;
+}
