@@ -386,7 +386,7 @@ const PatientActivityPreferenceCard: React.FC<
 
   // Define actions render function for supervisors
   const renderActions =
-    currentUser?.roleName === "SUPERVISOR"
+    (currentUser?.roleName === "SUPERVISOR")
       ? (item: PatientActivityPreferenceWithRecommendation) => (
           <div className="flex justify-center gap-2">
             <Button

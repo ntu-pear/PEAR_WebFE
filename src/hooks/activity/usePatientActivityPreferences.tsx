@@ -42,7 +42,7 @@ export const usePatientActivityPreferences = (patientId: string) => {
     try {
       setLoading(true);
       setError(null);
-      
+
       // Fetch all required data in parallel
       const [activities, centreActivities, preferences, recommendations] = await Promise.all([
         getAllActivities(),
@@ -50,6 +50,15 @@ export const usePatientActivityPreferences = (patientId: string) => {
         getCentreActivityPreferences(patientId), // Get preferences for specific patient
         getCentreActivityRecommendations(patientId), // Get recommendations for specific patient
       ]);
+
+      console.log("Raw API: Patient Preferences", preferences);  // <- Add this line
+      console.log("Raw API: Patient Recommendations", recommendations); // optional
+      console.log("User sees this combined data:", {
+        activities: activities.length,
+        centreActivities: centreActivities.length,
+        preferences: preferences.length,
+        recommendations: recommendations.length,
+      });
 
       console.log("Fetched patient activity data summary:", {
         patientId,
@@ -61,7 +70,7 @@ export const usePatientActivityPreferences = (patientId: string) => {
 
       // Create a map of centre activity id to activity details
       const centreActivityMap = new Map<number, { activity: Activity; centreActivity: CentreActivity }>();
-      
+
       centreActivities.forEach(centreActivity => {
         const activity = activities.find(a => a.id === centreActivity.activity_id);
         if (activity && !activity.is_deleted && !centreActivity.is_deleted) {

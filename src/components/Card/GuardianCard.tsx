@@ -88,16 +88,6 @@ const GuardianCard: React.FC = () => {
               </Button>
             )
           }
-          {/* <Button
-            size="sm"
-            className="h-8 w-24 gap-1"
-            onClick={() => openModal("addGuardian")}
-          >
-            <PlusCircle className="h-4 w-4" />
-            <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-              Add
-            </span>
-          </Button> */}
         </CardTitle>
       </CardHeader>
       <CardContent>

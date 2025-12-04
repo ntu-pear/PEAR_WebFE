@@ -98,7 +98,7 @@ const PrescriptionCard: React.FC = () => {
             fetchData={handleFetchPrescription}
             columns={prescriptionColumns}
             viewMore={false}
-            renderActions={(item) => (
+            renderActions={(item) => ((currentUser?.roleName != "GUARDIAN"))&&(
               <div className="flex justify-start flex-col">
                 <Button
                   variant="default"
@@ -123,13 +123,45 @@ const PrescriptionCard: React.FC = () => {
                       prescriptionId: String(item.id),
                       submitterId: currentUser?.userId,
                       refreshPrescriptionData,
-                    })
-                  }
+                    })}
+                  
                 >
                   Delete
                 </Button>
               </div>
             )}
+            // renderActions={(item) => (
+            //   <div className="flex justify-start flex-col">
+            //     <Button
+            //       variant="default"
+            //       size="sm"
+            //       className="mt-3"
+            //       onClick={() => {
+            //         openModal("editPrescription", {
+            //           prescriptionId: String(item.id),
+            //           submitterId: currentUser?.userId,
+            //           refreshPrescriptionData,
+            //         });
+            //       }}
+            //     >
+            //       More Details
+            //     </Button>
+            //     <Button
+            //       variant="destructive"
+            //       size="sm"
+            //       className="mt-3"
+            //       onClick={() =>
+            //         openModal("deletePrescription", {
+            //           prescriptionId: String(item.id),
+            //           submitterId: currentUser?.userId,
+            //           refreshPrescriptionData,
+            //         })
+            //       }
+            //     >
+            //       Delete
+            //     </Button>
+            //   </div>
+            // )}
           />
         </CardContent>
       </Card>
