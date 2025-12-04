@@ -20,7 +20,6 @@ interface GuardianRow extends TableRowData {
   email: string;
 }
 
-import { fetchGuardianByPatientId, IGuardian } from "@/api/patients/guardian";
 
 interface GuardianRow extends TableRowData {
   guardianName: string;
