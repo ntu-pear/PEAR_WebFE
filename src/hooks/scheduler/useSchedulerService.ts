@@ -34,17 +34,17 @@ export const useSchedulerService = () => {
         const calendarSchedule = convertScheduleToCalendarFormat(result.Data);
         setScheduleData(calendarSchedule);
         setRawScheduleData(result.Data);
-        toast.success('Schedule regenerated successfully!');
+        toast.success('Schedule regenerated successfully.');
         return calendarSchedule;
       } else {
         setError(result.Message);
-        toast.error(`Failed to regenerate schedule: ${result.Message}`);
+        toast.error(`Failed to regenerate schedule: ${result.Message}.`);
         return [];
       }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
       setError(errorMessage);
-      toast.error(`Error regenerating schedule: ${errorMessage}`);
+      toast.error(`Error regenerating schedule: ${errorMessage}.`);
       return [];
     } finally {
       setIsLoading(false);
@@ -64,7 +64,7 @@ export const useSchedulerService = () => {
         const calendarSchedule = convertScheduleToCalendarFormat(scheduleResponse.Data);
         setScheduleData(calendarSchedule);
         setRawScheduleData(scheduleResponse.Data);
-        toast.success('Existing schedule loaded successfully!');
+        toast.success('Existing schedule loaded successfully.');
         return calendarSchedule;
       } else {
         // No schedule exists, generate a new one
@@ -73,11 +73,11 @@ export const useSchedulerService = () => {
         if (result.success) {
           setScheduleData(result.data);
           setRawScheduleData(result.rawData);
-          toast.success('New schedule generated successfully!');
+          toast.success('New schedule generated successfully.');
           return result.data;
         } else {
           setError(result.message);
-          toast.error(`Failed to generate schedule: ${result.message}`);
+          toast.error(`Failed to generate schedule: ${result.message}.`);
           return [];
         }
       }

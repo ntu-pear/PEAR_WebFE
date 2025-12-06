@@ -125,7 +125,7 @@ const ViewAccount: React.FC = () => {
                   })
                 }
               >
-                Delete
+                Set as Inactive
               </Button>
             </div>
           </div>

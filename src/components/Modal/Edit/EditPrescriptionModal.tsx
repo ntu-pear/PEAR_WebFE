@@ -124,7 +124,7 @@ const EditPrescriptionModal: React.FC = () => {
 
             <div>
               <label className="block text-sm font-medium mb-2">
-                To be taken<span className="text-red-600">*</span>
+                To Be Taken<span className="text-red-600">*</span>
               </label>
               <div className="space-y-2">
                 <label className="flex items-center">
@@ -142,7 +142,7 @@ const EditPrescriptionModal: React.FC = () => {
                     className="mr-2"
                     required
                   />
-                  <span className="text-sm">Before Meal</span>
+                  <span className="text-sm">Before Food</span>
                 </label>
                 <label className="flex items-center">
                   <input
@@ -159,7 +159,7 @@ const EditPrescriptionModal: React.FC = () => {
                     className="mr-2"
                     required
                   />
-                  <span className="text-sm">After Meal</span>
+                  <span className="text-sm">After Food</span>
                 </label>
                 <label className="flex items-center">
                   <input
@@ -176,7 +176,7 @@ const EditPrescriptionModal: React.FC = () => {
                     className="mr-2"
                     required
                   />
-                  <span className="text-sm">Doesn't Matter</span>
+                  <span className="text-sm">Does Not Matter</span>
                 </label>
               </div>
             </div>

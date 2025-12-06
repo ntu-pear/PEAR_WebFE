@@ -15,7 +15,7 @@ const DeleteAccountModal: React.FC = () => {
     try {
       const updatedUser = await deleteUserById(accountId);
       closeModal();
-      toast.success("Account deleted successfully");
+      toast.success("Account deleted successfully.");
       await refreshAccountData(updatedUser);
     } catch (error: any) {
       if (error instanceof AxiosError) {
@@ -24,7 +24,7 @@ const DeleteAccountModal: React.FC = () => {
             `Error ${error.response.status}: ${error.response.data.detail}`
           );
         } else {
-          toast.error("Error: Failed to delete account");
+          toast.error("Error: Failed to delete account.");
         }
       }
     }
@@ -34,7 +34,7 @@ const DeleteAccountModal: React.FC = () => {
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
       <div ref={modalRef} className="bg-background rounded-md w-[500px]">
         <div className="p-4">
-          <h3>Are you sure you want to delete this account?</h3>
+          <h3>Are you sure you want to set this account as inactive?</h3>
           <div className="mt-5 flex justify-end">
             <Button className="bg-red-500 mr-1" onClick={handleDelete}>
               Yes

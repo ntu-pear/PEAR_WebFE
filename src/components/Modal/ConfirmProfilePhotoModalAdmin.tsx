@@ -82,7 +82,7 @@ const ConfirmProfilePhotoModalAdmin: React.FC = () => {
       clearInterval(uploadSimulation);
       setUploadProgress(100);
       closeModal();
-      toast.success(`Updated profile photo for ${accountName} successfully`);
+      toast.success(`Profile photo for ${accountName} updated successfully.`);
 
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
