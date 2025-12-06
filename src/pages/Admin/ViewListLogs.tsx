@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { ListFilter, Eye } from "lucide-react";
+import { ListFilter } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -9,17 +9,13 @@ import {
 } from "@/components/ui/card";
 import useDebounce from "@/hooks/useDebounce";
 import { DataTableClient } from "@/components/Table/DataTable";
-import { useModal } from "@/hooks/useModal";
 import { Button } from "@/components/ui/button";
 import {
   ACTION_OPTIONS,
-  STATUS_OPTIONS,
   LIST_TYPES,
-  MOCK_USERS,
   MOCK_LISTS_LOG,
   ListsLogRow,
   ListAction,
-  LogStatus,
 } from "@/mocks/mockListsLog";
 import {
   DropdownMenu,
@@ -29,7 +25,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-// ---------- helpers ----------
 const fmtEU = (iso: string) => {
   const d = new Date(iso);
   const pad = (n: number) => String(n).padStart(2, "0");
@@ -38,157 +33,34 @@ const fmtEU = (iso: string) => {
   )}:${pad(d.getMinutes())}`;
 };
 
-const StatusPill: React.FC<{ status: LogStatus }> = ({ status }) => {
-  const cls =
-    status === "Committed"
-      ? "text-green-700 bg-green-100"
-      : status === "Rejected"
-        ? "text-red-700 bg-red-100"
-        : status === "Pending approval"
-          ? "text-blue-700 bg-blue-100"
-          : "text-muted-foreground bg-muted/40";
-  return (
-    <span className={`px-2 py-0.5 rounded-md text-xs font-medium ${cls}`}>
-      {status}
-    </span>
-  );
-};
+const parseFormatted = (lines?: string[]) =>
+  (lines ?? []).reduce<Record<string, string>>((acc, line) => {
+    const [key, ...rest] = line.split(":");
+    acc[key.trim()] = rest.join(":").trim();
+    return acc;
+  }, {});
 
-// ---------- details modal ----------
-const LogDetailsModal: React.FC = () => {
-  const { modalRef, activeModal, closeModal } = useModal();
-  const { row } = activeModal.props as { row: ListsLogRow };
+const getValue = (row: ListsLogRow) => {
+  const before = parseFormatted(row.formattedData1);
+  const after = parseFormatted(row.formattedData2);
 
-  const body = (() => {
-    const a = row.actionType;
-    const f1 = row.formattedData1 ?? [];
-    const f2 = row.formattedData2 ?? [];
+  if (row.actionType === "Add") {
+    return before["Value"] ?? "-";
+  }
 
-    if (a === "Add") {
-      return (
-        <>
-          <h5 className="font-semibold mb-2">To be Added</h5>
-          <table className="w-full text-sm border">
-            <tbody>
-              {f1.map((line, i) => {
-                const [k, v] = line.split(":");
-                return (
-                  <tr className="border-t" key={i}>
-                    <th className="text-left w-1/3 p-2">{k}</th>
-                    <td className="p-2">{v}</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </>
-      );
-    }
-    if (a === "Update") {
-      return (
-        <>
-          <h5 className="font-semibold mb-2">Before / After Update</h5>
-          <table className="w-full text-sm border">
-            <thead>
-              <tr className="border-b">
-                <th className="text-left w-1/3 p-2" />
-                <th className="text-left w-1/3 p-2">Before</th>
-                <th className="text-left w-1/3 p-2">After</th>
-              </tr>
-            </thead>
-            <tbody>
-              {f1.map((line, i) => {
-                const [k1, v1] = line.split(":");
-                const [, v2] = (f2[i] ?? ":").split(":");
-                return (
-                  <tr className="border-t" key={i}>
-                    <th className="text-left p-2">{k1}</th>
-                    <td className="p-2">{v1}</td>
-                    <td className="p-2">{v2}</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </>
-      );
-    }
-    // Delete
-    return (
-      <>
-        <h5 className="font-semibold mb-2">To be Deleted</h5>
-        <table className="w-full text-sm border">
-          <tbody>
-            {f1.map((line, i) => {
-              const [k, v] = line.split(":");
-              return (
-                <tr className="border-t" key={i}>
-                  <th className="text-left w-1/3 p-2">{k}</th>
-                  <td className="p-2">{v}</td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </>
-    );
-  })();
+  if (row.actionType === "Update") {
+    return `${before["Value"] ?? "-"} → ${after["Value"] ?? "-"}`;
+  }
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div ref={modalRef} className="bg-background p-6 rounded-md w-[680px]">
-        <div className="flex items-center justify-between mb-3">
-          <h3 className="text-lg font-medium">Log details</h3>
-          <button
-            onClick={closeModal}
-            aria-label="Close"
-            className="text-muted-foreground"
-          >
-            ✕
-          </button>
-        </div>
-        <div className="space-y-4">
-          <div className="text-sm grid grid-cols-2 gap-2">
-            <div>
-              <b>List Type:</b> {row.listType}
-            </div>
-            <div>
-              <b>Action:</b> {row.actionType}
-            </div>
-            <div className="flex items-center gap-2">
-              <b>Status:</b> <StatusPill status={row.status} />
-            </div>
-            <div>
-              <b>Date:</b> {fmtEU(row.createdDateTime)}
-            </div>
-            <div className="col-span-2">
-              <b>Action by:</b> {row.userName}
-            </div>
-          </div>
-          {body}
-          <div className="flex justify-end mt-4">
-            <Button variant="outline" onClick={closeModal}>
-              Close
-            </Button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+  return before["Value"] ?? "-";
 };
 
 const ListsLog: React.FC = () => {
-  const { activeModal, openModal } = useModal();
-
   const [listType, setListType] = useState("all");
   const [action, setAction] = useState("all");
-  const [status, setStatus] = useState("all");
-  const [user, setUser] = useState("all");
 
   const debouncedListType = useDebounce(listType, 300);
   const debouncedAction = useDebounce(action, 300);
-  const debouncedStatus = useDebounce(status, 300);
-  const debouncedUser = useDebounce(user, 300);
 
   const data = useMemo(() => {
     return MOCK_LISTS_LOG.filter((r) =>
@@ -199,26 +71,19 @@ const ListsLog: React.FC = () => {
           ? true
           : r.actionType === (debouncedAction as ListAction)
       )
-      .filter((r) =>
-        debouncedStatus === "all"
-          ? true
-          : r.status === (debouncedStatus as LogStatus)
-      )
-      .filter((r) =>
-        debouncedUser === "all" ? true : r.userId === debouncedUser
-      )
       .sort(
         (a, b) => +new Date(b.createdDateTime) - +new Date(a.createdDateTime)
       );
-  }, [debouncedListType, debouncedAction, debouncedStatus, debouncedUser]);
+  }, [debouncedListType, debouncedAction]);
 
   const columns = [
     { key: "listType" as const, header: "List Type" },
     { key: "actionType" as const, header: "Action" },
     {
-      key: "status" as const,
-      header: "Status",
-      render: (v: LogStatus) => <StatusPill status={v} />,
+      key: "value",
+      header: "Value",
+      className: "max-w-[10rem] truncate",
+      render: (_: unknown, row: ListsLogRow) => getValue(row),
     },
     {
       key: "createdDateTime" as const,
@@ -228,7 +93,6 @@ const ListsLog: React.FC = () => {
     { key: "userName" as const, header: "Action by" },
   ];
 
-  // small helper to render a standard filter button
   const FilterBtn: React.FC<{
     label: string;
     value: string;
@@ -279,33 +143,12 @@ const ListsLog: React.FC = () => {
                 ...ACTION_OPTIONS.map((a) => ({ value: a, label: a })),
               ]}
             />
-            <FilterBtn
-              label="Status"
-              value={status}
-              onChange={setStatus}
-              options={[
-                { value: "all", label: "All" },
-                ...STATUS_OPTIONS.map((s) => ({ value: s, label: s })),
-              ]}
-            />
-            <FilterBtn
-              label="User"
-              value={user}
-              onChange={setUser}
-              options={[
-                { value: "all", label: "All" },
-                ...MOCK_USERS.map((u) => ({
-                  value: u.id,
-                  label: u.name,
-                })),
-              ]}
-            />
           </div>
           <Card className="ml-4 sm:ml-6">
             <CardHeader>
               <CardTitle>Lists Log</CardTitle>
               <CardDescription>
-                Filter and inspect list-related audit entries
+                View list changes with before/after values at a glance.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -313,23 +156,12 @@ const ListsLog: React.FC = () => {
                 data={data}
                 columns={columns}
                 viewMore={false}
-                renderActions={(row) => (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => openModal("viewLogDetails", { row })}
-                  >
-                    <Eye className="h-4 w-4 mr-2" />
-                    View
-                  </Button>
-                )}
+                hideActionsHeader
               />
             </CardContent>
           </Card>
         </main>
       </div>
-
-      {activeModal.name === "viewLogDetails" && <LogDetailsModal />}
     </div>
   );
 };
