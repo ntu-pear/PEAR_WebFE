@@ -70,7 +70,7 @@ const SchedulerSystemTest: React.FC = () => {
       if (response.Status === "200") {
         let sortedData = sortStatisticsData(response.Data);
         setSystemTestData(sortedData);
-        toast.success("System test completed successfully");
+        toast.success("System test completed successfully.");
       } else {
         throw new Error(response.Message || "Failed to run system test");
       }
@@ -78,7 +78,7 @@ const SchedulerSystemTest: React.FC = () => {
       const errorMessage =
         err instanceof Error ? err.message : "Unknown error occurred";
       setError(errorMessage);
-      toast.error("System test failed: Failed to run system test");
+      toast.error("System test failed: Failed to run system test.");
     } finally {
       setIsLoading(false);
     }

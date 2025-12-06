@@ -5,6 +5,8 @@ import { updateUser, User } from "@/api/admin/user";
 import { toast } from "sonner";
 import { fetchRoleNames } from "@/api/role/roles";
 import { AxiosError } from "axios";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../../ui/tooltip";
+import { Info } from "lucide-react";
 
 // Accept accountInfo as a prop via modal props
 const EditAccountInfoModal: React.FC = () => {
@@ -145,7 +147,7 @@ const EditAccountInfoModal: React.FC = () => {
       if (error instanceof AxiosError) {
         if (error.response && error.response.data.detail) {
           toast.error(
-            `Error ${error.response.status}: ${error.response.data.detail}`
+            `Error ${error.response.status}: ${error.response.data.detail}.`
           );
         } else {
           toast.error("Error: Failed to update account information.");
@@ -254,7 +256,17 @@ const EditAccountInfoModal: React.FC = () => {
             </div>
             <div>
               <label className="block text-sm font-medium">
-                Lockout Enabled
+                <div className="flex items-center gap-1">
+                  <p>Lockout Enabled</p>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger><Info className="h-4 w-4 text-blue-500"/></TooltipTrigger>
+                      <TooltipContent>
+                        Indicates whether the account has been temporarily disabled.
+                      </TooltipContent>
+                    </Tooltip>
+                    </TooltipProvider> 
+                </div>
               </label>
               <div className="flex flex-row mt-3 space-x-2">
                 <label className="flex items-center">
@@ -283,7 +295,17 @@ const EditAccountInfoModal: React.FC = () => {
             </div>
             <div>
               <label className="block text-sm font-medium">
-                Lockout Reason {account?.lockOutEnabled && <span className="text-red-600">*</span>}
+                <div className="flex items-center gap-1">
+                  <p>Lockout Reason</p>{account?.lockOutEnabled && <span className="text-red-600">*</span>}
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger><Info className="h-4 w-4 text-blue-500"/></TooltipTrigger>
+                      <TooltipContent>
+                        Reason for temporarily disabling the account.
+                      </TooltipContent>
+                    </Tooltip>
+                    </TooltipProvider> 
+                </div>
               </label>
               <input
                 type="text"
