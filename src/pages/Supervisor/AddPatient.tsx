@@ -118,8 +118,22 @@ const patientInfoSchema = z
   });
 
 const guardianSchema = z.object({
-  firstName: z.string().trim().min(1, "First name is required"),
-  lastName: z.string().trim().min(1, "Last name is required"),
+  firstName: z
+    .string()
+    .trim()
+    .min(1, "First name is required")
+    .refine(
+      (v) => /^[a-zA-Z]+$/.test(v),
+      "First name must contain only letters"
+    ),
+  lastName: z
+    .string()
+    .trim()
+    .min(1, "Last name is required")
+    .refine(
+      (v) => /^[a-zA-Z]+$/.test(v),
+      "Last name must contain only letters"
+    ),
   preferredName: z.string().trim().min(1, "Preferred name is required"),
   gender: z.enum(["M", "F"], { message: "Gender is required" }),
   contactNo: z
@@ -150,7 +164,10 @@ const guardianSchema = z.object({
 
 const formSchema = z.object({
   patientInfoSchema: patientInfoSchema,
-  guardians: z.array(guardianSchema).max(2, "Only up to 2 guardians"),
+  guardians: z
+    .array(guardianSchema)
+    .min(1, "Patient guardian is required")
+    .max(2, "Only up to 2 guardians"),
 });
 
 type FormInputs = z.infer<typeof formSchema>;
@@ -236,12 +253,12 @@ const AddPatient: React.FC = () => {
   };
 
   const handleUpdateAddressField = (
-    path: AddressPath,
+    fieldName: AddressPath,
     searchedAddress: string
   ) => {
-    console.log(`PATH: ${path}`);
+    console.log(`FIELD NAME: ${fieldName}`);
     console.log(`SEARCHED ADDRESS: ${searchedAddress}`);
-    setValue(path, searchedAddress, {
+    setValue(fieldName, searchedAddress, {
       shouldValidate: true,
       shouldDirty: true,
     });
@@ -621,7 +638,7 @@ const AddPatient: React.FC = () => {
                             size="icon"
                             onClick={() =>
                               openModal("retrieveAddress", {
-                                path: "patientInfoSchema.address",
+                                fieldName: "patientInfoSchema.address",
                                 handleUpdateAddressField,
                               })
                             }
@@ -652,7 +669,7 @@ const AddPatient: React.FC = () => {
                             size="icon"
                             onClick={() =>
                               openModal("retrieveAddress", {
-                                path: "patientInfoSchema.tempAddress",
+                                fieldName: "patientInfoSchema.tempAddress",
                                 handleUpdateAddressField,
                               })
                             }
@@ -813,7 +830,9 @@ const AddPatient: React.FC = () => {
                       Guardian Information
                     </h2>
                     <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                      Add up to two guardians linked to this patient.
+                      Add up to two guardians linked to this patient. <br /> The
+                      first guardian will be marked as the primary guardian, and
+                      the second as the secondary guardian.
                     </p>
                     <Separator className="my-4" />
 
@@ -829,6 +848,18 @@ const AddPatient: React.FC = () => {
                         key={g.id}
                         className="border rounded-lg p-4 mb-6 grid grid-cols-1 gap-x-6 gap-y-5 sm:grid-cols-6"
                       >
+                        <div className="sm:col-span-6 flex items-center justify-between mb-2">
+                          <p className="font-semibold">
+                            {index === 0
+                              ? "Primary guardian"
+                              : "Secondary guardian"}
+                          </p>
+                          <span className="text-xs text-muted-foreground">
+                            {index === 0
+                              ? "Main point of contact"
+                              : "Additional / backup contact"}
+                          </span>
+                        </div>
                         <div className="sm:col-span-2">
                           <Label>
                             First Name{" "}
@@ -1053,7 +1084,7 @@ const AddPatient: React.FC = () => {
                               size="icon"
                               onClick={() =>
                                 openModal("retrieveAddress", {
-                                  path: `guardians.${index}.address`,
+                                  fieldName: `guardians.${index}.address`,
                                   handleUpdateAddressField,
                                 })
                               }
@@ -1084,7 +1115,7 @@ const AddPatient: React.FC = () => {
                               size="icon"
                               onClick={() =>
                                 openModal("retrieveAddress", {
-                                  path: `guardians.${index}.tempAddress`,
+                                  fieldName: `guardians.${index}.tempAddress`,
                                   handleUpdateAddressField,
                                 })
                               }
@@ -1135,6 +1166,11 @@ const AddPatient: React.FC = () => {
                         </span>
                       )}
                     </div>
+                    {errors.guardians?.message && (
+                      <div className="text-red-600 text-sm">
+                        {errors.guardians?.message}
+                      </div>
+                    )}
                   </div>
                 </div>
               </CardContent>

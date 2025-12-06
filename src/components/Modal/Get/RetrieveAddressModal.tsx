@@ -6,9 +6,9 @@ import { fetchAddress } from "@/api/geocode";
 const RetrieveAddressModal: React.FC = () => {
   const { modalRef, activeModal, closeModal } = useModal();
   const { fieldName, handleUpdateAddressField } = activeModal.props as {
-    fieldName: "address" | "tempAddress";
+    fieldName: string;
     handleUpdateAddressField: (
-      fieldName: "address" | "tempAddress",
+      fieldName: string,
       searchedAddress: string
     ) => void;
   };
@@ -41,9 +41,7 @@ const RetrieveAddressModal: React.FC = () => {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
       <div ref={modalRef} className="bg-background p-8 rounded-md w-[400px]">
-        <h3 className="text-lg font-medium mb-5">
-          Retrieve {fieldName === "address" ? "Address" : "Temporary Address"}
-        </h3>
+        <h3 className="text-lg font-medium mb-5">Retrieve Address</h3>
         <form onSubmit={handleSearch} className="grid grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium">
