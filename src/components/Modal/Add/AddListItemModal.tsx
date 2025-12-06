@@ -4,16 +4,35 @@ import { useState } from "react";
 
 const AddListItemModal: React.FC = () => {
   const { modalRef, activeModal, closeModal } = useModal();
-  const { type, onSave } = activeModal.props as {
+  const { type, onSave, existingItems } = activeModal.props as {
     type: string;
     onSave: (type: string, value: string) => Promise<void>;
+    existingItems: string[];
   };
 
   const [value, setValue] = useState("");
+  const [error, setError] = useState("");
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!value.trim()) return;
+    const trimmed = value.trim();
+
+    // Check if empty input
+    if (!trimmed) {
+      setError("Value is required.");
+      return;
+    }
+
+    // Check if duplicate entry
+    const exists = existingItems.some(
+      (item) => item.trim().toLowerCase() === trimmed.toLowerCase()
+    );
+    if (exists) {
+      setError("Value already exists in selected list.");
+      return;
+    }
+
+    setError("");
     await onSave(type, value.trim());
     closeModal();
   };
@@ -24,15 +43,19 @@ const AddListItemModal: React.FC = () => {
         <h3 className="text-lg font-medium mb-4">Add Item — {type}</h3>
         <form onSubmit={submit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium">Value</label>
+            <label className="block text-sm font-medium">
+              Value <span className="text-red-600">*</span>
+            </label>
             <input
               autoFocus
               className="mt-1 block w-full p-2 border rounded-md text-gray-900"
               value={value}
-              onChange={(e) => setValue(e.target.value)}
-              placeholder="Enter value"
-              required
+              onChange={(e) => {
+                setValue(e.target.value);
+                setError("");
+              }}
             />
+            {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
           </div>
           <div className="flex justify-end gap-2">
             <Button type="button" variant="outline" onClick={closeModal}>
