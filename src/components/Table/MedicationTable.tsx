@@ -26,16 +26,20 @@ const MedicationTable = ({ patient, openModal }: TMedicationTableProps) => {
   const { currentUser } = useAuth();
 
   const medicationColumns = [
-    { key: "drugName", header: "Drug Name", className: "truncate-column" },
+    { key: "drugName", header: "Drug Name" },
     { key: "administerTime", header: "Administer Time" },
-    { key: "dosage", header: "Dosage", className: "truncate-column" },
-    { key: "instruction", header: "Instruction", className: "truncate-column" },
+    { key: "dosage", header: "Dosage" },
+    {
+      key: "instruction",
+      header: "Instruction",
+      className: "whitespace-normal break-words",
+    },
     { key: "startDate", header: "Start Date" },
     { key: "endDate", header: "End Date" },
     {
       key: "prescriptionRemarks",
       header: "Remarks",
-      className: "truncate-column",
+      className: "whitespace-normal break-words",
     },
   ];
 
