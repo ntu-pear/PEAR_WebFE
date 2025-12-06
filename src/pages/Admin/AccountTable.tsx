@@ -202,10 +202,10 @@ const AccountTable: React.FC = () => {
       loadingToast = toast.loading("Exporting users...");
       await exportUsers(filteredJsonList);
       toast.dismiss(loadingToast);
-      toast.success("Users exported successfully!");
+      toast.success("Users exported successfully.");
     } catch (error) {
       if (loadingToast) toast.dismiss(loadingToast);
-      toast.error("Failed to export users");
+      toast.error("Failed to export users.");
       console.error("Export error:", error);
     }
   };
