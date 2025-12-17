@@ -68,6 +68,15 @@ const EditPatientInfoModal: React.FC = () => {
   >([]);
   const formRef = useRef<HTMLFormElement>(null);
   const [currentTab, setCurrentTab] = useState("personal");
+  const [nricHint, setNricHint] = useState("");
+  const [nameHint, setNameHint] = useState("");
+  const [pnameHint, setPnameHint] = useState("");
+  const [handphoneHint, setHandphoneHint] = useState("");
+  const [homeHint, setHomeHint] = useState("");
+  const [permPostalHint, setPermPostalHint] = useState("");
+  const [permUnitHint, setPermUnitHint] = useState("");
+  const [tempPostalHint, setTempPostalHint] = useState("");
+  const [tempUnitHint, setTempUnitHint] = useState("");
 
   const handleFetchPatientInfo = async (patientId: string) => {
     if (!patientId || isNaN(Number(patientId))) return;
@@ -110,16 +119,25 @@ const EditPatientInfoModal: React.FC = () => {
     if (value.length>9) return false;
 
     // 1st character must be either S,T,F,G,M
-    if (value.length>=1 && !/^[STFGM]$/.test(value[0])) return false;
+    if (value.length>=1 && !/^[STFGM]$/.test(value[0])){
+      setNricHint("Must start with S, T, F, G, or M")
+      return false;
+    }
 
     // Character 2-8 must be a digit
     for (let i=1;i<Math.min(value.length,8);i++){
-      if(!/^\d$/.test(value[i])) return false;
+      if(!/^\d$/.test(value[i])){
+        setNricHint("Next character must be a digit")
+        return false;
+      } 
     }
 
     // 9th character must be an alphabet
-    if (value.length==9 && !/^[A-Z]$/.test(value[8])) return false;
-
+    if (value.length==9 && !/^[A-Z]$/.test(value[8])){
+      setNricHint("Last character must be an alphabetical letter")
+      return false;
+    } 
+    setNricHint("")
     return true;
   }
 
@@ -133,9 +151,34 @@ const EditPatientInfoModal: React.FC = () => {
 
     if(["preferredName","name"].includes(name)){
       filteredValue = value.replace(/[^a-zA-Z ]/g,"");
+      if(filteredValue!==value){
+        if (name === "preferredName"){
+          setPnameHint("Preferred Name should only contain alphabetical letters")
+        }else{setNameHint("Name should only contain alphabetical letters")}
+      }else{
+        if(name === "preferredName"){
+          setPnameHint("")
+        }else{setNameHint("")}
+      }
     }
     if(["handphoneNo","homeNo"].includes(name)){
       filteredValue = value.replace(/[^0-9]/g,"")
+      if (name==="handphoneNo"){
+        if(filteredValue && !/^[89]/.test(filteredValue[0])){
+          setHandphoneHint("Handphone Number must start with 8 or 9, and be 8 digits long.")
+          return
+        }else{
+          setHandphoneHint("")
+        }
+      }
+      else{
+        if(filteredValue && !/^6/.test(filteredValue[0])){
+          setHomeHint("Home Number must start with 6,  and be 8 digits long")
+          return
+        }else{
+          setHomeHint("")
+        }
+      }
     }
     if(name === 'nric'){
       const upper = value.toUpperCase()
@@ -165,9 +208,45 @@ const EditPatientInfoModal: React.FC = () => {
     type: "perm" | "temp"
   ) => {
     const { name, value } = e.target;
-    const upperCaseValue = value.toUpperCase();
-    const isValidPostal =
-      name === "postalCode" ? /^\d{6}$/.test(upperCaseValue) : true;
+    let filteredValue = value
+    if(name === "postalCode"){
+      filteredValue = value.replace(/\D/g,"");
+    }
+
+    const upperCaseValue = filteredValue.toUpperCase();
+    let isValidPostal=false;
+
+    if (name === "postalCode"){
+      isValidPostal = /^\d{6}$/.test(upperCaseValue)
+      if (type === "perm") {
+        setPermPostalHint(isValidPostal ? "" : "Postal code must be 6 numerical digits");
+      } else {
+        setTempPostalHint(isValidPostal ? "" : "Postal code must be 6 numerical digits");
+      }
+    }
+
+    if (name === "unitNumber") {
+      const val = upperCaseValue;
+
+      if (
+        val.length > 0 && val[0] !== "#" ||
+        val.length > 1 && !/^\d$/.test(val[1]) ||
+        val.length > 2 && !/^\d$/.test(val[2]) ||
+        val.length > 3 && val[3] !== "-" ||
+        val.length > 4 && !/^\d$/.test(val[4]) ||
+        val.length > 5 && !/^\d$/.test(val[5]) ||
+        val.length > 6 && !/^\d$/.test(val[6])
+      ) {
+        type === "perm"
+          ? setPermUnitHint("Unit number must be in #XX-XXX format")
+          : setTempUnitHint("Unit number must be in #XX-XXX format");
+        return; 
+      }
+
+      type === "perm" ? setPermUnitHint("") : setTempUnitHint("");
+
+      isValidPostal = type === "perm" ? /^\d{6}$/.test(newPermAddress.postalCode) : /^\d{6}$/.test(newTempAddress.postalCode);
+    }
 
     if (type === "perm") {
       setNewPermAddress({
@@ -442,6 +521,11 @@ const EditPatientInfoModal: React.FC = () => {
                   className="mt-1 block w-full p-2 border rounded-md text-gray-900"
                   required
                 />
+                {nameHint && (
+                  <p className="text-xs mt-1" style={{color:"hsl(var(--hint))"}}>
+                    {nameHint}
+                  </p>
+                )}
               </div>
 
               <div>
@@ -457,6 +541,11 @@ const EditPatientInfoModal: React.FC = () => {
                   className="mt-1 block w-full p-2 border rounded-md text-gray-900"
                   required
                 />
+                {pnameHint && (
+                  <p className="text-xs mt-1" style={{color:"hsl(var(--hint))"}}>
+                    {pnameHint}
+                  </p>
+                )}
               </div>
 
               <div>
@@ -476,6 +565,11 @@ const EditPatientInfoModal: React.FC = () => {
                   className="mt-1 block w-full p-2 border rounded-md text-gray-900"
                   required
                 />
+                {nricHint && (
+                  <p className="text-xs mt-1" style={{color:"hsl(var(--hint))"}}>
+                    {nricHint}
+                  </p>
+                )}
               </div>
 
               <div>
@@ -516,19 +610,24 @@ const EditPatientInfoModal: React.FC = () => {
 
               <div>
                 <label className="block text-sm font-medium">
-                  Hand Phone Number
+                  Handphone Number
                 </label>
                 <input
                   type="tel"
                   name="handphoneNo"
                   pattern="^[89]\d{7}$"
-                  title="Hand Phone Number must start with 8 or 9, and be 8 digits long."
+                  title="Handphone Number must start with 8 or 9, and be 8 digits long."
                   value={patient?.handphoneNo || ""}
                   minLength={8}
                   maxLength={8}
                   onChange={(e) => handleChange(e)}
                   className="mt-1 block w-full p-2 border rounded-md text-gray-900"
                 />
+                {handphoneHint && (
+                  <p className="text-xs mt-1" style={{color:"hsl(var(--hint))"}}>
+                    {handphoneHint}
+                  </p>
+                )}
               </div>
 
               <div>
@@ -544,6 +643,11 @@ const EditPatientInfoModal: React.FC = () => {
                   onChange={(e) => handleChange(e)}
                   className="mt-1 block w-full p-2 border rounded-md text-gray-900"
                 />
+                {homeHint && (
+                  <p className="text-xs mt-1" style={{color:"hsl(var(--hint))"}}>
+                    {homeHint}
+                  </p>
+                )}
               </div>
             </TabsContent>
 
@@ -607,6 +711,13 @@ const EditPatientInfoModal: React.FC = () => {
                           className="mt-1 block w-full p-2 border rounded-md text-gray-900"
                           required
                         />
+                        {
+                          permPostalHint && (
+                            <p className="text-xs mt-1" style={{color:"hsl(var(--hint))"}}>
+                              {permPostalHint}
+                            </p>
+                          )
+                        }
                       </div>
                       <div className="space-y-2 col-span-3">
                         <label className="col-span-3 block text-sm font-medium">
@@ -617,10 +728,19 @@ const EditPatientInfoModal: React.FC = () => {
                           name="unitNumber"
                           placeholder="#01-123"
                           pattern="^$|#\d{2}-\d{3}"
+                          minLength={7}
+                          maxLength={7}
                           value={newPermAddress.unitNumber || ""}
                           onChange={(e) => handleAddressChange(e, "perm")}
                           className="mt-1 block w-full p-2 border rounded-md text-gray-900"
                         />
+                        {
+                          permUnitHint && (
+                            <p className="text-xs mt-1" style={{color:"hsl(var(--hint))"}}>
+                              {permUnitHint}
+                            </p>
+                          )
+                        }
                       </div>
                       <div className="space-y-2 col-span-4 sm:col-span-3">
                         <Button
@@ -719,12 +839,20 @@ const EditPatientInfoModal: React.FC = () => {
                           type="text"
                           name="postalCode"
                           pattern="^\d{6}$"
+                          inputMode="numeric"
                           minLength={6}
                           maxLength={6}
                           value={newTempAddress.postalCode || ""}
                           onChange={(e) => handleAddressChange(e, "temp")}
                           className="mt-1 block w-full p-2 border rounded-md text-gray-900"
                         />
+                        {
+                          tempPostalHint && (
+                            <p className="text-xs mt-1" style={{color:"hsl(var(--hint))"}}>
+                              {tempPostalHint}
+                            </p>
+                          )
+                        }
                       </div>
                       <div className="space-y-2 col-span-3">
                         <label className="col-span-3 block text-sm font-medium">
@@ -735,10 +863,19 @@ const EditPatientInfoModal: React.FC = () => {
                           name="unitNumber"
                           placeholder="#01-123"
                           pattern="^$|#\d{2}-\d{3}"
+                          minLength={7}
+                          maxLength={7}
                           value={newTempAddress.unitNumber || ""}
                           onChange={(e) => handleAddressChange(e, "temp")}
                           className="mt-1 block w-full p-2 border rounded-md text-gray-900"
                         />
+                        {
+                          tempUnitHint && (
+                            <p className="text-xs mt-1" style={{color:"hsl(var(--hint))"}}>
+                              {tempUnitHint}
+                            </p>
+                          )
+                        }
                       </div>
                       <div className="space-y-2 col-span-4 sm:col-span-3">
                         <Button

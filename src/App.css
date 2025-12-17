@@ -37,6 +37,7 @@
     --approve-foreground: 145 63% 95%;
     --reject: 0 78% 55%;
     --reject-foreground: 0 0% 100%;
+    --hint: 210, 16%, 45%;
   }
 
   .dark {
@@ -72,6 +73,7 @@
     --approve-foreground: 145 63% 90%;
     --reject: 0 78% 35%;
     --reject-foreground: 0 0% 100%;
+    --hint: 215, 20%, 65%;
   }
 }
 
