@@ -73,8 +73,12 @@ const EditPatientInfoModal: React.FC = () => {
     if (!patientId || isNaN(Number(patientId))) return;
 
     const response = await fetchPatientById(Number(patientId));
+
+    const endDate = response.endDate? new Date(response.endDate):null
+
     setPatient({
       ...response,
+      isActive: endDate?endDate>new Date()?'1':'0':'1',
       dateOfBirth: getDateForDatePicker(response.dateOfBirth),
       startDate: getDateForDatePicker(response.startDate),
       endDate: response.endDate ? getDateForDatePicker(response.endDate) : "",
@@ -99,25 +103,59 @@ const EditPatientInfoModal: React.FC = () => {
     e.currentTarget.value = e.currentTarget.value.toUpperCase();
   };
 
+  const checkPartialNRIC = (value: string):boolean =>{
+    if (!value) return true;
+
+    // NRIC cannot have more than 9 characters
+    if (value.length>9) return false;
+
+    // 1st character must be either S,T,F,G,M
+    if (value.length>=1 && !/^[STFGM]$/.test(value[0])) return false;
+
+    // Character 2-8 must be a digit
+    for (let i=1;i<Math.min(value.length,8);i++){
+      if(!/^\d$/.test(value[i])) return false;
+    }
+
+    // 9th character must be an alphabet
+    if (value.length==9 && !/^[A-Z]$/.test(value[8])) return false;
+
+    return true;
+  }
+
   const handleChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
     >
   ) => {
     const { name, value } = e.target;
-    const upperCaseValue = value.toUpperCase();
+    let filteredValue = value;
+
+    if(["preferredName","name"].includes(name)){
+      filteredValue = value.replace(/[^a-zA-Z ]/g,"");
+    }
+    if(["handphoneNo","homeNo"].includes(name)){
+      filteredValue = value.replace(/[^0-9]/g,"")
+    }
+    if(name === 'nric'){
+      const upper = value.toUpperCase()
+      if(!checkPartialNRIC(upper)) return;
+      setPatient(prev=>prev?{...prev,nric:upper}:prev)
+      return;
+    }
+    const upperCaseValue = filteredValue.toUpperCase();
     if (patient) {
-      if (name === "isActive") {
-        const isActive = value === "1";
-        setPatient({
-          ...patient,
-          [name]: upperCaseValue,
-          inActiveDate: isActive
-            ? ""
-            : getDateForDatePicker(getDateTimeNowInUTC()),
-        });
+      if (name === "endDate") {
+        const endDate = value?new Date(value):null
+        const isActive = endDate?endDate> new Date?"1":"0":"1"
+        setPatient(prev=>prev?{
+          ...prev,
+          [name]:value,
+          isActive,
+          inActiveDate:isActive === "1"?"":getDateForDatePicker(getDateTimeNowInUTC())
+        }:prev)
       } else {
-        setPatient({ ...patient, [name]: upperCaseValue });
+        setPatient(prev=>prev?{...prev,[name]:upperCaseValue}:prev)
       }
     }
   };
@@ -589,7 +627,10 @@ const EditPatientInfoModal: React.FC = () => {
                           type="button"
                           className="mt-7 col-span-2 mr-2"
                           onClick={() => handleRetrieve("perm")}
-                          disabled={!newPermAddress.isValidPostal}
+                          disabled={
+                            !newPermAddress.isValidPostal || 
+                            (!!newPermAddress.unitNumber && !/^#\d{2}-\d{3}$/.test(newPermAddress.unitNumber))
+                          }
                         >
                           Retrieve
                         </Button>
@@ -704,7 +745,7 @@ const EditPatientInfoModal: React.FC = () => {
                           type="button"
                           className="mt-7 col-span-2 mr-2"
                           onClick={() => handleRetrieve("temp")}
-                          disabled={!newTempAddress.isValidPostal}
+                          disabled={!newTempAddress.isValidPostal || (!!newTempAddress.unitNumber && !/^#\d{2}-\d{3}$/.test(newTempAddress.unitNumber))}
                         >
                           Retrieve
                         </Button>
@@ -825,7 +866,14 @@ const EditPatientInfoModal: React.FC = () => {
                 <label className="block text-sm font-medium">
                   Patient Still Active <span className="text-red-600">*</span>
                 </label>
-                <select
+                <input
+                  type="text"
+                  name="isActive"
+                  value={patient?.isActive === "1"?"Yes":"No"}
+                  readOnly
+                  className="mt-1 block w-full p-2 border rounded-md text-gray-900"
+                />
+                {/* <select
                   name="isActive"
                   value={patient?.isActive || ""}
                   onChange={(e) => handleChange(e)}
@@ -835,7 +883,7 @@ const EditPatientInfoModal: React.FC = () => {
                   <option value="">Please select an option</option>
                   <option value="0">No</option>
                   <option value="1">Yes</option>
-                </select>
+                </select> */}
               </div>
 
               <div className="col-span-2 flex space-x-4">

@@ -18,22 +18,43 @@ const PatientInfoCard: React.FC = () => {
     number | null
   >(null);
 
-  const patientInformationColumns = [
+  // const patientInformationColumns = [
+  //   { key: "name", header: "Name" },
+  //   { key: "nric", header: "NRIC" },
+  //   { key: "dateOfBirth", header: "Date Of Birth" },
+  //   { key: "gender", header: "Gender" },
+  //   { key: "address", header: "Address" },
+  //   { key: "tempAddress", header: "Temporary Address" },
+  //   { key: "homeNo", header: "Home No" },
+  //   { key: "handphoneNo", header: "Handphone No" },
+  //   { key: "preferredName", header: "Preferred Name" },
+  //   { key: "preferredLanguage", header: "Preferred Language" },
+  //   {
+  //     key: "accessLevelSensitive",
+  //     header: "Privacy Level",
+  //     customValue: accessLevelSensitive,
+  //   },
+  //   { key: "underRespiteCare", header: "Under Respite Care" },
+  //   { key: "startDate", header: "Start Date" },
+  //   { key: "endDate", header: "End Date" },
+  //   { key: "inactiveDate", header: "Inactive Date" },
+  // ];
+    const patientInformationColumns = [
     { key: "name", header: "Name" },
+    { key: "preferredName", header: "Preferred Name" },
     { key: "nric", header: "NRIC" },
     { key: "dateOfBirth", header: "Date Of Birth" },
     { key: "gender", header: "Gender" },
+    { key: "handphoneNo", header: "Handphone No" },
+    { key: "homeNo", header: "Home No" },
     { key: "address", header: "Address" },
     { key: "tempAddress", header: "Temporary Address" },
-    { key: "homeNo", header: "Home No" },
-    { key: "handphoneNo", header: "Handphone No" },
-    { key: "preferredName", header: "Preferred Name" },
-    { key: "preferredLanguage", header: "Preferred Language" },
     {
       key: "accessLevelSensitive",
       header: "Privacy Level",
       customValue: accessLevelSensitive,
     },
+    { key: "preferredLanguage", header: "Preferred Language" },
     { key: "underRespiteCare", header: "Under Respite Care" },
     { key: "startDate", header: "Start Date" },
     { key: "endDate", header: "End Date" },
