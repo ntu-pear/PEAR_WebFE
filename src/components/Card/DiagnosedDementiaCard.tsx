@@ -114,6 +114,27 @@ const DiagnosedDementiaCard: React.FC = () => {
             renderActions={renderActions}
             hideActionsHeader={currentUser?.roleName !== "DOCTOR"}
             fetchData={handleFetchDiagnosedDementia}
+className={
+  currentUser?.roleName === "DOCTOR"
+    ? `
+      w-full max-w-full table-fixed overflow-x-auto box-border
+      [&_th:first-child]:w-[45%]
+      [&_td:first-child]:w-[45%]
+      [&_th:nth-child(2)]:w-[30%]
+      [&_td:nth-child(2)]:w-[30%]
+      [&_th:last-child]:w-[auto]
+      [&_td:last-child]:w-[auto] [&_td:last-child]:text-right [&_td:last-child]:pr-2
+      [&_td]:truncate [&_td]:whitespace-nowrap [&_td]:min-w-0
+    `
+    : `
+      w-full max-w-full table-fixed overflow-x-auto box-border
+      [&_th:first-child]:w-[65%]
+      [&_td:first-child]:w-[65%]
+      [&_th:last-child]:w-[auto]
+      [&_td:last-child]:w-[auto] [&_td:last-child]:text-right [&_td:last-child]:pr-2
+      [&_td]:truncate [&_td]:whitespace-nowrap [&_td]:min-w-0
+    `
+}
           />
         </CardContent>
       </Card>
