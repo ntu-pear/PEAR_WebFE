@@ -83,6 +83,7 @@ const PatientInfoCard: React.FC = () => {
                 openModal("editPatientInfo", {
                   patientId: String(id),
                   submitterId: currentUser?.userId,
+                  userRole: currentUser?.roleName,
                   refreshPatientData,
                   refreshPatientPrivacyLevel,
                   editableFields:

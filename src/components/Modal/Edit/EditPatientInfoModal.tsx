@@ -32,11 +32,13 @@ const EditPatientInfoModal: React.FC = () => {
   const {
     patientId,
     submitterId,
+    userRole,
     refreshPatientData,
     refreshPatientPrivacyLevel,
   } = activeModal.props as {
     patientId: string;
     submitterId: string;
+    userRole:"GUARDIAN" | "SUPERVISOR" | "DOCTOR"
     refreshPatientData: () => Promise<void>;
     refreshPatientPrivacyLevel: () => Promise<void>;
   };
@@ -519,8 +521,9 @@ const EditPatientInfoModal: React.FC = () => {
                   value={patient?.name || ""}
                   onKeyDown={(e) => handleKeyDown(e)}
                   onChange={(e) => handleChange(e)}
-                  className="mt-1 block w-full p-2 border rounded-md text-gray-900"
+                  className={`mt-1 block w-full p-2 border rounded-md text-gray-900 ${userRole === "GUARDIAN" ? "bg-gray-100 dark:bg-gray-300 cursor-not-allowed" : ""}`}
                   required
+                  disabled={userRole === "GUARDIAN"}
                 />
                 {nameHint && (
                   <p className="text-xs mt-1" style={{color:"hsl(var(--hint))"}}>
@@ -563,8 +566,9 @@ const EditPatientInfoModal: React.FC = () => {
                   maxLength={9}
                   onKeyDown={(e) => handleKeyDown(e)}
                   onChange={(e) => handleChange(e)}
-                  className="mt-1 block w-full p-2 border rounded-md text-gray-900"
+                  className={`mt-1 block w-full p-2 border rounded-md text-gray-900 ${userRole === "GUARDIAN" ? "bg-gray-100 dark:bg-gray-300 cursor-not-allowed" : ""}`}
                   required
+                  disabled={userRole === "GUARDIAN"}
                 />
                 {nricHint && (
                   <p className="text-xs mt-1" style={{color:"hsl(var(--hint))"}}>
@@ -582,10 +586,11 @@ const EditPatientInfoModal: React.FC = () => {
                   name="dateOfBirth"
                   value={patient?.dateOfBirth || ""}
                   onChange={(e) => handleChange(e)}
-                  className="mt-1 block w-full p-2 border rounded-md text-gray-900"
+                  className={`mt-1 block w-full p-2 border rounded-md text-gray-900 ${userRole === "GUARDIAN" ? "bg-gray-100 dark:bg-gray-300 cursor-not-allowed" : ""}`}
                   min={dayjs().subtract(150, "years").format("YYYY-MM-DD")}
                   max={dayjs().subtract(15, "years").format("YYYY-MM-DD")}
                   required
+                  disabled={userRole === "GUARDIAN"}
                 />
               </div>
 
@@ -595,11 +600,12 @@ const EditPatientInfoModal: React.FC = () => {
                     Gender<span className="text-red-600"> *</span>
                   </label>
                   <select
-                    className="mt-1 block w-full p-2 border rounded-md text-gray-900"
+                    className={`mt-1 block w-full p-2 border rounded-md text-gray-900 ${userRole === "GUARDIAN" ? "bg-gray-200 dark:bg-gray-50 cursor-not-allowed" : ""}`}
                     name="gender"
                     value={patient?.gender || ""}
                     onChange={(e) => handleChange(e)}
                     required
+                    disabled={userRole === "GUARDIAN"}
                   >
                     <option value="">Please select an option</option>
                     <option value="M">Male</option>
@@ -662,7 +668,7 @@ const EditPatientInfoModal: React.FC = () => {
                   <h3 className="font-medium mb-2">
                     Current Address<span className="text-red-600"> *</span>
                   </h3>
-                  {!isEditingPermanentAddr && (
+                  {!isEditingPermanentAddr && userRole !== "GUARDIAN" && (
                     <Button
                       variant="ghost"
                       size="sm"
@@ -793,7 +799,7 @@ const EditPatientInfoModal: React.FC = () => {
                   <h3 className="font-medium mb-2">
                     Current Temporary Address
                   </h3>
-                  {!isEditingTemporaryAddr && (
+                  {!isEditingTemporaryAddr && userRole !== "GUARDIAN" && (
                     <Button
                       variant="ghost"
                       size="sm"
