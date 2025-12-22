@@ -197,6 +197,7 @@ const EditPatientInfoModal: React.FC = () => {
           isActive,
           inActiveDate:isActive === "1"?"":getDateForDatePicker(getDateTimeNowInUTC())
         }:prev)
+        console.log(value)
       } else {
         setPatient(prev=>prev?{...prev,[name]:upperCaseValue}:prev)
       }
