@@ -2,10 +2,11 @@ import { TabsContent } from "../ui/tabs";
 import { useModal } from "@/hooks/useModal";
 import AddGuardianModal from "../Modal/Add/AddGuardianModal";
 import GuardianCard from "../Card/GuardianCard";
+import { useAuth } from "@/hooks/useAuth";
 
 const GuardianTab: React.FC = () => {
   const { activeModal } = useModal();
-
+  const { currentUser } = useAuth();
   return (
     <>
       <TabsContent value="guardian">
@@ -13,7 +14,7 @@ const GuardianTab: React.FC = () => {
           <GuardianCard />
         </div>
       </TabsContent>
-      {activeModal.name === "addGuardian" && <AddGuardianModal />}
+      {activeModal.name === "addGuardian" && currentUser?.roleName === "SUPERVISOR" && <AddGuardianModal />}
     </>
   );
 };

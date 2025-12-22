@@ -10,8 +10,7 @@ import { fetchPatientPrivacyLevel } from "@/api/patients/privacyLevel";
 import { convertPrivacyLevel } from "@/utils/convertPrivacyLevel";
 
 const PatientInfoCard: React.FC = () => {
-  const { id, patientInfo, nricData, handleNRICToggle, refreshPatientData } =
-    useViewPatient();
+  const { id, patientInfo, nricData, handleNRICToggle, refreshPatientData, patientAllocation } = useViewPatient();
   const { currentUser } = useAuth();
   const { openModal } = useModal();
   const [accessLevelSensitive, setAccessLevelSensitive] = useState<
@@ -76,7 +75,7 @@ const PatientInfoCard: React.FC = () => {
       <CardHeader>
         <CardTitle className="text-lg flex items-center justify-between">
           <span>Information</span>
-          {currentUser?.roleName === "SUPERVISOR" && (
+          {(currentUser?.roleName === "SUPERVISOR" || patientAllocation?.guardianApplicationUserId === currentUser?.userId) && (
             <Button
               size="sm"
               className="h-8 w-24 gap-1"
@@ -86,6 +85,10 @@ const PatientInfoCard: React.FC = () => {
                   submitterId: currentUser?.userId,
                   refreshPatientData,
                   refreshPatientPrivacyLevel,
+                  editableFields:
+                    currentUser?.roleName === "SUPERVISOR"?["name","nric","gender","handphoneNo","preferredName","dateOfBirth","homeNo","currAdd","tempAdd","privacyLevel","isRespiteCare","startDate","preferredLanguageId","isActive","endDate"]:
+                    patientAllocation?.guardianApplicationUserId === currentUser?.userId?["handphoneNo","preferredName","homeNo","privacyLevel","preferredLanguageId"]
+                    :[]
                 })
               }
             >

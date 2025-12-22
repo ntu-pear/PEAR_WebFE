@@ -14,7 +14,7 @@ import { PlusCircle } from "lucide-react";
 import { DataTableServer } from "../Table/DataTable";
 
 const AllergyCard: React.FC = () => {
-  const { id } = useViewPatient();
+  const { id, patientAllocation } = useViewPatient();
   const [allergyTDServer, setAllergyTDServer] = useState<AllergyTDServer>({
     allergies: [],
     pagination: {
@@ -59,7 +59,7 @@ const AllergyCard: React.FC = () => {
 
   const renderActions = (item: AllergyTD) => {
     return (
-      currentUser?.roleName === "SUPERVISOR" && (
+      (currentUser?.roleName === "SUPERVISOR" || patientAllocation?.guardianApplicationUserId === currentUser?.userId) && (
         <div className="flex space-x-2 w-[75px] sm:w-[150px]">
           <Button
             size="sm"
@@ -98,7 +98,7 @@ const AllergyCard: React.FC = () => {
         <CardHeader>
           <CardTitle className="text-lg flex items-center justify-between">
             <span>Allergy</span>
-            {currentUser?.roleName === "SUPERVISOR" && (
+            {(currentUser?.roleName === "SUPERVISOR" || patientAllocation?.guardianApplicationUserId === currentUser?.userId) && (
               <Button
                 size="sm"
                 className="h-8 w-24 gap-1"
