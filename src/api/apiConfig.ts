@@ -41,6 +41,10 @@ export const patientsAPI = axios.create({
   baseURL: `${VITE_PATIENT_SERVICE_URL}/patients`,
 });
 
+export const patientGuardianAPI = axios.create({
+  baseURL: `${VITE_PATIENT_SERVICE_URL}/Guardian/GetPatientGuardianByGuardianId`
+})
+
 export const dementiaListAPI = axios.create({
   baseURL: `${VITE_PATIENT_SERVICE_URL}/PatientAssignedDementiaList`,
 });
@@ -275,6 +279,10 @@ export const listsAPI = axios.create({
 
 export const listTypesAPI = axios.create({
   baseURL: `${VITE_PATIENT_SERVICE_URL}/GetAllListTypes`,
+});
+
+export const patientAllocationAPI = axios.create({
+  baseURL : `${VITE_PATIENT_SERVICE_URL}/allocation`
 });
 
 //geocode
