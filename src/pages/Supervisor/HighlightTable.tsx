@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState, ReactNode, PropsWithChildren } from "react";
 import { ListFilter } from "lucide-react";
 import {
   Card,
@@ -27,10 +27,15 @@ import {
   HighlightTypeList,
 } from "@/api/patients/highlight";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import {
-  mockCaregiverNameList,
-  mockHighlightDetails,
-} from "@/mocks/mockHighlightTableData";
+
+/* 1
+import { 
+  mockCaregiverNameList, 
+  mockHighlightDetails, 
+} from "@/mocks/mockHighlightTableData"; 
+ */
+
+import { mockCaregiverNameList } from "@/mocks/mockHighlightTableData";
 
 const HighlightTable: React.FC = () => {
   const [highlights, setHighlights] = useState<HighlightTableData[]>([]);
@@ -70,9 +75,21 @@ const HighlightTable: React.FC = () => {
 
   const handleFilter = async () => {
     try {
+      // 1️⃣ Fetch raw highlights
       const highlights = await fetchHighlights();
+      console.log("All Fetched highlights array:", highlights); // ✅ inspect all rows
 
-      let filteredHighlights = highlights.filter(({ patientName }) =>
+
+      //J1 
+      // 2️⃣ Parse HighlightJSON
+      const parsedHighlights = highlights.map((h) => ({
+      ...h,
+      parsedHighlight: h.highlightJSON? JSON.parse(h.highlightJSON): null,
+      }));
+      console.log("After parsing:", parsedHighlights); // ✅ parsedHighlight added
+
+      // 3️⃣ Apply filters
+      let filteredHighlights = parsedHighlights.filter(({ patientName }) =>
         patientName.toLowerCase().includes(searchItem.toLowerCase())
       );
 
@@ -85,8 +102,12 @@ const HighlightTable: React.FC = () => {
           selectedCaregiver === "All" ||
           caregiverId.toString() === selectedCaregiver
       );
+      console.log("After filtering:", filteredHighlights); // ✅ final array that will be shown
 
-      setHighlights(flattenHighlights(filteredHighlights));
+
+      //setHighlights(flattenHighlights(filteredHighlights)); //J1
+      setHighlights(flattenHighlights(filteredHighlights)); //J2 testing removing flat
+      //setHighlights(filteredHighlights); 
     } catch (error) {
       console.error("Error fetching highlights:", error);
     }
@@ -113,6 +134,23 @@ const HighlightTable: React.FC = () => {
   useEffect(() => {
     handleFilter();
   }, [selectedTypes, selectedCaregiver, debouncedSearch]);
+
+  // Tooltip component for hover Highlights
+  interface TooltipProps {
+    content: ReactNode;
+  }
+
+  // Add PropsWithChildren to allow children
+  const Tooltip: React.FC<PropsWithChildren<TooltipProps>> = ({ children, content }) => {
+    return (
+      <div className="relative group inline-block">
+        {children}
+        <div className="absolute z-10 hidden group-hover:block w-72 p-2 bg-gray-800 text-white text-sm rounded shadow-lg">
+          {content}
+        </div>
+      </div>
+    );
+  };
 
   const tableColumns = [
     {
@@ -193,10 +231,30 @@ const HighlightTable: React.FC = () => {
       key: "details",
       header: "Details",
       render: (_: string, highlight: HighlightTableData) => {
+        console.log("Rendering highlight:", highlight); // 🔥 log the entire highlight object
+
+        //J1
+        const parsed = highlight.parsedHighlight;
+
+        if (!parsed) {
+          console.log("parsedHighlight is null for this row", highlight.id);
+          return <span>-</span>;
+        }
+        
+        //for hover details
+        let detailsContent: React.ReactNode = null;
+
         switch (highlight.type) {
           case "Prescription": {
-            const d = mockHighlightDetails.Prescription;
-            return (
+            //const d = mockHighlightDetails.Prescription; //J1
+            const d = highlight.parsedHighlight?.Prescription;
+            if (!d) {
+              console.log("Prescription data is missing", highlight.id);
+              return <span>-</span>;
+            } // ✅ safe fallback
+            console.log("Prescription data:", d);
+
+            detailsContent = (
               <div className="space-y-1 text-sm">
                 <div>
                   <b>Drug name:</b> {d.prescriptionListDesc}
@@ -227,10 +285,18 @@ const HighlightTable: React.FC = () => {
                 </div>
               </div>
             );
+            break;
           }
           case "Allergy": {
-            const d = mockHighlightDetails.Allergy;
-            return (
+            //const d = mockHighlightDetails.Allergy; J1
+            const d = highlight.parsedHighlight?.Allergy;
+            if (!d) {
+              console.log("Allergy data is missing", highlight.id);
+              return <span>-</span>;
+            }
+            console.log("Allergy data:", d);
+
+            detailsContent = (
               <div className="space-y-1 text-sm">
                 <div>
                   <b>Allergy:</b> {d.allergyListDesc}
@@ -243,10 +309,18 @@ const HighlightTable: React.FC = () => {
                 </div>
               </div>
             );
+            break;
           }
           case "ActivityExclusion": {
-            const d = mockHighlightDetails.ActivityExclusion;
-            return (
+            //const d = mockHighlightDetails.ActivityExclusion; //J1
+            const d = highlight.parsedHighlight?.ActivityExclusion;
+            if (!d) {
+              console.log("ActivityExclusion data is missing", highlight.id);
+              return <span>-</span>;
+            }
+            console.log("ActivityExclusion data:", d);
+
+            detailsContent = (
               <div className="space-y-1 text-sm">
                 <div>
                   <b>Activity name:</b> {d.activityTitle}
@@ -265,10 +339,18 @@ const HighlightTable: React.FC = () => {
                 </div>
               </div>
             );
+            break;
           }
           case "Vital": {
-            const d = mockHighlightDetails.Vital;
-            return (
+            //const d = mockHighlightDetails.Vital; //J1
+            const d = highlight.parsedHighlight?.Vital;
+            if (!d) {
+              console.log("Vital data is missing", highlight.id);
+              return <span>-</span>;
+            }
+            console.log("Vital data:", d);
+
+            detailsContent = (
               <div className="space-y-1 text-sm">
                 <div>
                   <b>Taken after meal:</b> {d.afterMeal ? "Yes" : "No"}
@@ -297,10 +379,18 @@ const HighlightTable: React.FC = () => {
                 </div>
               </div>
             );
+            break;
           }
           case "Problem": {
-            const d = mockHighlightDetails.Problem;
-            return (
+            //const d = mockHighlightDetails.Problem; J1
+            const d = highlight.parsedHighlight?.Problem;
+            if (!d) {
+              console.log("Problem data is missing", highlight.id);
+              return <span>-</span>;
+            }
+            console.log("Problem data:", d);
+
+            detailsContent = (
               <div className="space-y-1 text-sm">
                 <div>
                   <b>Description:</b> {d.problemLogListDesc}
@@ -313,10 +403,20 @@ const HighlightTable: React.FC = () => {
                 </div>
               </div>
             );
+            break;
           }
+
           default:
             return <span>-</span>;
         }
+
+        return (
+          <Tooltip content={detailsContent}>
+            <button className="px-2 py-1 text-sm font-medium text-blue-600 border border-blue-600 rounded hover:bg-blue-50">
+              View Details
+            </button>
+          </Tooltip>
+        );
       },
     },
   ];

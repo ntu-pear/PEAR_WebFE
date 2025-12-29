@@ -34,6 +34,11 @@ export interface HighlightTableData extends TableRowData {
   caregiverProfilePicture: string;
   type: string;
   value: string;
+
+  // 👇 ADD THESE TWO LINES J1
+  highlightJSON: string;
+  parsedHighlight: any;
+
   showPatientDetails?: boolean;
   showCaregiverDetails?: boolean;
   showType?: boolean;
@@ -72,6 +77,8 @@ export const fetchHighlights = async (): Promise<HighlightTableData[]> => {
 
     for (const highlight of res.data) {
       const patientId = highlight.PatientId;
+      console.log("Processing highlight id", highlight.Id, "HighlightJSON:", highlight.HighlightJSON);
+
 
       if (!grouped[patientId]) {
         const {
@@ -100,6 +107,24 @@ export const fetchHighlights = async (): Promise<HighlightTableData[]> => {
         };
       }
 
+      // ✅ ADD THIS LINE (this is what you are missing)
+      //const parsedHighlight = JSON.parse(highlight.HighlightJSON);
+      // ✅ Add parsing here
+      let parsedHighlight = null;
+      try {
+        parsedHighlight = JSON.parse(highlight.HighlightJSON);
+        console.log("Parsed highlight for id", highlight.Id, parsedHighlight);
+      } catch (e) {
+        console.error("Failed to parse HighlightJSON for id", highlight.Id, e);
+      }
+
+      // ✅ Skip rows where parsedHighlight is null
+      if (!parsedHighlight) {
+        console.warn("Skipping highlight with null parsedHighlight", highlight.Id);
+        continue; // skip this iteration
+      }
+      
+      // Push only valid highlights
       highlights.push({
         id: `${patientId}-${highlight.Type}-${highlight.Id}`,
         patientId: grouped[patientId].patientId,
@@ -111,7 +136,9 @@ export const fetchHighlights = async (): Promise<HighlightTableData[]> => {
         caregiverNric: grouped[patientId].caregiverNric,
         caregiverProfilePicture: grouped[patientId].caregiverProfilePicture,
         type: highlight.Type,
-        value: JSON.parse(highlight.HighlightJSON).value,
+        value: parsedHighlight?.value ?? "", // use optional chaining
+        highlightJSON: highlight.HighlightJSON,
+        parsedHighlight: parsedHighlight, // now it is assigned
         showPatientDetails: false,
         showCaregiverDetails: false,
         showType: false,
