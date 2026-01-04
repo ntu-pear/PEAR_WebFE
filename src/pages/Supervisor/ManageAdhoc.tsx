@@ -9,13 +9,20 @@ import {
 import Searchbar from "@/components/Searchbar";
 import { DataTableClient, DataTableColumns } from "@/components/Table/DataTable";
 import { Button } from "@/components/ui/button";
-import { listAdhocActivities, AdhocActivity } from "@/api/activities/adhoc";
+import { listAdhocActivities, AdhocActivity, updateAdhocActivity } from "@/api/activities/adhoc";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 
 
 const ManageAdhoc: React.FC = () => {
   const [adhocActivities, setAdhocActivities] = useState<AdhocActivity[]>([]);
   const [searchItem, setSearchItem] = useState("");
   const [loading, setLoading] = useState(true);
+
+  //edit button
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [editingActivity, setEditingActivity] = useState<AdhocActivity | null>(null);
+
 
   const handleInputChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -83,10 +90,14 @@ const ManageAdhoc: React.FC = () => {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => console.log("Edit", item)}
+                        onClick={() => {
+                          setEditingActivity(item);
+                          setEditModalOpen(true);
+                        }}
                       >
                         Edit
                       </Button>
+
                       <Button
                         variant="destructive"
                         size="sm"
@@ -102,9 +113,152 @@ const ManageAdhoc: React.FC = () => {
           </Card>
         </main>
       </div>
+      {/* -------------------------
+          Add the Edit Modal here
+         ------------------------- */}
+      <EditAdhocModal
+        activity={editingActivity}
+        open={editModalOpen}
+        onClose={() => setEditModalOpen(false)}
+        onSave={async (updated) => {
+          try {
+            await updateAdhocActivity({
+              id: updated.id,
+              startDate: updated.startDate,
+              endDate: updated.endDate,
+              patientId: updated.patientId,
+              oldActivityId: updated.oldActivityId,
+              newActivityId: updated.newActivityId,
+            });
+
+            setAdhocActivities((prev) =>
+              prev.map((a) => (a.id === updated.id ? updated : a))
+            );
+          } catch (err) {
+            console.error("Failed to update activity:", err);
+          }
+        }}
+      />
     </div>
+    
+    
   );
 };
+
+const EditAdhocModal: React.FC<{
+  activity: AdhocActivity | null;
+  open: boolean;
+  onClose: () => void;
+  onSave: (updated: AdhocActivity) => void;
+}> = ({ activity, open, onClose, onSave }) => {
+  const [selectedActivityId, setSelectedActivityId] = useState<number | undefined>(activity?.newActivityId);
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [adhocList, setAdhocList] = useState<AdhocActivity[]>([]);
+
+  // Helper to format dates for datetime-local input
+  const formatForInput = (dateStr: string) => {
+    if (!dateStr) return "";
+    const d = new Date(dateStr);
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const dd = String(d.getDate()).padStart(2, "0");
+    const hh = String(d.getHours()).padStart(2, "0");
+    const min = String(d.getMinutes()).padStart(2, "0");
+    return `${yyyy}-${mm}-${dd}T${hh}:${min}`;
+  };
+
+  useEffect(() => {
+    if (activity) {
+      setSelectedActivityId(activity.newActivityId);
+      setStartDate(formatForInput(activity.startDate));
+      setEndDate(formatForInput(activity.endDate));
+    }
+  }, [activity]);
+
+  // Optionally, fetch all activities to populate the dropdown
+  useEffect(() => {
+    const fetchAll = async () => {
+      try {
+        const data = await listAdhocActivities(false, 0, 100); // or your API to fetch activities
+        setAdhocList(data);
+      } catch (err) {
+        console.error("Failed to fetch activities for dropdown:", err);
+      }
+    };
+    fetchAll();
+  }, []);
+
+  if (!activity) return null;
+
+  return (
+    <Dialog open={open} onOpenChange={onClose}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Edit Adhoc Activity</DialogTitle>
+        </DialogHeader>
+
+        <div className="flex flex-col gap-4">
+          {/* Activity Selection Dropdown */}
+          <div>
+            <label className="text-sm font-medium">Replace Activity With</label>
+            <select
+              className="w-full border rounded px-2 py-1"
+              value={selectedActivityId}
+              onChange={(e) => setSelectedActivityId(Number(e.target.value))}
+            >
+              {adhocList.map((a) => (
+                <option key={a.id} value={a.id}>
+                  {a.newActivityTitle || `Activity ${a.id}`}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Start Date */}
+          <div>
+            <label className="text-sm font-medium">Start Date</label>
+            <Input
+              type="datetime-local"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+            />
+          </div>
+
+          {/* End Date */}
+          <div>
+            <label className="text-sm font-medium">End Date</label>
+            <Input
+              type="datetime-local"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+            />
+          </div>
+        </div>
+
+        <DialogFooter className="mt-4">
+          <Button
+            onClick={() => {
+              onSave({
+                ...activity,
+                newActivityId: selectedActivityId,
+                startDate,
+                endDate,
+              });
+              onClose();
+            }}
+          >
+            Save
+          </Button>
+          <Button variant="ghost" onClick={onClose}>
+            Cancel
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
 
 export default ManageAdhoc;
 

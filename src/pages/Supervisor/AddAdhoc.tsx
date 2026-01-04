@@ -1,41 +1,45 @@
 import { Form, DatePicker, message } from "antd";
-import { mockPatientNameList } from "@/mocks/mockPatientTableData";
 import { Dayjs } from "dayjs";
 import { RuleObject } from "antd/es/form";
+import React, { useEffect, useState } from "react";
+import { listActivities, Activity } from "@/api/activities/activities";
+import { fetchAllPatientTD } from "@/api/patients/patients";
+import { createAdhocActivity } from "@/api/activities/adhoc"; 
 
 const AddAdhoc: React.FC = () => {
-  const activities: string[] = [
-    "Lunch",
-    "Breathing + Vital Check",
-    "Board Games",
-    "Movie Screening",
-    "Brisk Walking",
-    "Mahjong",
-    "Musical Instrument Lesson",
-    "Story Time",
-    "Physiotherapy",
-    "String Beads",
-    "Sewing",
-    "Cup Stacking Game",
-    "Sort Poker Chips",
-    "Origami",
-    "Picture Coloring",
-    "Clip Coupons",
-    "Cutting Pictures",
-    "Watch Television",
-    "Act 1",
-    "Leslie History Routine",
-    "Leslie Geography Routine",
-  ];
+    const [activities, setActivities] = useState<Activity[]>([]);
+  const [loadingActivities, setLoadingActivities] = useState(true);
+
+  const [patients, setPatients] = useState<{ id: number; name: string }[]>([]);
+  const [loadingPatients, setLoadingPatients] = useState(true);
+
+
 
   const [form] = Form.useForm();
 
-  const onFinish = (values: any) => {
-    console.log("Success:", values);
-    message.success("Adhoc activity added successfully!");
+  const onFinish = async (values: any) => {
+    try {
+      // call the service instead of using fetch
+      await createAdhocActivity({
+        patientId: Number(values.patient_id),
+        oldActivityId: Number(values.old_centre_activity_id),
+        newActivityId: Number(values.new_centre_activity_id),
+        startDate: values.start_date.toISOString(),
+        endDate: values.end_date.toISOString(),
+        // optional fields; status defaults to PENDING in the API service
+        // created_by_id will default to "system" if not passed
+      });
+
+      message.success("Adhoc activity added successfully!");
+      form.resetFields();
+    } catch (error) {
+      console.error("Failed to add adhoc:", error);
+      message.error("Failed to add adhoc activity");
+    }
   };
 
   const onFinishFailed = (errorInfo: any) => {
+    
     console.log("Failed:", errorInfo);
     message.error("Please fill out all required fields correctly.");
   };
@@ -55,6 +59,54 @@ const AddAdhoc: React.FC = () => {
     }
     return Promise.resolve();
   };
+
+  useEffect(() => {
+    const fetchPatients = async () => {
+      try {
+        const res = await fetchAllPatientTD(
+          "",        // name
+          null,      // isActive
+          0,         // pageNo
+          100        // pageSize
+        );
+
+        // res.patients is already transformed table data
+        const mappedPatients = res.patients.map((p) => ({
+          id: Number(p.id), // ✅ force number
+          name: p.name,
+        }));
+
+
+        setPatients(mappedPatients);
+      } catch (error) {
+        console.error("Failed to fetch patients", error);
+        message.error("Failed to load patients");
+      } finally {
+        setLoadingPatients(false);
+      }
+    };
+
+    fetchPatients();
+  }, []);
+
+  useEffect(() => {
+    const fetchActivities = async () => {
+      try {
+        const res = await listActivities({
+          include_deleted: false,
+          limit: 1000,
+        });
+        setActivities(res);
+      } catch (error) {
+        console.error("Failed to fetch activities", error);
+        message.error("Failed to load activities");
+      } finally {
+        setLoadingActivities(false);
+      }
+    };
+
+    fetchActivities();
+  }, []);
 
   return (
     <div className="flex min-h-screen w-full flex-col lg:flex-row container mx-auto px-4">
@@ -100,20 +152,28 @@ const AddAdhoc: React.FC = () => {
                       Patient Name
                     </label>
                   }
-                  name="patient_name"
+                  //name="patient_name"
+                  name="patient_id"
                   rules={[
                     { required: true, message: "Please select a patient!" },
                   ]}
                   className="sm:col-span-8"
                 >
-                  <select className="block w-full rounded-md border-0 py-2 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:max-w-xs sm:text-sm sm:leading-6">
-                    <option value="" disabled selected>
+                  <select
+                    className="block w-full rounded-md border-0 py-2 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:max-w-xs sm:text-sm sm:leading-6"
+                    disabled={loadingPatients}
+                  >
+                    <option value="" disabled>
                       Select Patient
                     </option>
-                    {mockPatientNameList.map((patient, index) => (
-                      <option key={index}>{patient}</option>
+
+                    {patients.map((patient) => (
+                      <option key={patient.id} value={patient.id}>
+                        {patient.name}
+                      </option>
                     ))}
                   </select>
+
                 </Form.Item>
 
                 <Form.Item
@@ -122,7 +182,8 @@ const AddAdhoc: React.FC = () => {
                       Old Activity
                     </label>
                   }
-                  name="old_activity"
+                  name="old_centre_activity_id"
+
                   rules={[
                     {
                       required: true,
@@ -131,14 +192,21 @@ const AddAdhoc: React.FC = () => {
                   ]}
                   className="sm:col-span-3"
                 >
-                  <select className="block w-full rounded-md border-0 py-2 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:max-w-xs sm:text-sm sm:leading-6">
-                    <option value="" disabled selected>
+                  <select
+                    className="block w-full rounded-md border-0 py-2 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:max-w-xs sm:text-sm sm:leading-6"
+                    disabled={loadingActivities}
+                  >
+                    <option value="" disabled>
                       Select Old Activity
                     </option>
-                    {activities.map((activity, index) => (
-                      <option key={index}>{activity}</option>
+
+                    {activities.map((activity) => (
+                      <option key={activity.id} value={activity.id}>
+                        {activity.title}
+                      </option>
                     ))}
                   </select>
+
                 </Form.Item>
 
                 <Form.Item
@@ -147,7 +215,8 @@ const AddAdhoc: React.FC = () => {
                       New Activity
                     </label>
                   }
-                  name="new_activity"
+                  name="new_centre_activity_id"
+
                   rules={[
                     {
                       required: true,
@@ -156,14 +225,21 @@ const AddAdhoc: React.FC = () => {
                   ]}
                   className="sm:col-span-4"
                 >
-                  <select className="block w-full rounded-md border-0 py-2 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:max-w-xs sm:text-sm sm:leading-6">
-                    <option value="" disabled selected>
+                  <select
+                    className="block w-full rounded-md border-0 py-2 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:max-w-xs sm:text-sm sm:leading-6"
+                    disabled={loadingActivities}
+                  >
+                    <option value="" disabled>
                       Select New Activity
                     </option>
-                    {activities.map((activity, index) => (
-                      <option key={index}>{activity}</option>
+
+                    {activities.map((activity) => (
+                      <option key={activity.id} value={activity.id}>
+                        {activity.title}
+                      </option>
                     ))}
                   </select>
+
                 </Form.Item>
 
                 <Form.Item

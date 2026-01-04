@@ -157,17 +157,28 @@ export const listAdhocByPatient = async (patientId: number): Promise<AdhocActivi
 // Create new adhoc activity
 export interface CreateAdhocInput {
   patientId: number;
+  oldActivityId?: number;
+  newActivityId?: number;
   startDate: string;
   endDate: string;
-  oldActivityId?: number;
-  oldActivityTitle?: string;
-  newActivityId?: number;
-  newActivityTitle?: string;
+  status?: string;
+  createdById?: string;
 }
 
 export const createAdhocActivity = async (input: CreateAdhocInput) => {
   try {
-    const res = await adhocAPI.post("/", input, { headers: authHeader() });
+    // Map frontend camelCase fields to backend snake_case
+    const payload = {
+      patient_id: input.patientId,
+      old_centre_activity_id: input.oldActivityId ?? 0,
+      new_centre_activity_id: input.newActivityId ?? 0,
+      start_date: input.startDate,
+      end_date: input.endDate,
+      status: input.status ?? "PENDING",
+      created_by_id: input.createdById ?? "system",
+    };
+
+    const res = await adhocAPI.post("/", payload, { headers: authHeader() });
     return res.data;
   } catch (error) {
     console.error("Failed to create adhoc activity:", error);
@@ -176,13 +187,36 @@ export const createAdhocActivity = async (input: CreateAdhocInput) => {
 };
 
 // Update existing adhoc activity
-export interface UpdateAdhocInput extends CreateAdhocInput {
+export interface UpdateAdhocInput {
   id: number;
+  patientId: number;
+  oldActivityId?: number;
+  newActivityId?: number;
+  startDate: string;
+  endDate: string;
+  status?: string;
+  isDeleted?: boolean;
+  modifiedById?: string;
+  modifiedDate?: string;
 }
 
 export const updateAdhocActivity = async (input: UpdateAdhocInput) => {
   try {
-    const res = await adhocAPI.put(`/${input.id}`, input, { headers: authHeader() });
+    // Map frontend camelCase fields to backend snake_case
+    const payload = {
+      id: input.id,
+      patient_id: input.patientId,
+      old_centre_activity_id: input.oldActivityId ?? 0,
+      new_centre_activity_id: input.newActivityId ?? 0,
+      start_date: input.startDate,
+      end_date: input.endDate,
+      status: input.status ?? "PENDING",
+      is_deleted: input.isDeleted ?? false,
+      modified_by_id: input.modifiedById ?? "system",
+      modified_date: input.modifiedDate ?? new Date().toISOString(),
+    };
+
+    const res = await adhocAPI.put(`/${input.id}`, payload, { headers: authHeader() });
     return res.data;
   } catch (error) {
     console.error("Failed to update adhoc activity:", error);
