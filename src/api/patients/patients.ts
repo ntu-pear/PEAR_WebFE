@@ -5,6 +5,8 @@ import { convertToYesNo } from "@/utils/convertToYesNo";
 import { TableRowData } from "@/components/Table/DataTable";
 import { retrieveAccessTokenFromCookie } from "../users/auth";
 import { fetchPreferredLanguageList } from "./preferredLanguage";
+import { patientGuardianAPI } from "../apiConfig";
+
 
 export interface PatientBase {
   name: string;
@@ -209,6 +211,31 @@ export const fetchAllPatientTD = async (
     throw error;
   }
 };
+
+// for fetching guardian's patients
+export const fetchGuardianPatients = async (
+  guardianId: string
+): Promise<PatientTableDataServer> => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+
+  try {
+    const response = await patientGuardianAPI.get<PatientTableDataServer>("", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      params: {
+        guardian_userid: guardianId
+      }
+    })
+    return response.data
+  } catch (error) {
+    console.error("GET all Patients", error)
+    throw error;
+  }
+
+
+}
 
 // for edit patient modal
 export const fetchPatientById = async (

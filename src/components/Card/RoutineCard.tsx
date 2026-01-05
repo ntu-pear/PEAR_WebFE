@@ -4,9 +4,11 @@ import { PlusCircle } from "lucide-react";
 import { DataTableClient } from "../Table/DataTable";
 import { CardHeader, CardTitle, CardContent, Card } from "../ui/card";
 import { Button } from "../ui/button";
+import { useAuth } from "@/hooks/useAuth";
 
 const RoutineCard: React.FC = () => {
   const { openModal } = useModal();
+  const { currentUser } = useAuth();
   const routineColumns = [
     { key: "activityName", header: "Activity Name" },
     { key: "routineIssue", header: "Routine Issue" },
@@ -20,7 +22,19 @@ const RoutineCard: React.FC = () => {
         <CardHeader>
           <CardTitle className="text-lg flex items-center justify-between">
             <span>Routine</span>
-            <Button
+            {(currentUser?.roleName !== "GUARDIAN")&&(
+              <Button
+                size="sm"
+                className="h-8 w-24 gap-1"
+                onClick={() => openModal("addRoutine")}
+              >
+                <PlusCircle className="h-4 w-4" />
+                <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+                  Add
+                </span>
+              </Button>
+            )}
+            {/* <Button
               size="sm"
               className="h-8 w-24 gap-1"
               onClick={() => openModal("addRoutine")}
@@ -29,7 +43,7 @@ const RoutineCard: React.FC = () => {
               <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
                 Add
               </span>
-            </Button>
+            </Button> */}
           </CardTitle>
         </CardHeader>
         <CardContent>
