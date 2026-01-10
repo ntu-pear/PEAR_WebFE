@@ -40,6 +40,13 @@ export interface AdhocActivity {
   newActivityTitle?: string;
   newActivityDescription?: string;
   lastUpdated?: string;
+  // for put endpoint
+  status?: string;
+  isDeleted?: boolean;
+  createdDate?: string;
+  modifiedDate?: string;
+  createdById?: string;
+  modifiedById?: string;
 }
 
 /* =========================
@@ -216,7 +223,7 @@ export const updateAdhocActivity = async (input: UpdateAdhocInput) => {
       modified_date: input.modifiedDate ?? new Date().toISOString(),
     };
 
-    const res = await adhocAPI.put(`/${input.id}`, payload, { headers: authHeader() });
+    const res = await adhocAPI.put(`/`, payload, { headers: authHeader() });
     return res.data;
   } catch (error) {
     console.error("Failed to update adhoc activity:", error);
@@ -227,13 +234,16 @@ export const updateAdhocActivity = async (input: UpdateAdhocInput) => {
 // Delete adhoc activity
 export const deleteAdhocActivity = async (id: number) => {
   try {
-    const res = await adhocAPI.delete(`/${id}`, { headers: authHeader() });
+    const res = await adhocAPI.delete(`/${id}`, {
+      headers: authHeader(),
+    });
     return res.data;
   } catch (error) {
     console.error("Failed to delete adhoc activity:", error);
     throw error;
   }
 };
+
 
 export const fetchAdhocActivities = async (): Promise<AdhocActivity[]> => {
   const res = await fetch("http://10.96.188.186/api/v1/activities/?include_deleted=false&skip=0&limit=100");

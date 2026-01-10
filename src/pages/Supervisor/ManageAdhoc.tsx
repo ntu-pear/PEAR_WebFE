@@ -9,49 +9,91 @@ import {
 import Searchbar from "@/components/Searchbar";
 import { DataTableClient, DataTableColumns } from "@/components/Table/DataTable";
 import { Button } from "@/components/ui/button";
-import { listAdhocActivities, AdhocActivity, updateAdhocActivity } from "@/api/activities/adhoc";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import {
+  listAdhocActivities,
+  AdhocActivity,
+  updateAdhocActivity,
+  deleteAdhocActivity,
+} from "@/api/activities/adhoc";
+import { listActivities, Activity } from "@/api/activities/activities"; // master activity list
+import { formatDateTime } from "@/utils/formatDate";
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
 
+dayjs.extend(utc);
+dayjs.extend(timezone);
+const SG_TZ = "Asia/Singapore";
 
 const ManageAdhoc: React.FC = () => {
   const [adhocActivities, setAdhocActivities] = useState<AdhocActivity[]>([]);
   const [searchItem, setSearchItem] = useState("");
   const [loading, setLoading] = useState(true);
 
-  //edit button
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [editingActivity, setEditingActivity] = useState<AdhocActivity | null>(null);
 
+  const [activityList, setActivityList] = useState<Activity[]>([]); // full master list
 
+  // Search input
   const handleInputChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      setSearchItem(e.target.value);
-    },
+    (e: React.ChangeEvent<HTMLInputElement>) => setSearchItem(e.target.value),
     []
   );
 
-  const fetchActivities = async () => {
+  // Fetch adhoc activities
+  const fetchAdhoc = async () => {
     setLoading(true);
     try {
-      const data = await listAdhocActivities(false,0,100);
-      console.log("Fetched adhoc activities:", data);
-      setAdhocActivities(Array.isArray(data) ? data : []);
-    } catch (error: any) {
-      console.error("Error fetching adhoc activities:", error);
+      const data = await listAdhocActivities(false, 0, 100);
+      const formatted = data.map(a => ({
+        ...a,
+        startDate: formatDateTime(a.startDate ?? null),
+        endDate: formatDateTime(a.endDate ?? null),
+        lastUpdated: formatDateTime(a.lastUpdated ?? null),
+      }));
+      setAdhocActivities(formatted);
+    } catch (err) {
+      console.error("Failed to fetch adhoc activities:", err);
       setAdhocActivities([]);
     } finally {
       setLoading(false);
     }
   };
 
+  // Fetch master activity list
+  const fetchMasterActivities = async () => {
+    try {
+      const data = await listActivities(); // [{id, title, description}]
+      setActivityList(data);
+    } catch (err) {
+      console.error("Failed to fetch activity list:", err);
+      setActivityList([]);
+    }
+  };
+
   useEffect(() => {
-    fetchActivities();
+    fetchAdhoc();
+    fetchMasterActivities();
   }, []);
 
-  const filteredActivities = adhocActivities.filter((activity) =>
-    activity.patientName?.toLowerCase().includes(searchItem.toLowerCase())
+  const filteredActivities = adhocActivities.filter(a =>
+    a.patientName?.toLowerCase().includes(searchItem.toLowerCase())
   );
+
+  const handleDelete = async (activity: AdhocActivity) => {
+    if (!window.confirm(`Delete adhoc activity for ${activity.patientName}?`)) return;
+
+    try {
+      await deleteAdhocActivity(activity.id);
+      setAdhocActivities(prev => prev.filter(a => a.id !== activity.id));
+    } catch (err) {
+      console.error(err);
+      alert("Failed to delete adhoc activity");
+    }
+  };
 
   const columns: DataTableColumns<AdhocActivity> = [
     { key: "lastUpdated", header: "Last Updated" },
@@ -74,7 +116,6 @@ const ManageAdhoc: React.FC = () => {
               <CardTitle>Manage Adhoc</CardTitle>
               <CardDescription>Manage adhoc activities for patients</CardDescription>
             </CardHeader>
-
             <CardContent className="overflow-x-auto">
               {loading ? (
                 <div className="text-sm text-muted-foreground">Loading...</div>
@@ -97,11 +138,10 @@ const ManageAdhoc: React.FC = () => {
                       >
                         Edit
                       </Button>
-
                       <Button
                         variant="destructive"
                         size="sm"
-                        onClick={() => console.log("Delete", item)}
+                        onClick={() => handleDelete(item)}
                       >
                         Delete
                       </Button>
@@ -113,81 +153,95 @@ const ManageAdhoc: React.FC = () => {
           </Card>
         </main>
       </div>
-      {/* -------------------------
-          Add the Edit Modal here
-         ------------------------- */}
+
+      {/* Edit Modal */}
       <EditAdhocModal
         activity={editingActivity}
         open={editModalOpen}
+        activityList={activityList}
         onClose={() => setEditModalOpen(false)}
         onSave={async (updated) => {
           try {
-            await updateAdhocActivity({
-              id: updated.id,
-              startDate: updated.startDate,
-              endDate: updated.endDate,
-              patientId: updated.patientId,
-              oldActivityId: updated.oldActivityId,
-              newActivityId: updated.newActivityId,
-            });
+            const startISO = dayjs.tz(updated.startDate, SG_TZ).format();
+            const endISO = dayjs.tz(updated.endDate, SG_TZ).format();
+            const modifiedISO = dayjs.tz(new Date(), SG_TZ).format();
 
-            setAdhocActivities((prev) =>
-              prev.map((a) => (a.id === updated.id ? updated : a))
+            const payload = {
+              id: updated.id,
+              oldActivityId: updated.oldActivityId,
+              newActivityId: updated.newActivityId!,
+              patientId: updated.patientId,
+              startDate: startISO,
+              endDate: endISO,
+              status: updated.status,
+              isDeleted: updated.isDeleted,
+              modifiedById: "system",
+              modifiedDate: modifiedISO,
+            };
+
+            await updateAdhocActivity(payload);
+
+            // Find new activity title/description from master list
+            const newActivity = activityList.find(a => a.id === payload.newActivityId);
+
+            setAdhocActivities(prev =>
+              prev.map(a =>
+                a.id === updated.id
+                  ? {
+                      ...a,
+                      oldActivityId: payload.oldActivityId,
+                      newActivityId: payload.newActivityId,
+                      newActivityTitle: newActivity?.title || a.newActivityTitle,
+                      newActivityDescription: newActivity?.description || a.newActivityDescription,
+                      startDate: formatDateTime(payload.startDate),
+                      endDate: formatDateTime(payload.endDate),
+                      status: payload.status,
+                      isDeleted: payload.isDeleted,
+                      modifiedById: payload.modifiedById,
+                      lastUpdated: formatDateTime(payload.modifiedDate),
+                    }
+                  : a
+              )
             );
+
+            setEditModalOpen(false);
           } catch (err) {
-            console.error("Failed to update activity:", err);
+            console.error(err);
+            alert("Failed to update adhoc activity");
           }
         }}
       />
     </div>
-    
-    
   );
 };
 
-const EditAdhocModal: React.FC<{
+/* -------------------------
+   Edit Modal Component
+------------------------- */
+interface EditAdhocModalProps {
   activity: AdhocActivity | null;
   open: boolean;
   onClose: () => void;
   onSave: (updated: AdhocActivity) => void;
-}> = ({ activity, open, onClose, onSave }) => {
+  activityList: Activity[];
+}
+
+const EditAdhocModal: React.FC<EditAdhocModalProps> = ({ activity, open, onClose, onSave, activityList }) => {
   const [selectedActivityId, setSelectedActivityId] = useState<number | undefined>(activity?.newActivityId);
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
-  const [adhocList, setAdhocList] = useState<AdhocActivity[]>([]);
-
-  // Helper to format dates for datetime-local input
-  const formatForInput = (dateStr: string) => {
-    if (!dateStr) return "";
-    const d = new Date(dateStr);
-    const yyyy = d.getFullYear();
-    const mm = String(d.getMonth() + 1).padStart(2, "0");
-    const dd = String(d.getDate()).padStart(2, "0");
-    const hh = String(d.getHours()).padStart(2, "0");
-    const min = String(d.getMinutes()).padStart(2, "0");
-    return `${yyyy}-${mm}-${dd}T${hh}:${min}`;
-  };
 
   useEffect(() => {
-    if (activity) {
-      setSelectedActivityId(activity.newActivityId);
-      setStartDate(formatForInput(activity.startDate));
-      setEndDate(formatForInput(activity.endDate));
-    }
+    if (!activity) return;
+
+    setSelectedActivityId(activity.newActivityId);
+
+    const startSG = dayjs(activity.startDate).tz(SG_TZ).format("YYYY-MM-DDTHH:mm");
+    const endSG = dayjs(activity.endDate).tz(SG_TZ).format("YYYY-MM-DDTHH:mm");
+
+    setStartDate(startSG);
+    setEndDate(endSG);
   }, [activity]);
-
-  // Optionally, fetch all activities to populate the dropdown
-  useEffect(() => {
-    const fetchAll = async () => {
-      try {
-        const data = await listAdhocActivities(false, 0, 100); // or your API to fetch activities
-        setAdhocList(data);
-      } catch (err) {
-        console.error("Failed to fetch activities for dropdown:", err);
-      }
-    };
-    fetchAll();
-  }, []);
 
   if (!activity) return null;
 
@@ -199,23 +253,24 @@ const EditAdhocModal: React.FC<{
         </DialogHeader>
 
         <div className="flex flex-col gap-4">
-          {/* Activity Selection Dropdown */}
+          {/* Activity dropdown */}
           <div>
             <label className="text-sm font-medium">Replace Activity With</label>
             <select
               className="w-full border rounded px-2 py-1"
-              value={selectedActivityId}
+              value={selectedActivityId ?? -1}
               onChange={(e) => setSelectedActivityId(Number(e.target.value))}
             >
-              {adhocList.map((a) => (
+              <option value={-1}>Keep Current</option>
+              {activityList.map((a) => (
                 <option key={a.id} value={a.id}>
-                  {a.newActivityTitle || `Activity ${a.id}`}
+                  {a.title}
                 </option>
               ))}
             </select>
           </div>
 
-          {/* Start Date */}
+          {/* Start date */}
           <div>
             <label className="text-sm font-medium">Start Date</label>
             <Input
@@ -225,7 +280,7 @@ const EditAdhocModal: React.FC<{
             />
           </div>
 
-          {/* End Date */}
+          {/* End date */}
           <div>
             <label className="text-sm font-medium">End Date</label>
             <Input
@@ -236,16 +291,12 @@ const EditAdhocModal: React.FC<{
           </div>
         </div>
 
-        <DialogFooter className="mt-4">
+        <DialogFooter className="mt-4 flex space-x-2">
           <Button
             onClick={() => {
-              onSave({
-                ...activity,
-                newActivityId: selectedActivityId,
-                startDate,
-                endDate,
-              });
-              onClose();
+              if (!selectedActivityId && selectedActivityId !== 0) return alert("Select a new activity");
+              const newId = selectedActivityId === -1 ? activity.newActivityId : selectedActivityId;
+              onSave({ ...activity, newActivityId: newId, startDate, endDate });
             }}
           >
             Save
@@ -259,6 +310,4 @@ const EditAdhocModal: React.FC<{
   );
 };
 
-
 export default ManageAdhoc;
-

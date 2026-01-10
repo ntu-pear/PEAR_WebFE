@@ -24,8 +24,8 @@ const AddAdhoc: React.FC = () => {
         patientId: Number(values.patient_id),
         oldActivityId: Number(values.old_centre_activity_id),
         newActivityId: Number(values.new_centre_activity_id),
-        startDate: values.start_date.toISOString(),
-        endDate: values.end_date.toISOString(),
+        startDate: values.start_date.format("YYYY-MM-DDTHH:mm:ss.SSS") + "000",
+        endDate: values.end_date.format("YYYY-MM-DDTHH:mm:ss.SSS") + "000",
         // optional fields; status defaults to PENDING in the API service
         // created_by_id will default to "system" if not passed
       });
@@ -245,33 +245,40 @@ const AddAdhoc: React.FC = () => {
                 <Form.Item
                   label={
                     <label className="block text-sm font-medium leading-6 text-primary">
-                      Start Date
+                      Start Date & Time
                     </label>
                   }
                   name="start_date"
-                  rules={[
-                    { required: true, message: "Please select a start date!" },
-                  ]}
+                  rules={[{ required: true, message: "Please select a start date & time!" }]}
                   className="sm:col-span-3"
                 >
-                  <DatePicker className="col-span-" />
+                  <DatePicker
+                    showTime={{ format: "HH:mm:ss" }}
+                    format="YYYY-MM-DD HH:mm:ss"
+                    className="w-full"
+                  />
                 </Form.Item>
 
                 <Form.Item
                   label={
                     <label className="block text-sm font-medium leading-6 text-primary">
-                      End Date
+                      End Date & Time
                     </label>
                   }
                   name="end_date"
                   rules={[
-                    { required: true, message: "Please select an end date!" },
+                    { required: true, message: "Please select an end date & time!" },
                     { validator: validateEndDate },
                   ]}
                   className="sm:col-span-3"
                 >
-                  <DatePicker className="col-span-3" />
+                  <DatePicker
+                    showTime={{ format: "HH:mm:ss" }}
+                    format="YYYY-MM-DD HH:mm:ss"
+                    className="w-full"
+                  />
                 </Form.Item>
+
               </div>
             </div>
           </div>
