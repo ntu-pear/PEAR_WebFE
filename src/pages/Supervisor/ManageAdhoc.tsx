@@ -37,7 +37,6 @@ const ManageAdhoc: React.FC = () => {
 
   const [activityList, setActivityList] = useState<Activity[]>([]); // full master list
 
-  // Search input
   const handleInputChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => setSearchItem(e.target.value),
     []
@@ -85,7 +84,6 @@ const ManageAdhoc: React.FC = () => {
 
   const handleDelete = async (activity: AdhocActivity) => {
     if (!window.confirm(`Delete adhoc activity for ${activity.patientName}?`)) return;
-
     try {
       await deleteAdhocActivity(activity.id);
       setAdhocActivities(prev => prev.filter(a => a.id !== activity.id));
@@ -166,10 +164,15 @@ const ManageAdhoc: React.FC = () => {
             const endISO = dayjs.tz(updated.endDate, SG_TZ).format();
             const modifiedISO = dayjs.tz(new Date(), SG_TZ).format();
 
+            // Swap old/new if activity changed
+            const isChanged = updated.newActivityId !== editingActivity?.newActivityId;
+            const newOldActivityId = isChanged ? editingActivity!.newActivityId : updated.oldActivityId;
+            const newNewActivityId = updated.newActivityId!;
+
             const payload = {
               id: updated.id,
-              oldActivityId: updated.oldActivityId,
-              newActivityId: updated.newActivityId!,
+              oldActivityId: newOldActivityId,
+              newActivityId: newNewActivityId,
               patientId: updated.patientId,
               startDate: startISO,
               endDate: endISO,
@@ -181,16 +184,18 @@ const ManageAdhoc: React.FC = () => {
 
             await updateAdhocActivity(payload);
 
-            // Find new activity title/description from master list
-            const newActivity = activityList.find(a => a.id === payload.newActivityId);
+            const oldActivity = activityList.find(a => a.id === newOldActivityId);
+            const newActivity = activityList.find(a => a.id === newNewActivityId);
 
             setAdhocActivities(prev =>
               prev.map(a =>
                 a.id === updated.id
                   ? {
                       ...a,
-                      oldActivityId: payload.oldActivityId,
-                      newActivityId: payload.newActivityId,
+                      oldActivityId: newOldActivityId,
+                      newActivityId: newNewActivityId,
+                      oldActivityTitle: oldActivity?.title || a.oldActivityTitle,
+                      oldActivityDescription: oldActivity?.description || a.oldActivityDescription,
                       newActivityTitle: newActivity?.title || a.newActivityTitle,
                       newActivityDescription: newActivity?.description || a.newActivityDescription,
                       startDate: formatDateTime(payload.startDate),
@@ -253,7 +258,6 @@ const EditAdhocModal: React.FC<EditAdhocModalProps> = ({ activity, open, onClose
         </DialogHeader>
 
         <div className="flex flex-col gap-4">
-          {/* Activity dropdown */}
           <div>
             <label className="text-sm font-medium">Replace Activity With</label>
             <select
@@ -270,7 +274,6 @@ const EditAdhocModal: React.FC<EditAdhocModalProps> = ({ activity, open, onClose
             </select>
           </div>
 
-          {/* Start date */}
           <div>
             <label className="text-sm font-medium">Start Date</label>
             <Input
@@ -280,7 +283,6 @@ const EditAdhocModal: React.FC<EditAdhocModalProps> = ({ activity, open, onClose
             />
           </div>
 
-          {/* End date */}
           <div>
             <label className="text-sm font-medium">End Date</label>
             <Input
@@ -301,9 +303,7 @@ const EditAdhocModal: React.FC<EditAdhocModalProps> = ({ activity, open, onClose
           >
             Save
           </Button>
-          <Button variant="ghost" onClick={onClose}>
-            Cancel
-          </Button>
+          <Button variant="ghost" onClick={onClose}>Cancel</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
