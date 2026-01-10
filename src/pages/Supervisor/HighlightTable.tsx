@@ -28,13 +28,6 @@ import {
 } from "@/api/patients/highlight";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
-/* 1
-import { 
-  mockCaregiverNameList, 
-  mockHighlightDetails, 
-} from "@/mocks/mockHighlightTableData"; 
- */
-
 import { mockCaregiverNameList } from "@/mocks/mockHighlightTableData";
 
 const HighlightTable: React.FC = () => {
@@ -75,20 +68,16 @@ const HighlightTable: React.FC = () => {
 
   const handleFilter = async () => {
     try {
-      // 1️⃣ Fetch raw highlights
       const highlights = await fetchHighlights();
-      console.log("All Fetched highlights array:", highlights); // ✅ inspect all rows
+      console.log("All Fetched highlights array:", highlights); 
 
 
-      //J1 
-      // 2️⃣ Parse HighlightJSON
       const parsedHighlights = highlights.map((h) => ({
       ...h,
       parsedHighlight: h.highlightJSON? JSON.parse(h.highlightJSON): null,
       }));
-      console.log("After parsing:", parsedHighlights); // ✅ parsedHighlight added
+      console.log("After parsing:", parsedHighlights); 
 
-      // 3️⃣ Apply filters
       let filteredHighlights = parsedHighlights.filter(({ patientName }) =>
         patientName.toLowerCase().includes(searchItem.toLowerCase())
       );
@@ -102,12 +91,9 @@ const HighlightTable: React.FC = () => {
           selectedCaregiver === "All" ||
           caregiverId.toString() === selectedCaregiver
       );
-      console.log("After filtering:", filteredHighlights); // ✅ final array that will be shown
+      console.log("After filtering:", filteredHighlights); 
 
-
-      //setHighlights(flattenHighlights(filteredHighlights)); //J1
-      setHighlights(flattenHighlights(filteredHighlights)); //J2 testing removing flat
-      //setHighlights(filteredHighlights); 
+      setHighlights(flattenHighlights(filteredHighlights)); 
     } catch (error) {
       console.error("Error fetching highlights:", error);
     }
@@ -232,8 +218,6 @@ const HighlightTable: React.FC = () => {
       header: "Details",
       render: (_: string, highlight: HighlightTableData) => {
         console.log("Rendering highlight:", highlight); // 🔥 log the entire highlight object
-
-        //J1
         const parsed = highlight.parsedHighlight;
 
         if (!parsed) {
@@ -241,17 +225,15 @@ const HighlightTable: React.FC = () => {
           return <span>-</span>;
         }
         
-        //for hover details
         let detailsContent: React.ReactNode = null;
 
         switch (highlight.type) {
           case "Prescription": {
-            //const d = mockHighlightDetails.Prescription; //J1
             const d = highlight.parsedHighlight?.Prescription;
             if (!d) {
               console.log("Prescription data is missing", highlight.id);
               return <span>-</span>;
-            } // ✅ safe fallback
+            } 
             console.log("Prescription data:", d);
 
             detailsContent = (
@@ -288,7 +270,6 @@ const HighlightTable: React.FC = () => {
             break;
           }
           case "Allergy": {
-            //const d = mockHighlightDetails.Allergy; J1
             const d = highlight.parsedHighlight?.Allergy;
             if (!d) {
               console.log("Allergy data is missing", highlight.id);
@@ -312,7 +293,6 @@ const HighlightTable: React.FC = () => {
             break;
           }
           case "ActivityExclusion": {
-            //const d = mockHighlightDetails.ActivityExclusion; //J1
             const d = highlight.parsedHighlight?.ActivityExclusion;
             if (!d) {
               console.log("ActivityExclusion data is missing", highlight.id);
@@ -342,7 +322,6 @@ const HighlightTable: React.FC = () => {
             break;
           }
           case "Vital": {
-            //const d = mockHighlightDetails.Vital; //J1
             const d = highlight.parsedHighlight?.Vital;
             if (!d) {
               console.log("Vital data is missing", highlight.id);
@@ -382,7 +361,6 @@ const HighlightTable: React.FC = () => {
             break;
           }
           case "Problem": {
-            //const d = mockHighlightDetails.Problem; J1
             const d = highlight.parsedHighlight?.Problem;
             if (!d) {
               console.log("Problem data is missing", highlight.id);

@@ -35,7 +35,6 @@ export interface HighlightTableData extends TableRowData {
   type: string;
   value: string;
 
-  // 👇 ADD THESE TWO LINES J1
   highlightJSON: string;
   parsedHighlight: any;
 
@@ -107,9 +106,6 @@ export const fetchHighlights = async (): Promise<HighlightTableData[]> => {
         };
       }
 
-      // ✅ ADD THIS LINE (this is what you are missing)
-      //const parsedHighlight = JSON.parse(highlight.HighlightJSON);
-      // ✅ Add parsing here
       let parsedHighlight = null;
       try {
         parsedHighlight = JSON.parse(highlight.HighlightJSON);
@@ -118,10 +114,9 @@ export const fetchHighlights = async (): Promise<HighlightTableData[]> => {
         console.error("Failed to parse HighlightJSON for id", highlight.Id, e);
       }
 
-      // ✅ Skip rows where parsedHighlight is null
       if (!parsedHighlight) {
         console.warn("Skipping highlight with null parsedHighlight", highlight.Id);
-        continue; // skip this iteration
+        continue; 
       }
       
       // Push only valid highlights
@@ -136,9 +131,9 @@ export const fetchHighlights = async (): Promise<HighlightTableData[]> => {
         caregiverNric: grouped[patientId].caregiverNric,
         caregiverProfilePicture: grouped[patientId].caregiverProfilePicture,
         type: highlight.Type,
-        value: parsedHighlight?.value ?? "", // use optional chaining
+        value: parsedHighlight?.value ?? "", 
         highlightJSON: highlight.HighlightJSON,
-        parsedHighlight: parsedHighlight, // now it is assigned
+        parsedHighlight: parsedHighlight, 
         showPatientDetails: false,
         showCaregiverDetails: false,
         showType: false,
