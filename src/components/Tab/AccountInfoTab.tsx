@@ -3,6 +3,8 @@ import { useViewAccount } from "@/hooks/admin/useViewAccount";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "../ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip";
+import { formatDateTime } from "@/utils/formatDate";
+import { formatDate } from "@/utils/formatDate";
 
 const AccountInfoTab: React.FC = () => {
   const {
@@ -57,7 +59,7 @@ const AccountInfoTab: React.FC = () => {
           </div>
           <div className="space-y-2">
             <p className="text-sm font-medium">Date of Birth</p>
-            <p id="accountinfo-dob">{accountInfo?.nric_DateOfBirth || "NA"}</p>
+            <p id="accountinfo-dob">{accountInfo?.nric_DateOfBirth ? formatDate(accountInfo.nric_DateOfBirth) :  "NA"}</p>
           </div>
           <div className="space-y-2">
             <p className="text-sm font-medium">Email</p>
@@ -143,7 +145,11 @@ const AccountInfoTab: React.FC = () => {
           </div>
           <div className="space-y-2">
             <p className="text-sm font-medium">Login Timestamp</p>
-            <p id="accountinfo-login-timestamp">{accountInfo?.loginTimeStamp || "NA"}</p>
+            <p id="accountinfo-login-timestamp">
+              {accountInfo?.loginTimeStamp
+                ? formatDateTime(accountInfo.loginTimeStamp)
+                : "NA"}
+            </p>
           </div>
           <div className="space-y-2">
             <p className="text-sm font-medium">Created By</p>
@@ -155,7 +161,7 @@ const AccountInfoTab: React.FC = () => {
           </div>
           <div className="space-y-2">
             <p className="text-sm font-medium">Created Date</p>
-            <p id="accountinfo-created-date">{accountInfo?.createdDate || "NA"}</p>
+            <p id="accountinfo-created-date">{accountInfo?.createdDate ? formatDateTime(accountInfo.createdDate) : "NA"}</p>
           </div>
           <div className="space-y-2">
             <p className="text-sm font-medium">Modified By</p>
@@ -167,7 +173,7 @@ const AccountInfoTab: React.FC = () => {
           </div>
           <div className="space-y-2">
             <p className="text-sm font-medium">Modified Date</p>
-            <p id="accountinfo-modified-date">{accountInfo?.modifiedDate || "NA"}</p>
+            <p id="accountinfo-modified-date">{accountInfo?.modifiedDate ? formatDateTime(accountInfo.modifiedDate) : "NA"}</p>
           </div>
         </CardContent>
       </Card>
