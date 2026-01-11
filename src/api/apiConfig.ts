@@ -36,6 +36,11 @@ export const careCentreAPI = axios.create({
   baseURL: `${VITE_ACTIVITY_SERVICE_URL}/care_centres`,
 });
 
+// adhoc activities
+export const adhocAPI = axios.create({
+  baseURL: `${VITE_ACTIVITY_SERVICE_URL}/adhocs`,
+});
+
 // patient
 export const patientsAPI = axios.create({
   baseURL: `${VITE_PATIENT_SERVICE_URL}/patients`,
