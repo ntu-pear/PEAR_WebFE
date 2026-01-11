@@ -2,11 +2,13 @@ import { patientAllocationAPI } from '../apiConfig';
 import { retrieveAccessTokenFromCookie } from "../users/auth";
 
 export interface PatientAllocation {
+    id: number,
     doctorId: string,
     gameTherapistId: string,
     supervisorId: string,
     caregiverId: string,
-    guardianApplicationUserId: string
+    guardianApplicationUserId: string,
+    guardianId: number
 }
 
 export const fetchPatientAllocationById = async (
@@ -24,11 +26,13 @@ export const fetchPatientAllocationById = async (
         })
         const data = response.data
         const allocation: PatientAllocation = {
+            id: data.id,
             doctorId: data.doctorId,
             gameTherapistId: data.gameTherapistId,
             supervisorId: data.supervisorId ,
             caregiverId: data.caregiverId,
-            guardianApplicationUserId: data.guardianApplicationUserId
+            guardianApplicationUserId: data.guardianApplicationUserId,
+            guardianId: data.guardianId
         }
         return allocation
     } catch (error) {
