@@ -290,6 +290,14 @@ export const patientAllocationAPI = axios.create({
   baseURL : `${VITE_PATIENT_SERVICE_URL}/allocation`
 });
 
+export const medicalHistoryAPI = axios.create({
+  baseURL: `${VITE_PATIENT_SERVICE_URL}/MedicalHistory`
+});
+
+export const medicalDiagnosisListAPI = axios.create({
+  baseURL: `${VITE_PATIENT_SERVICE_URL}/MedicalDiagnosisList`
+})
+
 //geocode
 export const geocodeAPI = axios.create({
   baseURL: `${VITE_GEOCODE_SERVICE_URL}/geocode`,

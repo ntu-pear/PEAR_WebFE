@@ -21,6 +21,8 @@ import AddDoctorNoteModal from "../Modal/Add/AddDoctorNoteModal";
 import DeleteDoctorNoteModal from "../Modal/Delete/DeleteDoctorNoteModal";
 import EditDoctorNoteModal from "../Modal/Edit/EditDoctorNoteModal";
 import AddStaffAllocationModal from "../Modal/Add/AddStaffAllocationModal";
+import EditMedicalHistoryModal from "../Modal/Edit/EditMedicalHistoryModal";
+import DeleteMedicalHistoryModal from "../Modal/Delete/DeleteMedicalHistoryModal";
 
 const PatientInfoTab: React.FC = () => {
   const { activeModal } = useModal();
@@ -54,6 +56,8 @@ const PatientInfoTab: React.FC = () => {
         <DeleteDiagnosedDementiaModal />
       )}
       {activeModal.name === "addMedicalHistory" && <AddMedicalHistoryModal />}
+      {activeModal.name === 'editMedicalHistory' && <EditMedicalHistoryModal/>}
+      {activeModal.name === 'deleteMedicalHistory' && <DeleteMedicalHistoryModal/>}
 
       {activeModal.name === "addMobilityAids" && <AddMobilityAidModal />}
       {activeModal.name === "editMobilityAids" && <EditMobilityAid />}

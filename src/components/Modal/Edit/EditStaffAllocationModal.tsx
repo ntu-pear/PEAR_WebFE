@@ -3,6 +3,7 @@ import { useModal } from "@/hooks/useModal";
 import { Button } from "../../ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { Staff, Doctor, Caregiver, Supervisor, GameTherapist, fetchAllStaff, updateStaffAllocation } from "@/api/patients/staffAllocation"
+import { toast } from "sonner";
 
 interface EditStaffAllocationModalProps {
   allocationId: number,
@@ -39,7 +40,10 @@ const EditStaffAllocationModal: React.FC<EditStaffAllocationModalProps> = () => 
 
   const handleEditStaffAllocation = async (event: React.FormEvent) => {
     event.preventDefault();
-    if (!allocationId || !patientId || !guardianId || !currentUser?.userId) return
+    if (!allocationId || !patientId || !guardianId || !currentUser?.userId) {
+      closeModal()
+      return
+    }
     try {
       const response = await updateStaffAllocation(
         {
@@ -55,10 +59,19 @@ const EditStaffAllocationModal: React.FC<EditStaffAllocationModalProps> = () => 
       )
       console.log(response)
       onSuccess?.();
+      toast.success("Patient staff allocation updated successfully.")
       closeModal();
     } catch (error) {
+      if (error instanceof Error) {
+        toast.error(`Failed to update staff allocation. ${error.message}`);
+      } else {
+        toast.error(
+          "Failed to update staff allocation. An unknown error occurred."
+        );
+      }
       console.error(error)
       console.log("Failed to update staff allocation")
+      closeModal();
     }
   };
 
