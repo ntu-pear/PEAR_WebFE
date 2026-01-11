@@ -1,11 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useCentreActivities } from "@/hooks/activities/useCentreActivities";
 import { type FormErrors, type CentreActivityAvailabilityFormValues, validateLocal} from "@/lib/validation/activityAvailability";
-import dayjs from "dayjs";
 import { CentreActivityWithTitle } from "@/api/activities/centreActivities";
+
+
 
 type Props = {
   initial: CentreActivityAvailabilityFormValues & {id?: number} & {editing?: boolean} & {selectedCentreActivityData : CentreActivityWithTitle};
@@ -22,6 +23,16 @@ export interface RadioBtnOption {
   value: boolean;
 }
 
+const DAYS_MAP = [
+  { label: "Mon", value: 1 },
+  { label: "Tue", value: 2 },
+  { label: "Wed", value: 4 },
+  { label: "Thu", value: 8 },
+  { label: "Fri", value: 16 },
+  { label: "Sat", value: 32 },
+  { label: "Sun", value: 64 },
+];
+
 export default function ActivityAvailabilityForm({ 
   initial, 
   submitting,
@@ -29,17 +40,38 @@ export default function ActivityAvailabilityForm({
   onCancel
 }: Props) {
     const [centre_activity_id, setCentreActivityID] = useState<string>(initial?.centre_activity_id?.toString() ?? "");
-    const [date, setDate] = useState(initial?.date ?? "");
-    const [start_time, setStartTime] = useState(dayjs(initial?.start_time).format("HH:mm") ?? "");
-    const [end_time, setEndTime] = useState(dayjs(initial?.end_time).format("HH:mm") ?? "");
+
+    // EDIT: Separate start_date and end_date
+    const [start_date, setStartDate] = useState(initial?.start_date ?? "");
+    const [end_date, setEndDate] = useState(initial?.end_date ?? "");
+
+    // EDIT: Time-only inputs for start_time and end_time
+    const [start_time, setStartTime] = useState(initial?.start_time ?? "");
+    const [end_time, setEndTime] = useState(initial?.end_time ?? "");
+
     const [is_everyday, setIsEveryday] = useState(false);
     const [deleted] = useState(initial?.is_deleted ?? false);
     const [is_deleted, setIsDeleted] = useState(initial?.is_deleted ?? false);
     const {centreActivities} = useCentreActivities(false);
     const [errors, setErrors] = useState<FormErrors>({ _summary: [] });
-    const editing = initial?.editing ?? false;
-    // const [selectedCentreActivity, setSelectedCentreActivity] = useState<CentreActivityWithTitle>();
-        
+    const [selectedDays, setSelectedDays] = useState<number[]>([]);
+
+    // Prefill selectedDays if editing
+    useEffect(() => {
+        const dw = initial?.days_of_week ?? 0; 
+        const days: number[] = [];
+        DAYS_MAP.forEach((d) => {
+            if ((dw & d.value) > 0) days.push(d.value);
+        });
+        setSelectedDays(days);
+
+        // Automatically select recurring if any day is set
+        setIsEveryday(dw > 0);
+    }, [initial]);
+
+
+
+
     const runSync = (v: CentreActivityAvailabilityFormValues & {selectedCentreActivity: CentreActivityWithTitle}) => {
         const e = validateLocal(v);
         setErrors(e);
@@ -49,34 +81,34 @@ export default function ActivityAvailabilityForm({
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setErrors({ _summary: [] });
-        
+
         try {
-            let [startHours, startMinutes] = start_time.split(":").map(Number);
-            let [endHours, endMinutes] = end_time.split(":").map(Number);
-            const [year, month, day] = date.split("-").map(Number);
-
-            let startDateTime = new Date(Date.UTC(year, month -1, day, startHours, startMinutes)).toISOString();
-            let endDateTime = new Date(Date.UTC(year, month -1, day, endHours, endMinutes)).toISOString();
-
-            const formValues = { 
-                centre_activity_id: parseInt(centre_activity_id),
-                date: date,
-                start_time: startDateTime.toString(),
-                end_time: endDateTime.toString(),
-                is_deleted: is_deleted,
-                is_everyday: is_everyday,
-                selectedCentreActivity: initial?.selectedCentreActivityData
+            const daysOfWeekBitmask = is_everyday && selectedDays.length > 0
+            ? selectedDays.reduce((acc, day) => acc | day, 0)
+            : 0;
+            const formValues: CentreActivityAvailabilityFormValues = {
+            centre_activity_id: parseInt(centre_activity_id),
+            start_date: start_date,
+            end_date: end_date,
+            start_time: start_time,
+            end_time: end_time,
+            is_deleted: is_deleted,
+            is_everyday: is_everyday,
+            days_of_week: daysOfWeekBitmask,        
+            created_by_id: "string",                 
             };
-            
-            let local = runSync(formValues);
-            if (local._summary && local._summary.length) return;
+
+            const local = runSync({ ...formValues, selectedCentreActivity: initial.selectedCentreActivityData });
+            if (local._summary?.length) return;
 
             await onSubmit(formValues, setErrors);
-        }
-        catch(error: any) {
+
+        } catch (error: any) {
             console.error("Form submission error:", error);
         }
-    };
+        };
+
+
     
     const radioBtnOptions : RadioBtnOption[] = [
         { value: true, label: "Yes"},
@@ -134,45 +166,97 @@ export default function ActivityAvailabilityForm({
                     ))}
                 </select>
             </div>
-            {editing==false && (
-                <div className="space-y-2 space-x-2">
-                    <Label htmlFor="is_everyday">Recurr this activity over a selected week?</Label>
-                    <div className="space-x-2">
-                        {radioBtnOptions.map((choice) => (
-                        <Label className="space-x-1">
-                            <input
-                                type="radio"
-                                id = {choice.value.toString()}
-                                name="is_everyday"
-                                value={choice.value.toString()}
-                                disabled={is_deleted ? true : false}
-                                checked={is_everyday === choice.value ? true : false}
-                                onChange={() => setIsEveryday(choice.value)}
-                            />
-                            <label>{choice.label}</label>
-                            </Label>
-                        ))}
-                    </div>
-                </div>
-            )}
+            {/* Recurring radio + Days of Week */}
+            <div className="space-y-2">
+            <Label htmlFor="is_everyday">Recurring this activity over a selected week?</Label>
+            
+            {/* Yes / No radio buttons */}
+            <div className="space-x-2">
+                {radioBtnOptions.map((choice) => (
+                <Label className="space-x-1" key={choice.label}>
+                    <input
+                    type="radio"
+                    name="is_everyday"
+                    value={choice.value.toString()}
+                    checked={is_everyday === choice.value}
+                    onChange={() => {
+                        setIsEveryday(choice.value);
+                        
+                        if (choice.value) {
+                        setSelectedDays(DAYS_MAP.map(d => d.value));
+                        } else {
+                        setSelectedDays([]);
+                        }
+                    }}
+                    />
+                    <span>{choice.label}</span>
+                </Label>
+                ))}
+            </div>
 
+            {/* Days-of-week checkboxes */}
             {is_everyday && (
                 <div className="space-y-2">
-                    <Label>Note: Select a date on the week that the activity will recurr everyday.</Label>
+                <Label>Select days of the week:</Label>
+                <div className="flex flex-wrap space-x-2">
+                    {DAYS_MAP.map((day) => (
+                    <label key={day.value} className="flex items-center space-x-1">
+                        <input
+                        type="checkbox"
+                        value={day.value}
+                        checked={selectedDays.includes(day.value)}
+                        onChange={(e) => {
+                            const val = day.value;
+                            if (e.target.checked) setSelectedDays([...selectedDays, val]);
+                            else setSelectedDays(selectedDays.filter((v) => v !== val));
+                        }}
+                        />
+                        <span>{day.label}</span>
+                    </label>
+                    ))}
+
+                    {/* Every day toggle */}
+                    <label className="flex items-center space-x-1 ml-4">
+                    <input
+                        type="checkbox"
+                        checked={selectedDays.length === DAYS_MAP.length}
+                        onChange={(e) => {
+                        if (e.target.checked) setSelectedDays(DAYS_MAP.map(d => d.value));
+                        else setSelectedDays([]);
+                        }}
+                    />
+                    <span>Every day</span>
+                    </label>
+                </div>
                 </div>
             )}
+            </div>
 
+            {/* Dates and times */}
             <div className="space-y-2">
-                <Label htmlFor="date_of_activity">Date of this activity</Label>
+                <Label htmlFor="date_of_activity">Start Date</Label>
                 <Input
                     id="date_of_activity"
                     type="date"
-                    value={date}
+                    value={start_date}
                     disabled={is_deleted ? true : false}
-                    onChange={(e) => setDate(e.target.value)}
+                    onChange={(e) => setStartDate(e.target.value)}
                 />
                 {errors.start_time && <p className="text-sm text-red-600">{errors.start_time}</p>}
             </div>
+
+            <div className="space-y-2">
+                <Label htmlFor="date_of_activity">End Date</Label>
+                <Input
+                    id="date_of_activity"
+                    type="date"
+                    value={end_date}
+                    disabled={is_deleted ? true : false}
+                    onChange={(e) => setEndDate(e.target.value)}
+                />
+                {errors.start_time && <p className="text-sm text-red-600">{errors.start_time}</p>}
+            </div>
+
 
             <div className="space-y-2">
                 <Label htmlFor="start_time">Start time of this activity</Label>
