@@ -42,6 +42,7 @@ const EditMobilityAid: React.FC = () => {
     const MobilityAidFormData: UpdateMobilityAid = {
       MobilityRemarks: (formDataObj.MobilityRemarks as string).trim(),
       IsRecovered: formDataObj.IsRecovered === "true" ? true : false,
+      RecoveryDate: formDataObj.RecoveryDate as string
     };
     try {
       console.log("MobilityAidFormData: ", MobilityAidFormData);
@@ -140,6 +141,19 @@ const EditMobilityAid: React.FC = () => {
               <option value="true">Fully Recovered</option>
             </select>
           </div>
+          {rowData?.IsRecovered === true && (<div className="col-span-2">
+            <label className="block text-sm font-medium">
+              Recovery Date<span className="text-red-600">*</span>
+            </label>
+            <input
+              type="date"
+              name="RecoveryDate"
+              value={rowData?.RecoveryDate || new Date().toISOString().split("T")[0]}
+              onChange={handleChange}
+              className="mt-1 block w-full p-2 border rounded-md text-gray-900"
+              required
+            />
+          </div>)}
           <div className="col-span-2 mt-6 flex justify-end space-x-2">
             <Button variant="outline" onClick={closeModal}>
               Cancel

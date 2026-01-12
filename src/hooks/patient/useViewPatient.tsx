@@ -62,16 +62,16 @@ export const ViewPatientProvider: React.FC<{ children: ReactNode }> = ({
     }
   };
 
-  const fetchAllocation = async () => {
-    if (!id || isNaN(Number(id)))return;
-    try{
-      const patientAllocation = await fetchPatientAllocationById(Number(id))
-      setpatientAllocation(patientAllocation)
-    }catch(error){
-      console.error("Failed to fetch patient allocation:", error);
-      toast.error("Failed to fetch patient allocation");
-    }
-  }
+  // const fetchAllocation = async () => {
+  //   if (!id || isNaN(Number(id))) return;
+  //   try {
+  //     const patientAllocation = await fetchPatientAllocationById(Number(id))
+  //     setpatientAllocation(patientAllocation)
+  //   } catch (error) {
+  //     console.error("Failed to fetch patient allocation:", error);
+  //     toast.error("Failed to fetch patient allocation");
+  //   }
+  // }
 
   const refreshPatientData = async () => {
     if (!id || isNaN(Number(id))) return;
@@ -87,6 +87,8 @@ export const ViewPatientProvider: React.FC<{ children: ReactNode }> = ({
         nric: fetchedPatientInfo.nric,
         isMasked: true,
       });
+      const patientAllocation = await fetchPatientAllocationById(Number(id));
+      setpatientAllocation(patientAllocation);
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       console.error("Failed to fetch patient information:", error);
@@ -96,7 +98,7 @@ export const ViewPatientProvider: React.FC<{ children: ReactNode }> = ({
 
   useEffect(() => {
     refreshPatientData();
-    fetchAllocation();
+    // fetchAllocation();
   }, []);
 
   // Debug patient info state changes
