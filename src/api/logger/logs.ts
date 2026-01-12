@@ -73,7 +73,7 @@ export const fetchAllLogs = async (
   try {
     console.log(patient, typeof patient);
     const response = await loggerAPI.get<ViewLogsList>(
-      `/Patient?patient=${patient}&action=${action}&user=${user}&table=${table}&timestamp_order=${timestamp_order}&pageNo=${pageNo}&pageSize=${pageSize}&start_date=${startDate}&end_date=${endDate}`
+      `?patient=${patient}&action=${action}&user=${user}&table=${table}&timestamp_order=${timestamp_order}&pageNo=${pageNo}&pageSize=${pageSize}&start_date=${startDate}&end_date=${endDate}`
     );
     console.log("GET all Patients", response.data);
     return convertToLogsTDServer(response.data);
