@@ -33,3 +33,4 @@ coverage/
 /blob-report/
 /playwright/.cache/
 test.env
+tests/e2e/test.env
