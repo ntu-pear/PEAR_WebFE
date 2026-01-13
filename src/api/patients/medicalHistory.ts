@@ -68,7 +68,7 @@ export const fetchMedicalHistory = async (
         throw new Error("No token found.");
     }
     try {
-        const response = await medicalHistoryAPI.get(`${id}`, {
+        const response = await medicalHistoryAPI.get(`/by-patient/${id}`, {
             params: {
                 pageNo,
                 pageSize,
