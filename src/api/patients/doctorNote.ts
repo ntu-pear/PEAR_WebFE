@@ -2,7 +2,7 @@ import { formatDateString } from "@/utils/formatDate";
 import { doctorNoteAPI } from "../apiConfig";
 import { TableRowData } from "@/components/Table/DataTable";
 import { retrieveAccessTokenFromCookie } from "../users/auth";
-import { getDoctorNameById } from "../users/user";
+import { retrieveStaffNRICName } from "./staffAllocation";
 
 export interface DoctorNote {
   isDeleted: string;
@@ -66,6 +66,7 @@ export const convertToDoctorNotesTD = async (
   roleName: string
 ): Promise<DoctorNoteTDServer> => {
   if (!Array.isArray(doctorNoteViewList.data)) {
+    console.log(`Converting ${roleName}NotesTD`)
     console.error(
       "doctorNoteViewList.data is not an array",
       doctorNoteViewList.data
@@ -95,7 +96,8 @@ export const convertToDoctorNotesTD = async (
   const doctorNameResults = await Promise.all(
     uniqueDoctorIds.map(async (doctorId) => {
       try {
-        const name = await getDoctorNameById(doctorId.toString(), roleName);
+        const response = await retrieveStaffNRICName(doctorId.toString());
+        const name = response.nric_FullName
         return { doctorId: doctorId, doctorName: name };
       } catch (error) {
         console.error(`Error fetching doctor name for ID ${doctorId}`, error);
