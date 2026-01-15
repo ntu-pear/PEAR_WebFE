@@ -66,6 +66,7 @@ export const convertToDoctorNotesTD = async (
   roleName: string
 ): Promise<DoctorNoteTDServer> => {
   if (!Array.isArray(doctorNoteViewList.data)) {
+    console.log(`Converting ${roleName}NotesTD`)
     console.error(
       "doctorNoteViewList.data is not an array",
       doctorNoteViewList.data
