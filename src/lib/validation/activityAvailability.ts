@@ -41,15 +41,14 @@ export function validateLocal(
 ) {
   const e: FormErrors = { _summary: [] };
 
-  let max_duration = 0;
-  let min_duration = 0;
-  if (values.selectedCentreActivity != null) { 
-    max_duration = values.selectedCentreActivity?.max_duration ?? 0;
-    min_duration = values.selectedCentreActivity?.min_duration ?? 0;
-  }
-  else {
+  // ---- Guard: centre activity must exist ----
+  if (!values.selectedCentreActivity) {
     e._summary!.push(ERRORS.CENTRE_ACTIVITY_ERROR);
+    return e; // 👈 stop further validation to avoid crash
   }
+
+  const max = values.selectedCentreActivity.max_duration ?? 0;
+  const min = values.selectedCentreActivity.min_duration ?? 0;
 
   const startDate = dayjs(values.start_date);
   const endDate = dayjs(values.end_date);
@@ -76,8 +75,6 @@ export function validateLocal(
   }
 
   const duration = endTime.diff(startTime, "minute");
-  const max = values.selectedCentreActivity.max_duration ?? 0;
-  const min = values.selectedCentreActivity.min_duration ?? 0;
 
   if (duration > max) {
     e._summary!.push(

@@ -181,7 +181,7 @@ export default function ManageActivityAvailabilities() {
                                         <ActivityAvailabilityForm
                                             initial={{
                                                 id: 0,
-                                                centre_activity_id: 0,
+                                                centre_activity_id: selectedCentreActivity?.id ?? 0,
                                                 start_date: todayDate,   // default today
                                                 end_date: todayDate,    // default today
                                                 start_time: "09:00",    // default

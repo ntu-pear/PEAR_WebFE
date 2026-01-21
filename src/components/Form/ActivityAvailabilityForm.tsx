@@ -5,6 +5,8 @@ import { Label } from "@/components/ui/label";
 import { useCentreActivities } from "@/hooks/activities/useCentreActivities";
 import { type FormErrors, type CentreActivityAvailabilityFormValues, validateLocal} from "@/lib/validation/activityAvailability";
 import { CentreActivityWithTitle } from "@/api/activities/centreActivities";
+import { useCareCentreHours } from "@/hooks/activities/useCareCentreHours";
+import type { WorkingHours } from "@/api/activities/careCentres";
 
 
 
@@ -33,6 +35,16 @@ const DAYS_MAP = [
   { label: "Sun", value: 64 },
 ];
 
+const BIT_TO_DAY: Record<number, keyof WorkingHours> = {
+  1: "monday",
+  2: "tuesday",
+  4: "wednesday",
+  8: "thursday",
+  16: "friday",
+  32: "saturday",
+  64: "sunday",
+};
+
 export default function ActivityAvailabilityForm({ 
   initial, 
   submitting,
@@ -53,8 +65,18 @@ export default function ActivityAvailabilityForm({
     const [deleted] = useState(initial?.is_deleted ?? false);
     const [is_deleted, setIsDeleted] = useState(initial?.is_deleted ?? false);
     const {centreActivities} = useCentreActivities(false);
+    const { centre: selectedCentre} = useCareCentreHours("Person Centred Care 1");
     const [errors, setErrors] = useState<FormErrors>({ _summary: [] });
     const [selectedDays, setSelectedDays] = useState<number[]>([]);
+
+    useEffect(() => {
+        if (initial?.centre_activity_id && initial.centre_activity_id !== 0) {
+            setCentreActivityID(initial.centre_activity_id.toString());
+        }
+        }, [initial]);
+
+    const [dayOpenTime] = useState<string>("09:00");
+    const [dayCloseTime] = useState<string>("17:00");
 
     // Prefill selectedDays if editing
     useEffect(() => {
@@ -81,6 +103,13 @@ export default function ActivityAvailabilityForm({
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setErrors({ _summary: [] });
+
+        if (!centre_activity_id || centre_activity_id === "0") {
+            setErrors({
+                _summary: ["Please select a centre activity before submitting."],
+            });
+            return;
+            }
 
         try {
             const daysOfWeekBitmask = is_everyday && selectedDays.length > 0
@@ -195,41 +224,62 @@ export default function ActivityAvailabilityForm({
             </div>
 
             {/* Days-of-week checkboxes */}
-            {is_everyday && (
-                <div className="space-y-2">
-                <Label>Select days of the week:</Label>
-                <div className="flex flex-wrap space-x-2">
-                    {DAYS_MAP.map((day) => (
-                    <label key={day.value} className="flex items-center space-x-1">
-                        <input
-                        type="checkbox"
-                        value={day.value}
-                        checked={selectedDays.includes(day.value)}
-                        onChange={(e) => {
-                            const val = day.value;
-                            if (e.target.checked) setSelectedDays([...selectedDays, val]);
-                            else setSelectedDays(selectedDays.filter((v) => v !== val));
-                        }}
-                        />
-                        <span>{day.label}</span>
-                    </label>
-                    ))}
+                {is_everyday && selectedCentre && (
+                    <div className="space-y-2">
+                        <Label>Select days of the week:</Label>
+                        <div className="flex flex-wrap space-x-2">
+                        {DAYS_MAP.filter(day => {
+                            // Only show days where the centre has open & close times
+                            const dayKey = BIT_TO_DAY[day.value];
+                            const hours = selectedCentre.working_hours[dayKey];
+                            return hours?.open && hours?.close;
+                        }).map(day => (
+                            <label key={day.value} className="flex items-center space-x-1">
+                            <input
+                                type="checkbox"
+                                value={day.value}
+                                checked={selectedDays.includes(day.value)}
+                                onChange={e => {
+                                const val = day.value;
+                                if (e.target.checked) setSelectedDays([...selectedDays, val]);
+                                else setSelectedDays(selectedDays.filter(v => v !== val));
+                                }}
+                            />
+                            <span>{day.label}</span>
+                            </label>
+                        ))}
 
-                    {/* Every day toggle */}
-                    <label className="flex items-center space-x-1 ml-4">
-                    <input
-                        type="checkbox"
-                        checked={selectedDays.length === DAYS_MAP.length}
-                        onChange={(e) => {
-                        if (e.target.checked) setSelectedDays(DAYS_MAP.map(d => d.value));
-                        else setSelectedDays([]);
-                        }}
-                    />
-                    <span>Every day</span>
-                    </label>
-                </div>
-                </div>
-            )}
+                        {/* Every open day toggle */}
+                        <label className="flex items-center space-x-1 ml-4">
+                            <input
+                            type="checkbox"
+                            checked={
+                                selectedDays.length ===
+                                DAYS_MAP.filter(day => {
+                                const dayKey = BIT_TO_DAY[day.value];
+                                const hours = selectedCentre.working_hours[dayKey];
+                                return hours?.open && hours?.close;
+                                }).length
+                            }
+                            onChange={e => {
+                                if (e.target.checked)
+                                setSelectedDays(
+                                    DAYS_MAP.filter(day => {
+                                    const dayKey = BIT_TO_DAY[day.value];
+                                    const hours = selectedCentre.working_hours[dayKey];
+                                    return hours?.open && hours?.close;
+                                    }).map(d => d.value)
+                                );
+                                else setSelectedDays([]);
+                            }}
+                            />
+                            <span>Every open day</span>
+                        </label>
+                        </div>
+                    </div>
+                )}
+
+
             </div>
 
             {/* Dates and times */}
@@ -265,8 +315,8 @@ export default function ActivityAvailabilityForm({
                     type="time"
                     value={start_time}
                     disabled={is_deleted ? true : false}
-                    min="08:00"
-                    max="21:00"
+                    min={dayOpenTime}
+                    max={dayCloseTime}
                     onChange={(e) => setStartTime(e.target.value)}
                 />
                 {errors.start_time && <p className="text-sm text-red-600">{errors.start_time}</p>}
@@ -279,8 +329,8 @@ export default function ActivityAvailabilityForm({
                     type="time"
                     value={end_time}
                     disabled={is_deleted ? true : false}
-                    min="08:00"
-                    max="21:00"
+                    min={dayOpenTime}
+                    max={dayCloseTime}
                     onChange={(e) => setEndTime(e.target.value)}
                 />
                 {errors.end_time && <p className="text-sm text-red-600">{errors.end_time}</p>}
