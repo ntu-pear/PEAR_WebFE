@@ -20,6 +20,9 @@ import DeleteDiagnosedDementiaModal from "../Modal/Delete/DeleteDiagnosedDementi
 import AddDoctorNoteModal from "../Modal/Add/AddDoctorNoteModal";
 import DeleteDoctorNoteModal from "../Modal/Delete/DeleteDoctorNoteModal";
 import EditDoctorNoteModal from "../Modal/Edit/EditDoctorNoteModal";
+import AddStaffAllocationModal from "../Modal/Add/AddStaffAllocationModal";
+import EditMedicalHistoryModal from "../Modal/Edit/EditMedicalHistoryModal";
+import DeleteMedicalHistoryModal from "../Modal/Delete/DeleteMedicalHistoryModal";
 
 const PatientInfoTab: React.FC = () => {
   const { activeModal } = useModal();
@@ -53,6 +56,8 @@ const PatientInfoTab: React.FC = () => {
         <DeleteDiagnosedDementiaModal />
       )}
       {activeModal.name === "addMedicalHistory" && <AddMedicalHistoryModal />}
+      {activeModal.name === 'editMedicalHistory' && <EditMedicalHistoryModal/>}
+      {activeModal.name === 'deleteMedicalHistory' && <DeleteMedicalHistoryModal/>}
 
       {activeModal.name === "addMobilityAids" && <AddMobilityAidModal />}
       {activeModal.name === "editMobilityAids" && <EditMobilityAid />}
@@ -63,7 +68,22 @@ const PatientInfoTab: React.FC = () => {
       {activeModal.name === "deleteDoctorNote" && <DeleteDoctorNoteModal />}
 
       {activeModal.name === "editStaffAllocation" && (
-        <EditStaffAllocationModal />
+        <EditStaffAllocationModal
+          allocationId={activeModal.props.allocationId as number}
+          patientId={activeModal.props.patientId as number}
+          doctorId={activeModal.props.doctorId as string}
+          gametherapistId={activeModal.props.gametherapistId as string}
+          supervisorId={activeModal.props.supervisorId as string}
+          caregiverId={activeModal.props.caregiverId as string}
+          guardianId={activeModal.props.guardianId as number}
+        />
+      )}
+      {activeModal.name === "addStaffAllocation" && (
+        <AddStaffAllocationModal
+          allocationId={activeModal.props.allocationId as number}
+          patientId={activeModal.props.patientId as number}
+          guardianId={activeModal.props.guardianId as number}
+        />
       )}
 
       {activeModal.name === "addSocialHistory" && <AddSocialHistoryModal />}

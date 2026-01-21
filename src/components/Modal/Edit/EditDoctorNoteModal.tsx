@@ -11,6 +11,7 @@ import {
 
 const EditDoctorNoteModal: React.FC = () => {
   const { modalRef, activeModal, closeModal } = useModal();
+  const [characterLength, setcharacterLength] = useState(0)
   const { noteId, patientId, submitterId, refreshData } = activeModal.props as {
     noteId: string;
     patientId: string;
@@ -25,11 +26,19 @@ const EditDoctorNoteModal: React.FC = () => {
     try {
       const response = await fetchDoctorNoteById(Number(noteId));
       setDoctorNote(response.data);
+      setcharacterLength(response.data.doctorRemarks.length)
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       toast.error("Failed to fetch patient doctor note");
     }
   };
+
+  const handleNotesChange = (event: React.ChangeEvent<HTMLTextAreaElement>) =>{
+    const value = event.target.value
+    if (!doctorNote) return;
+    setDoctorNote({...doctorNote, doctorRemarks: value})
+    setcharacterLength(value.length)
+  }
 
   const handleEditDoctorNote = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -83,16 +92,16 @@ const EditDoctorNoteModal: React.FC = () => {
               <textarea
                 name="doctorRemarks"
                 value={doctorNote?.doctorRemarks}
-                onChange={(e) =>
-                  setDoctorNote({
-                    ...doctorNote,
-                    doctorRemarks: e.target.value,
-                  })
+                onChange={
+                  handleNotesChange
                 }
                 maxLength={250}
                 rows={5}
                 className="mt-1 block w-full p-2 border rounded-md text-gray-900"
               />
+              <p className="text-sm mt-1" style={{color:"hsl(var(--hint))"}}>
+                Word count: {characterLength}/250
+              </p>
             </div>
 
             <div className="col-span-2 mt-6 flex justify-end space-x-2">

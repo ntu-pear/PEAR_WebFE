@@ -10,6 +10,8 @@ import { toast } from "sonner";
 import { useState, useEffect } from "react";
 
 const AddMobilityAidModal: React.FC = () => {
+  const [isRecovered, setIsRecovered] = useState("")
+  const [recoveryDate, setRecoveryDate] = useState(new Date().toISOString().split("T")[0])
   const { modalRef, activeModal, closeModal } = useModal();
   const [mobilityList, setMobilityList] = useState<MobilityList[]>([]);
   const { patientId, submitterId, refreshMobilityData } = activeModal.props as {
@@ -45,6 +47,7 @@ const AddMobilityAidModal: React.FC = () => {
       IsRecovered: formDataObj.IsRecovered === "true",
       CreatedById: submitterId as string,
       ModifiedById: submitterId as string,
+      RecoveryDate: formDataObj.RecoveryDate as string
     };
 
     try {
@@ -107,13 +110,29 @@ const AddMobilityAidModal: React.FC = () => {
             <select
               name="IsRecovered"
               className="mt-1 block w-full p-2 border rounded-md text-gray-900"
+              value={isRecovered}
               required
+              onChange={(e) => setIsRecovered(e.target.value)}
             >
               <option value="">Please select an option</option>
               <option value="false">Not Recovered</option>
               <option value="true">Fully Recovered</option>
             </select>
           </div>
+
+          { isRecovered === "true" && (<div className="col-span-2">
+            <label className="block text-sm font-medium">
+              Recovery Date<span className="text-red-600">*</span>
+            </label>
+            <input
+              type="date"
+              name="RecoveryDate"
+              value={recoveryDate}
+              onChange={(e) => setRecoveryDate(e.target.value)}
+              className="mt-1 block w-full p-2 border rounded-md text-gray-900"
+              required
+            />
+          </div>)}
 
           <div className="col-span-2 mt-6 flex justify-end space-x-2">
             <Button variant="outline" onClick={closeModal}>

@@ -36,6 +36,11 @@ export const careCentreAPI = axios.create({
   baseURL: `${VITE_ACTIVITY_SERVICE_URL}/care_centres`,
 });
 
+// adhoc activities
+export const adhocAPI = axios.create({
+  baseURL: `${VITE_ACTIVITY_SERVICE_URL}/adhocs`,
+});
+
 // patient
 export const patientsAPI = axios.create({
   baseURL: `${VITE_PATIENT_SERVICE_URL}/patients`,
@@ -295,6 +300,14 @@ export const patientAllocationAPI = axios.create({
   baseURL : `${VITE_PATIENT_SERVICE_URL}/allocation`
 });
 
+export const medicalHistoryAPI = axios.create({
+  baseURL: `${VITE_PATIENT_SERVICE_URL}/MedicalHistory`
+});
+
+export const medicalDiagnosisListAPI = axios.create({
+  baseURL: `${VITE_PATIENT_SERVICE_URL}/MedicalDiagnosisList`
+})
+
 //geocode
 export const geocodeAPI = axios.create({
   baseURL: `${VITE_GEOCODE_SERVICE_URL}/geocode`,
@@ -341,11 +354,15 @@ export const adminAPI = axios.create({
   baseURL: `${VITE_USER_SERVICE_URL}/admin`,
 });
 
+export const supervisorAPI = axios.create({
+  baseURL: `${VITE_USER_SERVICE_URL}/supervisor`,
+});
+
 export const getDoctorNameAPI = (roleName: string) =>
   axios.create({
     baseURL: `${VITE_USER_SERVICE_URL}/${roleName}/get_doctor`,
   });
 
 export const loggerAPI = axios.create({
-  baseURL: `${VITE_LOGGER_SERVICE_URL}/Logs`,
+  baseURL: `${VITE_LOGGER_SERVICE_URL}/Logs/Patient`,
 });

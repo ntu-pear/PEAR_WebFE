@@ -24,7 +24,8 @@ const AddDiagnosedDementiaModal: React.FC = () => {
     try {
       const fetchedDementiaTypes: DementiaType[] =
         await fetchDementiaTypeList();
-      setDementiaTypes(fetchedDementiaTypes);
+      const activeDementiaTypes = fetchedDementiaTypes.filter(dt=>dt.IsDeleted==='0')
+      setDementiaTypes(activeDementiaTypes);
 
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
