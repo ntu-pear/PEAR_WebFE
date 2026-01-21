@@ -55,7 +55,8 @@ const MobilityAidsCard: React.FC = () => {
     { key: "mobilityAids", header: "Mobility Aids" },
     { key: "remark", header: "Remark" },
     { key: "condition", header: "Condition" },
-    { key: "date", header: "Date" },
+    { key: "recoveryDate", header: "Recovery Date"},
+    { key: "date", header: "Created Date" },
   ];
 
   const renderActions = (item: MobilityAidTD) => {
