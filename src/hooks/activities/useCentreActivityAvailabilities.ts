@@ -11,6 +11,23 @@ import {
     CentreActivityAvailability,
  } from "@/api/activities/centreActivityAvailabilities";
 
+// Row type for UI table
+export type CentreActivityAvailabilityRow = {
+    id: number;
+    centre_activity_id: number;
+    start_date: string; 
+    end_date: string;   
+    start_time: string; 
+    end_time: string;   
+    created_by_id: string;
+    created_date: string;
+    modified_date: string;
+    modified_by_id: string;
+    is_deleted: boolean;
+    days_of_week: number;
+};
+
+// Hook to fetch
 export const useCentreActivityAvailabilities = (includeDeleted: boolean) => {
   const [centreActivityAvailabilities, setCentreActivityAvailabilities] = useState<CentreActivityAvailability[]>([])
   const [loading, setLoading] = useState(true);
@@ -21,22 +38,17 @@ export const useCentreActivityAvailabilities = (includeDeleted: boolean) => {
         setLoading(true);
         setError(null);
 
-      const [availabilityData] = await Promise.all([
-        listCentreActivityAvailabilities({ include_deleted: includeDeleted })
-      ]);
-      setCentreActivityAvailabilities(availabilityData);
-    }
-    catch(error) {
+        const [availabilityData] = await Promise.all([
+            listCentreActivityAvailabilities({ include_deleted: includeDeleted })
+        ]);
+
+        setCentreActivityAvailabilities(availabilityData);
+    } catch(error) {
       console.error("Error fetching centre activity availabilities:", error);
-      setError("Failed to fetch the centre activity's availablities");
-    }
-    finally {
+      setError("Failed to fetch centre activity availabilities");
+    } finally {
       setLoading(false);
     }
-  };
-
-  const refreshCentreActivityAvailabilities = () => {
-    fetchCentreActivityAvailabilities();
   };
 
   useEffect(() => {
@@ -47,11 +59,11 @@ export const useCentreActivityAvailabilities = (includeDeleted: boolean) => {
     centreActivityAvailabilities,
     loading, 
     error,
-    refreshCentreActivityAvailabilities
+    refreshCentreActivityAvailabilities: fetchCentreActivityAvailabilities
   };
 };
 
-
+// Mutations for create/update/delete
 export function useCentreActivityAvailabilityMutations() {
   const qc = useQueryClient();
   const invalidate = () => qc.invalidateQueries({ queryKey: ["centreActivities"] });
@@ -60,44 +72,28 @@ export function useCentreActivityAvailabilityMutations() {
     create: useMutation({
       mutationFn: (input: CreateCentreActivityAvailabilityInput) => createCentreActivityAvailability(input),
       onSuccess: invalidate,
-      onError: (error: any) => {
-        toast.error(`Failed to create centre activity: ${error.message || 'Unknown error'}`);
-      },
+      onError: (error: any) => toast.error(`Failed to create: ${error.message || 'Unknown error'}`)
     }),
     update: useMutation({
       mutationFn: (input: UpdateCentreActivityAvailabilityInput) => updateCentreActivityAvailability(input),
       onSuccess: invalidate,
-      onError: (error: any) => {
-        toast.error(`Failed to update centre activity: ${error.message || 'Unknown error'}`);
-      },
+      onError: (error: any) => toast.error(`Failed to update: ${error.message || 'Unknown error'}`)
     }),
     remove: useMutation({
       mutationFn: (id: number) => softDeleteCentreActivityAvailability(id),
       onSuccess: invalidate,
-      onError: (error: any) => {
-        toast.error(`Failed to delete centre activity: ${error.message || 'Unknown error'}`);
-      },
+      onError: (error: any) => toast.error(`Failed to delete: ${error.message || 'Unknown error'}`)
     }),
   };
 }
 
-export type CentreActivityAvailabilityRow = {
-    id: number;
-    centre_activity_id: number;
-    // is_fixed: boolean; //Commented temporarily, pendng scheduler service changes.
-    start_time: string;
-    end_time: string;
-    created_by_id: string;
-    created_date: string;
-    modified_date: string;
-    modified_by_id: string;
-    is_deleted: boolean;
-};
-
+// Convert backend list to table row type
 export function toRows(list: CentreActivityAvailability[]): CentreActivityAvailabilityRow[] {
   return list.map(a => ({
     id: a.id,
     centre_activity_id: a.centre_activity_id,
+    start_date: a.start_date,
+    end_date: a.end_date,
     start_time: a.start_time,
     end_time: a.end_time,
     is_deleted: a.is_deleted,
@@ -105,5 +101,6 @@ export function toRows(list: CentreActivityAvailability[]): CentreActivityAvaila
     created_date: a.created_date,
     modified_by_id: a.modified_by_id ?? "",
     modified_date: a.modified_date ?? "",
+    days_of_week: (a as any).days_of_week ?? 0, 
   }));
 }
