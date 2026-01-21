@@ -11,6 +11,17 @@ export interface PatientAllocation {
     guardianId: number
 }
 
+export interface GuardianAllocation {
+    active: "Y" | "N";
+    patientId: number;
+    guardianId: number;
+    guardian2Id: number | null;
+    createdDate: string;
+    modifiedDate: string;
+    CreatedById: string;
+    ModifiedById: string;
+}
+
 export const fetchPatientAllocationById = async (
     patient_id: number
 ): Promise<PatientAllocation> => {
@@ -29,9 +40,9 @@ export const fetchPatientAllocationById = async (
             id: data.id,
             doctorId: data.doctorId,
             gameTherapistId: data.gameTherapistId,
-            supervisorId: data.supervisorId ,
+            supervisorId: data.supervisorId,
             caregiverId: data.caregiverId,
-            guardianApplicationUserId: data.guardianApplicationUserId,
+            guardianApplicationUserId: data.guardianApplicationUserId, 
             guardianId: data.guardianId
         }
         return allocation
@@ -39,4 +50,8 @@ export const fetchPatientAllocationById = async (
         console.error("GET get Patient Allocation", error)
         throw error
     }
+}
+
+export const createGuardianAllocation = async (allocation: GuardianAllocation ) => {
+    console.log("guardian allocation",allocation)
 }
