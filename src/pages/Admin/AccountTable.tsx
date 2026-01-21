@@ -59,31 +59,55 @@ const AccountTable: React.FC = () => {
   );
 
   // Client-side sorting function
-  const sortUsers = (users: User[], column: string, direction: "asc" | "desc") => {
-    return [...users].sort((a, b) => {
-      let aValue = a[column as keyof User];
-      let bValue = b[column as keyof User];
+const sortUsers = (users: User[], column: string, direction: "asc" | "desc") => {
+  return [...users].sort((a, b) => {
+    let aValue = a[column as keyof User];
+    let bValue = b[column as keyof User];
 
-      // Special handling for Status field (isDeleted)
-      if (column === "isDeleted") {
-        aValue = aValue === false ? "Active" : aValue === true ? "Inactive" : "";
-        bValue = bValue === false ? "Active" : bValue === true ? "Inactive" : "";
-      }
+    // Special handling for Status field (isDeleted)
+    if (column === "isDeleted") {
+      aValue = aValue === false ? "Active" : aValue === true ? "Inactive" : "";
+      bValue = bValue === false ? "Active" : bValue === true ? "Inactive" : "";
+    }
 
-      // Handle null/undefined values
-      if (aValue == null && bValue == null) return 0;
-      if (aValue == null) return direction === "asc" ? 1 : -1;
-      if (bValue == null) return direction === "asc" ? -1 : 1;
+    // Special handling for date fields: push blanks to bottom, sort by actual time
+    if (column === "loginTimeStamp" || column === "createdDate") {
+      const toMillis = (v: unknown) => {
+        if (v == null) return null;
+        const s = String(v).trim();
+        if (!s) return null;
+        const t = Date.parse(s); // expects ISO; if your backend sends non-ISO, adjust parsing here
+        return Number.isNaN(t) ? null : t;
+      };
 
-      // Convert to string for comparison (handles dates, numbers, strings)
-      const aStr = String(aValue).toLowerCase();
-      const bStr = String(bValue).toLowerCase();
+      const aMs = toMillis(aValue);
+      const bMs = toMillis(bValue);
 
-      if (aStr < bStr) return direction === "asc" ? -1 : 1;
-      if (aStr > bStr) return direction === "asc" ? 1 : -1;
-      return 0;
-    });
-  };
+      const aMissing = aMs == null;
+      const bMissing = bMs == null;
+
+      // Always push missing to bottom regardless of direction
+      if (aMissing && bMissing) return 0;
+      if (aMissing) return 1;
+      if (bMissing) return -1;
+
+      // Both valid
+      return direction === "asc" ? aMs - bMs : bMs - aMs;
+    }
+
+    // Default handling for other fields (string compare)
+    if (aValue == null && bValue == null) return 0;
+    if (aValue == null) return direction === "asc" ? 1 : -1;
+    if (bValue == null) return direction === "asc" ? -1 : 1;
+
+    const aStr = String(aValue).toLowerCase();
+    const bStr = String(bValue).toLowerCase();
+
+    if (aStr < bStr) return direction === "asc" ? -1 : 1;
+    if (aStr > bStr) return direction === "asc" ? 1 : -1;
+    return 0;
+  });
+};
 
   const handleFilter = async (pageNo: number, pageSize: number) => {
     try {
@@ -271,6 +295,8 @@ const AccountTable: React.FC = () => {
           <Searchbar
             searchItem={searchItem}
             onSearchChange={handleInputChange}
+            placeholder="Search by name..."
+            ariaLabel="Search by name"
           />
           <div className="flex items-center gap-2 ml-auto sm:px-6">
             <div className="flex">
