@@ -32,15 +32,15 @@ const EditPatientInfoModal: React.FC = () => {
   const {
     patientId,
     submitterId,
+    userRole,
     refreshPatientData,
     refreshPatientPrivacyLevel,
-    editableFields
   } = activeModal.props as {
     patientId: string;
     submitterId: string;
+    userRole:"GUARDIAN" | "SUPERVISOR" | "DOCTOR"
     refreshPatientData: () => Promise<void>;
     refreshPatientPrivacyLevel: () => Promise<void>;
-    editableFields: string[];
   };
   const [isEditingPermanentAddr, setIsEditingPermanentAddr] = useState(false);
   const [isEditingTemporaryAddr, setIsEditingTemporaryAddr] = useState(false);
@@ -70,13 +70,26 @@ const EditPatientInfoModal: React.FC = () => {
   >([]);
   const formRef = useRef<HTMLFormElement>(null);
   const [currentTab, setCurrentTab] = useState("personal");
+  const [nricHint, setNricHint] = useState("");
+  const [nameHint, setNameHint] = useState("");
+  const [pnameHint, setPnameHint] = useState("");
+  const [handphoneHint, setHandphoneHint] = useState("");
+  const [homeHint, setHomeHint] = useState("");
+  const [permPostalHint, setPermPostalHint] = useState("");
+  const [permUnitHint, setPermUnitHint] = useState("");
+  const [tempPostalHint, setTempPostalHint] = useState("");
+  const [tempUnitHint, setTempUnitHint] = useState("");
 
   const handleFetchPatientInfo = async (patientId: string) => {
     if (!patientId || isNaN(Number(patientId))) return;
 
     const response = await fetchPatientById(Number(patientId));
+
+    const endDate = response.endDate? new Date(response.endDate):null
+
     setPatient({
       ...response,
+      isActive: endDate?endDate>new Date()?'1':'0':'1',
       dateOfBirth: getDateForDatePicker(response.dateOfBirth),
       startDate: getDateForDatePicker(response.startDate),
       endDate: response.endDate ? getDateForDatePicker(response.endDate) : "",
@@ -101,6 +114,35 @@ const EditPatientInfoModal: React.FC = () => {
     e.currentTarget.value = e.currentTarget.value.toUpperCase();
   };
 
+  const checkPartialNRIC = (value: string):boolean =>{
+    if (!value) return true;
+
+    // NRIC cannot have more than 9 characters
+    if (value.length>9) return false;
+
+    // 1st character must be either S,T,F,G,M
+    if (value.length>=1 && !/^[STFGM]$/.test(value[0])){
+      setNricHint("Must start with S, T, F, G, or M")
+      return false;
+    }
+
+    // Character 2-8 must be a digit
+    for (let i=1;i<Math.min(value.length,8);i++){
+      if(!/^\d$/.test(value[i])){
+        setNricHint("Next character must be a digit")
+        return false;
+      } 
+    }
+
+    // 9th character must be an alphabet
+    if (value.length==9 && !/^[A-Z]$/.test(value[8])){
+      setNricHint("Last character must be an alphabetical letter")
+      return false;
+    } 
+    setNricHint("")
+    return true;
+  }
+
   const handleChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
@@ -108,25 +150,58 @@ const EditPatientInfoModal: React.FC = () => {
   ) => {
     const { name, value } = e.target;
     let filteredValue = value;
+
     if(["preferredName","name"].includes(name)){
       filteredValue = value.replace(/[^a-zA-Z ]/g,"");
+      if(filteredValue!==value){
+        if (name === "preferredName"){
+          setPnameHint("Preferred Name should only contain alphabetical letters")
+        }else{setNameHint("Name should only contain alphabetical letters")}
+      }else{
+        if(name === "preferredName"){
+          setPnameHint("")
+        }else{setNameHint("")}
+      }
     }
     if(["handphoneNo","homeNo"].includes(name)){
       filteredValue = value.replace(/[^0-9]/g,"")
+      if (name==="handphoneNo"){
+        if(filteredValue && !/^[89]/.test(filteredValue[0])){
+          setHandphoneHint("Handphone Number must start with 8 or 9, and be 8 digits long.")
+          return
+        }else{
+          setHandphoneHint("")
+        }
+      }
+      else{
+        if(filteredValue && !/^6/.test(filteredValue[0])){
+          setHomeHint("Home Number must start with 6,  and be 8 digits long")
+          return
+        }else{
+          setHomeHint("")
+        }
+      }
+    }
+    if(name === 'nric'){
+      const upper = value.toUpperCase()
+      if(!checkPartialNRIC(upper)) return;
+      setPatient(prev=>prev?{...prev,nric:upper}:prev)
+      return;
     }
     const upperCaseValue = filteredValue.toUpperCase();
     if (patient) {
-      if (name === "isActive") {
-        const isActive = filteredValue === "1";
-        setPatient({
-          ...patient,
-          [name]: upperCaseValue,
-          inActiveDate: isActive
-            ? ""
-            : getDateForDatePicker(getDateTimeNowInUTC()),
-        });
+      if (name === "endDate") {
+        const endDate = value?new Date(value):null
+        const isActive = endDate?endDate> new Date?"1":"0":"1"
+        setPatient(prev=>prev?{
+          ...prev,
+          [name]:value,
+          isActive,
+          inActiveDate:isActive === "1"?"":getDateForDatePicker(getDateTimeNowInUTC())
+        }:prev)
+        console.log(value)
       } else {
-        setPatient({ ...patient, [name]: upperCaseValue });
+        setPatient(prev=>prev?{...prev,[name]:upperCaseValue}:prev)
       }
     }
   };
@@ -136,9 +211,45 @@ const EditPatientInfoModal: React.FC = () => {
     type: "perm" | "temp"
   ) => {
     const { name, value } = e.target;
-    const upperCaseValue = value.toUpperCase();
-    const isValidPostal =
-      name === "postalCode" ? /^\d{6}$/.test(upperCaseValue) : true;
+    let filteredValue = value
+    if(name === "postalCode"){
+      filteredValue = value.replace(/\D/g,"");
+    }
+
+    const upperCaseValue = filteredValue.toUpperCase();
+    let isValidPostal=false;
+
+    if (name === "postalCode"){
+      isValidPostal = /^\d{6}$/.test(upperCaseValue)
+      if (type === "perm") {
+        setPermPostalHint(isValidPostal ? "" : "Postal code must be 6 numerical digits");
+      } else {
+        setTempPostalHint(isValidPostal ? "" : "Postal code must be 6 numerical digits");
+      }
+    }
+
+    if (name === "unitNumber") {
+      const val = upperCaseValue;
+
+      if (
+        val.length > 0 && val[0] !== "#" ||
+        val.length > 1 && !/^\d$/.test(val[1]) ||
+        val.length > 2 && !/^\d$/.test(val[2]) ||
+        val.length > 3 && val[3] !== "-" ||
+        val.length > 4 && !/^\d$/.test(val[4]) ||
+        val.length > 5 && !/^\d$/.test(val[5]) ||
+        val.length > 6 && !/^\d$/.test(val[6])
+      ) {
+        type === "perm"
+          ? setPermUnitHint("Unit number must be in #XX-XXX format")
+          : setTempUnitHint("Unit number must be in #XX-XXX format");
+        return; 
+      }
+
+      type === "perm" ? setPermUnitHint("") : setTempUnitHint("");
+
+      isValidPostal = type === "perm" ? /^\d{6}$/.test(newPermAddress.postalCode) : /^\d{6}$/.test(newTempAddress.postalCode);
+    }
 
     if (type === "perm") {
       setNewPermAddress({
@@ -361,8 +472,6 @@ const EditPatientInfoModal: React.FC = () => {
     return true;
   };
 
-
-
   useEffect(() => {
     handleFetchPatientInfo(patientId);
     handleFetchPatientPrivacyLevel(patientId);
@@ -412,10 +521,15 @@ const EditPatientInfoModal: React.FC = () => {
                   value={patient?.name || ""}
                   onKeyDown={(e) => handleKeyDown(e)}
                   onChange={(e) => handleChange(e)}
-                  className={`mt-1 block w-full p-2 border rounded-md text-gray-900 ${!editableFields.includes("name") ? "bg-gray-100 dark:bg-gray-300 cursor-not-allowed" : ""}`}
+                  className={`mt-1 block w-full p-2 border rounded-md text-gray-900 ${userRole === "GUARDIAN" ? "bg-gray-100 dark:bg-gray-300 cursor-not-allowed" : ""}`}
                   required
-                  readOnly={!editableFields.includes("name")}
+                  disabled={userRole === "GUARDIAN"}
                 />
+                {nameHint && (
+                  <p className="text-xs mt-1" style={{color:"hsl(var(--hint))"}}>
+                    {nameHint}
+                  </p>
+                )}
               </div>
 
               <div>
@@ -428,10 +542,14 @@ const EditPatientInfoModal: React.FC = () => {
                   value={patient?.preferredName || ""}
                   onKeyDown={(e) => handleKeyDown(e)}
                   onChange={(e) => handleChange(e)}
-                  className={`mt-1 block w-full p-2 border rounded-md text-gray-900 ${!editableFields.includes("preferredName") ? "bg-gray-100 dark:bg-gray-300 cursor-not-allowed" : ""} `}
+                  className="mt-1 block w-full p-2 border rounded-md text-gray-900"
                   required
-                  readOnly={!editableFields.includes("preferredName")}
                 />
+                {pnameHint && (
+                  <p className="text-xs mt-1" style={{color:"hsl(var(--hint))"}}>
+                    {pnameHint}
+                  </p>
+                )}
               </div>
 
               <div>
@@ -448,10 +566,15 @@ const EditPatientInfoModal: React.FC = () => {
                   maxLength={9}
                   onKeyDown={(e) => handleKeyDown(e)}
                   onChange={(e) => handleChange(e)}
-                  className={`mt-1 block w-full p-2 border rounded-md text-gray-900 ${!editableFields.includes("nric") ? "bg-gray-100  dark:bg-gray-300 cursor-not-allowed" : ""}`}
+                  className={`mt-1 block w-full p-2 border rounded-md text-gray-900 ${userRole === "GUARDIAN" ? "bg-gray-100 dark:bg-gray-300 cursor-not-allowed" : ""}`}
                   required
-                  readOnly={!editableFields.includes("nric")}
+                  disabled={userRole === "GUARDIAN"}
                 />
+                {nricHint && (
+                  <p className="text-xs mt-1" style={{color:"hsl(var(--hint))"}}>
+                    {nricHint}
+                  </p>
+                )}
               </div>
 
               <div>
@@ -463,11 +586,11 @@ const EditPatientInfoModal: React.FC = () => {
                   name="dateOfBirth"
                   value={patient?.dateOfBirth || ""}
                   onChange={(e) => handleChange(e)}
-                  className={`mt-1 block w-full p-2 border rounded-md text-gray-900 ${!editableFields.includes("dateOfBirth") ? "bg-gray-100 dark:bg-gray-300 cursor-not-allowed" : ""}`}
+                  className={`mt-1 block w-full p-2 border rounded-md text-gray-900 ${userRole === "GUARDIAN" ? "bg-gray-100 dark:bg-gray-300 cursor-not-allowed" : ""}`}
                   min={dayjs().subtract(150, "years").format("YYYY-MM-DD")}
                   max={dayjs().subtract(15, "years").format("YYYY-MM-DD")}
                   required
-                  readOnly={!editableFields.includes("dateOfBirth")}
+                  disabled={userRole === "GUARDIAN"}
                 />
               </div>
 
@@ -477,12 +600,12 @@ const EditPatientInfoModal: React.FC = () => {
                     Gender<span className="text-red-600"> *</span>
                   </label>
                   <select
-                    className={`mt-1 block w-full p-2 border rounded-md text-gray-900 ${!editableFields.includes("gender") ? "bg-gray-200 dark:bg-gray-50 cursor-not-allowed" : ""}`}
+                    className={`mt-1 block w-full p-2 border rounded-md text-gray-900 ${userRole === "GUARDIAN" ? "bg-gray-200 dark:bg-gray-50 cursor-not-allowed" : ""}`}
                     name="gender"
                     value={patient?.gender || ""}
                     onChange={(e) => handleChange(e)}
                     required
-                    disabled={!editableFields.includes("gender")}
+                    disabled={userRole === "GUARDIAN"}
                   >
                     <option value="">Please select an option</option>
                     <option value="M">Male</option>
@@ -500,14 +623,18 @@ const EditPatientInfoModal: React.FC = () => {
                   type="tel"
                   name="handphoneNo"
                   pattern="^[89]\d{7}$"
-                  title="Hand Phone Number must start with 8 or 9, and be 8 digits long."
+                  title="Handphone Number must start with 8 or 9, and be 8 digits long."
                   value={patient?.handphoneNo || ""}
                   minLength={8}
                   maxLength={8}
                   onChange={(e) => handleChange(e)}
-                  className={`mt-1 block w-full p-2 border rounded-md text-gray-900 ${!editableFields.includes("handphoneNo") ? "bg-gray-100 dark:bg-gray-300 cursor-not-allowed" : ""}`}
-                  readOnly={!editableFields.includes("handphoneNo")}
+                  className="mt-1 block w-full p-2 border rounded-md text-gray-900"
                 />
+                {handphoneHint && (
+                  <p className="text-xs mt-1" style={{color:"hsl(var(--hint))"}}>
+                    {handphoneHint}
+                  </p>
+                )}
               </div>
 
               <div>
@@ -521,10 +648,13 @@ const EditPatientInfoModal: React.FC = () => {
                   minLength={8}
                   maxLength={8}
                   onChange={(e) => handleChange(e)}
-                  // className="mt-1 block w-full p-2 border rounded-md text-gray-900"
-                  className={`mt-1 block w-full p-2 border rounded-md text-gray-900 ${!editableFields.includes("homeNo") ? "bg-gray-100 dark:bg-gray-300 cursor-not-allowed" : ""}`}
-                  readOnly={!editableFields.includes("handphoneNo")}
+                  className="mt-1 block w-full p-2 border rounded-md text-gray-900"
                 />
+                {homeHint && (
+                  <p className="text-xs mt-1" style={{color:"hsl(var(--hint))"}}>
+                    {homeHint}
+                  </p>
+                )}
               </div>
             </TabsContent>
 
@@ -538,7 +668,7 @@ const EditPatientInfoModal: React.FC = () => {
                   <h3 className="font-medium mb-2">
                     Current Address<span className="text-red-600"> *</span>
                   </h3>
-                  {(!isEditingPermanentAddr && editableFields.includes("currAdd")) && (
+                  {!isEditingPermanentAddr && userRole !== "GUARDIAN" && (
                     <Button
                       variant="ghost"
                       size="sm"
@@ -551,7 +681,7 @@ const EditPatientInfoModal: React.FC = () => {
                   <input
                     type="text"
                     value={patient?.address || ""}
-                    className="mt-1 block w-full p-2 border rounded-md text-gray-900 bg-gray-100 dark:bg-gray-300 col-span-2 cursor-not-allowed"
+                    className="mt-1 block w-full p-2 border rounded-md bg-gray-100 col-span-2"
                     readOnly
                     required
                   />
@@ -588,6 +718,13 @@ const EditPatientInfoModal: React.FC = () => {
                           className="mt-1 block w-full p-2 border rounded-md text-gray-900"
                           required
                         />
+                        {
+                          permPostalHint && (
+                            <p className="text-xs mt-1" style={{color:"hsl(var(--hint))"}}>
+                              {permPostalHint}
+                            </p>
+                          )
+                        }
                       </div>
                       <div className="space-y-2 col-span-3">
                         <label className="col-span-3 block text-sm font-medium">
@@ -598,17 +735,29 @@ const EditPatientInfoModal: React.FC = () => {
                           name="unitNumber"
                           placeholder="#01-123"
                           pattern="^$|#\d{2}-\d{3}"
+                          minLength={7}
+                          maxLength={7}
                           value={newPermAddress.unitNumber || ""}
                           onChange={(e) => handleAddressChange(e, "perm")}
                           className="mt-1 block w-full p-2 border rounded-md text-gray-900"
                         />
+                        {
+                          permUnitHint && (
+                            <p className="text-xs mt-1" style={{color:"hsl(var(--hint))"}}>
+                              {permUnitHint}
+                            </p>
+                          )
+                        }
                       </div>
                       <div className="space-y-2 col-span-4 sm:col-span-3">
                         <Button
                           type="button"
                           className="mt-7 col-span-2 mr-2"
                           onClick={() => handleRetrieve("perm")}
-                          disabled={!newPermAddress.isValidPostal}
+                          disabled={
+                            !newPermAddress.isValidPostal || 
+                            (!!newPermAddress.unitNumber && !/^#\d{2}-\d{3}$/.test(newPermAddress.unitNumber))
+                          }
                         >
                           Retrieve
                         </Button>
@@ -650,7 +799,7 @@ const EditPatientInfoModal: React.FC = () => {
                   <h3 className="font-medium mb-2">
                     Current Temporary Address
                   </h3>
-                  {(!isEditingTemporaryAddr && editableFields.includes("tempAdd")) && (
+                  {!isEditingTemporaryAddr && userRole !== "GUARDIAN" && (
                     <Button
                       variant="ghost"
                       size="sm"
@@ -664,7 +813,7 @@ const EditPatientInfoModal: React.FC = () => {
                     type="text"
                     value={patient?.tempAddress || ""}
                     onChange={(e) => handleChange(e)}
-                    className="mt-1 block w-full p-2 border rounded-md text-gray-900 bg-gray-100 col-span-2 cursor-not-allowed"
+                    className="mt-1 block w-full p-2 border rounded-md bg-gray-100 col-span-2"
                     readOnly
                     required
                   />
@@ -697,12 +846,20 @@ const EditPatientInfoModal: React.FC = () => {
                           type="text"
                           name="postalCode"
                           pattern="^\d{6}$"
+                          inputMode="numeric"
                           minLength={6}
                           maxLength={6}
                           value={newTempAddress.postalCode || ""}
                           onChange={(e) => handleAddressChange(e, "temp")}
                           className="mt-1 block w-full p-2 border rounded-md text-gray-900"
                         />
+                        {
+                          tempPostalHint && (
+                            <p className="text-xs mt-1" style={{color:"hsl(var(--hint))"}}>
+                              {tempPostalHint}
+                            </p>
+                          )
+                        }
                       </div>
                       <div className="space-y-2 col-span-3">
                         <label className="col-span-3 block text-sm font-medium">
@@ -713,17 +870,26 @@ const EditPatientInfoModal: React.FC = () => {
                           name="unitNumber"
                           placeholder="#01-123"
                           pattern="^$|#\d{2}-\d{3}"
+                          minLength={7}
+                          maxLength={7}
                           value={newTempAddress.unitNumber || ""}
                           onChange={(e) => handleAddressChange(e, "temp")}
                           className="mt-1 block w-full p-2 border rounded-md text-gray-900"
                         />
+                        {
+                          tempUnitHint && (
+                            <p className="text-xs mt-1" style={{color:"hsl(var(--hint))"}}>
+                              {tempUnitHint}
+                            </p>
+                          )
+                        }
                       </div>
                       <div className="space-y-2 col-span-4 sm:col-span-3">
                         <Button
                           type="button"
                           className="mt-7 col-span-2 mr-2"
                           onClick={() => handleRetrieve("temp")}
-                          disabled={!newTempAddress.isValidPostal}
+                          disabled={!newTempAddress.isValidPostal || (!!newTempAddress.unitNumber && !/^#\d{2}-\d{3}$/.test(newTempAddress.unitNumber))}
                         >
                           Retrieve
                         </Button>
@@ -792,9 +958,8 @@ const EditPatientInfoModal: React.FC = () => {
                       };
                     })
                   }
-                  className={`mt-1 block w-full p-2 border rounded-md text-gray-900 ${!editableFields.includes("privacyLevel") ? "bg-gray-200 dark:bg-gray-50 cursor-not-allowed" : ""}`}
+                  className="mt-1 block w-full p-2 border rounded-md text-gray-900"
                   required
-                  disabled={!editableFields.includes("privacyLevel")}
                 >
                   <option value="">Please select an option</option>
                   <option value="1">Low</option>
@@ -812,9 +977,8 @@ const EditPatientInfoModal: React.FC = () => {
                   name="preferredLanguageId"
                   value={patient?.preferredLanguageId || ""}
                   onChange={(e) => handleChange(e)}
-                  className={`mt-1 block w-full p-2 border rounded-md text-gray-900 ${!editableFields.includes("preferredLanguageId") ? "bg-gray-200 dark:bg-gray-50 cursor-not-allowed" : ""}`}
+                  className="mt-1 block w-full p-2 border rounded-md text-gray-900"
                   required
-                  disabled={!editableFields.includes("preferredLanguageId")}
                 >
                   <option value="">Please select an option</option>
                   {preferredLanguage?.map((pl) => (
@@ -833,9 +997,8 @@ const EditPatientInfoModal: React.FC = () => {
                   name="isRespiteCare"
                   value={patient?.isRespiteCare || ""}
                   onChange={(e) => handleChange(e)}
-                  className={`mt-1 block w-full p-2 border rounded-md text-gray-900 ${!editableFields.includes("isRespiteCare") ? "bg-gray-200 dark:bg-gray-50 cursor-not-allowed" : ""}`}
+                  className="mt-1 block w-full p-2 border rounded-md text-gray-900"
                   required
-                  disabled={!editableFields.includes("isRespiteCare")}
                 >
                   <option value="">Please select an option</option>
                   <option value="0">No</option>
@@ -847,18 +1010,24 @@ const EditPatientInfoModal: React.FC = () => {
                 <label className="block text-sm font-medium">
                   Patient Still Active <span className="text-red-600">*</span>
                 </label>
-                <select
+                <input
+                  type="text"
+                  name="isActive"
+                  value={patient?.isActive === "1"?"Yes":"No"}
+                  readOnly
+                  className="mt-1 block w-full p-2 border rounded-md text-gray-900"
+                />
+                {/* <select
                   name="isActive"
                   value={patient?.isActive || ""}
                   onChange={(e) => handleChange(e)}
-                  className={`mt-1 block w-full p-2 border rounded-md text-gray-900 ${!editableFields.includes("isActive") ? "bg-gray-200 dark:bg-gray-50 cursor-not-allowed" : ""}`}
+                  className="mt-1 block w-full p-2 border rounded-md text-gray-900"
                   required
-                  disabled={!editableFields.includes("isActive")}
                 >
                   <option value="">Please select an option</option>
                   <option value="0">No</option>
                   <option value="1">Yes</option>
-                </select>
+                </select> */}
               </div>
 
               <div className="col-span-2 flex space-x-4">
@@ -871,8 +1040,7 @@ const EditPatientInfoModal: React.FC = () => {
                     name="startDate"
                     value={patient?.startDate || ""}
                     onChange={(e) => handleChange(e)}
-                    readOnly={!editableFields.includes("startDate")}
-                    className={`mt-1 block w-full p-2 border rounded-md text-gray-900 ${!editableFields.includes("startDate") ? "bg-gray-100 dark:bg-gray-300 cursor-not-allowed" : ""}`}
+                    className="mt-1 block w-full p-2 border rounded-md text-gray-900"
                     required
                   />
                 </div>
@@ -883,8 +1051,7 @@ const EditPatientInfoModal: React.FC = () => {
                     name="endDate"
                     value={patient?.endDate || ""}
                     onChange={(e) => handleChange(e)}
-                    readOnly={!editableFields.includes("endDate")}
-                    className={`mt-1 block w-full p-2 border rounded-md text-gray-900 ${!editableFields.includes("endDate") ? "bg-gray-100 dark:bg-gray-300 cursor-not-allowed" : ""}`}
+                    className="mt-1 block w-full p-2 border rounded-md text-gray-900"
                     min={
                       patient?.inActiveDate && patient.inActiveDate
                         ? patient.inActiveDate

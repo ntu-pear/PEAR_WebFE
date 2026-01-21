@@ -2,9 +2,11 @@ import { useModal } from "@/hooks/useModal";
 import { Button } from "../../ui/button";
 import { addDoctorNote, AddDoctorNoteForm } from "@/api/patients/doctorNote";
 import { toast } from "sonner";
+import { useState } from "react";
 
 const AddDoctorNoteModal: React.FC = () => {
   const { modalRef, activeModal, closeModal } = useModal();
+  const [characterLength, setcharacterLength] = useState(0)
   const { patientId, submitterId, refreshData } = activeModal.props as {
     patientId: string;
     submitterId: string;
@@ -41,6 +43,10 @@ const AddDoctorNoteModal: React.FC = () => {
     }
   };
 
+  const handleNotesChange = (event: React.ChangeEvent<HTMLTextAreaElement>) =>{
+    setcharacterLength(event.target.value.length)
+  }
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
       <div ref={modalRef} className="bg-background p-8 rounded-md w-[500px]">
@@ -55,7 +61,11 @@ const AddDoctorNoteModal: React.FC = () => {
               maxLength={250}
               rows={5}
               className="mt-1 block w-full p-2 border rounded-md text-gray-900"
+              onChange={handleNotesChange}
             />
+            <p className="text-sm mt-1" style={{color:"hsl(var(--hint))"}}>
+              Word count: {characterLength}/250
+            </p>
           </div>
 
           <div className="col-span-2 mt-6 flex justify-end space-x-2">

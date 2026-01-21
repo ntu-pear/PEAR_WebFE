@@ -194,11 +194,11 @@ const EditSocialHistoryModal: React.FC = () => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-      <div ref={modalRef} className="bg-background p-8 rounded-md w-[600px]">
+      <div ref={modalRef} className="bg-background p-8 rounded-md w-[600px] max-h-[95vh] overflow-hidden">
         <h3 className="text-lg font-medium mb-5">Edit Social History</h3>
         <form
           onSubmit={handleEditSocialHistory}
-          className="grid grid-cols-2 gap-4"
+          className="grid grid-cols-2 gap-4 overflow-y-auto max-h-[70vh] pr-2"
         >
           <div>
             <label className="block text-sm font-medium">

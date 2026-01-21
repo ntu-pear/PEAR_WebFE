@@ -1,13 +1,59 @@
 import { useModal } from "@/hooks/useModal";
 import { Button } from "../../ui/button";
+import { toast } from "sonner";
+import { AddMedicalHistory, Diagnosis, fetchDiagnosisList } from "@/api/patients/medicalHistory";
+import { useEffect, useState } from "react";
 
 const AddMedicalHistoryModal: React.FC = () => {
-  const { modalRef, closeModal } = useModal();
-  const handleAddMedicalHistory = (event: React.FormEvent) => {
-    event.preventDefault();
-    console.log("Patient Medical History added!");
-    closeModal();
+  const { modalRef, closeModal, activeModal } = useModal();
+  const [diagnosisList, setDiagnosisList] = useState<Diagnosis[]>([])
+  const { patientId, submitterId, refreshData } = activeModal.props as {
+    patientId: string;
+    submitterId: string;
+    refreshData: () => void;
   };
+  const handleAddMedicalHistory = async (event: React.FormEvent) => {
+    event.preventDefault();
+    const formData = new FormData(event.target as HTMLFormElement)
+    const formDataObj = Object.fromEntries(formData.entries())
+
+    const newHistory: AddMedicalHistory = {
+      PatientID: Number(patientId),
+      MedicalDiagnosisID: Number(formDataObj.DiagnosisListID),
+      DateOfDiagnosis: formDataObj.DateOfDiagnosis as string,
+      Remarks: formDataObj.Remarks as string,
+      SourceOfInformation: formDataObj.SourceOfInformation as string,
+      CreatedByID: submitterId,
+      ModifiedByID: submitterId
+    }
+    try {
+      await AddMedicalHistory(newHistory)
+      console.log("new History", newHistory)
+      console.log("Patient Medical History added!");
+      toast.success("Sucessfully added Patient Medical History")
+      refreshData();
+      closeModal();
+    } catch (error) {
+      if (error instanceof Error) {
+        toast.error(`Failed to add medical history. ${error.message}`);
+      } else {
+        toast.error(
+          "Failed to add medical history. An unknown error occurred."
+        );
+      }
+      console.error(error)
+      console.log("Failed to add medical history")
+      closeModal();
+    }
+  };
+
+  useEffect(() => {
+    const fetchDiagnosisID = async () => {
+      const response = await fetchDiagnosisList()
+      setDiagnosisList(response)
+    }
+    fetchDiagnosisID()
+  }, [])
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
@@ -19,9 +65,28 @@ const AddMedicalHistoryModal: React.FC = () => {
         >
           <div className="col-span-2">
             <label className="block text-sm font-medium">
-              Medical Details<span className="text-red-600">*</span>
+              Diagnosis Name<span className="text-red-600">*</span>
             </label>
-            <textarea
+            <select
+              name="DiagnosisListID"
+              className="mt-1 block w-full p-2 border rounded-md text-gray-900"
+              required
+            >
+              <option value="">Please select an option</option>
+              {diagnosisList.map((diagnosis) => (
+                <option key={diagnosis.Id} value={diagnosis.Id}>
+                  {diagnosis.DiagnosisName}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="col-span-2">
+            <label className="block text-sm font-medium">
+              Source of Information<span className="text-red-600">*</span>
+            </label>
+            <input
+              name="SourceOfInformation"
               className="mt-1 block w-full p-2 border rounded-md text-gray-900"
               required
             />
@@ -29,31 +94,24 @@ const AddMedicalHistoryModal: React.FC = () => {
 
           <div className="col-span-2">
             <label className="block text-sm font-medium">
-              Information Source<span className="text-red-600">*</span>
+              Diagnosis Remarks<span className="text-red-600">*</span>
             </label>
-            <textarea
-              className="mt-1 block w-full p-2 border rounded-md text-gray-900"
-              required
-            />
-          </div>
-
-          <div className="col-span-2">
-            <label className="block text-sm font-medium">
-              Medical Remark<span className="text-red-600">*</span>
-            </label>
-            <textarea className="mt-1 block w-full p-2 border rounded-md text-gray-900" />
+            <textarea name="Remarks" className="mt-1 block w-full p-2 border rounded-md text-gray-900" required />
           </div>
 
           <div className="col-span-2">
             <div>
               <label className="block text-sm font-medium">
-                Medical Estimated Date <span className="text-red-600">*</span>
+                Date of Diagnosis <span className="text-red-600">*</span>
               </label>
               <input
+                name="DateOfDiagnosis"
                 type="date"
                 className="mt-1 block w-full p-2 border rounded-md text-gray-900"
+                max={new Date().toISOString().split("T")[0]}
                 required
-              />
+              >
+              </input>
             </div>
           </div>
 

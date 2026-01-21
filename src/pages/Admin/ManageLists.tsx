@@ -46,7 +46,7 @@ const ManageLists: React.FC = () => {
       setListItems(
         data.filter(
           (item) =>
-            item.isDeleted === "0" &&
+            !item.isDeleted || item.isDeleted === "0" &&
             item.value.toLowerCase().includes(debouncedSearch.toLowerCase())
         )
       );

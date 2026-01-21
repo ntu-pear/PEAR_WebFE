@@ -13,6 +13,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useFeatureFlag } from "./hooks/useFeatureFlags";
 import FeatureFlagPanel from "./components/FeatureFlagPanel";
+import ScrollToTop from "./components/ScrollToTop";
 
 import PatientTable from "./pages/PatientTable";
 import AddPatient from "./pages/Supervisor/AddPatient";
@@ -103,6 +104,7 @@ const App: React.FC = () => {
     <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
       <QueryClientProvider client={queryClient}>
         <Router>
+          <ScrollToTop />
           <AuthProvider>
             <ModalProvider>
               <div className="min-h-screen bg-background font-sans antialiased">

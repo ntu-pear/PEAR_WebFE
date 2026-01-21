@@ -129,6 +129,26 @@ const DoctorNotesCard: React.FC = () => {
             viewMore={false}
             renderActions={renderActions}
             hideActionsHeader={currentUser?.roleName !== "DOCTOR"}
+            className={
+              currentUser?.roleName === "DOCTOR"
+                ? `
+                  w-full max-w-full table-fixed overflow-x-auto overflow-y-hidden box-border p-6
+                  [&_th:first-child]:w-[15%] [&_th:first-child]:
+                  [&_td:first-child]:w-[15%] [&_td:first-child]:py-6
+                  [&_th:nth-child(2)]:w-[15%] [&_th:nth-child(2)]:
+                  [&_td:nth-child(2)]:w-[15%] [&_td:nth-child(2)]:py-6
+                  [&_th:nth-child(3)]:w-[55%] [&_th:nth-child(3)]:
+                  [&_td:nth-child(3)]:w-[55%] [&_td:nth-child(3)]:py-6
+                  [&_th:last-child]:w-[auto]
+                  [&_td:last-child]:flex [&_td:last-child]:justify-start [&_td:last-child]:items-center [&_td:last-child]:px-2 [&_td:last-child]:my-6 [&_td]:break-words [&_td]:whitespace-normal [&_td]:min-w-0 [&_td]:
+                  [&_td]:max-h-[3rem] [&_td]:overflow-hidden
+                `
+                : `
+                 [&_td:first-child]:py-6
+                 [&_td:nth-child(2)]:py-6
+                 [&_td:last-child]:py-6
+                `
+            }
           />
         </CardContent>
       </Card>

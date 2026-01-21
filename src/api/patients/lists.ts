@@ -44,6 +44,10 @@ import {
   updateOccupationList,
   updatePetList,
   updateReligionList,
+  fetchPrescriptionList,
+  createPrescriptionList,
+  updatePrescriptionList,
+  deletePrescriptionList
 } from "./socialHistory";
 import {
   addHighlightType,
@@ -238,6 +242,19 @@ export const fetchListItems = async (type: string): Promise<ListItem[]> => {
           modifiedDate: ModifiedDateTime,
         })
       );
+     case "Prescription":
+      const prescriptionTypes = await fetchPrescriptionList();
+      return (prescriptionTypes || []).map(
+        ({ Id, Value, IsDeleted, CreatedDateTime, UpdatedDateTime }) => ({
+          id: Id,
+          value: Value,
+          isDeleted: IsDeleted ? "1" : "0",
+          createdDate: CreatedDateTime,
+          modifiedDate: UpdatedDateTime,
+        })
+      );
+
+
     default:
       return [];
   }
@@ -305,6 +322,9 @@ export const addListItem = async ({
       return;
     case "Mobility":
       return;
+    case "Prescription":
+      await createPrescriptionList(value)
+      return;
     default:
       return;
   }
@@ -359,6 +379,9 @@ export const updateListItem = async ({
       return;
     case "Mobility":
       return;
+    case "Prescription":
+      await updatePrescriptionList(Number(id), value);
+      return;
     default:
       return;
   }
@@ -411,6 +434,9 @@ export const deleteListItem = async ({
       return;
     case "Mobility":
       return;
+    case "Prescription":
+      await deletePrescriptionList(Number(id));
+      return;    
     default:
       return;
   }

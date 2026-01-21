@@ -19,6 +19,7 @@ export interface MobilityAid {
   MobilityListId: number;
   MobilityRemarks: string;
   IsRecovered: boolean;
+  RecoveryDate: string | null;
   MobilityID: number;
   IsDeleted: boolean;
   CreatedDateTime: string;
@@ -40,6 +41,7 @@ export interface MobilityAidTD extends TableRowData {
   remark: string;
   condition: string;
   date: string;
+  recoveryDate: string;
 }
 
 export interface MobilityAidTDServer {
@@ -59,11 +61,13 @@ export interface AddMobilityAid {
   IsRecovered: boolean;
   CreatedById: string;
   ModifiedById: string;
+  RecoveryDate: string|null;
 }
 
 export interface UpdateMobilityAid {
   MobilityRemarks: string;
   IsRecovered: boolean;
+  RecoveryDate: string|null
 }
 
 export const fetchMobilityList = async (): Promise<MobilityList[]> => {
@@ -120,7 +124,15 @@ export const convertToMobilityAidTD = (
       remark: ma.MobilityRemarks,
       condition: ma.IsRecovered ? "FULLY RECOVERED" : "NOT RECOVERED",
       date: ma.CreatedDateTime ? formatDateString(ma.CreatedDateTime) : "",
+      recoveryDate: ma.IsRecovered && ma.RecoveryDate? formatDateString(ma.RecoveryDate):""
     }));
+
+  mobilityAidsTransformed.sort((a,b)=>{
+    if (a.condition!=b.condition){
+      return a.condition==="NOT RECOVERED"?-1:1
+    }
+    return (b.recoveryDate||"").localeCompare(a.recoveryDate||"")
+  })
 
   const updatedTD = {
     mobilityAids: mobilityAidsTransformed,
