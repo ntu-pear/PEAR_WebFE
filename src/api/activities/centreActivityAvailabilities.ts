@@ -8,29 +8,37 @@ export interface CentreActivityAvailability {
   centre_activity_id: number;
   is_deleted: boolean;
   // is_fixed: boolean; //Commented out, awaiting changes to scheduler service.
+  start_date: string;   
+  end_date: string;     
   start_time: string;
   end_time: string;
   created_date: string;
   modified_date?: string | null;
   created_by_id: string;
   modified_by_id?: string | null;
+  days_of_week: number; 
 }
 
 export interface CreateCentreActivityAvailabilityInput {
   centre_activity_id: number;
-  // is_fixed: boolean; //Commented out, awaiting changes to scheduler service to handle 30 minute activities.
   start_time: string;
   end_time: string;
   is_everyday: boolean;
+  start_date: string; 
+  end_date: string;   
+  days_of_week?: number; 
+  created_by_id?: string; 
 }
 
 export interface UpdateCentreActivityAvailabilityInput {
   id: number;
   centre_activity_id: number;
-  is_deleted: boolean;
-  // is_fixed: boolean; //Commented out, awaiting changes to scheduler service to handle 30 minute activities.
   start_time: string;
   end_time: string;
+  start_date: string;      
+  end_date: string;        
+  days_of_week?: number;   
+  is_deleted: boolean;
 }
 
 export interface AvailabilityWithTitle extends CentreActivityAvailability {
@@ -81,20 +89,30 @@ export async function getCentreActivityAvailabilityById(id: number) {
 };
 
 export async function createCentreActivityAvailability(input: CreateCentreActivityAvailabilityInput) {
-  // Get current user to set modified_by_id
   const currentUser = await getCurrentUser();
+
   const payload = {
     centre_activity_id: input.centre_activity_id,
     start_time: input.start_time,
     end_time: input.end_time,
-    created_by_id: currentUser.userId.toString(),
-  }
-  const res = await centreActivityAvailabilitiesAPI.post<CentreActivityAvailability>("/", payload, { 
-    headers: authHeader(),
-    params: {is_recurring_everyday: input.is_everyday}
-  });
+    start_date: input.start_date,   
+    end_date: input.end_date,       
+    days_of_week: input.days_of_week ?? 0, 
+    created_by_id: currentUser.userId.toString(), 
+  };
+
+  const res = await centreActivityAvailabilitiesAPI.post<CentreActivityAvailability>(
+    "/",
+    payload,
+    {
+      headers: authHeader(),
+      params: { is_recurring_everyday: input.is_everyday }
+    }
+  );
+
   return res.data;
 };
+
 
 export async function updateCentreActivityAvailability(input: UpdateCentreActivityAvailabilityInput) {
   // Get current user to set modified_by_id
