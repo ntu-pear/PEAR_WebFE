@@ -241,7 +241,17 @@ export const patientPrescriptionAPI = axios.create({
 export const prescriptionListAPI = axios.create({
   baseURL: `${VITE_PATIENT_SERVICE_URL}/PrescriptionList`,
 });
+export const createPrescriptionListAPI = axios.create({
+  baseURL: `${import.meta.env.VITE_PATIENT_SERVICE_URL}/PrescriptionList`,
+});
 
+export const updatePrescriptionListAPI = axios.create({
+  baseURL: `${import.meta.env.VITE_PATIENT_SERVICE_URL}/PrescriptionList/update`,
+});
+
+export const deletePrescriptionListAPI = axios.create({
+  baseURL: `${import.meta.env.VITE_PATIENT_SERVICE_URL}/PrescriptionList/delete`,
+});
 export const medicationAPI = axios.create({
   baseURL: `${VITE_PATIENT_SERVICE_URL}/Medication`,
 });

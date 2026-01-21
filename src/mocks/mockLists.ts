@@ -11,4 +11,5 @@ export const mockListTypes = [
   "Religion",
   "Language",
   "Mobility",
+  "Prescription"
 ];
