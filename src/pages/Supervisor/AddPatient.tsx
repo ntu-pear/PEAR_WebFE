@@ -27,14 +27,14 @@ import { createGuardianAllocation } from "@/api/patients/patientAllocation";
 const patientInfoSchema = z
   .object({
     name: z.string().trim().min(1, { message: "Name is required" }).refine(
-      (v) => /^[a-zA-Z]+$/.test(v),
+      (v) => /^[a-zA-Z ]+$/.test(v),
       "Name must contain only letters"
     ),
     preferredName: z
       .string()
       .trim()
       .min(1, { message: "Preferred name is required" }).refine(
-      (v) => /^[a-zA-Z]+$/.test(v),
+      (v) => /^[a-zA-Z ]+$/.test(v),
       "Preferred name must contain only letters"
     ),
     nric: z
@@ -130,7 +130,7 @@ const guardianSchema = z.object({
     .trim()
     .min(1, "First name is required")
     .refine(
-      (v) => /^[a-zA-Z]+$/.test(v),
+      (v) => /^[a-zA-Z ]+$/.test(v),
       "First name must contain only letters"
     ),
   lastName: z
@@ -138,11 +138,11 @@ const guardianSchema = z.object({
     .trim()
     .min(1, "Last name is required")
     .refine(
-      (v) => /^[a-zA-Z]+$/.test(v),
+      (v) => /^[a-zA-Z ]+$/.test(v),
       "Last name must contain only letters"
     ),
   preferredName: z.string().trim().min(1, "Preferred name is required").refine(
-      (v) => /^[a-zA-Z]+$/.test(v),
+      (v) => /^[a-zA-Z ]+$/.test(v),
       "Preferred name must contain only letters"
     ),
   gender: z.enum(["M", "F"], { message: "Gender is required" }),
