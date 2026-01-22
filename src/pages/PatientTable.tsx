@@ -22,12 +22,14 @@ import { Badge } from "@/components/ui/badge";
 import Searchbar from "@/components/Searchbar";
 import { DataTableServer } from "@/components/Table/DataTable";
 
-import { mockCaregiverID } from "@/mocks/mockPatientTableData";
+// import { mockCaregiverID } from "@/mocks/mockPatientTableData";
 
 import useDebounce from "@/hooks/useDebounce";
 import AvatarModalWrapper from "@/components/AvatarModalWrapper";
 import {
   fetchAllPatientTD,
+  fetchDoctorPatientTD,
+  fetchSupervisorPatientTD,
   PatientTableData,
   PatientTableDataServer,
 } from "@/api/patients/patients";
@@ -100,26 +102,41 @@ const PatientTable: React.FC = () => {
 
   const handleFilter = async (pageNo: number) => {
     try {
-      const fetchedPatientTDServer: PatientTableDataServer =
-        await fetchAllPatientTD(
+
+      const activeStatus = debouncedActiveStatus === "All" ? null : debouncedActiveStatus === "Active" ? "1" : "0"
+
+      let fetchedPatientTDServer: PatientTableDataServer
+
+      if (debounceTabValue === "all_patients") {
+        fetchedPatientTDServer = await fetchAllPatientTD(
           debouncedSearch,
-          debouncedActiveStatus === "All"
-            ? null
-            : debouncedActiveStatus === "Active"
-              ? "1"
-              : "0",
+          activeStatus,
           pageNo
         );
-
-      const filteredPatientTDList = fetchedPatientTDServer.patients.filter(
-        (ptd: PatientTableData) =>
-          debounceTabValue === "my_patients" && mockCaregiverID !== null
-            ? ptd.supervisorId === mockCaregiverID
-            : true
-      );
+      }
+      else { //my_patient tab
+        if (currentUser?.roleName === "SUPERVISOR") {
+          const supervisor_id = String(currentUser.userId)
+          fetchedPatientTDServer = await fetchSupervisorPatientTD(
+            supervisor_id,
+            debouncedSearch,
+            activeStatus,
+            pageNo
+          );
+        }
+        else {
+          const doctor_id = String(currentUser?.userId)
+          fetchedPatientTDServer = await fetchDoctorPatientTD(
+            doctor_id,
+            debouncedSearch,
+            activeStatus,
+            pageNo
+          );
+        } 
+      }
 
       setPatientTDServer({
-        patients: filteredPatientTDList,
+        patients: fetchedPatientTDServer.patients,
         pagination: fetchedPatientTDServer.pagination,
       });
     } catch (error) {
@@ -263,8 +280,8 @@ const PatientTable: React.FC = () => {
                     <CardHeader className="flex gap-4">
                       <CardTitle className="">
                         <div className="flex justify-end">
-                          <Button className="self-end" 
-                          onClick={()=>{navigate(`${viewMoreBaseLink}/${patient.id}?tab=information`)}}>View More</Button>
+                          <Button className="self-end"
+                            onClick={() => { navigate(`${viewMoreBaseLink}/${patient.id}?tab=information`) }}>View More</Button>
                         </div>
                         <div className="flex justify-center">
                           <Avatar className="h-48 w-48">
@@ -440,7 +457,7 @@ const PatientTable: React.FC = () => {
                     pagination={patientTDServer.pagination}
                     columns={columns}
                     viewMore={true}
-                    viewMoreBaseLink={"viewMoreBaseLink"}
+                    viewMoreBaseLink={viewMoreBaseLink}
                     activeTab={"information"}
                     fetchData={handleFilter}
                     renderActions={renderActions}
