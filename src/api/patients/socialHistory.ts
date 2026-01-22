@@ -24,6 +24,10 @@ import {
   updateOccupationListAPI,
   updatePetListAPI,
   updateReligionListAPI,
+  prescriptionListAPI,
+  createPrescriptionListAPI,
+  deletePrescriptionListAPI,
+  updatePrescriptionListAPI
 } from "../apiConfig";
 import { convertSocialHistoryYesNo } from "@/utils/convertToYesNo";
 import { TableRowData } from "@/components/Table/DataTable";
@@ -756,3 +760,86 @@ export const deleteReligionList = async (id: number) => {
     throw error;
   }
 };
+
+export const fetchPrescriptionList = async (): Promise<SocialHistoryDDItem[]> => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+
+  try {
+    const response = await prescriptionListAPI.get("", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    console.log("GET prescription list", response.data);
+    return response.data.data;
+  } catch (error) {
+    console.error("GET prescription list", error);
+    throw error;
+  }
+};
+
+export const createPrescriptionList = async (value: string) => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+
+  try {
+    const now = new Date().toISOString(); 
+    const response = await createPrescriptionListAPI.post(
+      "/add",  // make sure this matches your FastAPI route
+      {
+        Value: value,      // uppercase key matches backend schema
+        IsDeleted: "0",  // boolean, not string
+        CreatedDateTime: now,  // Add required field
+        UpdatedDateTime: now
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    console.log("POST create prescription list", response.data);
+    return response.data.data; // unwrap the returned object
+  } catch (error: any) {
+     console.error("POST create prescription list", error);
+
+  throw error;
+}
+};
+
+
+export const updatePrescriptionList = async (id: number, value: string) => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+
+  try {
+    const now = new Date().toISOString(); 
+    const response = await updatePrescriptionListAPI.put(
+      `/${id}`,
+      { Value: value, IsDeleted: "0", UpdatedDateTime: now},
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    console.log("PUT update prescription list", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("PUT update prescription list", error);
+    throw error;
+  }
+};
+
+export const deletePrescriptionList = async (id: number) => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+
+  try {
+    const response = await deletePrescriptionListAPI.delete(`/${id}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    console.log("DELETE prescription list", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("DELETE prescription list", error);
+    throw error;
+  }
+};
+

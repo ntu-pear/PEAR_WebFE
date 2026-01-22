@@ -29,7 +29,7 @@ export default function ManageActivityAvailabilities() {
     const {create, update, remove} = useCentreActivityAvailabilityMutations();
     const {centreActivities} = useCentreActivities(false);
     const [selectedCentreActivityID, setselectedCentreActivityID] = useState("0");
-    const todayDate = dayjs(new Date().toDateString().split('T')[0]).format("YYYY-MM-DD");
+    const todayDate = dayjs().format("YYYY-MM-DD");
 
     useEffect(() => {
         if (error) toast.error(`Failed to load availabilities. ${error}`);
@@ -47,29 +47,38 @@ export default function ManageActivityAvailabilities() {
         return filtered[0];
     }, [centreActivities, selectedCentreActivityID]);
         
+    // After your filteredData useMemo
     const filteredData = useMemo(() => {
         let filtered = centreActivityAvailabilities;
 
+        console.log("Raw availabilities from hook:", centreActivityAvailabilities);
+
         if (selectedCentreActivityID != "") {
-            setselectedCentreActivityID(selectedCentreActivityID);
-            filtered = filtered.filter(caa => caa.centre_activity_id == parseInt(selectedCentreActivityID))
+            filtered = filtered.filter(caa => caa.centre_activity_id == parseInt(selectedCentreActivityID));
         }
 
         //Show or hide deleted from list
         if (!includeDeleted) {
-            setIncludeDeleted(false);
             filtered = filtered.filter(caa => caa.is_deleted == false);
         }
 
-        return toRows(filtered ?? []);
+        const rows = toRows(filtered ?? []);
+        console.log("Filtered rows for table:", rows);
+
+        return rows;
     }, [centreActivityAvailabilities, includeDeleted, selectedCentreActivityID]);
+
 
     const handleCreate = async (values: CentreActivityAvailabilityFormValues) => {
         try {
           await create.mutateAsync({
             centre_activity_id: values.centre_activity_id,
-            start_time: values.start_time,
-            end_time: values.end_time,
+            start_date: values.start_date, 
+            end_date: values.end_date,     
+            start_time: values.start_time, 
+            end_time: values.end_time,     
+            days_of_week: values.days_of_week ?? 0,       
+            created_by_id: values.created_by_id ?? "string", 
             is_everyday: values.is_everyday,
           });
           setCreatingOpen(false);
@@ -82,6 +91,7 @@ export default function ManageActivityAvailabilities() {
         }
     };
 
+
     const handleUpdate = async (values: CentreActivityAvailabilityFormValues) => {
         if (!editing) return;
 
@@ -89,8 +99,11 @@ export default function ManageActivityAvailabilities() {
             await update.mutateAsync({
                 id: editing.id,
                 centre_activity_id: values.centre_activity_id,
-                start_time: values.start_time,
-                end_time: values.end_time,
+                start_time: values.start_time, 
+                end_time: values.end_time,     
+                start_date: values.start_date, 
+                end_date: values.end_date,    
+                days_of_week: values.days_of_week ?? 0, 
                 is_deleted: values.is_deleted,
             });
             setEditing(null);
@@ -102,6 +115,22 @@ export default function ManageActivityAvailabilities() {
             toast.error(`Failed to update. ${error?.message ?? ""}`);
         }
     };
+
+    const editingInitial = editing
+        ? {
+            id: editing.id,
+            centre_activity_id: editing.centre_activity_id,
+            start_date: editing.start_date,
+            end_date: editing.end_date,
+            start_time: editing.start_time?.slice(0,5) || "08:00",
+            end_time: editing.end_time?.slice(0,5) || "08:30",
+            is_deleted: editing.is_deleted,
+            is_everyday: editing.days_of_week > 0,  // ✅ recurring if any day is set
+            days_of_week: editing.days_of_week,     // ✅ bitmask
+            editing: true,
+            selectedCentreActivityData: selectedCentreActivity
+            }
+        : null;
 
     return (
         <div className="flex min-h-screen w-full flex-col container mx-auto px-0 sm:px-4">
@@ -152,19 +181,21 @@ export default function ManageActivityAvailabilities() {
                                         <ActivityAvailabilityForm
                                             initial={{
                                                 id: 0,
-                                                centre_activity_id: 0,
-                                                date: "",
-                                                start_time: "",
-                                                end_time: "",
+                                                centre_activity_id: selectedCentreActivity?.id ?? 0,
+                                                start_date: todayDate,   // default today
+                                                end_date: todayDate,    // default today
+                                                start_time: "09:00",    // default
+                                                end_time: "10:00",      // default
                                                 is_deleted: false,
                                                 is_everyday: false,
+                                                days_of_week: 0,
                                                 editing: false,
                                                 selectedCentreActivityData: selectedCentreActivity
                                             }}
                                             submitting={create.isPending}
                                             onSubmit={handleCreate}
                                             onCancel={() => setCreatingOpen(false)}
-                                        />
+                                            />
                                     </div>
                                 </SheetContent>
                             </Sheet>
@@ -217,34 +248,35 @@ export default function ManageActivityAvailabilities() {
 
                         {/* Edit sheet */}
                         <Sheet open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
-                            <SheetContent className="w-[480px] sm:w-[540px]">
-                                <SheetHeader><SheetTitle>Edit Availability</SheetTitle></SheetHeader>
-                                {editing && (
+                        <SheetContent className="w-[480px] sm:w-[540px]">
+                            <SheetHeader><SheetTitle>Edit Availability</SheetTitle></SheetHeader>
+                            {editing && (
                                 <div className="h-[90vh] overflow-y-auto">  
                                     <ActivityAvailabilityForm
-                                        initial={{
-                                            id: editing.id,
-                                            centre_activity_id: editing.centre_activity_id,
-                                            date: new Date(editing.start_time) < new Date() ? todayDate : dayjs(editing.start_time.split('T')[0]).format("YYYY-MM-DD"),
-                                            start_time: editing.start_time,
-                                            end_time: editing.end_time,
-                                            is_deleted: editing.is_deleted,
-                                            is_everyday: false,
-                                            editing: true,
-                                            selectedCentreActivityData: selectedCentreActivity
-                                        }}
-                                        onSubmit={handleUpdate}
-                                        submitting={update.isPending}
-                                        onCancel={() => setEditing(null)}
+                                    initial={editingInitial!}
+                                    submitting={update.isPending}
+                                    onSubmit={async (values) => {
+                                        await handleUpdate({
+                                        ...values,
+                                        start_time: values.start_time,
+                                        end_time: values.end_time,
+                                        start_date: values.start_date,
+                                        end_date: values.end_date,
+                                        });
+                                    }}
+                                    onCancel={() => setEditing(null)}
                                     />
                                 </div>
                                 )}
-                            </SheetContent>
+
+                        </SheetContent>
                         </Sheet>
+
+
                     </CardContent>
-                    </Card>
-                </main>
-            </div>
-        </div>
-    );
+                </Card>
+            </main>
+         </div>
+    </div>
+);
 };

@@ -3,13 +3,16 @@ import dayjs from "dayjs";
 
 export type CentreActivityAvailabilityFormValues = { 
     centre_activity_id: number;
-    date: string;
-    start_time: string;
-    end_time: string;
+    start_date: string; // YYYY-MM-DD
+    end_date: string;   // YYYY-MM-DD
+    start_time: string; // HH:mm
+    end_time: string;   // HH:mm
     is_deleted: boolean | false;
     is_everyday: boolean | false;
-
+    days_of_week?: number; 
+    created_by_id?: string; 
 };
+
 
 export type FormErrors = { 
     start_time?: string;
@@ -29,49 +32,62 @@ export const ERRORS = {
 export function validateLocal(
     values: { 
       centre_activity_id: number;
-      date: string; 
+      start_date: string;
+      end_date: string;
       start_time: string;
       end_time: string;
       selectedCentreActivity: CentreActivityWithTitle;
     }
 ) {
   const e: FormErrors = { _summary: [] };
-  let max_duration = 0;
-  let min_duration = 0;
-  if (values.selectedCentreActivity != null) { 
-    max_duration = values.selectedCentreActivity?.max_duration ?? 0;
-    min_duration = values.selectedCentreActivity?.min_duration ?? 0;
-  }
-  else {
+
+  // ---- Guard: centre activity must exist ----
+  if (!values.selectedCentreActivity) {
     e._summary!.push(ERRORS.CENTRE_ACTIVITY_ERROR);
+    return e; // 👈 stop further validation to avoid crash
   }
 
-  const [year, month, day] = values.date.split("-").map(Number);
-  let input_date = new Date(Date.UTC(year, month -1, day, 0, 0)).toISOString();
+  const max = values.selectedCentreActivity.max_duration ?? 0;
+  const min = values.selectedCentreActivity.min_duration ?? 0;
 
-  if (values.centre_activity_id == null) {
-    e._summary!.push(ERRORS.REQUIRED_ACTIVITY);
+  const startDate = dayjs(values.start_date);
+  const endDate = dayjs(values.end_date);
+
+  // Validate date range
+  if (startDate.isAfter(endDate)) {
+    e._summary!.push("Start date cannot be after end date.");
   }
 
-  if (input_date <= dayjs(new Date().toDateString().split('T')[0]).format("YYYY-MM-DD")) {
+  if (startDate.isBefore(dayjs().startOf("day"))) {
     e._summary!.push(ERRORS.DATE_IN_THE_PAST);
   }
 
-  if (values.start_time > values.end_time) {
+  //Time-only validation for duration
+  const [startHours, startMinutes] = values.start_time.split(":").map(Number);
+  const [endHours, endMinutes] = values.end_time.split(":").map(Number);
+
+  // Create same-day times for comparison
+  const startTime = dayjs().hour(startHours).minute(startMinutes).second(0);
+  const endTime = dayjs().hour(endHours).minute(endMinutes).second(0);
+
+  if (startTime.isAfter(endTime)) {
     e._summary!.push(ERRORS.START_TIME_ABOVE_END_TIME);
   }
 
-  if (values.end_time < values.start_time) {
-    e._summary!.push(ERRORS.END_TIME_BELOW_START_TIME);
+  const duration = endTime.diff(startTime, "minute");
+
+  if (duration > max) {
+    e._summary!.push(
+      `The maximum duration allowed is ${max} minutes.`
+    );
   }
 
-  const timeDifference = dayjs(values.end_time).diff(dayjs(values.start_time), "minute");
-  if ( timeDifference > 60 || (timeDifference > 30 && timeDifference < 60)) {
-    e._summary!.push("The maximum duration of this activity can only be " + max_duration + " minutes.");
+  if (duration < min) {
+    e._summary!.push(
+      `The minimum duration allowed is ${min} minutes.`
+    );
   }
-  else if (timeDifference < 30) {
-    e._summary!.push("The minimum duration of this activity can only be " + min_duration + " minutes.");
-  }
-  
+
   return e;
+
 }
