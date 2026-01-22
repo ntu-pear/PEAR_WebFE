@@ -353,8 +353,8 @@ const AddPatient: React.FC = () => {
       const allocation = {
         active: "Y",
         patientId: patientId,
-        guardianId: createdGuardians[0], 
-        guardian2Id: createdGuardians[1] ? createdGuardians[1] : null,
+        guardianId: createdGuardians[0].id, 
+        guardian2Id: createdGuardians[1] ? createdGuardians[1].id : null,
         createdDate: now,
         modifiedDate: now,
         CreatedById: creator,

@@ -42,7 +42,7 @@ export const fetchPatientAllocationById = async (
             gameTherapistId: data.gameTherapistId,
             supervisorId: data.supervisorId,
             caregiverId: data.caregiverId,
-            guardianApplicationUserId: data.guardianApplicationUserId, 
+            guardianApplicationUserId: data.guardianApplicationUserId,
             guardianId: data.guardianId
         }
         return allocation
@@ -52,6 +52,22 @@ export const fetchPatientAllocationById = async (
     }
 }
 
-export const createGuardianAllocation = async (allocation: GuardianAllocation ) => {
-    console.log("guardian allocation",allocation)
+export const createGuardianAllocation = async (allocation: GuardianAllocation) => {
+    console.log("guardian allocation", allocation)
+    const token = retrieveAccessTokenFromCookie()
+    if (!token) {
+        throw new Error("No token founnd!")
+    }
+    try {
+        const response = await patientAllocationAPI.post<GuardianAllocation>("/",allocation, {
+            params:{require_auth: false},
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        })
+        console.log("Created allocation: ",response.data)
+    } catch (error) {
+        console.error("POST create Patient Allocation", error)
+        throw error
+    }
 }
