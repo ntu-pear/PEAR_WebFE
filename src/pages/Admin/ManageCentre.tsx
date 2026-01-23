@@ -202,7 +202,7 @@ export default function ManageCentre() {
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent
-          className="max-w-4xl"
+          className="w-[92vw] max-w-2xl max-h-[85vh] overflow-y-auto"
           onOpenAutoFocus={(e) => {
             e.preventDefault();
             setTimeout(() => setFocus("name"), 0);
