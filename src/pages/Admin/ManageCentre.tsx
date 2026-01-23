@@ -50,8 +50,8 @@ function formatWorkingHours(wh: WorkingHours) {
         const range = v?.open && v?.close ? `${v.open}–${v.close}` : "—";
         return (
           <div key={d} className="flex gap-2">
-            <span className="w-8 shrink-0 text-muted-foreground">{label[d]}:</span>
-            <span className="font-medium">{range}</span>
+            <span className="w-8 shrink-0 font-medium text-foreground">{label[d]}:</span>
+            <span className="font-medium text-foreground">{range}</span>
           </div>
         );
       })}
