@@ -33,6 +33,7 @@ import TestGeocode from "./pages/testGeocode";
 import EditRoles from "./pages/Admin/EditRoles";
 import CreateRole from "./pages/Admin/CreateRole";
 import EditRole from "./pages/Admin/EditRole";
+import ManageRoles from "./pages/Admin/ManageRoles";
 import EditUserInRole from "./pages/Admin/EditUserInRole";
 import RegisterAccount from "./pages/Admin/RegisterAccount";
 import DevPermanentDelete from "./pages/Admin/DevPermanentDeleteAccount";
@@ -233,6 +234,7 @@ const App: React.FC = () => {
                       <Route path="edit-roles" element={<EditRoles />} />
                       <Route path="create-role" element={<CreateRole />} />
                       <Route path="edit-role/:id" element={<EditRole />} />
+                      <Route path="manage-roles" element={<ManageRoles />} />
                       <Route
                         path="edit-user-in-role/:id"
                         element={<EditUserInRole />}
