@@ -202,15 +202,20 @@ const isUniqueField = (field: "name" | "address" | "postal_code" | "email" | "co
     setOpen(true);
   };
 
-  const remove = async (row: CareCentreResponse) => {
-    if (!confirm(`Delete care centre "${row.name}"?`)) return;
-    try {
-      await deleteMut.mutateAsync(row.id);
-      toast.success("Care centre deleted");
-    } catch (e: any) {
-      toast.error(e?.response?.data?.detail ?? "Failed to delete care centre");
-    }
-  };
+const remove = async (row: CareCentreResponse) => {
+  if ((data?.length ?? 0) <= 1) {
+    toast.error("You must have at least 1 care centre.");
+    return;
+  }
+  if (!confirm(`Delete care centre "${row.name}"?`)) return;
+
+  try {
+    await deleteMut.mutateAsync(row.id);
+    toast.success("Care centre deleted");
+  } catch (e: any) {
+    toast.error(e?.response?.data?.detail ?? "Failed to delete care centre");
+  }
+};
 
   const cols = useMemo(
     () => [
