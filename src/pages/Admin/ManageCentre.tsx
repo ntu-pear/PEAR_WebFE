@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import {  useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -69,12 +69,56 @@ export default function ManageCentre() {
   const [editing, setEditing] = useState<CareCentreResponse | null>(null);
   const [formErrors, setFormErrors] = useState<string[]>([]);
 
-  const { control, handleSubmit, reset, watch, setValue, setFocus } =
-    useForm<FormValues>({ defaultValues: emptyForm() });
-
+  const {
+    control,
+    handleSubmit,
+    reset,
+    watch,
+    setValue,
+    setFocus,
+  } = useForm<FormValues>({
+    defaultValues: emptyForm(),
+  });
   const wh = watch("working_hours");
 
+const norm = (s?: string | null) => (s ?? "").trim().toLowerCase();
+
+// for numeric-only fields you may want to normalize by removing spaces etc.
+const digitsOnly = (s?: string | null) => (s ?? "").replace(/\D/g, "");
+
+const isUniqueField = (field: "name" | "address" | "postal_code" | "email" | "contact_no", value: string) => {
+  const v =
+    field === "postal_code" ? digitsOnly(value) :
+    field === "contact_no" ? digitsOnly(value) :
+    norm(value);
+
+  if (!v) return true;
+
+  return !data.some((c) => {
+    if (editing?.id != null && c.id === editing.id) return false; // ignore self
+
+    const cv =
+      field === "postal_code" ? digitsOnly(c.postal_code) :
+      field === "contact_no" ? digitsOnly(c.contact_no) :
+      norm((c as any)[field]);
+
+    return cv === v;
+  });
+}
+
   const validateAndGetWH = () => {
+    const toMinutes = (hhmm?: string | null) => {
+      if (!hhmm) return null;
+      const m = /^([01]\d|2[0-3]):([0-5]\d)$/.exec(hhmm);
+      if (!m) return null;
+      const hh = Number(m[1]);
+      const mm = Number(m[2]);
+      return hh * 60 + mm;
+    };
+
+    const MIN_OPEN = 9 * 60;  // 09:00
+    const MAX_CLOSE = 17 * 60; // 17:00
+
     const normalized = normalizeWorkingHours(wh as any);
     const workingHours: import("@/types/careCentre").WorkingHours = {
       monday: normalized.monday,
@@ -85,15 +129,32 @@ export default function ManageCentre() {
       saturday: normalized.saturday,
       sunday: normalized.sunday,
     };
+
     const { byDay, anyError } = validateWorkingHours(workingHours);
-    if (!anyError) {
-      setFormErrors([]);
-      return workingHours;
-    }
+
     const summary: string[] = [];
     Object.entries(byDay).forEach(([day, msgs]) => {
       msgs.forEach((m) => summary.push(`${capitalize(day)}: ${m}`));
     });
+    (Object.keys(workingHours) as (keyof WorkingHours)[]).forEach((day) => {
+      const v = workingHours[day];
+      const openM = toMinutes(v?.open);
+      const closeM = toMinutes(v?.close);
+
+      // Only validate bounds if user has set hours for that day
+      if (openM != null && openM < MIN_OPEN) {
+        summary.push(`${capitalize(day)}: Opening time cannot be before 09:00`);
+      }
+      if (closeM != null && closeM > MAX_CLOSE) {
+        summary.push(`${capitalize(day)}: Closing time cannot be after 17:00`);
+      }
+    });
+
+    if (summary.length === 0 && !anyError) {
+      setFormErrors([]);
+      return workingHours;
+    }
+
     setFormErrors(summary);
     return null;
   };
@@ -230,8 +291,18 @@ export default function ManageCentre() {
                 <Controller
                   name="name"
                   control={control}
-                  rules={{ required: true }}
-                  render={({ field }) => <Input {...field} autoFocus />}
+                  rules={{
+                    required: "Name is required",
+                    validate: (v) => isUniqueField("name", v) || "Name already exists",
+                  }}
+                  render={({ field, fieldState }) => (
+                    <div className="space-y-1">
+                      <Input {...field} autoFocus />
+                      {fieldState.error && (
+                        <p className="text-xs text-destructive">{fieldState.error.message}</p>
+                      )}
+                    </div>
+                  )}
                 />
               </div>
 
@@ -248,11 +319,19 @@ export default function ManageCentre() {
               <div className="md:col-span-2">
                 <label className="text-sm font-medium">Address</label>
                 <Controller
-                  name="address"
-                  control={control}
-                  rules={{ required: true }}
-                  render={({ field }) => <Input {...field} />}
-                />
+                    name="address"
+                    control={control}
+                    rules={{
+                      required: "Address is required",
+                      validate: (v) => isUniqueField("address", v) || "Address already exists",
+                    }}
+                    render={({ field, fieldState }) => (
+                      <div className="space-y-1">
+                        <Input {...field} />
+                        {fieldState.error && <p className="text-xs text-destructive">{fieldState.error.message}</p>}
+                      </div>
+                    )}
+                  />
               </div>
 
               <div>
@@ -260,9 +339,22 @@ export default function ManageCentre() {
                 <Controller
                   name="postal_code"
                   control={control}
-                  rules={{ required: true }}
-                  render={({ field }) => <Input {...field} />}
+                  rules={{
+                    required: "Postal code is required",
+                    validate: (v) => {
+                      const d = digitsOnly(v);
+                      if (!/^\d{6}$/.test(d)) return "Postal code must be exactly 6 digits";
+                      return isUniqueField("postal_code", d) || "Postal code already exists";
+                    },
+                  }}
+                  render={({ field, fieldState }) => (
+                    <div className="space-y-1">
+                      <Input {...field} inputMode="numeric" />
+                      {fieldState.error && <p className="text-xs text-destructive">{fieldState.error.message}</p>}
+                    </div>
+                  )}
                 />
+
               </div>
 
               <div>
@@ -270,19 +362,42 @@ export default function ManageCentre() {
                 <Controller
                   name="contact_no"
                   control={control}
-                  rules={{ required: true }}
-                  render={({ field }) => <Input {...field} />}
+                  rules={{
+                    required: "Contact number is required",
+                    validate: (v) => {
+                      const d = digitsOnly(v);
+                      if (digitsOnly(v).length !== 8) return "Contact number must be exactly 8 digits";
+                      return isUniqueField("contact_no", d) || "Contact number already exists";
+                    },
+                  }}
+                  render={({ field, fieldState }) => (
+                    <div className="space-y-1">
+                      <Input {...field} inputMode="numeric" />
+                      {fieldState.error && <p className="text-xs text-destructive">{fieldState.error.message}</p>}
+                    </div>
+                  )}
                 />
+
               </div>
 
               <div>
                 <label className="text-sm font-medium">Email</label>
-                <Controller
-                  name="email"
-                  control={control}
-                  rules={{ required: true }}
-                  render={({ field }) => <Input type="email" {...field} />}
-                />
+                  <Controller
+                    name="email"
+                    control={control}
+                    rules={{
+                      required: "Email is required",
+                      pattern: { value: /^\S+@\S+\.\S+$/, message: "Invalid email format" },
+                      validate: (v) => isUniqueField("email", v) || "Email already exists",
+                    }}
+                    render={({ field, fieldState }) => (
+                      <div className="space-y-1">
+                        <Input type="email" {...field} />
+                        {fieldState.error && <p className="text-xs text-destructive">{fieldState.error.message}</p>}
+                      </div>
+                    )}
+                  />
+
               </div>
 
               <div>
