@@ -19,8 +19,40 @@ const useEditUsersInRole = () => {
       toast.success("Users role updated");
       queryClient.invalidateQueries({ queryKey: ["users"] });
     },
-    onError: (error: { response: { data: { detail: string } } }) =>
-      toast.error(`Failed to update users role. ${error.response.data.detail}`),
+    onError: (error: any) => {
+      // Case 1: you threw a custom object like { status, message, detail }
+      const detailFromCustom = error?.detail;
+
+      // Case 2: raw axios error shape
+      const detailFromAxios = error?.response?.data?.detail;
+
+      const detail = detailFromCustom ?? detailFromAxios;
+
+      // Plain string detail
+      if (typeof detail === "string") {
+        toast.error(`Failed to update users role. ${detail}`);
+        return;
+      }
+
+      // Structured detail
+      const message =
+        error?.message ??
+        detail?.message ??
+        "Failed to update users role.";
+
+      const conflicts = detail?.conflicts ?? [];
+      if (Array.isArray(conflicts) && conflicts.length > 0) {
+        const first = conflicts[0];
+        const extra =
+          first?.error ??
+          `${first?.FullName ?? "User"} already has role${first?.current_role ? ` ${first.current_role}` : ""}.`;
+
+        toast.error(`${message} ${extra}`);
+        return;
+      }
+
+      toast.error(message);
+    },
   });
 };
 

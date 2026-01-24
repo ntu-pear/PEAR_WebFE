@@ -1,6 +1,7 @@
 import { toast } from "sonner";
 import { adminAPI } from "../apiConfig";
 import { retrieveAccessTokenFromCookie } from "../users/auth";
+import axios from "axios";
 
 export interface User {
   id: string;
@@ -146,8 +147,22 @@ export const updateUsersRole = async (role: string, users_Id: string[]) => {
     );
     console.log("Update users role", response.data);
     return response.data;
-  } catch (error) {
-    console.error("Update users role", error);
+  } catch (error: unknown) {
+    if (axios.isAxiosError(error)) {
+      // Re-throw the server payload so the UI can show a banner
+      const detail = error.response?.data?.detail;
+      const message =
+        detail?.message ||
+        error.response?.data?.message ||
+        "Failed to update users role.";
+
+      // Throw something consistent for the UI
+      throw {
+        status: error.response?.status,
+        message,
+        detail, // contains "Failed Updates"
+      };
+    }
     throw error;
   }
 };
