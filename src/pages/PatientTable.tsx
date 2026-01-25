@@ -130,18 +130,18 @@ const PatientTable: React.FC = () => {
   const handleGuardianFetch = async () => {
     try {
       const guardianId = String(currentUser?.userId)
-      const fetchedPatientTDServer = await fetchGuardianPatients(guardianId)
-      const patientOnly = fetchedPatientTDServer.patients.map(p => p.patient)
-
+      const fetchedPatientList = await fetchGuardianPatients(guardianId)
+      console.log("guardian fetchedPatientList",fetchedPatientList)
       setPatientTDServer({
-        patients: patientOnly,
-        pagination: fetchedPatientTDServer.pagination || {
-          pageNo: 0,
-          pageSize: 1,
-          totalRecords: patientOnly.length,
-          totalPages: 1
+        patients: fetchedPatientList.data,
+        pagination:{
+          pageNo:Number(fetchedPatientList.pageNo),
+          pageSize: Number(fetchedPatientList.pageSize),
+          totalPages: Number(fetchedPatientList.totalPages),
+          totalRecords: Number(fetchedPatientList.totalRecords)
         }
-      })
+      });
+
       console.log("From Guardian Patients: ", patientTDServer)
     } catch (error) {
       console.error("Error fetching patients:", error);
@@ -263,8 +263,8 @@ const PatientTable: React.FC = () => {
                     <CardHeader className="flex gap-4">
                       <CardTitle className="">
                         <div className="flex justify-end">
-                          <Button className="self-end" 
-                          onClick={()=>{navigate(`${viewMoreBaseLink}/${patient.id}?tab=information`)}}>View More</Button>
+                          <Button className="self-end"
+                            onClick={() => { navigate(`${viewMoreBaseLink}/${patient.id}?tab=information`) }}>View More</Button>
                         </div>
                         <div className="flex justify-center">
                           <Avatar className="h-48 w-48">
@@ -308,7 +308,7 @@ const PatientTable: React.FC = () => {
                       </div>
                       <div className="flex flex-col">
                         <h1 className="font-bold text-md">Gender:</h1>
-                        <p>{patient?.gender === "M" ? "Male" : "Female"}</p>
+                        <p>{patient?.gender === "M"  ? "Male" : "Female"}</p>
                       </div>
                       <div className="flex flex-col">
                         <h1 className="font-bold text-md">Address:</h1>
