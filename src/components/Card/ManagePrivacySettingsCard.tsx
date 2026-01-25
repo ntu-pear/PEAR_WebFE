@@ -8,6 +8,7 @@ import { InfoIcon, SaveIcon, ChevronUp, ChevronDown, ChevronsUpDown } from "luci
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../ui/table";
 import RadioGroup from "../Form/RadioGroup";
 import { Button } from "../ui/button";
+import { toast } from "sonner";
 
 
 
@@ -96,13 +97,33 @@ const ManagePrivacySettingsCard = () => {
     );
   };
 
-  const onSubmitPrivacySettings: SubmitHandler<PrivacySettingsForm> = (vals) => {
-    const socialHistoryMappings = Object.entries(vals).map(([socialHistoryItem, isSensitive]) => ({
-      socialHistoryItem,
-      isSensitive: isSensitive === "1",
+const onSubmitPrivacySettings: SubmitHandler<PrivacySettingsForm> = (vals) => {
+  if (!rows) return;
+
+  let isChanged = false;
+
+  for (const row of rows) {
+    const newSetting = vals[row.name]; // "0" | "1"
+    if (newSetting !== row.privacySetting) {
+      isChanged = true;
+    }
+  }
+
+  if (!isChanged) {
+    toast.error("No changes made to privacy settings");
+    return;
+  }
+
+  // Only send changed rows (same pattern as role access level page)
+  const changedMappings = rows
+    .filter((row) => vals[row.name] !== row.privacySetting)
+    .map((row) => ({
+      socialHistoryItem: row.name,
+      isSensitive: vals[row.name] === "1",
     }));
-    mutate(socialHistoryMappings);
-  };
+
+  mutate(changedMappings);
+};
 
   return (
     <Card className="m-3">
