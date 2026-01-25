@@ -133,46 +133,44 @@ const ManagePrivacySettingsCard = () => {
           <Table className="border mb-2">
             <TableHeader>
               <TableRow>
-  <TableHead
-  className="border cursor-pointer select-none"
-  onClick={() => toggleSort("socialHistory")}
->
-  <div className="flex items-center space-x-1">
-    <span>Social History</span>
-    <div className="flex flex-col">
-      {sortKey === "socialHistory" ? (
-        sortDir === "asc" ? (
-          <ChevronUp className="h-4 w-4" />
-        ) : (
-          <ChevronDown className="h-4 w-4" />
-        )
-      ) : (
-        <ChevronsUpDown className="h-4 w-4 text-gray-400" />
-      )}
-    </div>
-  </div>
-</TableHead>
-
-
-<TableHead
-  className="border cursor-pointer select-none"
-  onClick={() => toggleSort("privacy")}
->
-  <div className="flex items-center space-x-1">
-    <span>Privacy Setting</span>
-    <div className="flex flex-col">
-      {sortKey === "privacy" ? (
-        sortDir === "asc" ? (
-          <ChevronUp className="h-4 w-4" />
-        ) : (
-          <ChevronDown className="h-4 w-4" />
-        )
-      ) : (
-        <ChevronsUpDown className="h-4 w-4 text-gray-400" />
-      )}
-    </div>
-  </div>
-</TableHead>
+                <TableHead
+                className="border cursor-pointer select-none"
+                onClick={() => toggleSort("socialHistory")}
+              >
+                <div className="flex items-center space-x-1">
+                  <span>Social History</span>
+                  <div className="flex flex-col">
+                    {sortKey === "socialHistory" ? (
+                      sortDir === "asc" ? (
+                        <ChevronUp className="h-4 w-4" />
+                      ) : (
+                        <ChevronDown className="h-4 w-4" />
+                      )
+                    ) : (
+                      <ChevronsUpDown className="h-4 w-4 text-gray-400" />
+                    )}
+                  </div>
+                </div>
+              </TableHead>
+              <TableHead
+                  className="border cursor-pointer select-none"
+                  onClick={() => toggleSort("privacy")}
+                >
+                  <div className="flex items-center space-x-1">
+                    <span>Privacy Setting</span>
+                    <div className="flex flex-col">
+                      {sortKey === "privacy" ? (
+                        sortDir === "asc" ? (
+                          <ChevronUp className="h-4 w-4" />
+                        ) : (
+                          <ChevronDown className="h-4 w-4" />
+                        )
+                      ) : (
+                        <ChevronsUpDown className="h-4 w-4 text-gray-400" />
+                      )}
+                    </div>
+                  </div>
+                </TableHead>
 
               </TableRow>
             </TableHeader>
