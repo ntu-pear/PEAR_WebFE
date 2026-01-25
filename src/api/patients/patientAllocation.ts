@@ -11,6 +11,17 @@ export interface PatientAllocation {
     guardianId: number
 }
 
+export interface GuardianAllocation {
+    active: "Y" | "N";
+    patientId: number;
+    guardianId: number;
+    guardian2Id: number | null;
+    createdDate: string;
+    modifiedDate: string;
+    CreatedById: string;
+    ModifiedById: string;
+}
+
 export const fetchPatientAllocationById = async (
     patient_id: number
 ): Promise<PatientAllocation> => {
@@ -29,7 +40,7 @@ export const fetchPatientAllocationById = async (
             id: data.id,
             doctorId: data.doctorId,
             gameTherapistId: data.gameTherapistId,
-            supervisorId: data.supervisorId ,
+            supervisorId: data.supervisorId,
             caregiverId: data.caregiverId,
             guardianApplicationUserId: data.guardianApplicationUserId,
             guardianId: data.guardianId
@@ -37,6 +48,26 @@ export const fetchPatientAllocationById = async (
         return allocation
     } catch (error) {
         console.error("GET get Patient Allocation", error)
+        throw error
+    }
+}
+
+export const createGuardianAllocation = async (allocation: GuardianAllocation) => {
+    console.log("guardian allocation", allocation)
+    const token = retrieveAccessTokenFromCookie()
+    if (!token) {
+        throw new Error("No token founnd!")
+    }
+    try {
+        const response = await patientAllocationAPI.post<GuardianAllocation>("/",allocation, {
+            params:{require_auth: false},
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        })
+        console.log("Created allocation: ",response.data)
+    } catch (error) {
+        console.error("POST create Patient Allocation", error)
         throw error
     }
 }
