@@ -22,14 +22,21 @@ import { AddPatientSection } from "@/api/patients/patients";
 import useAddPatientPrivacyLevel from "@/hooks/patient/useAddPatientPrivacyLevel";
 import { AddPatientPrivacyLevel } from "@/api/patients/privacyLevel";
 import { addPatientGuardian, IGuardianFormData } from "@/api/patients/guardian";
+import { createGuardianAllocation } from "@/api/patients/patientAllocation";
 
 const patientInfoSchema = z
   .object({
-    name: z.string().trim().min(1, { message: "Name is required" }),
+    name: z.string().trim().min(1, { message: "Name is required" }).refine(
+      (v) => /^[a-zA-Z ]+$/.test(v),
+      "Name must contain only letters"
+    ),
     preferredName: z
       .string()
       .trim()
-      .min(1, { message: "Preferred name is required" }),
+      .min(1, { message: "Preferred name is required" }).refine(
+      (v) => /^[a-zA-Z ]+$/.test(v),
+      "Preferred name must contain only letters"
+    ),
     nric: z
       .string()
       .min(1, { message: "NRIC is required" })
@@ -123,7 +130,7 @@ const guardianSchema = z.object({
     .trim()
     .min(1, "First name is required")
     .refine(
-      (v) => /^[a-zA-Z]+$/.test(v),
+      (v) => /^[a-zA-Z ]+$/.test(v),
       "First name must contain only letters"
     ),
   lastName: z
@@ -131,10 +138,13 @@ const guardianSchema = z.object({
     .trim()
     .min(1, "Last name is required")
     .refine(
-      (v) => /^[a-zA-Z]+$/.test(v),
+      (v) => /^[a-zA-Z ]+$/.test(v),
       "Last name must contain only letters"
     ),
-  preferredName: z.string().trim().min(1, "Preferred name is required"),
+  preferredName: z.string().trim().min(1, "Preferred name is required").refine(
+      (v) => /^[a-zA-Z ]+$/.test(v),
+      "Preferred name must contain only letters"
+    ),
   gender: z.enum(["M", "F"], { message: "Gender is required" }),
   contactNo: z
     .string()
@@ -149,7 +159,7 @@ const guardianSchema = z.object({
       (v) => /^[STFGM]\d{7}[A-Z]$/.test(v),
       "NRIC must be 9 chars: S/T/F/G/M + 7 digits + letter"
     ),
-  email: z.string().trim().email("Invalid email"),
+  email: z.string().trim().optional().or(z.literal("")),
   dateOfBirth: z.string().min(1, "Date of birth is required"),
   address: z.string().trim().min(1, "Address is required"),
   tempAddress: z.string().trim().optional().or(z.literal("")),
@@ -160,7 +170,8 @@ const guardianSchema = z.object({
         RELATIONSHIP_OPTIONS.includes(v as any),
       "Relationship is required"
     ),
-});
+})
+
 
 const formSchema = z.object({
   patientInfoSchema: patientInfoSchema,
@@ -320,7 +331,7 @@ const AddPatient: React.FC = () => {
         gender: g.gender,
         contactNo: g.contactNo,
         nric: g.nric,
-        email: g.email,
+        email: g.email?.trim() === "" ? null : g.email,
         dateOfBirth: convertToUTCISOString(g.dateOfBirth),
         address: g.address,
         tempAddress: g.tempAddress || "",
@@ -335,9 +346,22 @@ const AddPatient: React.FC = () => {
         relationshipName: g.relationshipName,
       }));
 
-      await Promise.all(
+      const createdGuardians = await Promise.all(
         guardians.map((guardian) => addPatientGuardian(guardian))
       );
+
+      const allocation = {
+        active: "Y",
+        patientId: patientId,
+        guardianId: createdGuardians[0].id, 
+        guardian2Id: createdGuardians[1] ? createdGuardians[1].id : null,
+        createdDate: now,
+        modifiedDate: now,
+        CreatedById: creator,
+        ModifiedById: creator,
+      }as const;
+
+      await createGuardianAllocation(allocation)
     }
 
     if (patientId) {
@@ -409,6 +433,39 @@ const AddPatient: React.FC = () => {
     }
   }, []);
 
+  useEffect(() => {
+    if (errors.patientInfoSchema) {
+      const el = document.getElementById("personal-info")
+      el?.scrollIntoView({ behavior: "smooth" })
+    }
+    else if (errors.guardians) {
+      const el = document.getElementById("guardian-info")
+      el?.scrollIntoView({ behavior: "smooth" })
+    }
+  }, [errors.patientInfoSchema, errors.guardians])
+
+  const hasInitializedGuardian = useRef(false);
+
+  useEffect(() => {
+    if (!hasInitializedGuardian.current && guardianFields.length === 0) {
+      append({
+        firstName: "",
+        lastName: "",
+        preferredName: "",
+        gender: undefined as unknown as "M" | "F",
+        contactNo: "",
+        nric: "",
+        email: "",
+        dateOfBirth: "",
+        address: "",
+        tempAddress: "",
+        relationshipName: "",
+      });
+
+      hasInitializedGuardian.current = true;
+    }
+  }, [append, guardianFields.length]);
+
   return (
     <div className="flex min-h-screen w-full flex-col lg:flex-row container mx-auto px-4">
       {/* Left Sidebar Navigation */}
@@ -418,11 +475,10 @@ const AddPatient: React.FC = () => {
         </div>
         <ul className="list-reset py-2 md:py-0 lg:sticky lg:top-16">
           <li
-            className={`py-1 md:my-2 hover:bg-yellow-100 lg:hover:bg-transparent border-l-4 ${
-              activeSection === "personal-info"
-                ? "border-lime-500 font-bold"
-                : "border-transparent"
-            }`}
+            className={`py-1 md:my-2 hover:bg-yellow-100 lg:hover:bg-transparent border-l-4 ${activeSection === "personal-info"
+              ? "border-lime-500 font-bold"
+              : "border-transparent"
+              }`}
           >
             <a
               href="#personal-info"
@@ -433,11 +489,10 @@ const AddPatient: React.FC = () => {
             </a>
           </li>
           <li
-            className={`py-1 md:my-2 hover:bg-yellow-100 lg:hover:bg-transparent border-l-4 ${
-              activeSection === "guardian-info"
-                ? "border-lime-500 font-bold"
-                : "border-transparent"
-            }`}
+            className={`py-1 md:my-2 hover:bg-yellow-100 lg:hover:bg-transparent border-l-4 ${activeSection === "guardian-info"
+              ? "border-lime-500 font-bold"
+              : "border-transparent"
+              }`}
           >
             <a
               href="#guardian-info"
@@ -470,7 +525,7 @@ const AddPatient: React.FC = () => {
                     <div className="grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
                       <div className="sm:col-span-2">
                         <Label htmlFor="patient-name">
-                          Name <span className="text-destructive ml-1">*</span>
+                          Name
                         </Label>
                         <input
                           id="patient-name"
@@ -1051,7 +1106,6 @@ const AddPatient: React.FC = () => {
                         <div className="sm:col-span-2">
                           <Label>
                             Email
-                            <span className="text-destructive">*</span>
                           </Label>
                           <input
                             type="email"
@@ -1179,7 +1233,11 @@ const AddPatient: React.FC = () => {
           <div className="flex items-center justify-end gap-x-6">
             <button
               type="submit"
-              className="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+              disabled={guardianFields.length === 0}
+              className={`rounded-md px-3 py-2 text-sm font-semibold text-white shadow-sm 
+                ${guardianFields.length === 0 ?
+                  "bg-gray-400 cursor-not-allowed" :
+                  "bg-indigo-600 hover:bg-indigo-500"}`}
             >
               Add Patient
             </button>
