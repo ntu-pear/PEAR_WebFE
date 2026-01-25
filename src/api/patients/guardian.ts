@@ -34,7 +34,7 @@ export interface IGuardianFormData {
   gender: "M" | "F";
   contactNo: string;
   nric: string;
-  email: string;
+  email?: string|null;
   dateOfBirth: string;
   address: string;
   tempAddress?: string;
