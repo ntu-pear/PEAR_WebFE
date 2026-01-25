@@ -88,14 +88,6 @@ const ManagePrivacySettingsCard = () => {
     }
   };
 
-  const SortIcon = ({ active }: { active: boolean }) => {
-    if (!active) return null;
-    return sortDir === "asc" ? (
-      <ChevronUp className="h-4 w-4 inline ml-1" />
-    ) : (
-      <ChevronDown className="h-4 w-4 inline ml-1" />
-    );
-  };
 
 const onSubmitPrivacySettings: SubmitHandler<PrivacySettingsForm> = (vals) => {
   if (!rows) return;
