@@ -222,7 +222,9 @@ export default function BulkActivityExclusionForm({
 
         {/* Activity List */}
         <div className="border rounded-md max-h-64 overflow-y-auto">
-          {filteredActivities.length === 0 ? (
+          {loading ? (
+            <div className="p-4 text-center text-gray-500">Loading activities...</div>
+          ) : filteredActivities.length === 0 ? (
             <div className="p-4 text-center text-gray-500">
               {searchTerm ? "No activities match your search" : "No activities available to exclude"}
             </div>
@@ -248,6 +250,7 @@ export default function BulkActivityExclusionForm({
             </div>
           )}
         </div>
+
       </div>
 
       {/* Date Selection */}
