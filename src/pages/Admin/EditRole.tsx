@@ -6,6 +6,14 @@ import { useLocation, useNavigate } from "react-router";
 import useGetUsersFromRole from "@/hooks/role/useGetUsersFromRole";
 import { Role } from "@/api/role/roles";
 
+export const ACCESS_LEVEL_LABEL: Record<Role["accessLevelSensitive"], string> = {
+  0: "NONE",
+  1: "LOW",
+  2: "MEDIUM",
+  3: "HIGH",
+};
+
+
 const EditRole: React.FC = () => {
   const navigate = useNavigate();
   const {
@@ -22,7 +30,7 @@ const EditRole: React.FC = () => {
               <CardTitle>Edit Role</CardTitle>
             </CardHeader>
             <CardContent className="flex flex-col align-middle">
-              <div className="flex justify-between mb-1 h-10 items-center">
+              <div className="flex justify-between mb-2 h-10 items-center">
                 <label>Id</label>
                 <input
                   type="text"
@@ -31,12 +39,21 @@ const EditRole: React.FC = () => {
                   readOnly
                 />
               </div>
-              <div className="flex justify-between mb-4 h-10 items-center">
+              <div className="flex justify-between mb-2 h-10 items-center">
                 <label>Role Name</label>
                 <input
                   type="text"
                   className="border border-gray-300 rounded-md px-3 w-5/6 bg-slate-200 h-full dark:bg-slate-700"
                   value={role.roleName}
+                  readOnly
+                />
+              </div>
+                <div className="flex justify-between mb-2 h-10 items-center">
+                <label>Access Level</label>
+                <input
+                  type="text"
+                  className="border border-gray-300 rounded-md px-3 w-5/6 bg-slate-200 h-full dark:bg-slate-700"
+                  value={ACCESS_LEVEL_LABEL[role.accessLevelSensitive]}
                   readOnly
                 />
               </div>
