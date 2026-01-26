@@ -64,69 +64,88 @@ const ActivityPreferenceCard: React.FC = () => {
   };
 
   const columns = [
-    {
-      key: "patientName" as keyof typeof activityPreferences[0],
-      header: "Patient Name",
-      className: "min-w-[150px]",
-    },
-    {
-      key: "activityName" as keyof typeof activityPreferences[0],
-      header: "Activity Name",
-      className: "min-w-[200px]",
-    },
-    {
-      key: "patientPreference" as keyof typeof activityPreferences[0],
-      header: "Patient Preference",
-      headerClassName: "text-center",
-      className: "w-[160px] text-center",
-      render: (value: string | null | undefined) => (
-        <div className="flex justify-center items-center w-full min-h-[40px]">
-          {renderPreferenceBadge(value)}
-        </div>
-      ),
-    },
-    {
-      key: "doctorRecommendation" as keyof typeof activityPreferences[0],
-      header: "Doctor Recommendation", 
-      headerClassName: "text-center",
-      className: "w-[180px] text-center",
-      render: (value: string | null | undefined) => (
-        <div className="flex justify-center items-center w-full min-h-[40px]">
-          {renderRecommendationBadge(value)}
-        </div>
-      ),
-    },
-    {
-      key: "doctorNotes" as keyof typeof activityPreferences[0],
-      header: "Doctor Notes",
-      className: "min-w-[200px] max-w-[300px]",
-      render: (value: string | null | undefined) => {
-        const notes = value || "No notes";
-        const isLongNote = notes.length > 60; // Show expand option if longer than 60 chars
-        
-        return (
-          <div className="group relative">
-            <div className={`${isLongNote ? 'line-clamp-2' : ''} text-sm leading-relaxed`}>
-              {notes}
+  {
+    key: "patientName" as keyof typeof activityPreferences[0],
+    header: "Patient Name",
+    className: "min-w-[150px]",
+  },
+  {
+    key: "activityName" as keyof typeof activityPreferences[0],
+    header: "Activity Name",
+    className: "min-w-[200px]",
+    render: (_value: any, item: any) => {
+      const description = item.activityDescription || "No description available";
+
+      return (
+        <div className="group relative cursor-help">
+          <span className="font-medium text-blue-600 hover:underline">
+            {item.activityName}
+          </span>
+
+          {item.activityDescription && (
+            <div className="absolute invisible group-hover:visible bg-black text-white text-xs p-2 rounded shadow-lg z-10 max-w-sm -top-2 left-0 transform -translate-y-full">
+              {description}
+              <div className="absolute top-full left-4 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-black" />
             </div>
-            {isLongNote && (
-              <div className="absolute invisible group-hover:visible bg-black text-white text-xs p-2 rounded shadow-lg z-10 max-w-sm -top-2 left-0 transform -translate-y-full">
-                {notes}
-                <div className="absolute top-full left-4 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-black"></div>
-              </div>
-            )}
-          </div>
-        );
-      },
+          )}
+        </div>
+      );
     },
-    {
-      key: "_actions",
-      header: "Actions",
-      render: (_: any, item: any) => (
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => openModal("editActivityPreference", {
+  },
+  {
+    key: "patientPreference" as keyof typeof activityPreferences[0],
+    header: "Patient Preference",
+    headerClassName: "text-center",
+    className: "w-[160px] text-center",
+    render: (value: string | null | undefined) => (
+      <div className="flex justify-center items-center w-full min-h-[40px]">
+        {renderPreferenceBadge(value)}
+      </div>
+    ),
+  },
+  {
+    key: "doctorRecommendation" as keyof typeof activityPreferences[0],
+    header: "Doctor Recommendation",
+    headerClassName: "text-center",
+    className: "w-[180px] text-center",
+    render: (value: string | null | undefined) => (
+      <div className="flex justify-center items-center w-full min-h-[40px]">
+        {renderRecommendationBadge(value)}
+      </div>
+    ),
+  },
+  {
+    key: "doctorNotes" as keyof typeof activityPreferences[0],
+    header: "Doctor Notes",
+    className: "min-w-[200px] max-w-[300px]",
+    render: (value: string | null | undefined) => {
+      const notes = value || "No notes";
+      const isLongNote = notes.length > 60;
+
+      return (
+        <div className="group relative">
+          <div className={`${isLongNote ? "line-clamp-2" : ""} text-sm leading-relaxed`}>
+            {notes}
+          </div>
+          {isLongNote && (
+            <div className="absolute invisible group-hover:visible bg-black text-white text-xs p-2 rounded shadow-lg z-10 max-w-sm -top-2 left-0 transform -translate-y-full">
+              {notes}
+              <div className="absolute top-full left-4 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-black" />
+            </div>
+          )}
+        </div>
+      );
+    },
+  },
+  {
+    key: "_actions",
+    header: "Actions",
+    render: (_: any, item: any) => (
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() =>
+          openModal("editActivityPreference", {
             centreActivityId: item.centreActivityId,
             patientId: item.patientId,
             patientName: item.patientName,
@@ -134,16 +153,22 @@ const ActivityPreferenceCard: React.FC = () => {
             currentPreference: item.patientPreference,
             onUpdate: () => {
               refreshActivityPreferences();
-            }
-          })}
-          disabled={!currentUser || (currentUser.roleName !== "SUPERVISOR" && currentUser.roleName !== "PRIMARY_GUARDIAN")}
-        >
-          <Edit className="h-4 w-4 mr-1" />
-          Edit
-        </Button>
-      ),
-    },
-  ];
+            },
+          })
+        }
+        disabled={
+          !currentUser ||
+          (currentUser.roleName !== "SUPERVISOR" &&
+            currentUser.roleName !== "PRIMARY_GUARDIAN")
+        }
+      >
+        <Edit className="h-4 w-4 mr-1" />
+        Edit
+      </Button>
+    ),
+  },
+];
+
 
   if (loading) {
     return (

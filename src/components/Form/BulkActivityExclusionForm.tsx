@@ -51,6 +51,7 @@ export default function BulkActivityExclusionForm({
   
   const [centreActivities, setCentreActivities] = useState<CentreActivityWithDetails[]>([]);
   const [loading, setLoading] = useState(true);
+  const selectedActivities = centreActivities.filter(activity => selectedActivityIds.has(activity.id));
 
   useEffect(() => {
     const fetchCentreActivities = async () => {
@@ -128,15 +129,7 @@ export default function BulkActivityExclusionForm({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Form submitted!", { 
-      selectedActivityIds: Array.from(selectedActivityIds), 
-      patientId: initial?.patient_id,
-      exclusionRemarks,
-      startDate,
-      endDate: isIndefinite ? null : endDate,
-      isIndefinite
-    });
-    
+
     if (selectedActivityIds.size === 0) {
       toast.error("Please select at least one activity to exclude");
       return;
@@ -147,15 +140,19 @@ export default function BulkActivityExclusionForm({
       return;
     }
 
+    if (!exclusionRemarks.trim()) {
+      toast.error("Exclusion remarks are required");
+      return;
+    }
+
     const values: BulkCentreActivityExclusionFormValues = {
       centre_activity_ids: Array.from(selectedActivityIds),
       patient_id: initial.patient_id,
-      exclusion_remarks: exclusionRemarks.trim() || undefined,
+      exclusion_remarks: exclusionRemarks.trim(), // now guaranteed to be non-empty
       start_date: startDate,
       end_date: isIndefinite ? null : endDate || null,
     };
 
-    console.log("Submitting values:", values);
     try {
       await onSubmit(values);
     } catch (error) {
@@ -163,17 +160,6 @@ export default function BulkActivityExclusionForm({
     }
   };
 
-  const selectedActivities = centreActivities.filter(activity => 
-    selectedActivityIds.has(activity.id)
-  );
-
-  if (loading) {
-    return (
-      <div className="space-y-4">
-        <div className="text-center py-8">Loading activities...</div>
-      </div>
-    );
-  }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -301,16 +287,18 @@ export default function BulkActivityExclusionForm({
       </div>
 
       {/* Remarks */}
-      <div className="space-y-2">
-        <Label htmlFor="remarks">Exclusion Remarks</Label>
-        <Textarea
-          id="remarks"
-          placeholder="Enter reason for exclusion (optional)"
-          value={exclusionRemarks}
-          onChange={(e) => setExclusionRemarks(e.target.value)}
-          rows={3}
-        />
-      </div>
+        <div className="space-y-2">
+          <Label htmlFor="remarks">Exclusion Remarks*</Label>
+          <Textarea
+            id="remarks"
+            placeholder="Enter reason for exclusion (required)"
+            value={exclusionRemarks}
+            onChange={(e) => setExclusionRemarks(e.target.value)}
+            rows={3}
+            required
+          />
+        </div>
+
 
       {/* Action Buttons */}
       <div className="sticky bottom-0 bg-white pt-4 pb-2 border-t mt-6">
