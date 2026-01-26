@@ -65,7 +65,7 @@ export default function ActivityAvailabilityForm({
     const [deleted] = useState(initial?.is_deleted ?? false);
     const [is_deleted, setIsDeleted] = useState(initial?.is_deleted ?? false);
     const {centreActivities} = useCentreActivities(false);
-    const { centre: selectedCentre} = useCareCentreHours("Person Centred Care 1");
+    const { centre: selectedCentre} = useCareCentreHours("weqw");
     const [errors, setErrors] = useState<FormErrors>({ _summary: [] });
     const [selectedDays, setSelectedDays] = useState<number[]>([]);
 
