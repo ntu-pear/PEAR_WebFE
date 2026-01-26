@@ -55,6 +55,10 @@ const EditAccountInfoModal: React.FC = () => {
       const filteredValue = value.replace(/[^a-zA-Z\s]/g, '');
       processedValue = filteredValue.toUpperCase();
     }
+
+    else if (name === "nric") {
+      processedValue = value.replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
+    }
     
     setAccount({
       ...account,

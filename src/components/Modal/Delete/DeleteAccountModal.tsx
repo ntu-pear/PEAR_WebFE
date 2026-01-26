@@ -35,6 +35,11 @@ const DeleteAccountModal: React.FC = () => {
       <div ref={modalRef} className="bg-background rounded-md w-[500px]">
         <div className="p-4">
           <h3>Are you sure you want to set this account as inactive?</h3>
+
+          <p className="mt-1 text-sm text-muted-foreground">
+            This action is permanent. The account cannot be reactivated once set to inactive.
+          </p>
+
           <div className="mt-5 flex justify-end">
             <Button className="bg-red-500 mr-1" onClick={handleDelete}>
               Yes
