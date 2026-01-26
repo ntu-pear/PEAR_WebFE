@@ -264,7 +264,7 @@ const PatientActivityPreferenceCard: React.FC<
         key: "activityName" as keyof (typeof activityPreferences)[0],
         header: "Activity Name",
         className: "min-w-[200px]",
-        render: (value, item) => (
+        render: (value) => (
           <div className="relative group cursor-help">
             <span className="text-sm text-gray-900">{value}</span>
           </div>
@@ -284,7 +284,7 @@ const PatientActivityPreferenceCard: React.FC<
         key: "exclusionStatus" as keyof (typeof activityPreferences)[0],
         header: "Exclusion Status",
         className: "w-[150px] text-center",
-        render: (_: any, item) => getExclusionStatus(item.centreActivityId),
+        render: (_unused: any, item) => getExclusionStatus(item.centreActivityId),
       },
       {
         key: "doctorRecommendation" as keyof (typeof activityPreferences)[0],
