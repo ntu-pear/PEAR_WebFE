@@ -23,6 +23,7 @@ import {
   usePatientActivityPreferences,
   PatientActivityPreferenceWithRecommendation,
 } from "@/hooks/activity/usePatientActivityPreferences";
+import { useCentreActivityExclusions } from "@/hooks/activity/useActivityExclusions"; // NEW
 import { useAuth } from "@/hooks/useAuth";
 import {
   updateActivityPreference,
@@ -43,6 +44,7 @@ const PatientActivityPreferenceCard: React.FC<
     error,
     refreshPatientActivityPreferences,
   } = usePatientActivityPreferences(patientId);
+  const { centreActivityExclusions } = useCentreActivityExclusions(); // NEW
   const { currentUser } = useAuth();
 
   // Bulk selection state
@@ -81,65 +83,37 @@ const PatientActivityPreferenceCard: React.FC<
         selectedItems.has(item.id)
       );
 
-      // Convert preference string to number for API
       const preferenceValue =
         bulkPreference === "LIKE" ? 1 : bulkPreference === "DISLIKE" ? -1 : 0;
 
-      console.log("Bulk updating preferences:", {
-        selectedCount: selectedPreferences.length,
-        preference: bulkPreference,
-        preferenceValue,
-        userId: currentUser.userId,
-      });
-
-      // Update all selected preferences
       const updatePromises = selectedPreferences.map(async (pref) => {
         try {
-          // Check if this preference has an existing database record
           const hasExistingPreference =
             pref.preferenceId !== undefined && pref.preferenceId !== null;
 
           if (hasExistingPreference) {
-            // Update existing preference using the actual database ID
             const existingPreference = {
-              id: pref.preferenceId!, // Use actual database ID
+              id: pref.preferenceId!,
               centre_activity_id: pref.centreActivityId,
               patient_id: pref.patientId,
               is_like:
                 pref.patientPreference === "LIKE"
                   ? 1
                   : pref.patientPreference === "DISLIKE"
-                    ? -1
-                    : 0,
+                  ? -1
+                  : 0,
               is_deleted: false,
               created_date: new Date().toISOString(),
               modified_date: null,
               created_by_id: currentUser.userId,
               modified_by_id: null,
             };
-
-            console.log("Updating existing preference:", {
-              activityName: pref.activityName,
-              preferenceId: pref.preferenceId,
-              centreActivityId: pref.centreActivityId,
-              currentValue: pref.patientPreference,
-              newValue: bulkPreference,
-            });
-
             return updateActivityPreference(
               existingPreference,
               preferenceValue,
               currentUser.userId
             );
           } else {
-            // Create new preference
-            console.log("Creating new preference:", {
-              activityName: pref.activityName,
-              centreActivityId: pref.centreActivityId,
-              patientId: pref.patientId,
-              newValue: bulkPreference,
-            });
-
             return createActivityPreference(
               pref.patientId,
               pref.centreActivityId,
@@ -157,12 +131,9 @@ const PatientActivityPreferenceCard: React.FC<
       });
 
       await Promise.all(updatePromises);
-
       toast.success(
         `Successfully updated ${selectedItems.size} activity preferences`
       );
-
-      // Clear selections and refresh data
       setSelectedItems(new Set());
       setBulkPreference("");
       refreshPatientActivityPreferences();
@@ -201,19 +172,9 @@ const PatientActivityPreferenceCard: React.FC<
         </Badge>
       );
     }
-    if (preference === "NEUTRAL") {
-      return (
-        <Badge
-          variant="secondary"
-          className="px-2 py-1 min-h-[28px] text-xs whitespace-nowrap"
-        >
-          Neutral
-        </Badge>
-      );
-    }
     return (
       <Badge
-        variant="outline"
+        variant="secondary"
         className="px-2 py-1 min-h-[28px] text-xs whitespace-nowrap"
       >
         Neutral
@@ -253,19 +214,40 @@ const PatientActivityPreferenceCard: React.FC<
     );
   };
 
+  // NEW: Exclusion status helper
+  const getExclusionStatus = (activityId: number) => {
+    const exclusion = centreActivityExclusions.find(
+      (e) => e.centreActivityId === activityId
+    );
+
+    if (!exclusion) {
+      return <Badge variant="secondary">No Exclusion</Badge>;
+    }
+
+    const start = new Date(exclusion.startDate);
+    const end = exclusion.endDate ? new Date(exclusion.endDate) : null;
+    const now = new Date();
+
+    if (now < start) {
+      return <Badge variant="pending">Pending</Badge>;
+    } else if (!end || end.getFullYear() >= 2999) {
+      return <Badge variant="approve">Active (Indefinite)</Badge>;
+    } else if (now <= end) {
+      return <Badge variant="approve">Active</Badge>;
+    } else {
+      return <Badge variant="destructive">Expired</Badge>;
+    }
+  };
+
   const columns: DataTableColumns<PatientActivityPreferenceWithRecommendation> =
     [
-      // Checkbox column for bulk selection (only for supervisors)
       ...(currentUser?.roleName === "SUPERVISOR"
         ? [
             {
               key: "select" as keyof (typeof activityPreferences)[0],
               header: "Select",
               className: "w-[70px]",
-              render: (
-                _: any,
-                item: PatientActivityPreferenceWithRecommendation
-              ) => (
+              render: (_: any, item: PatientActivityPreferenceWithRecommendation) => (
                 <Checkbox
                   checked={selectedItems.has(item.id)}
                   onCheckedChange={(checked: boolean) =>
@@ -274,6 +256,7 @@ const PatientActivityPreferenceCard: React.FC<
                   aria-label={`Select ${item.activityName}`}
                 />
               ),
+
             },
           ]
         : []),
@@ -281,14 +264,9 @@ const PatientActivityPreferenceCard: React.FC<
         key: "activityName" as keyof (typeof activityPreferences)[0],
         header: "Activity Name",
         className: "min-w-[200px]",
-      },
-      {
-        key: "activityDescription" as keyof (typeof activityPreferences)[0],
-        header: "Description",
-        className: "min-w-[250px]",
         render: (value) => (
-          <div className="text-sm text-muted-foreground">
-            {value || "No description available"}
+          <div className="relative group cursor-help">
+            <span className="text-sm text-gray-900">{value}</span>
           </div>
         ),
       },
@@ -301,6 +279,12 @@ const PatientActivityPreferenceCard: React.FC<
             {renderPreferenceBadge(String(value))}
           </div>
         ),
+      },
+      {
+        key: "exclusionStatus" as keyof (typeof activityPreferences)[0],
+        header: "Exclusion Status",
+        className: "w-[150px] text-center",
+        render: (_unused: any, item) => getExclusionStatus(item.centreActivityId),
       },
       {
         key: "doctorRecommendation" as keyof (typeof activityPreferences)[0],
@@ -317,11 +301,16 @@ const PatientActivityPreferenceCard: React.FC<
         header: "Doctor Notes",
         className: "min-w-[200px]",
         render: (value) => (
-          <div className="text-sm text-muted-foreground">
-            {value || "No notes provided"}
+          <div className="relative group cursor-help text-sm text-muted-foreground">
+            <span>View Notes</span>
+            <div className="absolute invisible group-hover:visible z-50 bg-black text-white text-xs p-2 rounded shadow-lg max-w-xs -top-2 left-0 transform -translate-y-full">
+              {value || "No notes"}
+              <div className="absolute top-full left-4 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-black"></div>
+            </div>
           </div>
         ),
       },
+
     ];
 
   // Handle individual preference update

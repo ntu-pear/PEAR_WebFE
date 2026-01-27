@@ -128,6 +128,9 @@ export default function CentreActivityExclusionForm({
     if (!startDate) {
       newErrors.start_date = ["Start date is required"];
     }
+    if (!exclusionRemarks.trim()) {
+      newErrors.exclusion_remarks = ["Exclusion remarks are required"];
+    }
     if (!isIndefinite && endDate && startDate && new Date(endDate) <= new Date(startDate)) {
       newErrors.end_date = ["End date must be after start date"];
     }
@@ -275,15 +278,20 @@ export default function CentreActivityExclusionForm({
 
       {/* Exclusion Remarks */}
       <div className="space-y-2">
-        <Label htmlFor="remarks">Exclusion Remarks</Label>
+        <Label htmlFor="remarks">Exclusion Remarks *</Label>
         <Textarea
           id="remarks"
-          placeholder="Optional remarks about why this activity is excluded..."
+          placeholder="Enter reason for exclusion..."
           value={exclusionRemarks}
           onChange={(e) => setExclusionRemarks(e.target.value)}
           className="resize-none"
           rows={3}
         />
+        {errors.exclusion_remarks && (
+          <div className="text-sm text-red-600">
+            {errors.exclusion_remarks.join(", ")}
+          </div>
+        )}
       </div>
 
       {/* Form Actions */}
