@@ -5,7 +5,9 @@ import { toast } from "sonner";
 import {
   AddDementiaForm,
   addDiagnosedDementa,
+  DementiaStageType,
   DementiaType,
+  fetchDementiaStageList,
   fetchDementiaTypeList,
 } from "@/api/patients/diagnosedDementia";
 import { getDateTimeNowInUTC } from "@/utils/formatDate";
@@ -19,14 +21,17 @@ const AddDiagnosedDementiaModal: React.FC = () => {
   };
 
   const [dementiaTypes, setDementiaTypes] = useState<DementiaType[]>([]);
+  const [dementiaStageTypes, setDementiaStageTypes] = useState<DementiaStageType[]>([]);
 
   const handleFetchDementiaType = async () => {
     try {
       const fetchedDementiaTypes: DementiaType[] =
         await fetchDementiaTypeList();
-      const activeDementiaTypes = fetchedDementiaTypes.filter(dt=>dt.IsDeleted==='0')
+      const activeDementiaTypes = fetchedDementiaTypes.filter(dt => dt.IsDeleted === '0')
       setDementiaTypes(activeDementiaTypes);
-
+      const fetchedDementiaStageTypes: DementiaStageType[]=await fetchDementiaStageList();
+      const activeDementiaStageTypes = fetchedDementiaStageTypes.filter((st)=>st.IsDeleted==='0')
+      setDementiaStageTypes(activeDementiaStageTypes)
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       toast.error("Failed to fetch Dementia Types List");
@@ -49,6 +54,7 @@ const AddDiagnosedDementiaModal: React.FC = () => {
         formDataObj.DementiaTypeListId as string,
         10
       ),
+      DementiaStageId: parseInt(formDataObj.DementiaStageListId as string, 10),
       CreatedDate: getDateTimeNowInUTC() as string,
       ModifiedDate: getDateTimeNowInUTC() as string,
       CreatedById: submitterId as string,
@@ -63,6 +69,7 @@ const AddDiagnosedDementiaModal: React.FC = () => {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       toast.error(`Failed to assign diagnosed dementia.`);
+      closeModal();
     }
   };
 
@@ -91,6 +98,26 @@ const AddDiagnosedDementiaModal: React.FC = () => {
                   value={dt.DementiaTypeListId}
                 >
                   {dt.Value}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="col-span-2">
+            <label className="block text-sm font-medium">
+              Dementia Stage<span className="text-red-600">*</span>
+            </label>
+            <select
+              name="DementiaStageListId"
+              className="mt-1 block w-full p-2 border rounded-md text-gray-900"
+              required
+            >
+              <option value="">Please select an option</option>
+              {dementiaStageTypes.map((st) => (
+                <option
+                  key={st.id}
+                  value={st.id}
+                >
+                  {st.DementiaStage}
                 </option>
               ))}
             </select>

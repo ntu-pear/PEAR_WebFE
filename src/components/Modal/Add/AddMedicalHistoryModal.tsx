@@ -50,6 +50,7 @@ const AddMedicalHistoryModal: React.FC = () => {
   useEffect(() => {
     const fetchDiagnosisID = async () => {
       const response = await fetchDiagnosisList()
+      console.log(response)
       setDiagnosisList(response)
     }
     fetchDiagnosisID()
