@@ -8,7 +8,7 @@ import { useViewPatient } from "@/hooks/patient/useViewPatient";
 import { useEffect, useState } from "react";
 import { fetchMedicalHistory, MedicalHistoryTD, MedicalHistoryTDServer } from "@/api/patients/medicalHistory";
 
-const MedicalHistoryCard: React.FC = () => {
+const   MedicalHistoryCard: React.FC = () => {
   const { currentUser } = useAuth();
   const { openModal } = useModal();
   const { id, patientAllocation } = useViewPatient();

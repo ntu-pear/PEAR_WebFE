@@ -80,9 +80,9 @@ export const fetchMobilityList = async (): Promise<MobilityList[]> => {
         Authorization: `Bearer ${token}`,
       },
     });
-
-    console.log("GET Patient Mobility List", response.data);
-    return response.data;
+    const activeMobilityList = response.data.filter((l)=>Number(l.IsDeleted)===0)
+    console.log("GET Patient Mobility List", activeMobilityList);
+    return activeMobilityList;
   } catch (error) {
     console.error("GET Patient Mobility List", error);
     throw error;

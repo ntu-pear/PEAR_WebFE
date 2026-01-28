@@ -35,11 +35,9 @@ const AddMedicalHistoryModal: React.FC = () => {
       closeModal();
     } catch (error) {
       if (error instanceof Error) {
-        toast.error(`Failed to add medical history. ${error.message}`);
+        toast.error(`Failed to add Medical History. ${error.message}`);
       } else {
-        toast.error(
-          "Failed to add medical history. An unknown error occurred."
-        );
+        toast.error(`Failed to add Medical History.`);
       }
       console.error(error)
       console.log("Failed to add medical history")
@@ -50,6 +48,7 @@ const AddMedicalHistoryModal: React.FC = () => {
   useEffect(() => {
     const fetchDiagnosisID = async () => {
       const response = await fetchDiagnosisList()
+      console.log(response)
       setDiagnosisList(response)
     }
     fetchDiagnosisID()

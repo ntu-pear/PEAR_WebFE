@@ -38,7 +38,7 @@ const EditPatientInfoModal: React.FC = () => {
   } = activeModal.props as {
     patientId: string;
     submitterId: string;
-    userRole:"GUARDIAN" | "SUPERVISOR" | "DOCTOR"
+    userRole: "GUARDIAN" | "SUPERVISOR" | "DOCTOR"
     refreshPatientData: () => Promise<void>;
     refreshPatientPrivacyLevel: () => Promise<void>;
   };
@@ -85,11 +85,11 @@ const EditPatientInfoModal: React.FC = () => {
 
     const response = await fetchPatientById(Number(patientId));
 
-    const endDate = response.endDate? new Date(response.endDate):null
+    const endDate = response.endDate ? new Date(response.endDate) : null
 
     setPatient({
       ...response,
-      isActive: endDate?endDate>new Date()?'1':'0':'1',
+      isActive: endDate ? endDate > new Date() ? '1' : '0' : '1',
       dateOfBirth: getDateForDatePicker(response.dateOfBirth),
       startDate: getDateForDatePicker(response.startDate),
       endDate: response.endDate ? getDateForDatePicker(response.endDate) : "",
@@ -102,7 +102,10 @@ const EditPatientInfoModal: React.FC = () => {
   const handleFetchPatientPrivacyLevel = async (patientId: string) => {
     if (!patientId || isNaN(Number(patientId))) return;
     const response = await fetchPatientPrivacyLevel(Number(patientId));
-    setPatientPrivacyLevel(response);
+    setPatientPrivacyLevel({
+      ...response,
+      accessLevelSensitive: response.accessLevelSensitive ?? 2,
+    });
   };
 
   const handleFetchPreferredLanguage = async () => {
@@ -114,31 +117,31 @@ const EditPatientInfoModal: React.FC = () => {
     e.currentTarget.value = e.currentTarget.value.toUpperCase();
   };
 
-  const checkPartialNRIC = (value: string):boolean =>{
+  const checkPartialNRIC = (value: string): boolean => {
     if (!value) return true;
 
     // NRIC cannot have more than 9 characters
-    if (value.length>9) return false;
+    if (value.length > 9) return false;
 
     // 1st character must be either S,T,F,G,M
-    if (value.length>=1 && !/^[STFGM]$/.test(value[0])){
+    if (value.length >= 1 && !/^[STFGM]$/.test(value[0])) {
       setNricHint("Must start with S, T, F, G, or M")
       return false;
     }
 
     // Character 2-8 must be a digit
-    for (let i=1;i<Math.min(value.length,8);i++){
-      if(!/^\d$/.test(value[i])){
+    for (let i = 1; i < Math.min(value.length, 8); i++) {
+      if (!/^\d$/.test(value[i])) {
         setNricHint("Next character must be a digit")
         return false;
-      } 
+      }
     }
 
     // 9th character must be an alphabet
-    if (value.length==9 && !/^[A-Z]$/.test(value[8])){
+    if (value.length == 9 && !/^[A-Z]$/.test(value[8])) {
       setNricHint("Last character must be an alphabetical letter")
       return false;
-    } 
+    }
     setNricHint("")
     return true;
   }
@@ -151,57 +154,57 @@ const EditPatientInfoModal: React.FC = () => {
     const { name, value } = e.target;
     let filteredValue = value;
 
-    if(["preferredName","name"].includes(name)){
-      filteredValue = value.replace(/[^a-zA-Z ]/g,"");
-      if(filteredValue!==value){
-        if (name === "preferredName"){
+    if (["preferredName", "name"].includes(name)) {
+      filteredValue = value.replace(/[^a-zA-Z ]/g, "");
+      if (filteredValue !== value) {
+        if (name === "preferredName") {
           setPnameHint("Preferred Name should only contain alphabetical letters")
-        }else{setNameHint("Name should only contain alphabetical letters")}
-      }else{
-        if(name === "preferredName"){
+        } else { setNameHint("Name should only contain alphabetical letters") }
+      } else {
+        if (name === "preferredName") {
           setPnameHint("")
-        }else{setNameHint("")}
+        } else { setNameHint("") }
       }
     }
-    if(["handphoneNo","homeNo"].includes(name)){
-      filteredValue = value.replace(/[^0-9]/g,"")
-      if (name==="handphoneNo"){
-        if(filteredValue && !/^[89]/.test(filteredValue[0])){
+    if (["handphoneNo", "homeNo"].includes(name)) {
+      filteredValue = value.replace(/[^0-9]/g, "")
+      if (name === "handphoneNo") {
+        if (filteredValue && !/^[89]/.test(filteredValue[0])) {
           setHandphoneHint("Handphone Number must start with 8 or 9, and be 8 digits long.")
           return
-        }else{
+        } else {
           setHandphoneHint("")
         }
       }
-      else{
-        if(filteredValue && !/^6/.test(filteredValue[0])){
+      else {
+        if (filteredValue && !/^6/.test(filteredValue[0])) {
           setHomeHint("Home Number must start with 6,  and be 8 digits long")
           return
-        }else{
+        } else {
           setHomeHint("")
         }
       }
     }
-    if(name === 'nric'){
+    if (name === 'nric') {
       const upper = value.toUpperCase()
-      if(!checkPartialNRIC(upper)) return;
-      setPatient(prev=>prev?{...prev,nric:upper}:prev)
+      if (!checkPartialNRIC(upper)) return;
+      setPatient(prev => prev ? { ...prev, nric: upper } : prev)
       return;
     }
     const upperCaseValue = filteredValue.toUpperCase();
     if (patient) {
       if (name === "endDate") {
-        const endDate = value?new Date(value):null
-        const isActive = endDate?endDate> new Date?"1":"0":"1"
-        setPatient(prev=>prev?{
+        const endDate = value ? new Date(value) : null
+        const isActive = endDate ? endDate > new Date ? "1" : "0" : "1"
+        setPatient(prev => prev ? {
           ...prev,
-          [name]:value,
+          [name]: value,
           isActive,
-          inActiveDate:isActive === "1"?"":getDateForDatePicker(getDateTimeNowInUTC())
-        }:prev)
+          inActiveDate: isActive === "1" ? "" : getDateForDatePicker(getDateTimeNowInUTC())
+        } : prev)
         console.log(value)
       } else {
-        setPatient(prev=>prev?{...prev,[name]:upperCaseValue}:prev)
+        setPatient(prev => prev ? { ...prev, [name]: upperCaseValue } : prev)
       }
     }
   };
@@ -212,14 +215,14 @@ const EditPatientInfoModal: React.FC = () => {
   ) => {
     const { name, value } = e.target;
     let filteredValue = value
-    if(name === "postalCode"){
-      filteredValue = value.replace(/\D/g,"");
+    if (name === "postalCode") {
+      filteredValue = value.replace(/\D/g, "");
     }
 
     const upperCaseValue = filteredValue.toUpperCase();
-    let isValidPostal=false;
+    let isValidPostal = false;
 
-    if (name === "postalCode"){
+    if (name === "postalCode") {
       isValidPostal = /^\d{6}$/.test(upperCaseValue)
       if (type === "perm") {
         setPermPostalHint(isValidPostal ? "" : "Postal code must be 6 numerical digits");
@@ -243,7 +246,7 @@ const EditPatientInfoModal: React.FC = () => {
         type === "perm"
           ? setPermUnitHint("Unit number must be in #XX-XXX format")
           : setTempUnitHint("Unit number must be in #XX-XXX format");
-        return; 
+        return;
       }
 
       type === "perm" ? setPermUnitHint("") : setTempUnitHint("");
@@ -410,11 +413,17 @@ const EditPatientInfoModal: React.FC = () => {
       await refreshPatientPrivacyLevel();
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
-      closeModal();
-      toast.error("Failed to update patient information.");
-    }
+      if (error instanceof Error) {
+        toast.error(`Failed to update patient information.. ${error.message}`);
+      }
+      else {
+        toast.error("Failed to update patient information.");
 
-    closeModal();
+      }
+      console.log("Failed to update patient information.")
+      console.error(error)
+      closeModal();
+    }
   };
 
   const validatePersonalInfo = () => {
@@ -460,7 +469,7 @@ const EditPatientInfoModal: React.FC = () => {
   const validateAdditionalInfo = () => {
     if (!patient) return false;
     if (
-      !patientPrivacyLevel?.accessLevelSensitive ||
+      patientPrivacyLevel?.accessLevelSensitive == null ||
       // !patient.privacyLevel ||
       !patient.preferredLanguageId ||
       !patient.isRespiteCare ||
@@ -526,7 +535,7 @@ const EditPatientInfoModal: React.FC = () => {
                   disabled={userRole === "GUARDIAN"}
                 />
                 {nameHint && (
-                  <p className="text-xs mt-1" style={{color:"hsl(var(--hint))"}}>
+                  <p className="text-xs mt-1" style={{ color: "hsl(var(--hint))" }}>
                     {nameHint}
                   </p>
                 )}
@@ -546,7 +555,7 @@ const EditPatientInfoModal: React.FC = () => {
                   required
                 />
                 {pnameHint && (
-                  <p className="text-xs mt-1" style={{color:"hsl(var(--hint))"}}>
+                  <p className="text-xs mt-1" style={{ color: "hsl(var(--hint))" }}>
                     {pnameHint}
                   </p>
                 )}
@@ -571,7 +580,7 @@ const EditPatientInfoModal: React.FC = () => {
                   disabled={userRole === "GUARDIAN"}
                 />
                 {nricHint && (
-                  <p className="text-xs mt-1" style={{color:"hsl(var(--hint))"}}>
+                  <p className="text-xs mt-1" style={{ color: "hsl(var(--hint))" }}>
                     {nricHint}
                   </p>
                 )}
@@ -631,7 +640,7 @@ const EditPatientInfoModal: React.FC = () => {
                   className="mt-1 block w-full p-2 border rounded-md text-gray-900"
                 />
                 {handphoneHint && (
-                  <p className="text-xs mt-1" style={{color:"hsl(var(--hint))"}}>
+                  <p className="text-xs mt-1" style={{ color: "hsl(var(--hint))" }}>
                     {handphoneHint}
                   </p>
                 )}
@@ -651,7 +660,7 @@ const EditPatientInfoModal: React.FC = () => {
                   className="mt-1 block w-full p-2 border rounded-md text-gray-900"
                 />
                 {homeHint && (
-                  <p className="text-xs mt-1" style={{color:"hsl(var(--hint))"}}>
+                  <p className="text-xs mt-1" style={{ color: "hsl(var(--hint))" }}>
                     {homeHint}
                   </p>
                 )}
@@ -720,7 +729,7 @@ const EditPatientInfoModal: React.FC = () => {
                         />
                         {
                           permPostalHint && (
-                            <p className="text-xs mt-1" style={{color:"hsl(var(--hint))"}}>
+                            <p className="text-xs mt-1" style={{ color: "hsl(var(--hint))" }}>
                               {permPostalHint}
                             </p>
                           )
@@ -743,7 +752,7 @@ const EditPatientInfoModal: React.FC = () => {
                         />
                         {
                           permUnitHint && (
-                            <p className="text-xs mt-1" style={{color:"hsl(var(--hint))"}}>
+                            <p className="text-xs mt-1" style={{ color: "hsl(var(--hint))" }}>
                               {permUnitHint}
                             </p>
                           )
@@ -755,7 +764,7 @@ const EditPatientInfoModal: React.FC = () => {
                           className="mt-7 col-span-2 mr-2"
                           onClick={() => handleRetrieve("perm")}
                           disabled={
-                            !newPermAddress.isValidPostal || 
+                            !newPermAddress.isValidPostal ||
                             (!!newPermAddress.unitNumber && !/^#\d{2}-\d{3}$/.test(newPermAddress.unitNumber))
                           }
                         >
@@ -855,7 +864,7 @@ const EditPatientInfoModal: React.FC = () => {
                         />
                         {
                           tempPostalHint && (
-                            <p className="text-xs mt-1" style={{color:"hsl(var(--hint))"}}>
+                            <p className="text-xs mt-1" style={{ color: "hsl(var(--hint))" }}>
                               {tempPostalHint}
                             </p>
                           )
@@ -878,7 +887,7 @@ const EditPatientInfoModal: React.FC = () => {
                         />
                         {
                           tempUnitHint && (
-                            <p className="text-xs mt-1" style={{color:"hsl(var(--hint))"}}>
+                            <p className="text-xs mt-1" style={{ color: "hsl(var(--hint))" }}>
                               {tempUnitHint}
                             </p>
                           )
@@ -948,7 +957,7 @@ const EditPatientInfoModal: React.FC = () => {
                 </label>
                 <select
                   name="privacyLevel"
-                  value={patientPrivacyLevel?.accessLevelSensitive || ""}
+                  value={patientPrivacyLevel?.accessLevelSensitive || 2}
                   onChange={(e) =>
                     setPatientPrivacyLevel((prev) => {
                       if (!prev) return prev; // Prevent updating null state
@@ -1013,7 +1022,7 @@ const EditPatientInfoModal: React.FC = () => {
                 <input
                   type="text"
                   name="isActive"
-                  value={patient?.isActive === "1"?"Yes":"No"}
+                  value={patient?.isActive === "1" ? "Yes" : "No"}
                   readOnly
                   className="mt-1 block w-full p-2 border rounded-md text-gray-900"
                 />

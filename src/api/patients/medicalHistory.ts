@@ -56,6 +56,11 @@ export interface AddMedicalHistory {
 export interface Diagnosis {
     Id: number
     DiagnosisName: string
+    IsDeleted: number,
+    CreatedDate: string,
+    ModifiedDate: string,
+    CreatedByID: string,
+    ModifiedByID: string
 }
 
 export const fetchMedicalHistory = async (
@@ -104,6 +109,7 @@ export const convertToMedicalHistoryTD = (medicalHistoryList: medicalHistory[]):
             year: "numeric"
         }),
         diagnosis_id: history.MedicalDiagnosisID
+
     })).sort((a, b) => {
         const dateA = new Date(a.date_of_diagnosis)
         const dateB = new Date(b.date_of_diagnosis)
@@ -156,11 +162,12 @@ export const fetchDiagnosisList = async () => {
                 Authorization: `Bearer ${token}`
             }
         })
-        const diagnosisList: Diagnosis[] = response.data.data.map((diagnosis: any) => ({
-            Id: diagnosis.Id,
-            DiagnosisName: diagnosis.DiagnosisName
-        }))
-        return diagnosisList
+        console.log("Diagnosis API response:", response.data);
+
+        console.log("fetchDiagnosisList", response)
+        return response.data.data.filter(
+            (d: Diagnosis)  => Number(d.IsDeleted) === 0
+        );
     } catch (error) {
         console.error("GET Medical Diagnosis List", error);
         throw error;
@@ -195,7 +202,7 @@ export const DeleteMedicalHistory = async (history_id: number) => {
             headers: {
                 Authorization: `Bearer ${token}`
             },
-            params: { history_id : history_id } 
+            params: { history_id: history_id }
         })
     } catch (error) {
         console.error("DELETE Medical History", error);

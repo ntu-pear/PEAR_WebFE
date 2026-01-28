@@ -141,6 +141,8 @@ const AddSocialHistoryModal: React.FC = () => {
           "Failed to add patient social history. An unknown error occurred."
         );
       }
+      console.log("Failed to add patient social history.",error)
+      closeModal()
     }
   };
 

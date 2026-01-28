@@ -52,8 +52,16 @@ const EditMobilityAid: React.FC = () => {
       refreshData();
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
+      if (error instanceof Error) {
+        toast.error(`Failed to update mobility aid. ${error.message}`);
+      }
+      else {
+        toast.error("Failed to update mobility aid.");
+
+      }
+      console.log("Failed to update patient mobility aid.")
+      console.error(error)
       closeModal();
-      toast.error("Failed to update patient mobility aid.");
     }
   };
 

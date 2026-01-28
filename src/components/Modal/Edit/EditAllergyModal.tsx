@@ -100,6 +100,8 @@ const EditAllergyModal: React.FC = () => {
           "Failed to update patient allergy. An unknown error occurred."
         );
       }
+      console.log("Failed to update patient allergy",error)
+      closeModal();
     }
   };
 
