@@ -177,6 +177,8 @@ const EditSocialHistoryModal: React.FC = () => {
           "Failed to update patient social history. An unknown error occurred."
         );
       }
+      console.log("Failed to update patient social history",error)
+      closeModal()
     }
 
     closeModal();

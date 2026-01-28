@@ -29,8 +29,8 @@ const AddDiagnosedDementiaModal: React.FC = () => {
         await fetchDementiaTypeList();
       const activeDementiaTypes = fetchedDementiaTypes.filter(dt => dt.IsDeleted === '0')
       setDementiaTypes(activeDementiaTypes);
-      const fetchedDementiaStageTypes: DementiaStageType[]=await fetchDementiaStageList();
-      const activeDementiaStageTypes = fetchedDementiaStageTypes.filter((st)=>st.IsDeleted==='0')
+      const fetchedDementiaStageTypes: DementiaStageType[] = await fetchDementiaStageList();
+      const activeDementiaStageTypes = fetchedDementiaStageTypes.filter((st) => st.IsDeleted === '0')
       setDementiaStageTypes(activeDementiaStageTypes)
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
@@ -68,7 +68,13 @@ const AddDiagnosedDementiaModal: React.FC = () => {
       refreshData();
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
-      toast.error(`Failed to assign diagnosed dementia.`);
+      if (error instanceof Error) {
+        toast.error(`Failed to assign diagnosed dementia. ${error.message}`);
+      } else {
+        toast.error(`Failed to assign diagnosed dementia.`);
+      }
+      console.error(error)
+      console.log("Failed to add diagnosed dementia.")
       closeModal();
     }
   };

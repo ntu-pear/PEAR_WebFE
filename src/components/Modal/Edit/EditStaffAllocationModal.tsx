@@ -65,12 +65,12 @@ const EditStaffAllocationModal: React.FC<EditStaffAllocationModalProps> = () => 
       if (error instanceof Error) {
         toast.error(`Failed to update staff allocation. ${error.message}`);
       } else {
+        // Fallback error handling for unknown error types
         toast.error(
           "Failed to update staff allocation. An unknown error occurred."
         );
       }
-      console.error(error)
-      console.log("Failed to update staff allocation")
+      console.log("Failed to update staff allocation",error)
       closeModal();
     }
   };

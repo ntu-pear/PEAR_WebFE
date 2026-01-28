@@ -64,7 +64,13 @@ const EditDiagnosedDementiaModal: React.FC = () => {
             refreshData();
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
         } catch (error) {
-            toast.error(`Failed to assign diagnosed dementia.`);
+            if (error instanceof Error) {
+                toast.error(`Failed to update diagnosed dementia. ${error.message}`);
+            } else {
+                toast.error(`Failed to update diagnosed dementia.`);
+            }
+            console.log("Failed to update diagnosed dementia.")
+            console.error(error)
             closeModal();
         }
     };
@@ -92,7 +98,7 @@ const EditDiagnosedDementiaModal: React.FC = () => {
                     />
                 </div>
                 <form onSubmit={handleEditDementia} className="grid grid-cols-2 gap-4">
-                    
+
                     <div className="col-span-2">
                         <label className="block text-sm font-medium">
                             Dementia Stage<span className="text-red-600">*</span>
@@ -102,7 +108,7 @@ const EditDiagnosedDementiaModal: React.FC = () => {
                             className="mt-1 block w-full p-2 border rounded-md text-gray-900"
                             required
                             value={rowData.DementiaStageId}
-                            onChange={(e)=>setRowData({...rowData,DementiaStageId: Number(e.target.value)})}
+                            onChange={(e) => setRowData({ ...rowData, DementiaStageId: Number(e.target.value) })}
                         >
                             <option value="">Please select an option</option>
                             {dementiaStageTypes.map((st) => (

@@ -57,8 +57,14 @@ const AddMobilityAidModal: React.FC = () => {
       refreshMobilityData();
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
+      if (error instanceof Error) {
+        toast.error(`Failed to add patient mobility aid. ${error.message}`)
+      } else {
+        toast.error("Failed to add patient mobility aid.");
+      }
+      console.log("Failed to add patient mobility aid.")
+      console.error(error)
       closeModal();
-      toast.error("Failed to add patient mobility aid.");
     }
   };
 
@@ -120,7 +126,7 @@ const AddMobilityAidModal: React.FC = () => {
             </select>
           </div>
 
-          { isRecovered === "true" && (<div className="col-span-2">
+          {isRecovered === "true" && (<div className="col-span-2">
             <label className="block text-sm font-medium">
               Recovery Date<span className="text-red-600">*</span>
             </label>

@@ -413,11 +413,17 @@ const EditPatientInfoModal: React.FC = () => {
       await refreshPatientPrivacyLevel();
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
-      closeModal();
-      toast.error("Failed to update patient information.");
-    }
+      if (error instanceof Error) {
+        toast.error(`Failed to update patient information.. ${error.message}`);
+      }
+      else {
+        toast.error("Failed to update patient information.");
 
-    closeModal();
+      }
+      console.log("Failed to update patient information.")
+      console.error(error)
+      closeModal();
+    }
   };
 
   const validatePersonalInfo = () => {
