@@ -33,10 +33,10 @@ const EditDoctorNoteModal: React.FC = () => {
     }
   };
 
-  const handleNotesChange = (event: React.ChangeEvent<HTMLTextAreaElement>) =>{
+  const handleNotesChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
     const value = event.target.value
     if (!doctorNote) return;
-    setDoctorNote({...doctorNote, doctorRemarks: value})
+    setDoctorNote({ ...doctorNote, doctorRemarks: value })
     setcharacterLength(value.length)
   }
 
@@ -68,7 +68,14 @@ const EditDoctorNoteModal: React.FC = () => {
       toast.success("Patient doctor note updated successfully.");
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
-      toast.error("Failed to update patient doctor note.");
+      if (error instanceof Error) {
+        toast.error(`Failed to update patient doctor note.${error.message}`);
+      } else {
+        toast.error("Failed to update patient doctor note.");
+      }
+      console.error(error)
+      console.log("Failed to update patient doctor note.")
+      closeModal()
     }
   };
 
@@ -99,7 +106,7 @@ const EditDoctorNoteModal: React.FC = () => {
                 rows={5}
                 className="mt-1 block w-full p-2 border rounded-md text-gray-900"
               />
-              <p className="text-sm mt-1" style={{color:"hsl(var(--hint))"}}>
+              <p className="text-sm mt-1" style={{ color: "hsl(var(--hint))" }}>
                 Word count: {characterLength}/250
               </p>
             </div>

@@ -87,12 +87,26 @@ export const ViewPatientProvider: React.FC<{ children: ReactNode }> = ({
         nric: fetchedPatientInfo.nric,
         isMasked: true,
       });
-      const patientAllocation = await fetchPatientAllocationById(Number(id));
-      setpatientAllocation(patientAllocation);
+      try {
+        const patientAllocation = await fetchPatientAllocationById(Number(id));
+        setpatientAllocation(patientAllocation);
+      } catch (error) {
+        if (error instanceof Error) {
+          toast.error(`Failed to fetch patient allocation. ${error.message}`)
+        } else {
+          toast.error("Failed to fetch patient allocation");
+        }
+        console.error("Failed to fetch patient allocation:", error);
+      }
+
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
+      if (error instanceof Error) {
+        toast.error(`Failed to fetch patient information. ${error.message}`)
+      } else {
+        toast.error("Failed to fetch patient information");
+      }
       console.error("Failed to fetch patient information:", error);
-      toast.error("Failed to fetch patient information");
     }
   };
 

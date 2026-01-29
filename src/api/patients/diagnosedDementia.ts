@@ -1,5 +1,5 @@
 import { formatDateString } from "@/utils/formatDate";
-import { dementiaListAPI, patientAssignedDementiaAPI } from "../apiConfig";
+import { dementiaListAPI, dementiaStageAPI, patientAssignedDementiaAPI } from "../apiConfig";
 import { AxiosError } from "axios";
 import { retrieveAccessTokenFromCookie } from "../users/auth";
 import { TableRowData } from "@/components/Table/DataTable";
@@ -8,11 +8,14 @@ export interface DiagnosedDementia {
   IsDeleted: string;
   PatientId: number;
   DementiaTypeListId: number;
+  DementiaStageId: number;
   id: number;
   CreatedDate: string;
   ModifiedDate: string;
   CreatedById: string;
   ModifiedById: string;
+  DementiaTypeValue: string;
+  dementia_stage_value: string;
 }
 
 export interface DementiaType {
@@ -21,6 +24,16 @@ export interface DementiaType {
   DementiaTypeListId: number;
   CreatedDate: string;
   ModifiedDate: string;
+}
+
+export interface DementiaStageType {
+  DementiaStage: string,
+  id: number,
+  IsDeleted: string,
+  CreatedDate: string,
+  ModifiedDate: string,
+  CreatedById: number,
+  ModifiedById: number
 }
 
 export interface ViewDiagnosedDementiaList {
@@ -33,7 +46,10 @@ export interface ViewDiagnosedDementiaList {
 
 export interface DiagnosedDementiaTD extends TableRowData {
   dementiaType: string;
+  dementia_stage_value: string;
   dementiaDate: string;
+  DementiaTypeListId: number,
+  DementiaStageId: number,
 }
 
 export interface DiagnosedDementiaTDServer {
@@ -50,10 +66,19 @@ export interface AddDementiaForm {
   IsDeleted: string;
   PatientId: number;
   DementiaTypeListId: number;
+  DementiaStageId: number;
   CreatedDate: string;
   ModifiedDate: string;
   CreatedById: string;
   ModifiedById: string;
+}
+
+export interface EditDementiaForm {
+  IsDeleted: string,
+  DementiaTypeListId: number,
+  DementiaStageId: number,
+  ModifiedDate: string,
+  ModifiedById: string
 }
 
 export const fetchDementiaTypeList = async (): Promise<DementiaType[]> => {
@@ -73,6 +98,24 @@ export const fetchDementiaTypeList = async (): Promise<DementiaType[]> => {
     throw error;
   }
 };
+
+export const fetchDementiaStageList = async (): Promise<DementiaStageType[]> => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+  try {
+    const response = await dementiaStageAPI.get<DementiaStageType[]>("/List", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    console.log("GET all dementia stage Type List", response.data);
+
+    return response.data;
+  } catch (error) {
+    console.error("GET all dementia stage Type List", error);
+    throw error;
+  }
+}
 
 export const addDementiaType = async (value: string) => {
   const token = retrieveAccessTokenFromCookie();
@@ -143,12 +186,8 @@ export const deleteDementiaType = async (id: number) => {
 };
 
 export const convertToDiagnosedDementiaTD = (
-  dementiaList: DementiaType[],
   viewDiagnosedDementiaList: ViewDiagnosedDementiaList
 ): DiagnosedDementiaTDServer => {
-  if (!Array.isArray(dementiaList)) {
-    console.log("Diagnosed Dementia is not an array", dementiaList);
-  }
 
   if (!Array.isArray(viewDiagnosedDementiaList.data)) {
     console.log(
@@ -166,19 +205,17 @@ export const convertToDiagnosedDementiaTD = (
     };
   }
 
-  const diagnosedDementiaTransformed = viewDiagnosedDementiaList.data
-    .filter((dd) => dd.IsDeleted === "0")
-    .map((dd) => ({
-      id: dd.id,
-      dementiaDate: dd.CreatedDate ? formatDateString(dd.CreatedDate) : "",
-      dementiaType:
-        dementiaList.find(
-          (dl) => dl.DementiaTypeListId === dd.DementiaTypeListId
-        )?.Value || "",
-    }));
+  const diagnosedDementias: DiagnosedDementiaTD[] = viewDiagnosedDementiaList.data.map((data) => ({
+    id: data.id,
+    dementiaType: data.DementiaTypeValue,
+    dementia_stage_value: data.dementia_stage_value,
+    dementiaDate: formatDateString(data.CreatedDate),
+    DementiaTypeListId: data.DementiaTypeListId,
+    DementiaStageId: data.DementiaStageId,
+  }))
 
   const updatedTD = {
-    diagnosedDementias: diagnosedDementiaTransformed,
+    diagnosedDementias: diagnosedDementias,
     pagination: {
       pageNo: viewDiagnosedDementiaList.pageNo,
       pageSize: viewDiagnosedDementiaList.pageSize,
@@ -199,8 +236,6 @@ export const fetchDiagnosedDementia = async (
   if (!token) throw new Error("No token found.");
 
   try {
-    const dlResponse = await fetchDementiaTypeList();
-
     const ddResponse =
       await patientAssignedDementiaAPI.get<ViewDiagnosedDementiaList>(
         `/Patient/${patientId}?pageNo=${pageNo}&pageSize=${pageSize}`,
@@ -212,7 +247,7 @@ export const fetchDiagnosedDementia = async (
       );
     console.log("GET all patient assigned dementia", ddResponse);
 
-    return convertToDiagnosedDementiaTD(dlResponse, ddResponse.data);
+    return convertToDiagnosedDementiaTD(ddResponse.data);
   } catch (error) {
     if (error instanceof AxiosError) {
       if (error.response && error.response.status === 404) {
@@ -255,6 +290,30 @@ export const addDiagnosedDementa = async (
     return response.data;
   } catch (error) {
     console.error("POST add diagnosed dementia", error);
+    throw error;
+  }
+};
+
+export const editDiagnosedDementa = async (
+  id: number,
+  formData: EditDementiaForm
+):Promise<EditDementiaForm> => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+  try {
+    const response = await patientAssignedDementiaAPI.put<EditDementiaForm>(
+      `/update/${id}`,
+      formData,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    console.log("PUT update diagnosed dementia", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("PUT update diagnosed dementia", error);
     throw error;
   }
 };
