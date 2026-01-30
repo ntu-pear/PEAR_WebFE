@@ -157,7 +157,7 @@ const ViewPatient: React.FC = () => {
                   Activity Preference
                 </TabsTrigger>
               )}
-              {(currentUser?.roleName === "SUPERVISOR" || currentUser?.roleName === "GUARDIAN") && (
+              {(currentUser?.roleName === "SUPERVISOR") && (
                 <TabsTrigger value="routine">Routine</TabsTrigger>
               )}
               <TabsTrigger value="prescription">Prescription</TabsTrigger>
