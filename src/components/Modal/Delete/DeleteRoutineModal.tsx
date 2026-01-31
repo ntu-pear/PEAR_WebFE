@@ -17,17 +17,18 @@ const DeleteRoutineModal = () => {
         }
         try {
             await deletePatientRoutine(Number(routineId))
-            toast.success("Patient Routine delete Successfully.")
-            refreshRoutineData()
+            await refreshRoutineData()
+            toast.success("Patient Routine deleted Successfully.")
             closeModal()
         } catch (error) {
             if (error instanceof Error) {
-                toast.error(`Failed to delete Patient Routine.${error}`)
+                toast.error(`Failed to delete Patient Routine.${error.message}`)
             }
             else {
                 toast.error(`Failed to delete Patient Routine.`)
             }
             console.log("Failed to delete Patient Routine.", error)
+            await refreshRoutineData()
             closeModal()
         }
     }

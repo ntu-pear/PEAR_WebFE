@@ -38,9 +38,12 @@ export interface RoutinewithExclusion extends Routine {
 }
 
 export interface RoutinesTD extends TableRowData {
+    activityId: number,
     name: string,
     day_of_week: string,
     time_slot: string,
+    start_time: string,
+    end_time: string,
     start_date: string,
     end_date: string,
     exclusion?: RoutineExclusion[]
@@ -55,6 +58,18 @@ export interface AddRoutine {
     end_time: string,
     start_date: string,
     end_date: string
+}
+
+export interface EditRoutine {
+    name: string,
+    activity_id: number,
+    patient_id: number,
+    day_of_week: number,
+    start_time: string,
+    end_time: string,
+    start_date: string,
+    end_date: string,
+    id: number
 }
 
 export const fetchPatientRoutine = async (patientId: number, include_deleted?: boolean): Promise<RoutinesTD[]> => {
@@ -82,9 +97,12 @@ export const fetchPatientRoutine = async (patientId: number, include_deleted?: b
             const timeSlot = `${formatTimeFromHHMMSS(routine.start_time)} - ${formatTimeFromHHMMSS(routine.end_time)}`;
             return {
                 id: routine.id,
+                activityId: routine.activity_id,
                 name: routine.name,
                 day_of_week: convertDayofWeek(routine.day_of_week),
                 time_slot: timeSlot,
+                start_time: formatTimeFromHHMMSS(routine.start_time),
+                end_time: formatTimeFromHHMMSS(routine.end_time),
                 start_date: formatDateString(routine.start_date),
                 end_date: formatDateString(routine.end_date),
                 exclusions: routineExclusion
@@ -149,6 +167,22 @@ export const addPatientRoutine = async (routine: AddRoutine) => {
         console.log(response)
     } catch (error) {
         console.error("POST Patient Routine", error);
+        throw error;
+    }
+}
+
+export const editPatientRoutine = async (routine: EditRoutine) => {
+    const token = retrieveAccessTokenFromCookie();
+    if (!token) throw new Error("No token found.");
+    try {
+        const response = await routineAPI.put("", routine, {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        })
+        console.log(response)
+    } catch (error) {
+        console.error("PUT Patient Routine", error);
         throw error;
     }
 }

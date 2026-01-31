@@ -119,7 +119,7 @@ const AddRoutineModal: React.FC = () => {
         toast.error(`Failed to add Patient Routine.${error.message}`)
       }
       else {
-        toast.error(`Failed to add Patient Routine.`)
+        toast.error(`Failed to add Patient Routine.${error}`)
       }
       console.log("Failed to add Patient Routine.", error)
       closeModal()
@@ -208,6 +208,7 @@ const AddRoutineModal: React.FC = () => {
                 required
                 value={startDate}
                 onChange={handleChange}
+                min={dayjs().tz("Asia/Singapore").format("YYYY-MM-DD")}
               />
               <span className="text-gray-500 font-medium">-</span>
               <input
@@ -217,6 +218,7 @@ const AddRoutineModal: React.FC = () => {
                 required
                 value={endDate}
                 onChange={handleChange}
+                min={dayjs().tz("Asia/Singapore").format("YYYY-MM-DD")}
               />
             </div>
             {dateError && (

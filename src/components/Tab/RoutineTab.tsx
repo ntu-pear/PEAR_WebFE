@@ -3,6 +3,7 @@ import { useModal } from "@/hooks/useModal";
 import AddRoutineModal from "../Modal/Add/AddRoutineModal";
 import RoutineCard from "../Card/RoutineCard";
 import DeleteRoutineModal from "../Modal/Delete/DeleteRoutineModal";
+import EditRoutineModal from "../Modal/Edit/EditRoutineModal";
 
 const RoutineTab: React.FC = () => {
   const { activeModal } = useModal();
@@ -16,6 +17,7 @@ const RoutineTab: React.FC = () => {
       </TabsContent>
       {activeModal.name == "addRoutine" && <AddRoutineModal />}
       {activeModal.name == "deleteRoutine" && <DeleteRoutineModal/>}
+      {activeModal.name == "editRoutine" && <EditRoutineModal/>}
     </>
   );
 };

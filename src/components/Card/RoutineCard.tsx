@@ -18,25 +18,42 @@ const RoutineCard: React.FC = () => {
     { key: "day_of_week", header: "Day" },
     { key: "time_slot", header: "Routine Time Slots" },
     { key: "start_date", header: "Start Date" },
-    { key: "end_date", header: "End Date" }
+    { key: "end_date", header: "End Date" },
   ];
   const [patientRoutine, setPatientRoutine] = useState<RoutinesTD[]>([])
 
   const handleFetchRoutine = async () => {
-    const routine = await fetchPatientRoutine(Number(id))
-    setPatientRoutine(routine)
+    try {
+      const routine = await fetchPatientRoutine(Number(id))
+      setPatientRoutine(routine)
+    } catch (error) {
+      console.log("No routines found for patient or error fetching:", error)
+      setPatientRoutine([])
+    }
   }
   useEffect(() => {
     refreshRoutineData()
   }, [])
 
   const refreshRoutineData = async () => {
-    handleFetchRoutine()
+    await handleFetchRoutine()
   }
 
   const renderActions = (item: RoutinesTD) => {
     return (
       <div className="flex space-x-2 w-[75px] sm:w-[150px]">
+        <Button
+          size="sm"
+          className="mt-3"
+          onClick={() =>
+            openModal("editRoutine", {
+              routine: item,
+              refreshRoutineData,
+            })
+          }
+        >
+          Edit
+        </Button>
         <Button
           variant="destructive"
           size="sm"
@@ -64,7 +81,7 @@ const RoutineCard: React.FC = () => {
               <Button
                 size="sm"
                 className="h-8 w-24 gap-1"
-                onClick={() => openModal("addRoutine" ,{ refreshRoutineData })}
+                onClick={() => openModal("addRoutine", { refreshRoutineData })}
               >
                 <PlusCircle className="h-4 w-4" />
                 <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
@@ -80,6 +97,9 @@ const RoutineCard: React.FC = () => {
             columns={routineColumns}
             viewMore={false}
             renderActions={renderActions}
+            expandable={true}
+          // renderExpandedContent={renderExpandedContent}
+          // onExpand={handleExpandPatient}
           />
         </CardContent>
       </Card>
