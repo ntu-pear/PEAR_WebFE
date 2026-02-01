@@ -33,9 +33,6 @@ export interface RoutineExclusion {
     modified_by_id: string
 }
 
-export interface RoutinewithExclusion extends Routine {
-    exclusions?: RoutineExclusion[];
-}
 
 export interface RoutinesTD extends TableRowData {
     activityId: number,
@@ -46,7 +43,6 @@ export interface RoutinesTD extends TableRowData {
     end_time: string,
     start_date: string,
     end_date: string,
-    exclusion?: RoutineExclusion[]
 }
 
 export interface AddRoutine {
@@ -85,15 +81,7 @@ export const fetchPatientRoutine = async (patientId: number, include_deleted?: b
             }
         })
         const routine = routineRes.data
-        let exclusion: RoutineExclusion[] = []
-        try {
-            exclusion = await fetchPatientRoutineExclusion(include_deleted ? include_deleted : false, patientId)
-        } catch (error) {
-            console.error("GET Patient Routine Exclusion", error);
-            throw error;
-        }
         const routinesTD: RoutinesTD[] = routine.map(routine => {
-            const routineExclusion = exclusion.filter(ex => ex.routine_id === routine.id)
             const timeSlot = `${formatTimeFromHHMMSS(routine.start_time)} - ${formatTimeFromHHMMSS(routine.end_time)}`;
             return {
                 id: routine.id,
@@ -104,8 +92,7 @@ export const fetchPatientRoutine = async (patientId: number, include_deleted?: b
                 start_time: formatTimeFromHHMMSS(routine.start_time),
                 end_time: formatTimeFromHHMMSS(routine.end_time),
                 start_date: formatDateString(routine.start_date),
-                end_date: formatDateString(routine.end_date),
-                exclusions: routineExclusion
+                end_date: formatDateString(routine.end_date)
             }
         })
         return routinesTD
@@ -183,6 +170,44 @@ export const editPatientRoutine = async (routine: EditRoutine) => {
         console.log(response)
     } catch (error) {
         console.error("PUT Patient Routine", error);
+        throw error;
+    }
+}
+
+export const fetchRoutineExclusion = async (routine_id: number, include_deleted?: boolean) => {
+    const token = retrieveAccessTokenFromCookie();
+    if (!token) throw new Error("No token found.");
+    try {
+        const routineExclusion = await routineExclusionAPI.get<RoutineExclusion[]>(`/routine/${routine_id}/`, {
+            headers: {
+                Authorization: `Bearer ${token}`
+            },
+            params: {
+                include_deleted: include_deleted ? true : false
+            }
+        })
+        const formattedExclusions = routineExclusion.data.map((exclusion) => ({
+            ...exclusion,
+            start_date: formatDateString(exclusion.start_date),
+            end_date: formatDateString(exclusion.end_date)
+        }))
+        return formattedExclusions
+    } catch (error) {
+        console.error("GET Routine Exclusion", error);
+        throw error;
+    }
+}
+export const deleteRoutineExclusion = async (exclusion_id: number) => {
+    const token = retrieveAccessTokenFromCookie();
+    if (!token) throw new Error("No token found.");
+    try {
+        await routineExclusionAPI.delete(`/${exclusion_id}`,{
+            headers:{
+                Authorization:`Bearer ${token}`
+            }
+        })
+    } catch (error) {
+        console.error("DELETE Routine Exclusion", error);
         throw error;
     }
 }

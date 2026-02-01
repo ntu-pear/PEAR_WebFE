@@ -8,6 +8,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useViewPatient } from "@/hooks/patient/useViewPatient";
 import { useEffect, useState } from "react";
 import { fetchPatientRoutine, RoutinesTD } from "@/api/activity/routine";
+import RoutineExclusionTable from "../Table/RoutineExclusionTable";
 
 const RoutineCard: React.FC = () => {
   const { openModal } = useModal();
@@ -16,7 +17,7 @@ const RoutineCard: React.FC = () => {
   const routineColumns = [
     { key: "name", header: "Activity Name" },
     { key: "day_of_week", header: "Day" },
-    { key: "time_slot", header: "Routine Time Slots" },
+    { key: "time_slot", header: "Routine Time Slot" },
     { key: "start_date", header: "Start Date" },
     { key: "end_date", header: "End Date" },
   ];
@@ -71,13 +72,17 @@ const RoutineCard: React.FC = () => {
     );
   };
 
+  const renderExpandedContent = (routine: RoutinesTD) => {
+    return (<RoutineExclusionTable routine_id={Number(routine.id)} routine_startDate={String(routine.start_date)} routine_endDate={String(routine.end_date)}/>)
+  }
+
   return (
     <>
       <Card>
         <CardHeader>
           <CardTitle className="text-lg flex items-center justify-between">
             <span>Routine</span>
-            {(currentUser?.roleName !== "GUARDIAN") && (
+            {(currentUser?.roleName === "SUPERVISOR") && (
               <Button
                 size="sm"
                 className="h-8 w-24 gap-1"
@@ -89,8 +94,10 @@ const RoutineCard: React.FC = () => {
                 </span>
               </Button>
             )}
+
           </CardTitle>
         </CardHeader>
+
         <CardContent>
           <DataTableClient
             data={patientRoutine}
@@ -98,8 +105,8 @@ const RoutineCard: React.FC = () => {
             viewMore={false}
             renderActions={renderActions}
             expandable={true}
-          // renderExpandedContent={renderExpandedContent}
-          // onExpand={handleExpandPatient}
+            renderExpandedContent={renderExpandedContent}
+
           />
         </CardContent>
       </Card>

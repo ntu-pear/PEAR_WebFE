@@ -250,7 +250,7 @@ const EditRoutineModal: React.FC = () => {
                         <Button variant="outline" onClick={closeModal}>
                             Cancel
                         </Button>
-                        <Button type="submit">Edit</Button>
+                        <Button type="submit">Update</Button>
                     </div>
                 </form>
             </div>
