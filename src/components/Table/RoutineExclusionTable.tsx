@@ -7,7 +7,7 @@ import { useModal } from "@/hooks/useModal";
 
 interface RoutineExclusionTableProps {
     routine_id: number,
-    routine_startDate: string, 
+    routine_startDate: string,
     routine_endDate: string
 }
 const RoutineExclusionTable: React.FC<RoutineExclusionTableProps> = ({ routine_id, routine_startDate, routine_endDate }) => {
@@ -31,7 +31,6 @@ const RoutineExclusionTable: React.FC<RoutineExclusionTableProps> = ({ routine_i
 
     useEffect(() => {
         refreshRoutineExclusion()
-        console.log("routine_id, routine_startDate, routine_endDate", routine_id, routine_startDate, routine_endDate)
     }, [routine_id, routine_startDate, routine_endDate])
 
 
@@ -41,12 +40,15 @@ const RoutineExclusionTable: React.FC<RoutineExclusionTableProps> = ({ routine_i
                 <Button
                     size="sm"
                     className="mt-3"
-                // onClick={() =>
-                //     openModal("editRoutine", {
-                //         routine: item,
-                //         refreshRoutineData,
-                //     })
-                // }
+                    onClick={() =>
+                        openModal("editRoutineExclusion", {
+                            routineExclusion: item,
+                            routineId: routine_id,
+                            routine_startDate: routine_startDate,
+                            routine_endDate: routine_endDate,
+                            refreshRoutineExclusion,
+                        })
+                    }
                 >
                     Edit
                 </Button>
@@ -76,12 +78,14 @@ const RoutineExclusionTable: React.FC<RoutineExclusionTableProps> = ({ routine_i
                 <Button
                     size="sm"
                     className="h-8 gap-1"
-                // onClick={() =>
-                //     openModal("editRoutine", {
-                //         routine: item,
-                //         refreshRoutineData,
-                //     })
-                // }
+                    onClick={() =>
+                        openModal("addRoutineExclusion", {
+                            routineId: routine_id,
+                            routine_startDate: routine_startDate,
+                            routine_endDate: routine_endDate,
+                            refreshRoutineExclusion,
+                        })
+                    }
                 >
                     <PlusCircle className="h-4 w-4" />
                     <span className="whitespace-nowrap">Add Exclusion</span>

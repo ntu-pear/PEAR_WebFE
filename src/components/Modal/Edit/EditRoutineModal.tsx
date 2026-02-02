@@ -58,7 +58,7 @@ const EditRoutineModal: React.FC = () => {
 
     useEffect(() => {
         if (startDate && endDate && startDate >= endDate) {
-            setDateError("Start date must be before or equal to end date")
+            setDateError("Start date must be before end date")
         } else {
             setDateError("")
         }
@@ -90,11 +90,6 @@ const EditRoutineModal: React.FC = () => {
         if (name === "start_date") {
             const newStartDate = value
             setStartDate(newStartDate)
-
-            // If start date is after end date, adjust end date
-            if (newStartDate >= endDate) {
-                setEndDate(newStartDate)
-            }
             return
         }
         if (name === "end_date") {

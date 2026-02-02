@@ -2,6 +2,7 @@ import { TableRowData } from "@/components/Table/DataTable";
 import { retrieveAccessTokenFromCookie } from "../users/auth";
 import { routineAPI, routineExclusionAPI } from "../apiConfig";
 import { formatDateString, formatTimeFromHHMMSS } from "@/utils/formatDate";
+import dayjs from "dayjs";
 
 export interface Routine {
     name: string,
@@ -68,6 +69,21 @@ export interface EditRoutine {
     id: number
 }
 
+export interface EditRoutineExclusion {
+    routine_id: number,
+    start_date: string,
+    end_date: string,
+    remarks: string,
+    id: number
+}
+
+export interface AddRoutineExclusion {
+    routine_id: number,
+    start_date: string,
+    end_date: string,
+    remarks: string
+}
+
 export const fetchPatientRoutine = async (patientId: number, include_deleted?: boolean): Promise<RoutinesTD[]> => {
     const token = retrieveAccessTokenFromCookie();
     if (!token) throw new Error("No token found.");
@@ -77,7 +93,7 @@ export const fetchPatientRoutine = async (patientId: number, include_deleted?: b
                 Authorization: `Bearer ${token}`
             },
             params: {
-                include_deleted: include_deleted ? true : false
+                include_deleted: include_deleted ? include_deleted : false
             }
         })
         const routine = routineRes.data
@@ -95,7 +111,9 @@ export const fetchPatientRoutine = async (patientId: number, include_deleted?: b
                 end_date: formatDateString(routine.end_date)
             }
         })
-        return routinesTD
+        return routinesTD.sort(
+            (a,b)=>dayjs(b.start_date).valueOf()-dayjs(a.start_date).valueOf()
+        )
     } catch (error) {
         console.error("GET Patient Routine", error);
         throw error;
@@ -116,10 +134,11 @@ export const fetchPatientRoutineExclusion = async (include_deleted: boolean, pat
                 Authorization: `Bearer ${token}`
             },
             params: {
-                include_deleted: include_deleted ? true : false
+                include_deleted: include_deleted ? include_deleted : false
             }
         })
         return routineExclusion.data
+
     } catch (error) {
         console.error("GET Patient Routine Exclusion", error);
         throw error;
@@ -183,7 +202,7 @@ export const fetchRoutineExclusion = async (routine_id: number, include_deleted?
                 Authorization: `Bearer ${token}`
             },
             params: {
-                include_deleted: include_deleted ? true : false
+                include_deleted: include_deleted ? include_deleted : false
             }
         })
         const formattedExclusions = routineExclusion.data.map((exclusion) => ({
@@ -191,7 +210,9 @@ export const fetchRoutineExclusion = async (routine_id: number, include_deleted?
             start_date: formatDateString(exclusion.start_date),
             end_date: formatDateString(exclusion.end_date)
         }))
-        return formattedExclusions
+        return formattedExclusions.sort(
+            (a,b)=>dayjs(b.start_date).valueOf()-dayjs(a.start_date).valueOf()
+        )
     } catch (error) {
         console.error("GET Routine Exclusion", error);
         throw error;
@@ -201,13 +222,43 @@ export const deleteRoutineExclusion = async (exclusion_id: number) => {
     const token = retrieveAccessTokenFromCookie();
     if (!token) throw new Error("No token found.");
     try {
-        await routineExclusionAPI.delete(`/${exclusion_id}`,{
-            headers:{
-                Authorization:`Bearer ${token}`
+        await routineExclusionAPI.delete(`/${exclusion_id}`, {
+            headers: {
+                Authorization: `Bearer ${token}`
             }
         })
     } catch (error) {
         console.error("DELETE Routine Exclusion", error);
+        throw error;
+    }
+}
+
+export const updateRoutineExclusion = async (routineExclusion: EditRoutineExclusion) => {
+    const token = retrieveAccessTokenFromCookie();
+    if (!token) throw new Error("No token found.");
+    try {
+        await routineExclusionAPI.put("", routineExclusion, {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        })
+    } catch (error) {
+        console.error("PUT Routine Exclusion", error);
+        throw error;
+    }
+}
+
+export const addRoutineExclusion = async (routineExclusion: AddRoutineExclusion) => {
+    const token = retrieveAccessTokenFromCookie();
+    if (!token) throw new Error("No token found.");
+    try {
+        await routineExclusionAPI.post("", routineExclusion, {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        })
+    } catch (error) {
+        console.error("POST Routine Exclusion", error);
         throw error;
     }
 }

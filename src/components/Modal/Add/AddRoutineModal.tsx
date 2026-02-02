@@ -73,9 +73,9 @@ const AddRoutineModal: React.FC = () => {
       setStartDate(newStartDate)
 
       // If start date is after end date, adjust end date
-      if (newStartDate >= endDate) {
-        setEndDate(newStartDate)
-      }
+      // if (newStartDate >= endDate) {
+      //   setEndDate(newStartDate)
+      // }
       return
     }
     if (name === "end_date") {
