@@ -522,7 +522,8 @@ const EditPatientInfoModal: React.FC = () => {
             >
               <div>
                 <label className="block text-sm font-medium">
-                  Name <span className="text-red-600">*</span>
+                  Name
+                  {userRole === "SUPERVISOR" ? <span className="text-red-600">*</span> : null}
                 </label>
                 <input
                   type="text"
@@ -543,7 +544,8 @@ const EditPatientInfoModal: React.FC = () => {
 
               <div>
                 <label className="block text-sm font-medium">
-                  Preferred Name <span className="text-red-600">*</span>
+                  Preferred Name
+                  {userRole === "SUPERVISOR" ? <span className="text-red-600">*</span> : null}
                 </label>
                 <input
                   type="text"
@@ -563,7 +565,8 @@ const EditPatientInfoModal: React.FC = () => {
 
               <div>
                 <label className="block text-sm font-medium">
-                  NRIC<span className="text-red-600"> *</span>
+                  NRIC
+                  {userRole === "SUPERVISOR" ? <span className="text-red-600">*</span> : null}
                 </label>
                 <input
                   type="text"
@@ -588,7 +591,8 @@ const EditPatientInfoModal: React.FC = () => {
 
               <div>
                 <label className="block text-sm font-medium">
-                  Date of Birth<span className="text-red-600"> *</span>
+                  Date of Birth
+                  {userRole === "SUPERVISOR" ? <span className="text-red-600">*</span> : null}
                 </label>
                 <input
                   type="date"
@@ -606,7 +610,8 @@ const EditPatientInfoModal: React.FC = () => {
               <div className="col-span-2 grid grid-cols-2">
                 <div className="col-span-1">
                   <label className="block text-sm font-medium">
-                    Gender<span className="text-red-600"> *</span>
+                    Gender
+                    {userRole === "SUPERVISOR" ? <span className="text-red-600">*</span> : null}
                   </label>
                   <select
                     className={`mt-1 block w-full p-2 border rounded-md text-gray-900 ${userRole === "GUARDIAN" ? "bg-gray-200 dark:bg-gray-50 cursor-not-allowed" : ""}`}
@@ -675,7 +680,7 @@ const EditPatientInfoModal: React.FC = () => {
               <div className="col-span-2">
                 <div className="p-4 rounded-lg border grid grid-cols-[1fr_auto] items-center">
                   <h3 className="font-medium mb-2">
-                    Current Address<span className="text-red-600"> *</span>
+                    Current Address{userRole === "SUPERVISOR" ? <span className="text-red-600">*</span> : null}
                   </h3>
                   {!isEditingPermanentAddr && userRole !== "GUARDIAN" && (
                     <Button

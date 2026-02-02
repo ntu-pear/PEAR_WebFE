@@ -93,6 +93,9 @@ const DoctorNotesCard: React.FC = () => {
       )
     );
   };
+  if (currentUser?.roleName === "GUARDIAN") {
+    return null;
+  }
 
   return (
     <>
