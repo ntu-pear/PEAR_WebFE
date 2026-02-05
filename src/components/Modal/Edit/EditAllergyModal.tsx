@@ -82,12 +82,13 @@ const EditAllergyModal: React.FC = () => {
         formDataObj.AllergyReactionTypeID as string,
         10
       ),
+      PatientID: Number(patientId),
     };
 
     console.log("update allergyFormData", allergyFormData);
 
     try {
-      await updatePatientAllergy(Number(patientId), allergyFormData);
+      await updatePatientAllergy(Number(allergyId), allergyFormData);
       closeModal();
       toast.success("Patient allergy updated successfully.");
       refreshAllergyData();
