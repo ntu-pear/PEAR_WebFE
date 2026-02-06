@@ -9,7 +9,15 @@ import {
   SocialHistoryTD,
 } from "@/api/patients/socialHistory";
 import { toast } from "sonner";
-import { FilePenLine, PlusCircle } from "lucide-react";
+import { FilePenLine, PlusCircle, Info } from "lucide-react";
+import { fetchPatientPrivacyLevel } from "@/api/patients/privacyLevel";
+import { convertPrivacyLevel } from "@/utils/convertPrivacyLevel";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "../ui/tooltip";
 
 const SocialHistoryCard: React.FC = () => {
   const { currentUser } = useAuth();
@@ -18,6 +26,9 @@ const SocialHistoryCard: React.FC = () => {
   const [socialHistory, setSocialHistory] = useState<Record<string, string> | null>(
     null
   );
+  const [accessLevelSensitive, setAccessLevelSensitive] = useState<
+    number | null
+  >(null);
 
   const displayValue = (
     value: string | number | null | undefined
@@ -40,8 +51,8 @@ const SocialHistoryCard: React.FC = () => {
         Number(id)
       );
 
-      const processedSocialHistory: Record<string, string>={};
-      socialHistoryColumns.forEach((col)=>{
+      const processedSocialHistory: Record<string, string> = {};
+      socialHistoryColumns.forEach((col) => {
         processedSocialHistory[col.key] = displayValue(fetchedSocialHistory[col.key as keyof SocialHistoryTD])
       })
 
@@ -54,11 +65,23 @@ const SocialHistoryCard: React.FC = () => {
     }
   };
 
+  const refreshPatientPrivacyLevel = async () => {
+    if (isNaN(Number(id))) return;
+    const response = await fetchPatientPrivacyLevel(Number(id));
+    setAccessLevelSensitive(response.accessLevelSensitive);
+  };
+
   useEffect(() => {
     handleFetchSocialHistory();
+    refreshPatientPrivacyLevel();
   }, []);
 
   const socialHistoryColumns = [
+    {
+      key: "accessLevelSensitive",
+      header: "Privacy Level",
+      customValue: accessLevelSensitive,
+    },
     { key: "alcoholUse", header: "Alcohol Use" },
     { key: "caffeineUse", header: "Caffeine Use" },
     { key: "diet", header: "Diet" },
@@ -91,6 +114,7 @@ const SocialHistoryCard: React.FC = () => {
                       patientId: String(id),
                       submitterId: currentUser?.userId,
                       refreshData: handleFetchSocialHistory,
+                      refreshPrivacyLevel: refreshPatientPrivacyLevel
                     })
                   }
                 >
@@ -109,6 +133,7 @@ const SocialHistoryCard: React.FC = () => {
                       patientId: String(id),
                       submitterId: currentUser?.userId,
                       refreshData: handleFetchSocialHistory,
+                      refreshPrivacyLevel: refreshPatientPrivacyLevel
                     })
                   }
                 >
@@ -121,16 +146,40 @@ const SocialHistoryCard: React.FC = () => {
           </CardTitle>
         </CardHeader>
         <CardContent className="grid gap-4 md:grid-cols-2">
-          
+
           {/* First Half */}
           <div className="space-y-2">
             {socialHistoryColumns
               .slice(0, Math.ceil(socialHistoryColumns.length / 2))
               .map((column) => (
                 <div key={column.key} className="space-y-1">
-                  <p className="text-sm font-medium">{column.header}</p>
+                  {column.key === "accessLevelSensitive" ? (
+                    <div className="flex items-center gap-1.5">
+                      <p className="text-sm font-medium">{column.header}</p>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
+                          </TooltipTrigger>
+                          <TooltipContent className="max-w-xs">
+                            <div className="space-y-2 text-sm">
+                              <p className="font-semibold text-lg underline">Privacy Levels:</p>
+                              <p><strong>Low:</strong> All social history information is accessible to all staff members</p>
+                              <p><strong>Medium:</strong> Selected social history information is accessible to Doctors</p>
+                              <p><strong>High:</strong> ??</p>
+                            </div>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </div>
+                  ) : (
+                    <p className="text-sm font-medium">{column.header}</p>
+                  )}
                   <p className="text-sm text-muted-foreground">
-                    {socialHistory?.[column.key] ?? "-"}
+                    {column.key === "accessLevelSensitive"
+                      ? (column.customValue !== null ? convertPrivacyLevel(column.customValue) : "MEDIUM")
+                      : (socialHistory?.[column.key] ?? "-")
+                    }
                   </p>
                 </div>
               ))}
@@ -143,7 +192,10 @@ const SocialHistoryCard: React.FC = () => {
                 <div key={column.key} className="space-y-1">
                   <p className="text-sm font-medium">{column.header}</p>
                   <p className="text-sm text-muted-foreground">
-                    {socialHistory?.[column.key] ?? "-"}
+                    {column.key === "accessLevelSensitive"
+                      ? (column.customValue !== null ? convertPrivacyLevel(column.customValue) : "-")
+                      : (socialHistory?.[column.key] ?? "-")
+                    }
                   </p>
                 </div>
               ))}
