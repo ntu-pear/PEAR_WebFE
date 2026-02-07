@@ -163,11 +163,10 @@ const SocialHistoryCard: React.FC = () => {
                           </TooltipTrigger>
                           <TooltipContent className="max-w-xs">
                             <div className="space-y-2 text-sm">
-                              <p className="font-semibold text-lg underline">Privacy Levels:</p>
-                              <p><strong>Low:</strong> All social history information is accessible to all staff members</p>
-                              <p><strong>Medium:</strong> Selected social history information is accessible to Doctors</p>
-                              <p><strong>High:</strong> ??</p>
-                            </div>
+                              <p className="font-semibold text-lg underline">Privacy Level:</p>
+                              <p><strong>Low:</strong> Sensitive social history information is accessible to users with <strong>Low</strong> access level.</p>
+                              <p><strong>Medium:</strong> Sensitive social history information is accessible to users with <strong>Medium</strong> or <strong>High</strong> access level.</p>
+                              <p><strong>High:</strong> Sensitive social history information is accessible only to users with <strong>High</strong> access level.</p>                            </div>
                           </TooltipContent>
                         </Tooltip>
                       </TooltipProvider>

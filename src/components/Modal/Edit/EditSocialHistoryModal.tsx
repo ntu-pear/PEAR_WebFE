@@ -17,6 +17,14 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { getDateTimeNowInUTC } from "@/utils/formatDate";
 import { fetchPatientPrivacyLevel, PatientPrivacyLevel, updatePatientPrivacyLevel, UpdatePatientPrivacyLevel } from "@/api/patients/privacyLevel";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "../../ui/tooltip";
+import { Info } from "lucide-react";
+
 
 const EditSocialHistoryModal: React.FC = () => {
   const { modalRef, activeModal, closeModal } = useModal();
@@ -229,9 +237,25 @@ const EditSocialHistoryModal: React.FC = () => {
           className="grid grid-cols-2 gap-4 overflow-y-auto max-h-[70vh] pr-2"
         >
           <div>
-            <label className="block text-sm font-medium">
-              Privacy Level <span className="text-red-600">*</span>
-            </label>
+            <div className="flex items-center gap-1.5"> 
+              <label className="block text-sm font-medium">
+                Privacy Level <span className="text-red-600">*</span>
+              </label>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-xs">
+                    <div className="space-y-2 text-sm">
+                      <p className="font-semibold text-lg underline">Privacy Level:</p>
+                      <p><strong>Low:</strong> Sensitive social history information is accessible to users with <strong>Low</strong> access level.</p>
+                      <p><strong>Medium:</strong> Sensitive social history information is accessible to users with <strong>Medium</strong> or <strong>High</strong> access level.</p>
+                      <p><strong>High:</strong> Sensitive social history information is accessible only to users with <strong>High</strong> access level.</p>                            </div>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
             <select
               name="privacyLevel"
               value={patientPrivacyLevel?.accessLevelSensitive || 2}
