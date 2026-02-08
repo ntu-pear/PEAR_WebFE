@@ -68,6 +68,12 @@ import{
   updateMedicalDiagnosisList,
   deleteMedicalDiagnosisList
 } from "./medicalDiagnosis";
+import{
+  fetchProblemList,
+  createProblemList,
+  updateProblemList,
+  deleteProblemList
+} from "./problem";
 
 interface ListType {
   active: string;
@@ -271,7 +277,17 @@ export const fetchListItems = async (type: string): Promise<ListItem[]> => {
           modifiedDate: ModifiedDate,
         })
       );
-
+      case "Problem":
+      const problemTypes = await fetchProblemList();
+      return (problemTypes || []).map(
+        ({ Id, ProblemName, IsDeleted, CreatedDate, ModifiedDate}) => ({
+          id: Id,
+          value: ProblemName,
+          isDeleted: IsDeleted == '1' ? "1" : "0",
+          createdDate: CreatedDate,
+          modifiedDate: ModifiedDate,
+        })
+      );
 
     default:
       return [];
@@ -346,6 +362,9 @@ export const addListItem = async ({
     case "Medical Diagnosis":
       await createMedicalDiagnosisList(value)
       return;
+    case "Problem":
+      await createProblemList(value)
+      return;
     default:
       return;
   }
@@ -406,6 +425,9 @@ export const updateListItem = async ({
     case "Medical Diagnosis":
       await updateMedicalDiagnosisList(Number(id), value);
       return;
+    case "Problem":
+      await updateProblemList(Number(id), value);
+      return;
     default:
       return;
   }
@@ -463,7 +485,10 @@ export const deleteListItem = async ({
       return;
     case "Medical Diagnosis":
       await deleteMedicalDiagnosisList(Number(id));
-      return;      
+      return;
+    case "Problem":
+      await deleteProblemList(Number(id));
+      return;            
     default:
       return;
   }
