@@ -47,7 +47,7 @@ import {
   fetchPrescriptionList,
   createPrescriptionList,
   updatePrescriptionList,
-  deletePrescriptionList
+  deletePrescriptionList,
 } from "./socialHistory";
 import {
   addHighlightType,
@@ -62,6 +62,12 @@ import {
   updateLanguageListType,
 } from "./preferredLanguage";
 import { fetchMobilityList } from "./mobility";
+import{
+  fetchMedicalDiagnosisList,
+  createMedicalDiagnosisList,
+  updateMedicalDiagnosisList,
+  deleteMedicalDiagnosisList
+} from "./medicalDiagnosis";
 
 interface ListType {
   active: string;
@@ -253,6 +259,18 @@ export const fetchListItems = async (type: string): Promise<ListItem[]> => {
           modifiedDate: UpdatedDateTime,
         })
       );
+      case "Medical Diagnosis":
+      const medicalDiagnosisTypes = await fetchMedicalDiagnosisList();
+      console.log(medicalDiagnosisTypes)
+      return (medicalDiagnosisTypes || []).map(
+        ({ Id, DiagnosisName, IsDeleted, CreatedDate, ModifiedDate}) => ({
+          id: Id,
+          value: DiagnosisName,
+          isDeleted: IsDeleted == '1' ? "1" : "0",
+          createdDate: CreatedDate,
+          modifiedDate: ModifiedDate,
+        })
+      );
 
 
     default:
@@ -325,6 +343,9 @@ export const addListItem = async ({
     case "Prescription":
       await createPrescriptionList(value)
       return;
+    case "Medical Diagnosis":
+      await createMedicalDiagnosisList(value)
+      return;
     default:
       return;
   }
@@ -382,6 +403,9 @@ export const updateListItem = async ({
     case "Prescription":
       await updatePrescriptionList(Number(id), value);
       return;
+    case "Medical Diagnosis":
+      await updateMedicalDiagnosisList(Number(id), value);
+      return;
     default:
       return;
   }
@@ -436,7 +460,10 @@ export const deleteListItem = async ({
       return;
     case "Prescription":
       await deletePrescriptionList(Number(id));
-      return;    
+      return;
+    case "Medical Diagnosis":
+      await deleteMedicalDiagnosisList(Number(id));
+      return;      
     default:
       return;
   }

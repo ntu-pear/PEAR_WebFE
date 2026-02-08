@@ -256,6 +256,22 @@ export const updatePrescriptionListAPI = axios.create({
 export const deletePrescriptionListAPI = axios.create({
   baseURL: `${import.meta.env.VITE_PATIENT_SERVICE_URL}/PrescriptionList/delete`,
 });
+
+export const medicalDiagnosisListAPI = axios.create({
+  baseURL: `${VITE_PATIENT_SERVICE_URL}/MedicalDiagnosisList`,
+});
+export const createMedicalDiagnosisListAPI = axios.create({
+  baseURL: `${import.meta.env.VITE_PATIENT_SERVICE_URL}/MedicalDiagnosisList/add`,
+});
+
+export const updateMedicalDiagnosisListAPI = axios.create({
+  baseURL: `${import.meta.env.VITE_PATIENT_SERVICE_URL}/MedicalDiagnosisList/update`,
+});
+
+export const deleteMedicalDiagnosisListAPI = axios.create({
+  baseURL: `${import.meta.env.VITE_PATIENT_SERVICE_URL}/MedicalDiagnosisList/delete`,
+});
+
 export const medicationAPI = axios.create({
   baseURL: `${VITE_PATIENT_SERVICE_URL}/Medication`,
 });
@@ -307,10 +323,6 @@ export const patientAllocationAPI = axios.create({
 export const medicalHistoryAPI = axios.create({
   baseURL: `${VITE_PATIENT_SERVICE_URL}/MedicalHistory`
 });
-
-export const medicalDiagnosisListAPI = axios.create({
-  baseURL: `${VITE_PATIENT_SERVICE_URL}/MedicalDiagnosisList`
-})
 
 //geocode
 export const geocodeAPI = axios.create({

@@ -2,6 +2,7 @@ export const mockListTypes = [
   "Allergy",
   "AllergyReaction",
   "Dementia",
+  "Dementia Stage",
   "Diet",
   "Education",
   "Highlight",
@@ -11,5 +12,7 @@ export const mockListTypes = [
   "Religion",
   "Language",
   "Mobility",
-  "Prescription"
+  "Prescription",
+  "Problem",
+  "Medical Diagnosis"
 ];
