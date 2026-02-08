@@ -23,6 +23,17 @@ export interface TableRowData {
   [key: string]: any;
 }
 
+// type HighlightTypeRow = TableRowData & {
+//   typeName: string;
+//   typeCode: string;
+//   description: string;
+//   isEnabled: boolean;
+//   isDeleted: boolean; // optional if you want to show/filter
+//   createdDate?: string;
+//   modifiedDate?: string;
+// };
+
+
 type DataTableColumn<T extends Record<string, any>> = {
   key: keyof T;
   header: string;

@@ -74,6 +74,13 @@ import{
   updateProblemList,
   deleteProblemList
 } from "./problem";
+import{
+  fetchDementiaStageList,
+  createDementiaStageList,
+  updateDementiaStageList,
+  deleteDementiaStageList
+} from "./dementiaStage";
+
 
 interface ListType {
   active: string;
@@ -92,6 +99,11 @@ export interface ListItem extends TableRowData {
   isDeleted: string;
   createdDate: string;
   modifiedDate: string;
+
+  // Optional fields (only used by some list types)
+  typeCode?: string;
+  description?: string;
+  isEnabled?: boolean;
 }
 
 // TBD: Replace with real API
@@ -175,12 +187,15 @@ export const fetchListItems = async (type: string): Promise<ListItem[]> => {
       );
     case "Highlight":
       const highlightTypes = await fetchHighlightTypes();
-      return highlightTypes.map(({ id, value }) => ({
-        id,
-        value,
-        isDeleted: "0",
-        createdDate: "",
-        modifiedDate: "",
+      return (highlightTypes ?? []).map((x) => ({
+        id: x.Id,
+        value: x.TypeName,
+        typeCode: x.TypeCode,
+        description: x.Description,
+        isEnabled: x.IsEnabled,
+        isDeleted: x.IsDeleted,
+        createdDate: x.CreatedDate,
+        modifiedDate: x.ModifiedDate,
       }));
     case "LiveWith":
       const liveWithTypes = await fetchLiveWithList();
@@ -288,6 +303,17 @@ export const fetchListItems = async (type: string): Promise<ListItem[]> => {
           modifiedDate: ModifiedDate,
         })
       );
+    case "Dementia Stage":
+      const dementiaStageTypes = await fetchDementiaStageList();
+      return (dementiaStageTypes || []).map(
+        ({ id, DementiaStage, IsDeleted, CreatedDate, ModifiedDate}) => ({
+          id: id,
+          value: DementiaStage,
+          isDeleted: IsDeleted == '1' ? "1" : "0",
+          createdDate: CreatedDate,
+          modifiedDate: ModifiedDate,
+        })
+      );
 
     default:
       return [];
@@ -313,9 +339,15 @@ export async function fetchListTypes(): Promise<string[]> {
 export const addListItem = async ({
   type,
   value,
+  typeCode,
+  description,
+  isEnabled,
 }: {
   type: string;
   value: string;
+  typeCode?: string;
+  description?: string;
+  isEnabled?: boolean;
 }) => {
   const token = retrieveAccessTokenFromCookie();
   if (!token) throw new Error("No token found.");
@@ -324,61 +356,93 @@ export const addListItem = async ({
     case "Allergy":
       await addAllergyType(value);
       return;
+
     case "AllergyReaction":
       await addAllergyReactionType(value);
       return;
+
     case "Dementia":
       await addDementiaType(value);
       return;
+
     case "Diet":
       await createDietList(value);
       return;
+
     case "Education":
       await createEducationList(value);
       return;
+
     case "Highlight":
-      await addHighlightType(value);
+      if (!typeCode?.trim()) throw new Error("TypeCode is required for Highlight.");
+      await addHighlightType({
+        TypeName: value,
+        TypeCode: typeCode.trim(),
+        Description: (description ?? "").trim(),
+        IsEnabled: isEnabled ?? true,
+      });
       return;
+
     case "LiveWith":
       await createLiveWithList(value);
       return;
+
     case "Occupation":
       await createOccupationList(value);
       return;
+
     case "Pet":
       await createPetList(value);
       return;
+
     case "Religion":
       await createReligionList(value);
       return;
+
     case "Language":
       await addLanguageListType(value);
       return;
+
     case "Mobility":
       return;
+
     case "Prescription":
-      await createPrescriptionList(value)
+      await createPrescriptionList(value);
       return;
+
     case "Medical Diagnosis":
-      await createMedicalDiagnosisList(value)
+      await createMedicalDiagnosisList(value);
       return;
+
     case "Problem":
-      await createProblemList(value)
+      await createProblemList(value);
       return;
+
+    case "Dementia Stage":
+      await createDementiaStageList(value);
+      return;
+
     default:
       return;
   }
 };
+
 
 // TBD: Replace with real API
 export const updateListItem = async ({
   type,
   id,
   value,
+  typeCode,
+  description,
+  isEnabled,
 }: {
   type: string;
   id: string;
   value: string;
+  typeCode?: string;
+  description?: string;
+  isEnabled?: boolean;
 }) => {
   const token = retrieveAccessTokenFromCookie();
   if (!token) throw new Error("No token found.");
@@ -387,51 +451,77 @@ export const updateListItem = async ({
     case "Allergy":
       await updateAllergyType(id, value);
       return;
+
     case "AllergyReaction":
       await updateAllergyReactionType(id, value);
       return;
+
     case "Dementia":
       await updateDementiaType(Number(id), value);
       return;
+
     case "Diet":
       await updateDietList(Number(id), value);
       return;
+
     case "Education":
       await updateEducationList(Number(id), value);
       return;
+
     case "Highlight":
-      await updateHighlightType(Number(id), value);
+      if (!typeCode?.trim()) throw new Error("TypeCode is required for Highlight.");
+      await updateHighlightType(Number(id), {
+        TypeName: value,
+        TypeCode: typeCode.trim(),
+        Description: (description ?? "").trim(),
+        IsEnabled: isEnabled ?? true,
+      });
       return;
+
     case "LiveWith":
       await updateLiveWithList(Number(id), value);
       return;
+
     case "Occupation":
       await updateOccupationList(Number(id), value);
       return;
+
     case "Pet":
       await updatePetList(Number(id), value);
       return;
+
     case "Religion":
       await updateReligionList(Number(id), value);
       return;
+
     case "Language":
       await updateLanguageListType(Number(id), value);
       return;
+
     case "Mobility":
       return;
+
     case "Prescription":
       await updatePrescriptionList(Number(id), value);
       return;
+
     case "Medical Diagnosis":
       await updateMedicalDiagnosisList(Number(id), value);
       return;
+
     case "Problem":
       await updateProblemList(Number(id), value);
       return;
+
+    case "Dementia Stage":
+      await updateDementiaStageList(Number(id), value);
+      return;
+
     default:
       return;
   }
 };
+
 
 // TBD: Replace with real API
 export const deleteListItem = async ({
@@ -488,6 +578,9 @@ export const deleteListItem = async ({
       return;
     case "Problem":
       await deleteProblemList(Number(id));
+      return;   
+    case "Dementia Stage":
+      await deleteDementiaStageList(Number(id));
       return;            
     default:
       return;

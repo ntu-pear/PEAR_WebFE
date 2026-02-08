@@ -287,6 +287,21 @@ export const deleteProblemListAPI = axios.create({
   baseURL: `${import.meta.env.VITE_PATIENT_SERVICE_URL}/ProblemList/delete`,
 });
 
+export const dementiaStageListAPI = axios.create({
+  baseURL: `${VITE_PATIENT_SERVICE_URL}/DementiaStage/List`,
+});
+export const createDementiaStageListAPI = axios.create({
+  baseURL: `${import.meta.env.VITE_PATIENT_SERVICE_URL}/DementiaStage/List/add`,
+});
+
+export const updateDementiaStageListAPI = axios.create({
+  baseURL: `${import.meta.env.VITE_PATIENT_SERVICE_URL}/DementiaStage/List/update`,
+});
+
+export const deleteDementiaStageListAPI = axios.create({
+  baseURL: `${import.meta.env.VITE_PATIENT_SERVICE_URL}/DementiaStage/List/delete`,
+});
+
 export const medicationAPI = axios.create({
   baseURL: `${VITE_PATIENT_SERVICE_URL}/Medication`,
 });
@@ -300,19 +315,19 @@ export const highlightsAPI = axios.create({
 });
 
 export const highlightTypesAPI = axios.create({
-  baseURL: `${VITE_PATIENT_SERVICE_URL}/get_highlight_types`,
+  baseURL: `${VITE_PATIENT_SERVICE_URL}/HighlightType/get_highlight_types`,
 });
 
 export const createHighlightTypesAPI = axios.create({
-  baseURL: `${VITE_PATIENT_SERVICE_URL}/create_highlight_type`,
+  baseURL: `${VITE_PATIENT_SERVICE_URL}/HighlightType/create_highlight_type`,
 });
 
 export const updateHighlightTypesAPI = axios.create({
-  baseURL: `${VITE_PATIENT_SERVICE_URL}/update_highlight_type`,
+  baseURL: `${VITE_PATIENT_SERVICE_URL}/HighlightType/update_highlight_type`,
 });
 
 export const deleteHighlightTypesAPI = axios.create({
-  baseURL: `${VITE_PATIENT_SERVICE_URL}/delete_highlight_type`,
+  baseURL: `${VITE_PATIENT_SERVICE_URL}/HighlightType/delete_highlight_type`,
 });
 
 export const getPatientPrivacyLevelAPI = axios.create({
