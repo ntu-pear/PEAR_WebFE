@@ -14,10 +14,7 @@ import { format } from "date-fns";
 import { fetchAllLogs, LogsTableDataServer } from "@/api/logger/logs";
 
 const PatientLogs: React.FC = () => {
-  const [expandedRows, setExpandedRows] = useState<{ [key: number]: boolean }>(
-    {}
-  );
-  // const [pageNo, setPageNo] = useState(0); // Since we are using static data
+  const [expandedRows, setExpandedRows] = useState<{ [key: number]: boolean }>({});
   const [table, setTable] = useState("");
   const [user, setUser] = useState("");
   const [action, setAction] = useState("");
@@ -32,6 +29,11 @@ const PatientLogs: React.FC = () => {
     startDate: "",
     endDate: "",
   });
+
+  const [currentPage, setCurrentPage] = useState(0); 
+  const [pageSize] = useState(10); 
+  const [jumpPage, setJumpPage] = useState(1); 
+
   const [logsTDServer, setLogsTDServer] = useState<LogsTableDataServer>({
     logs: [],
     pagination: {
@@ -41,10 +43,9 @@ const PatientLogs: React.FC = () => {
       totalPages: 0,
     },
   });
-  // Using static data instead of fetching
 
+  // Function to fetch logs from server
   const handleLogs = async () => {
-    console.log("Calling logger ", filters);
     setExpandedRows({});
     try {
       const response = await fetchAllLogs(
@@ -54,18 +55,23 @@ const PatientLogs: React.FC = () => {
         filters.patient,
         filters.startDate,
         filters.endDate,
-        "desc"
+        "desc",
+        currentPage,
+        pageSize
       );
       setLogsTDServer(response);
     } catch (error) {
-      console.log("Error");
+      console.log("Error fetching logs", error);
     }
   };
+
   const handleFilterReset = () => {
     setAction("");
     setUser("");
     setPatient("");
     setTable("");
+    setStartDate("");
+    setEndDate("");
     setFilters({
       table: "",
       user: "",
@@ -75,9 +81,10 @@ const PatientLogs: React.FC = () => {
       endDate: "",
     });
     setExpandedRows({});
+    setCurrentPage(0);
+    setJumpPage(1);
   };
 
-  // Toggle row expansion
   const toggleRow = (index: number) => {
     setExpandedRows((prev) => ({
       ...prev,
@@ -85,19 +92,34 @@ const PatientLogs: React.FC = () => {
     }));
   };
 
+  const handleJumpPage = () => {
+    const page = Math.max(1, Math.min(Number(jumpPage), logsTDServer.pagination.totalPages));
+    setCurrentPage(page - 1); // API is 0-indexed
+  };
+
+  const handlePrev = () => {
+    setCurrentPage((prev) => Math.max(prev - 1, 0));
+    setJumpPage((prev) => Math.max(prev - 1, 1));
+  };
+
+  const handleNext = () => {
+    setCurrentPage((prev) => Math.min(prev + 1, logsTDServer.pagination.totalPages - 1));
+    setJumpPage((prev) => Math.min(prev + 1, logsTDServer.pagination.totalPages));
+  };
+
   useEffect(() => {
     handleLogs();
-  }, [filters]);
+  }, [filters, currentPage, pageSize]);
 
   return (
     <div className="flex min-h-screen w-full container mx-auto static max-w-[1400px]">
+      {/* ================= FILTER SIDEBAR ================= */}
       <div className="w-full sm:w-1/4 md:w-1/6 p-6 border absolute left-0 h-full bg-white">
         <div className="p-4 border-b items-center">
-          <h3 className="text-2xl font-semibold leading-none tracking-tight">
-            Filters
-          </h3>
+          <h3 className="text-2xl font-semibold leading-none tracking-tight">Filters</h3>
         </div>
         <div className="p-4 space-y-6 overflow-y-auto">
+          {/* Date Range */}
           <div className="space-y-2">
             <label className="block text-sm font-medium">Date Range</label>
             <div className="space-y-2">
@@ -122,6 +144,7 @@ const PatientLogs: React.FC = () => {
             </div>
           </div>
 
+          {/* Patient */}
           <div className="space-y-2">
             <label className="block text-sm font-medium">Patient</label>
             <Input
@@ -133,48 +156,25 @@ const PatientLogs: React.FC = () => {
             />
           </div>
 
+          {/* Action */}
           <div className="space-y-2">
             <label className="block text-sm font-medium">Action</label>
             <div className="space-y-1">
-              <div className="flex items-center">
-                <input
-                  type="checkbox"
-                  id="action-view"
-                  className="mr-2"
-                  checked={action === "Create"}
-                  onChange={(e) => setAction(e.target.checked ? "Create" : "")}
-                />
-                <label htmlFor="action-view" className="text-sm">
-                  Create
-                </label>
-              </div>
-              <div className="flex items-center">
-                <input
-                  type="checkbox"
-                  id="action-edit"
-                  className="mr-2"
-                  checked={action === "Update"}
-                  onChange={(e) => setAction(e.target.checked ? "Update" : "")}
-                />
-                <label htmlFor="action-edit" className="text-sm">
-                  Update
-                </label>
-              </div>
-              <div className="flex items-center">
-                <input
-                  type="checkbox"
-                  id="action-delete"
-                  className="mr-2"
-                  checked={action === "Delete"}
-                  onChange={(e) => setAction(e.target.checked ? "Delete" : "")}
-                />
-                <label htmlFor="action-delete" className="text-sm">
-                  Delete
-                </label>
-              </div>
+              {["Create", "Update", "Delete"].map((a) => (
+                <div key={a} className="flex items-center">
+                  <input
+                    type="checkbox"
+                    className="mr-2"
+                    checked={action === a}
+                    onChange={(e) => setAction(e.target.checked ? a : "")}
+                  />
+                  <label className="text-sm">{a}</label>
+                </div>
+              ))}
             </div>
           </div>
 
+          {/* User */}
           <div className="space-y-2">
             <label className="block text-sm font-medium">Account ID</label>
             <Input
@@ -186,29 +186,23 @@ const PatientLogs: React.FC = () => {
             />
           </div>
 
+          {/* Filter buttons */}
           <div className="pt-2">
             <Button
               className="w-full"
-              onClick={() =>
-                setFilters({ table, user, patient, action, startDate, endDate })
-              }
+              onClick={() => setFilters({ table, user, patient, action, startDate, endDate })}
             >
               Apply Filters
             </Button>
-            <Button
-              variant="outline"
-              className="w-full mt-2"
-              onClick={() => handleFilterReset()}
-            >
+            <Button variant="outline" className="w-full mt-2" onClick={handleFilterReset}>
               Reset
             </Button>
           </div>
         </div>
       </div>
-      {/* Patient Logs Section */}
+
+      {/* ================= PATIENT LOGS TABLE ================= */}
       <div className="py-6 flex-1 justify-center ml-[20%]">
-        {" "}
-        {/* Adjust margin to push to the right */}
         <Card>
           <CardHeader>
             <CardTitle>Patient Logs</CardTitle>
@@ -218,7 +212,7 @@ const PatientLogs: React.FC = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Log AccountID</TableHead>
+                    <TableHead>#</TableHead>
                     <TableHead>PatientID</TableHead>
                     <TableHead>User</TableHead>
                     <TableHead>Action</TableHead>
@@ -231,17 +225,12 @@ const PatientLogs: React.FC = () => {
                   {logsTDServer.logs.map((log, index) => (
                     <React.Fragment key={index}>
                       <TableRow>
-                        <TableCell>{index + 1}</TableCell>
+                        <TableCell>{index + 1 + currentPage * pageSize}</TableCell>
                         <TableCell>{log.patient_id || "-"}</TableCell>
                         <TableCell>{log.user}</TableCell>
-                        <TableCell>
-                          {log.method.charAt(0).toUpperCase() +
-                            log.method.slice(1)}
-                        </TableCell>
+                        <TableCell>{log.method.charAt(0).toUpperCase() + log.method.slice(1)}</TableCell>
                         <TableCell>{log.message}</TableCell>
-                        <TableCell>
-                          {format(new Date(log.timestamp), "dd/MM/yyyy HH:mm")}
-                        </TableCell>
+                        <TableCell>{format(new Date(log.timestamp), "dd/MM/yyyy HH:mm")}</TableCell>
                         <TableCell>
                           <Button
                             variant="outline"
@@ -252,16 +241,14 @@ const PatientLogs: React.FC = () => {
                           </Button>
                         </TableCell>
                       </TableRow>
-                      {/* Expanded row for Old vs. New state */}
+
+                      {/* Expanded row */}
                       {expandedRows[index] && (
                         <TableRow>
                           <TableCell colSpan={7}>
                             <div className="flex gap-4 p-4 border-t bg-gray-100">
-                              {/* Old State */}
                               <div className="w-full sm:w-1/2 border rounded-md p-2 bg-white shadow-md">
-                                <h3 className="text-sm font-semibold mb-2">
-                                  Old State
-                                </h3>
+                                <h3 className="text-sm font-semibold mb-2">Old State</h3>
                                 <Table>
                                   <TableHeader>
                                     <TableRow>
@@ -270,63 +257,25 @@ const PatientLogs: React.FC = () => {
                                     </TableRow>
                                   </TableHeader>
                                   <TableBody>
-                                    {log.original_data ? (
-                                      Object.entries(log.original_data).map(
-                                        ([key, value]) => {
-                                          const isRowDeleted =
-                                            log.updated_data &&
-                                            Object.keys(log.updated_data)
-                                              .length === 0;
-                                          const isRowUpdated =
-                                            !isRowDeleted &&
-                                            log.updated_data?.[key] !== value;
-                                          return (
-                                            <TableRow key={key}>
-                                              <TableCell
-                                                className={`font-semibold ${
-                                                  isRowUpdated
-                                                    ? "text-yellow-600"
-                                                    : isRowDeleted
-                                                      ? "text-red-500"
-                                                      : "text-gray-500"
-                                                }`}
-                                              >
-                                                {key}
-                                              </TableCell>
-                                              <TableCell
-                                                className={`${
-                                                  isRowUpdated
-                                                    ? "bg-yellow-200"
-                                                    : isRowDeleted
-                                                      ? "bg-red-200"
-                                                      : ""
-                                                }`}
-                                              >
-                                                {value}
-                                              </TableCell>
-                                            </TableRow>
-                                          );
-                                        }
-                                      )
-                                    ) : (
-                                      <TableRow>
-                                        <TableCell
-                                          colSpan={2}
-                                          className="text-gray-500 text-center"
-                                        >
-                                          No previous data
-                                        </TableCell>
-                                      </TableRow>
-                                    )}
+                                    {log.original_data
+                                      ? Object.entries(log.original_data).map(([key, value]) => (
+                                          <TableRow key={key}>
+                                            <TableCell className="font-semibold text-gray-500">{key}</TableCell>
+                                            <TableCell>{value}</TableCell>
+                                          </TableRow>
+                                        ))
+                                      : (
+                                        <TableRow>
+                                          <TableCell colSpan={2} className="text-gray-500 text-center">
+                                            No previous data
+                                          </TableCell>
+                                        </TableRow>
+                                      )}
                                   </TableBody>
                                 </Table>
                               </div>
-
-                              {/* New State */}
                               <div className="w-full sm:w-1/2 border rounded-md p-2 bg-white shadow-md">
-                                <h3 className="text-sm font-semibold mb-2">
-                                  New State
-                                </h3>
+                                <h3 className="text-sm font-semibold mb-2">New State</h3>
                                 <Table>
                                   <TableHeader>
                                     <TableRow>
@@ -335,43 +284,19 @@ const PatientLogs: React.FC = () => {
                                     </TableRow>
                                   </TableHeader>
                                   <TableBody>
-                                    {log.updated_data &&
-                                      Object.entries(log.updated_data).map(
-                                        ([key, value]) => {
-                                          const isRowCreated =
-                                            log.original_data &&
-                                            Object.keys(log.original_data)
-                                              .length === 0;
-                                          const isRowUpdated =
-                                            !isRowCreated &&
-                                            log.original_data?.[key] !== value;
-                                          return (
-                                            <TableRow key={key}>
-                                              <TableCell
-                                                className={`font-semibold ${
-                                                  isRowUpdated
-                                                    ? "text-yellow-600"
-                                                    : isRowCreated
-                                                      ? "text-green-500"
-                                                      : "text-gray-500"
-                                                }`}
-                                              >
-                                                {key}
-                                              </TableCell>
-                                              <TableCell
-                                                className={`${
-                                                  isRowUpdated
-                                                    ? "bg-yellow-200"
-                                                    : isRowCreated
-                                                      ? "bg-green-200"
-                                                      : ""
-                                                }`}
-                                              >
-                                                {value}
-                                              </TableCell>
-                                            </TableRow>
-                                          );
-                                        }
+                                    {log.updated_data
+                                      ? Object.entries(log.updated_data).map(([key, value]) => (
+                                          <TableRow key={key}>
+                                            <TableCell className="font-semibold text-gray-500">{key}</TableCell>
+                                            <TableCell>{value}</TableCell>
+                                          </TableRow>
+                                        ))
+                                      : (
+                                        <TableRow>
+                                          <TableCell colSpan={2} className="text-gray-500 text-center">
+                                            No new data
+                                          </TableCell>
+                                        </TableRow>
                                       )}
                                   </TableBody>
                                 </Table>
@@ -384,6 +309,37 @@ const PatientLogs: React.FC = () => {
                   ))}
                 </TableBody>
               </Table>
+            </div>
+
+            {/* ================= PAGINATION CONTROLS ================= */}
+            <div className="flex items-center justify-end gap-2 mt-4">
+              
+              <span>
+                Page{" "}
+                <input
+                  type="number"
+                  className="w-12 text-center border rounded-md"
+                  value={jumpPage}
+                  min={1}
+                  max={logsTDServer.pagination.totalPages || 1}
+                  onChange={(e) => setJumpPage(Number(e.target.value))}
+                />{" "}
+                / {logsTDServer.pagination.totalPages || 1}
+              </span>
+              <Button variant="outline" size="sm" onClick={handleJumpPage}>
+                Go
+              </Button>
+              <Button variant="outline" size="sm" onClick={handlePrev} disabled={currentPage === 0}>
+                Prev
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleNext}
+                disabled={currentPage >= (logsTDServer.pagination.totalPages - 1)}
+              >
+                Next
+              </Button>
             </div>
           </CardContent>
         </Card>
