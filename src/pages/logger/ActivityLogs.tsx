@@ -11,8 +11,9 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
+import { ChevronDown, ChevronUp } from "lucide-react"; 
 
-import { fetchActivityLogs, ActivityLogsList } from "@/api/logger/activityLogs";
+import { fetchActivityLogs, ActivityLogBase, ActivityLogsList } from "@/api/logger/activityLogs";
 
 const ActivityLogs: React.FC = () => {
   const [expandedRows, setExpandedRows] = useState<{ [key: number]: boolean }>({});
@@ -21,6 +22,7 @@ const ActivityLogs: React.FC = () => {
   const [action, setAction] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+  const [filtersVisible, setFiltersVisible] = useState(true); 
 
   const [filters, setFilters] = useState({
     table: "",
@@ -46,7 +48,6 @@ const ActivityLogs: React.FC = () => {
     }));
   };
 
-  // Function to fetch logs from server
   const handleLogs = async (page: number = 0) => {
     setExpandedRows({});
     try {
@@ -91,7 +92,7 @@ const ActivityLogs: React.FC = () => {
 
   const handleJump = () => {
     const page = Math.max(1, Math.min(jumpPage, logsData.totalPages));
-    goToPage(page - 1); // API is 0-indexed
+    goToPage(page - 1);
   };
 
   useEffect(() => {
@@ -102,80 +103,89 @@ const ActivityLogs: React.FC = () => {
     <div className="flex min-h-screen w-full container mx-auto static max-w-[1400px]">
       {/* ================= FILTER SIDEBAR ================= */}
       <div className="w-full sm:w-1/4 md:w-1/6 p-6 border absolute left-0 h-full bg-white">
-        <div className="p-4 border-b">
+        {/* Filter header with toggle */}
+        <div
+          className="p-4 border-b flex justify-between items-center cursor-pointer"
+          onClick={() => setFiltersVisible((prev) => !prev)}
+        >
           <h3 className="text-2xl font-semibold">Filters</h3>
+          {filtersVisible ? <ChevronUp /> : <ChevronDown />}
         </div>
-        <div className="p-4 space-y-6 overflow-y-auto">
-          {/* Date Range */}
-          <div className="space-y-2">
-            <label className="block text-sm font-medium">Date Range</label>
-            <Input
-              type="date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              className="w-full"
-            />
-            <Input
-              type="date"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-              className="w-full"
-            />
-          </div>
 
-          {/* Table */}
-          <div className="space-y-2">
-            <label className="block text-sm font-medium">Table</label>
-            <Input
-              type="text"
-              placeholder="Table name..."
-              value={table}
-              onChange={(e) => setTable(e.target.value)}
-              className="w-full"
-            />
-          </div>
+        {/* Filter content - only visible when toggled */}
+        {filtersVisible && (
+          <div className="p-4 space-y-6 overflow-y-auto">
+            {/* Date Range */}
+            <div className="space-y-2">
+              <label className="block text-sm font-medium">Date Range</label>
+              <Input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="w-full"
+              />
+              <Input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="w-full"
+              />
+            </div>
 
-          {/* Action */}
-          <div className="space-y-2">
-            <label className="block text-sm font-medium">Action</label>
-            {["create", "update", "delete"].map((a) => (
-              <div key={a} className="flex items-center">
-                <input
-                  type="checkbox"
-                  className="mr-2"
-                  checked={action === a}
-                  onChange={(e) => setAction(e.target.checked ? a : "")}
-                />
-                <label className="capitalize">{a}</label>
-              </div>
-            ))}
-          </div>
+            {/* Table */}
+            <div className="space-y-2">
+              <label className="block text-sm font-medium">Table</label>
+              <Input
+                type="text"
+                placeholder="Table name..."
+                value={table}
+                onChange={(e) => setTable(e.target.value)}
+                className="w-full"
+              />
+            </div>
 
-          {/* User */}
-          <div className="space-y-2">
-            <label className="block text-sm font-medium">User</label>
-            <Input
-              type="text"
-              placeholder="Account ID..."
-              value={user}
-              onChange={(e) => setUser(e.target.value)}
-              className="w-full"
-            />
-          </div>
+            {/* Action */}
+            <div className="space-y-2">
+              <label className="block text-sm font-medium">Action</label>
+              {["create", "update", "delete"].map((a) => (
+                <div key={a} className="flex items-center">
+                  <input
+                    type="checkbox"
+                    className="mr-2"
+                    checked={action === a}
+                    onChange={(e) => setAction(e.target.checked ? a : "")}
+                  />
+                  <label className="capitalize">{a}</label>
+                </div>
+              ))}
+            </div>
 
-          {/* Buttons */}
-          <div className="pt-2 space-y-2">
-            <Button
-              className="w-full"
-              onClick={() => setFilters({ table, user, action, startDate, endDate })}
-            >
-              Apply Filters
-            </Button>
-            <Button variant="outline" className="w-full" onClick={handleFilterReset}>
-              Reset
-            </Button>
+            {/* User */}
+            <div className="space-y-2">
+              <label className="block text-sm font-medium">User</label>
+              <Input
+                type="text"
+                placeholder="Account ID..."
+                value={user}
+                onChange={(e) => setUser(e.target.value)}
+                className="w-full"
+              />
+            </div>
+
+            {/* Buttons */}
+            <div className="pt-2 space-y-2">
+              <Button
+                className="w-full"
+                onClick={() => setFilters({ table, user, action, startDate, endDate })}
+              >
+                Apply Filters
+              </Button>
+              <Button variant="outline" className="w-full" onClick={handleFilterReset}>
+                Reset
+              </Button>
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* ================= ACTIVITY LOGS TABLE ================= */}

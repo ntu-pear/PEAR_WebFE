@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { fetchAllLogs, LogsTableDataServer } from "@/api/logger/logs";
+import { ChevronDown, ChevronUp } from "lucide-react";
 
 const PatientLogs: React.FC = () => {
   const [expandedRows, setExpandedRows] = useState<{ [key: number]: boolean }>({});
@@ -21,6 +22,8 @@ const PatientLogs: React.FC = () => {
   const [patient, setPatient] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+  const [filtersVisible, setFiltersVisible] = useState(true); // <-- toggle
+
   const [filters, setFilters] = useState({
     table: "",
     user: "",
@@ -30,9 +33,9 @@ const PatientLogs: React.FC = () => {
     endDate: "",
   });
 
-  const [currentPage, setCurrentPage] = useState(0); 
-  const [pageSize] = useState(10); 
-  const [jumpPage, setJumpPage] = useState(1); 
+  const [currentPage, setCurrentPage] = useState(0);
+  const [pageSize] = useState(10);
+  const [jumpPage, setJumpPage] = useState(1);
 
   const [logsTDServer, setLogsTDServer] = useState<LogsTableDataServer>({
     logs: [],
@@ -44,7 +47,13 @@ const PatientLogs: React.FC = () => {
     },
   });
 
-  // Function to fetch logs from server
+  const toggleRow = (index: number) => {
+    setExpandedRows((prev) => ({
+      ...prev,
+      [index]: !prev[index],
+    }));
+  };
+
   const handleLogs = async () => {
     setExpandedRows({});
     try {
@@ -85,13 +94,6 @@ const PatientLogs: React.FC = () => {
     setJumpPage(1);
   };
 
-  const toggleRow = (index: number) => {
-    setExpandedRows((prev) => ({
-      ...prev,
-      [index]: !prev[index],
-    }));
-  };
-
   const handleJumpPage = () => {
     const page = Math.max(1, Math.min(Number(jumpPage), logsTDServer.pagination.totalPages));
     setCurrentPage(page - 1); // API is 0-indexed
@@ -115,90 +117,99 @@ const PatientLogs: React.FC = () => {
     <div className="flex min-h-screen w-full container mx-auto static max-w-[1400px]">
       {/* ================= FILTER SIDEBAR ================= */}
       <div className="w-full sm:w-1/4 md:w-1/6 p-6 border absolute left-0 h-full bg-white">
-        <div className="p-4 border-b items-center">
+        {/* Filter header with toggle */}
+        <div
+          className="p-4 border-b flex justify-between items-center cursor-pointer"
+          onClick={() => setFiltersVisible((prev) => !prev)}
+        >
           <h3 className="text-2xl font-semibold leading-none tracking-tight">Filters</h3>
+          {filtersVisible ? <ChevronUp /> : <ChevronDown />}
         </div>
-        <div className="p-4 space-y-6 overflow-y-auto">
-          {/* Date Range */}
-          <div className="space-y-2">
-            <label className="block text-sm font-medium">Date Range</label>
+
+        {/* Filter content */}
+        {filtersVisible && (
+          <div className="p-4 space-y-6 overflow-y-auto">
+            {/* Date Range */}
             <div className="space-y-2">
-              <div>
-                <span className="text-xs text-gray-500">Start Date</span>
-                <Input
-                  type="date"
-                  className="w-full mt-1"
-                  value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                />
-              </div>
-              <div>
-                <span className="text-xs text-gray-500">End Date</span>
-                <Input
-                  type="date"
-                  className="w-full mt-1"
-                  value={endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Patient */}
-          <div className="space-y-2">
-            <label className="block text-sm font-medium">Patient</label>
-            <Input
-              type="text"
-              placeholder="Search patients..."
-              className="w-full"
-              value={patient}
-              onChange={(e) => setPatient(e.target.value)}
-            />
-          </div>
-
-          {/* Action */}
-          <div className="space-y-2">
-            <label className="block text-sm font-medium">Action</label>
-            <div className="space-y-1">
-              {["Create", "Update", "Delete"].map((a) => (
-                <div key={a} className="flex items-center">
-                  <input
-                    type="checkbox"
-                    className="mr-2"
-                    checked={action === a}
-                    onChange={(e) => setAction(e.target.checked ? a : "")}
+              <label className="block text-sm font-medium">Date Range</label>
+              <div className="space-y-2">
+                <div>
+                  <span className="text-xs text-gray-500">Start Date</span>
+                  <Input
+                    type="date"
+                    className="w-full mt-1"
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
                   />
-                  <label className="text-sm">{a}</label>
                 </div>
-              ))}
+                <div>
+                  <span className="text-xs text-gray-500">End Date</span>
+                  <Input
+                    type="date"
+                    className="w-full mt-1"
+                    value={endDate}
+                    onChange={(e) => setEndDate(e.target.value)}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Patient */}
+            <div className="space-y-2">
+              <label className="block text-sm font-medium">Patient</label>
+              <Input
+                type="text"
+                placeholder="Search patients..."
+                className="w-full"
+                value={patient}
+                onChange={(e) => setPatient(e.target.value)}
+              />
+            </div>
+
+            {/* Action */}
+            <div className="space-y-2">
+              <label className="block text-sm font-medium">Action</label>
+              <div className="space-y-1">
+                {["Create", "Update", "Delete"].map((a) => (
+                  <div key={a} className="flex items-center">
+                    <input
+                      type="checkbox"
+                      className="mr-2"
+                      checked={action === a}
+                      onChange={(e) => setAction(e.target.checked ? a : "")}
+                    />
+                    <label className="text-sm">{a}</label>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* User */}
+            <div className="space-y-2">
+              <label className="block text-sm font-medium">Account ID</label>
+              <Input
+                type="text"
+                placeholder="Search accounts..."
+                className="w-full"
+                value={user}
+                onChange={(e) => setUser(e.target.value)}
+              />
+            </div>
+
+            {/* Buttons */}
+            <div className="pt-2">
+              <Button
+                className="w-full"
+                onClick={() => setFilters({ table, user, patient, action, startDate, endDate })}
+              >
+                Apply Filters
+              </Button>
+              <Button variant="outline" className="w-full mt-2" onClick={handleFilterReset}>
+                Reset
+              </Button>
             </div>
           </div>
-
-          {/* User */}
-          <div className="space-y-2">
-            <label className="block text-sm font-medium">Account ID</label>
-            <Input
-              type="text"
-              placeholder="Search accounts..."
-              className="w-full"
-              value={user}
-              onChange={(e) => setUser(e.target.value)}
-            />
-          </div>
-
-          {/* Filter buttons */}
-          <div className="pt-2">
-            <Button
-              className="w-full"
-              onClick={() => setFilters({ table, user, patient, action, startDate, endDate })}
-            >
-              Apply Filters
-            </Button>
-            <Button variant="outline" className="w-full mt-2" onClick={handleFilterReset}>
-              Reset
-            </Button>
-          </div>
-        </div>
+        )}
       </div>
 
       {/* ================= PATIENT LOGS TABLE ================= */}
