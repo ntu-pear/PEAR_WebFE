@@ -53,3 +53,14 @@ export const formatDateTime = (date: string | null) => {
   return dayjs(date)
     .format("DD/MMM/YYYY hh:mm A");
 };
+
+export const formatTimeForInput12h = () => {
+  return dayjs()
+    .tz("Asia/Singapore") // use Singapore time
+    .format("hh:mm A");   // 12-hour format with correct AM/PM
+};
+
+export const formatTimeFromHHMMSS = (time: string) => {
+  const today = dayjs().format("YYYY-MM-DD");
+  return dayjs.tz(`${today}T${time}`, "Asia/Singapore").format("hh:mm A");
+};

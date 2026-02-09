@@ -308,7 +308,7 @@ const PatientTable: React.FC = () => {
                     <CardContent className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
 
                       <div className="flex flex-col">
-                        <h1 className="font-bold text-md">Name:</h1>
+                        <h1 className="font-bold text-md">Name on NRIC:</h1>
                         <p>{patient?.name}</p>
                       </div>
                       <div className="flex flex-col">
@@ -321,7 +321,7 @@ const PatientTable: React.FC = () => {
                       </div>
                       <div className="flex flex-col">
                         <h1 className="font-bold text-md">Date Of Birth:</h1>
-                        <p>{patient?.dateOfBirth ? new Date(patient.dateOfBirth).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }) : "N/A"}</p>
+                        <p>{patient?.dateOfBirth ? new Date(patient.dateOfBirth).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }).toUpperCase() : "N/A"}</p>
                       </div>
                       <div className="flex flex-col">
                         <h1 className="font-bold text-md">Gender:</h1>
@@ -337,11 +337,11 @@ const PatientTable: React.FC = () => {
                       </div>
                       <div className="flex flex-col">
                         <h1 className="font-bold text-md">Start Date:</h1>
-                        <p>{patient?.startDate ? new Date(patient.startDate).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }) : "N/A"}</p>
+                        <p>{patient?.startDate ? new Date(patient.startDate).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }).toUpperCase() : "N/A"}</p>
                       </div>
                       <div className="flex flex-col">
                         <h1 className="font-bold text-md">End Date:</h1>
-                        <p>{patient?.endDate ? new Date(patient.endDate).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }) : "N/A"}</p>
+                        <p>{patient?.endDate ? new Date(patient.endDate).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }).toUpperCase() : "N/A"}</p>
                       </div>
                       <div className="flex flex-col">
                         <h1 className="font-bold text-md">Home No:</h1>
