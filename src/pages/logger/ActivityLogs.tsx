@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { ChevronDown, ChevronUp } from "lucide-react"; 
 
-import { fetchActivityLogs, ActivityLogBase, ActivityLogsList } from "@/api/logger/activityLogs";
+import { fetchActivityLogs, ActivityLogsList } from "@/api/logger/activityLogs";
 
 const ActivityLogs: React.FC = () => {
   const [expandedRows, setExpandedRows] = useState<{ [key: number]: boolean }>({});
