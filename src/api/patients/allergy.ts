@@ -109,6 +109,7 @@ export interface AllergyUpdateFormData {
   Patient_AllergyID: number;
   AllergyTypeID: number;
   AllergyReactionTypeID: number;
+  PatientID: number;
 }
 
 export const convertToAllergyTD = (
@@ -456,7 +457,7 @@ export const addPatientAllergy = async (
 };
 
 export const updatePatientAllergy = async (
-  patientId: number,
+  patientAllergyId: number,
   formData: AllergyUpdateFormData
 ): Promise<Allergy> => {
   const token = retrieveAccessTokenFromCookie();
@@ -464,7 +465,7 @@ export const updatePatientAllergy = async (
 
   try {
     const response = await updatePatientAllergyAPI.put<Allergy>(
-      `/${patientId}`,
+      `/${patientAllergyId}`,
       formData,
       {
         headers: {
