@@ -22,18 +22,19 @@ const MobilityAidsCard: React.FC = () => {
       mobilityAids: [],
       pagination: {
         pageNo: 0,
-        pageSize: 0,
+        pageSize: 5,
         totalRecords: 0,
         totalPages: 0,
       },
     });
 
-  const handleFetchMobilityAids = async (pageNo: number) => {
+  const handleFetchMobilityAids = async (pageNo: number, pageSize:number) => {
     if (!id || isNaN(Number(id))) return;
     try {
       const fetchedData: MobilityAidTDServer = await fetchMobilityAids(
         Number(id),
-        pageNo
+        pageNo,
+        pageSize||10
       );
 
       setMobilityAidsTDServer(fetchedData);
@@ -48,7 +49,7 @@ const MobilityAidsCard: React.FC = () => {
   }, []);
 
   const refreshMobilityData = () => {
-    handleFetchMobilityAids(mobilityAidsTDServer.pagination.pageNo || 0);
+    handleFetchMobilityAids(mobilityAidsTDServer.pagination.pageNo || 0, mobilityAidsTDServer.pagination.pageSize||5);
   };
 
   const mobilityAidsColumns = [
