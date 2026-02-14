@@ -65,7 +65,7 @@ export interface EditProblemLog {
 export const fetchPatientProblemLog = async (
     id: number,
     pageNo: number = 0,
-    pageSize: number = 10,
+    pageSize: number = 5,
 ): Promise<ProblemLogTDServer> => {
     const token = retrieveAccessTokenFromCookie()
     if (!token) {
