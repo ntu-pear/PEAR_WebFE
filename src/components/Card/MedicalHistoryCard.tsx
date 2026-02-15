@@ -7,8 +7,9 @@ import { useAuth } from "@/hooks/useAuth";
 import { useViewPatient } from "@/hooks/patient/useViewPatient";
 import { useEffect, useState } from "react";
 import { fetchMedicalHistory, MedicalHistoryTD, MedicalHistoryTDServer } from "@/api/patients/medicalHistory";
+import { toast } from "sonner";
 
-const   MedicalHistoryCard: React.FC = () => {
+const MedicalHistoryCard: React.FC = () => {
   const { currentUser } = useAuth();
   const { openModal } = useModal();
   const { id, patientAllocation } = useViewPatient();
@@ -16,7 +17,7 @@ const   MedicalHistoryCard: React.FC = () => {
     medicalHistory: [],
     pagination: {
       pageNo: 0,
-      pageSize: 0,
+      pageSize: 5,
       totalRecords: 0,
       totalPages: 0,
     }
@@ -29,13 +30,24 @@ const   MedicalHistoryCard: React.FC = () => {
     { key: "date_of_diagnosis", header: "Date of Diagnosis" },
   ];
 
-  const fetchPatientMedicalHistory = async () => {
-    const history = await fetchMedicalHistory(Number(id))
-    setMedicalHistoryList(history)
+  const fetchPatientMedicalHistory = async (
+    pageNo: number=0,
+    pageSize: number=10) => {
+    try {
+      const history = await fetchMedicalHistory(Number(id), pageNo, pageSize || 10)
+      setMedicalHistoryList(history)
+    } catch (error) {
+      if (error instanceof Error) {
+        toast.error(`Failed to fetch patient medical history. ${error}`);
+      }else{
+        toast.error("Failed to fetch patient medical history")
+      }
+      console.error("Failed to fetch patient medical history")
+    }
   }
 
   useEffect(() => {
-    fetchPatientMedicalHistory()
+    fetchPatientMedicalHistory(medicalHistoryList.pagination.pageNo, medicalHistoryList.pagination.pageSize)
   }, [])
 
 

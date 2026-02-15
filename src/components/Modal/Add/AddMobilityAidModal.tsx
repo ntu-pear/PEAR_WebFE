@@ -20,17 +20,6 @@ const AddMobilityAidModal: React.FC = () => {
     refreshMobilityData: () => void;
   };
 
-  const handleFetchMobilityList = async () => {
-    try {
-      const fetchedMobilityList: MobilityList[] = await fetchMobilityList();
-      setMobilityList(fetchedMobilityList);
-
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (error) {
-      toast.error("Failed to fetch Mobility List");
-    }
-  };
-
   const handleAddMobilityAids = async (event: React.FormEvent) => {
     event.preventDefault();
 
@@ -69,6 +58,16 @@ const AddMobilityAidModal: React.FC = () => {
   };
 
   useEffect(() => {
+    const handleFetchMobilityList = async () => {
+      try {
+        const fetchedMobilityList: MobilityList[] = await fetchMobilityList();
+        setMobilityList(fetchedMobilityList);
+
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      } catch (error) {
+        toast.error("Failed to fetch Mobility List");
+      }
+    };
     handleFetchMobilityList();
   }, []);
 
