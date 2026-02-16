@@ -25,8 +25,8 @@ const AddPhotoModal = () => {
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0]
         if (file) {
-            if (file.size > 5 * 1024 * 1024) {
-                alert('File size must be less than 5MB')
+            if (file.size > 1 * 1024 * 1024) {
+                toast.error("File size must be less than 1MB")
                 return
             }
             if (previewUrl) {
@@ -44,7 +44,7 @@ const AddPhotoModal = () => {
             try {
                 const list = await getPhotoListAlbum()
                 setPhotoListAlbum(list)
-                setAddPhoto((prev)=>({...prev, AlbumCategoryListID: list?.[0].AlbumCategoryListID}))
+                setAddPhoto((prev) => ({ ...prev, AlbumCategoryListID: list?.[0].AlbumCategoryListID }))
             } catch (error) {
                 if (error instanceof Error) {
                     toast.error(`Failed to fetch Photo List Album. ${error}`)
@@ -60,6 +60,10 @@ const AddPhotoModal = () => {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
+        if (!addPhoto.file) {
+            toast.error("Photo is required")
+            return
+        }
         try {
             setIsLoading(true)
             console.log(addPhoto)
@@ -87,11 +91,12 @@ const AddPhotoModal = () => {
                 <h3 className="text-lg font-medium mb-5">Add Photo</h3>
                 {
                     isLoading ? (
-                        <div className="flex justify-center py-8">
+                        <div className="flex flex-col items-center justify-center py-8 gap-4">
                             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+                            <p>Uploading Photo...</p>
                         </div>
                     ) : (
-                        <form className="grid grid-cols-2 gap-4" onSubmit={handleSubmit}>
+                        <form className="grid grid-cols-2 gap-4 overflow-y-auto max-h-[70vh]" onSubmit={handleSubmit}>
                             <div className="col-span-2">
                                 <label className="block text-sm font-medium">
                                     Photo Detail<span className="text-red-600">*</span>
@@ -101,7 +106,6 @@ const AddPhotoModal = () => {
                                     className="mt-1 block w-full p-2 border rounded-md text-gray-900"
                                     value={addPhoto.PhotoDetails}
                                     onChange={(e) => setAddPhoto((prev) => ({ ...prev, PhotoDetails: e.target.value }))}
-                                    required
                                 />
                             </div>
                             <div className="col-span-2">
@@ -148,7 +152,6 @@ const AddPhotoModal = () => {
                                             accept="image/*"
                                             className="hidden"
                                             onChange={(e) => handleFileChange(e)}
-                                            required
                                         />
                                     </label>
                                 </div>

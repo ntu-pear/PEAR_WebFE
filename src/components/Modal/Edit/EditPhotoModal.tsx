@@ -66,8 +66,8 @@ const EditPhotoModal = () => {
         const file = e.target.files?.[0]
         if (file) {
             // Validate file size (5MB)
-            if (file.size > 5 * 1024 * 1024) {
-                alert('File size must be less than 5MB')
+            if (file.size > 1 * 1024 * 1024) {
+                toast.error("File size must be less than 1MB")
                 return
             }
             if (previewUrl.startsWith('blob:')) {
@@ -81,6 +81,10 @@ const EditPhotoModal = () => {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
+        if (!rowData.file) {
+            toast.error("Photo is required")
+            return
+        }
         try {
             setIsLoading(true)
             await updatePatientPersonalPhotos(rowData)
@@ -107,12 +111,13 @@ const EditPhotoModal = () => {
                 <h3 className="text-lg font-medium mb-5">Edit Photo</h3>
                 {
                     isLoading ? (
-                        <div className="flex justify-center py-8">
+                        <div className="flex flex-col items-center justify-center py-8 gap-4">
                             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+                            <p>Updating Photo...</p>
                         </div>
 
                     ) : (
-                        <form className="grid grid-cols-2 gap-4">
+                        <form className="grid grid-cols-2 gap-4 overflow-y-auto max-h-[70vh]">
                             <div className="col-span-2">
                                 <label className="block text-sm font-medium">
                                     Photo Detail<span className="text-red-600">*</span>
@@ -133,7 +138,8 @@ const EditPhotoModal = () => {
                                 <select
                                     className="mt-1 block w-full p-2 border rounded-md text-gray-900"
                                     required
-                                    onChange={(e)=>setRowData((prev)=>({...prev, AlbumCategoryListID: Number(e.target.value)}))}
+                                    value={rowData.AlbumCategoryListID}
+                                    onChange={(e) => setRowData((prev) => ({ ...prev, AlbumCategoryListID: Number(e.target.value) }))}
                                 >
                                     {photoListAlbum.map((album) => (
                                         <option key={album.AlbumCategoryListID} value={album.AlbumCategoryListID}>
@@ -170,7 +176,6 @@ const EditPhotoModal = () => {
                                             accept="image/*"
                                             className="hidden"
                                             onChange={handleFileChange}
-                                            required
                                         />
                                     </label>
                                 </div>

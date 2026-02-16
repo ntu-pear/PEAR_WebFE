@@ -10,7 +10,6 @@ import AddRoutineExclusionModal from "../Modal/Add/AddRoutineExclusionModal";
 
 const RoutineTab: React.FC = () => {
   const { activeModal } = useModal();
-
   return (
     <>
       <TabsContent value="routine">
