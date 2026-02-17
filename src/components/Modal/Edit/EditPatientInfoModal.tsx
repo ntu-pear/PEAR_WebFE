@@ -20,6 +20,7 @@ import {
   PreferredLanguage,
 } from "@/api/patients/preferredLanguage";
 import dayjs from "dayjs";
+import { validateNRIC } from "@/utils/validateNRIC";
 
 const EditPatientInfoModal: React.FC = () => {
   const { modalRef, activeModal, closeModal } = useModal();
@@ -325,6 +326,12 @@ const EditPatientInfoModal: React.FC = () => {
 
     if (!patient) {
       console.error("patient is null");
+      return;
+    }
+
+    if (!validateNRIC(patient.nric)) {
+      setCurrentTab("personal");
+      setNricHint("Invalid NRIC.");
       return;
     }
 
