@@ -327,6 +327,13 @@ export const photoAlbumListAPI = axios.create({
 export const personalPhotosAPI = axios.create({
   baseURL:`${VITE_PATIENT_SERVICE_URL}/PersonalPhoto`
 })
+export const problemLogAPI = axios.create({
+  baseURL:`${VITE_PATIENT_SERVICE_URL}/Problems`
+})
+
+export const problemListAPI = axios.create({
+  baseURL:`${VITE_PATIENT_SERVICE_URL}/ProblemList`
+})
 
 //geocode
 export const geocodeAPI = axios.create({

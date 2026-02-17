@@ -23,6 +23,7 @@ import useAddPatientPrivacyLevel from "@/hooks/patient/useAddPatientPrivacyLevel
 import { AddPatientPrivacyLevel } from "@/api/patients/privacyLevel";
 import { addPatientGuardian, IGuardianFormData } from "@/api/patients/guardian";
 import { createGuardianAllocation } from "@/api/patients/patientAllocation";
+import { validateNRIC } from "@/utils/validateNRIC";
 
 const patientInfoSchema = z
   .object({
@@ -34,15 +35,17 @@ const patientInfoSchema = z
       .string()
       .trim()
       .min(1, { message: "Preferred name is required" }).refine(
-      (v) => /^[a-zA-Z ]+$/.test(v),
-      "Preferred name must contain only letters"
-    ),
+        (v) => /^[a-zA-Z ]+$/.test(v),
+        "Preferred name must contain only letters"
+      ),
     nric: z
       .string()
       .min(1, { message: "NRIC is required" })
       .regex(/^[STFGM]\d{7}[A-Z]$/, {
-        message:
-          "NRIC must be 9 characters in length and starts with character S,T,F,G,M",
+        message: "NRIC must be 9 characters (S/T/F/G/M + 7 digits + letter)",
+      })
+      .refine((nric) => validateNRIC(nric), {
+        message: "Invalid NRIC",
       }),
     dateOfBirth: z
       .string()
@@ -142,9 +145,9 @@ const guardianSchema = z.object({
       "Last name must contain only letters"
     ),
   preferredName: z.string().trim().min(1, "Preferred name is required").refine(
-      (v) => /^[a-zA-Z ]+$/.test(v),
-      "Preferred name must contain only letters"
-    ),
+    (v) => /^[a-zA-Z ]+$/.test(v),
+    "Preferred name must contain only letters"
+  ),
   gender: z.enum(["M", "F"], { message: "Gender is required" }),
   contactNo: z
     .string()
@@ -155,10 +158,12 @@ const guardianSchema = z.object({
     .string()
     .trim()
     .min(1, "NRIC is required")
-    .refine(
-      (v) => /^[STFGM]\d{7}[A-Z]$/.test(v),
-      "NRIC must be 9 chars: S/T/F/G/M + 7 digits + letter"
-    ),
+    .regex(/^[STFGM]\d{7}[A-Z]$/, {
+      message: "NRIC must be 9 characters (S/T/F/G/M + 7 digits + letter)",
+    })
+    .refine((nric) => validateNRIC(nric), {
+      message: "Invalid NRIC",
+    }),
   email: z.string().trim().optional().or(z.literal("")),
   dateOfBirth: z.string().min(1, "Date of birth is required"),
   address: z.string().trim().min(1, "Address is required"),
@@ -353,13 +358,13 @@ const AddPatient: React.FC = () => {
       const allocation = {
         active: "Y",
         patientId: patientId,
-        guardianId: createdGuardians[0].id, 
+        guardianId: createdGuardians[0].id,
         guardian2Id: createdGuardians[1] ? createdGuardians[1].id : null,
         createdDate: now,
         modifiedDate: now,
         CreatedById: creator,
         ModifiedById: creator,
-      }as const;
+      } as const;
 
       await createGuardianAllocation(allocation)
     }
