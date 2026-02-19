@@ -6,7 +6,6 @@ import { useViewPatient } from "@/hooks/patient/useViewPatient";
 import { useAuth } from "@/hooks/useAuth";
 import { useEffect, useState } from "react";
 import { albumList, getPatientPersonalPhotos, getPhotoListAlbum, personalPhotos } from "@/api/patients/photoAlbum";
-import { toast } from "sonner";
 
 const PhotoAlbumCard: React.FC = () => {
   const { openModal } = useModal();
@@ -23,11 +22,6 @@ const PhotoAlbumCard: React.FC = () => {
         const list = await getPhotoListAlbum()
         setPhotoListAlbum(list)
       } catch (error) {
-        if (error instanceof Error) {
-          toast.error(`Failed to fetch Photo List Album. ${error}`)
-        } else {
-          toast.error("Failed to fetch Photo List Album")
-        }
         console.error("Failed to fetch Photo List Album")
       }
     }
@@ -40,7 +34,7 @@ const PhotoAlbumCard: React.FC = () => {
       const photoList = await getPatientPersonalPhotos(Number(curView), Number(id))
       setPhotos(photoList)
     } catch (error) {
-      toast.error("Failed to fetch patient personal photos")
+      console.error("Failed to fetch patient personal photos")
     }
   }
 
@@ -61,15 +55,16 @@ const PhotoAlbumCard: React.FC = () => {
         </CardHeader>
         <CardContent>
           {
-            (currentUser?.roleName === "SUPERVISOR" || patientAllocation?.guardianApplicationUserId === currentUser?.userId) && (
-              <div className="flex items-center justify-between">
-                <select className="mt-1 block p-2 border rounded-md text-gray-900" onChange={(e) => setCurView(Number(e.target.value))}>
-                  {
-                    photoListAlbum.map((item) => (
-                      <option key={item.AlbumCategoryListID} value={item.AlbumCategoryListID}>{item.Value}</option>
-                    ))
-                  }
-                </select>
+
+            <div className="flex items-center justify-between">
+              <select className="mt-1 block p-2 border rounded-md text-gray-900" onChange={(e) => setCurView(Number(e.target.value))}>
+                {
+                  photoListAlbum.map((item) => (
+                    <option key={item.AlbumCategoryListID} value={item.AlbumCategoryListID}>{item.Value}</option>
+                  ))
+                }
+              </select>
+              {(currentUser?.roleName === "SUPERVISOR" || patientAllocation?.guardianApplicationUserId === currentUser?.userId) && (
                 <Button
                   size="sm"
                   className="h-8 w-24 gap-1"
@@ -81,9 +76,8 @@ const PhotoAlbumCard: React.FC = () => {
                   <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
                     Add
                   </span>
-                </Button>
-              </div>
-            )
+                </Button>)}
+            </div>
           }
           {
             photos.length === 0 ? (
@@ -93,24 +87,30 @@ const PhotoAlbumCard: React.FC = () => {
                 {
                   photos.map((photo) => (
                     <div key={photo.PatientPhotoID} className="group relative overflow-hidden rounded-lg transition-all hover:shadow-md cursor-pointer"
-                      onClick={() => openModal("editPhoto", {
-                        photo: photo,
-                        refreshData: fetchPatientPersonalPhotos
-                      })}>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          openModal(
-                            "deletePhoto", {
-                            photoId: photo.PatientPhotoID,
-                            refreshData: fetchPatientPersonalPhotos
-                          }
-                          )
-                        }}
-                        className="absolute top-2 right-2 z-10 p-1.5 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
+                      onClick={() => {
+                        if (currentUser?.roleName === "SUPERVISOR" || patientAllocation?.guardianApplicationUserId === currentUser?.userId) {
+                          openModal("editPhoto", {
+                            photo: photo,
+                            refreshData: fetchPatientPersonalPhotos,
+                          });
+                        }
+                      }}
+                    >
+                      {(currentUser?.roleName === "SUPERVISOR" || patientAllocation?.guardianApplicationUserId === currentUser?.userId) && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openModal(
+                              "deletePhoto", {
+                              photoId: photo.PatientPhotoID,
+                              refreshData: fetchPatientPersonalPhotos
+                            }
+                            )
+                          }}
+                          className="absolute top-2 right-2 z-10 p-1.5 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>)}
 
 
                       <div className="aspect-square overflow-hidden">
