@@ -1,5 +1,6 @@
 import { loggerAPI } from "../apiConfig";
 
+
 export interface LogsBase {
   timestamp: string;
   method: string;
