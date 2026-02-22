@@ -421,6 +421,14 @@ export const adminAPI = axios.create({
   baseURL: `${VITE_USER_SERVICE_URL}/admin`,
 });
 
+export const fetchAdminConfigsAPI = axios.create({
+  baseURL: `${VITE_USER_SERVICE_URL}/admin/config`,
+});
+
+export const updateAdminConfigsAPI = axios.create({
+  baseURL: `${VITE_USER_SERVICE_URL}/admin/config`,
+});
+
 export const supervisorAPI = axios.create({
   baseURL: `${VITE_USER_SERVICE_URL}/supervisor`,
 });
