@@ -37,6 +37,7 @@ import ManageRoles from "./pages/Admin/ManageRoles";
 import EditUserInRole from "./pages/Admin/EditUserInRole";
 import RegisterAccount from "./pages/Admin/RegisterAccount";
 import DevPermanentDelete from "./pages/Admin/DevPermanentDeleteAccount";
+import ManageMiscellaneous from "./pages/Admin/ManageMiscellaneous";
 
 import Unauthorized from "./pages/Unauthorized";
 import NotFound from "./pages/NotFound";
@@ -242,6 +243,10 @@ const App: React.FC = () => {
                       <Route
                         path="manage-social-history"
                         element={<ManageSocialHistory />}
+                      />
+                      <Route
+                        path="manage-miscellaneous"
+                        element={<ManageMiscellaneous />}
                       />
                       {(useFeatureFlag("staging") ||
                         !useFeatureFlag("production")) && (
