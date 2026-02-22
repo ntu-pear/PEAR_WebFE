@@ -148,8 +148,8 @@ const ViewPatient: React.FC = () => {
                 Personal Preference
               </TabsTrigger>
               {
-                <TabsTrigger value="problem-history">
-                  Problem History
+                <TabsTrigger value="problem-log">
+                  Problem Log
                 </TabsTrigger>
               }
               {(currentUser?.roleName === "SUPERVISOR") && (
@@ -190,7 +190,7 @@ const ViewPatient: React.FC = () => {
               {activeTab === "allergy" && <AllergyTab />}
               {activeTab === "vital" && <VitalTab />}
               {activeTab === "personal-preference" && <PersonalPreferenceTab />}
-              {activeTab === "problem-history" && <ProblemLogTab />}
+              {activeTab === "problem-log" && <ProblemLogTab />}
               {(currentUser?.roleName === "SUPERVISOR") &&
                 activeTab === "activity-preference" && (
                   <ActivityPreferenceTab />
