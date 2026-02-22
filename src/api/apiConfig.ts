@@ -320,6 +320,13 @@ export const medicalDiagnosisListAPI = axios.create({
   baseURL: `${VITE_PATIENT_SERVICE_URL}/MedicalDiagnosisList`
 })
 
+export const photoAlbumListAPI = axios.create({
+  baseURL:`${VITE_PATIENT_SERVICE_URL}/PhotoListAlbum`
+})
+
+export const personalPhotosAPI = axios.create({
+  baseURL:`${VITE_PATIENT_SERVICE_URL}/PersonalPhoto`
+})
 export const problemLogAPI = axios.create({
   baseURL:`${VITE_PATIENT_SERVICE_URL}/Problems`
 })

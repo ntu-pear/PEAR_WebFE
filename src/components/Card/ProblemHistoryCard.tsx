@@ -51,7 +51,7 @@ const ProblemHistoryCard: React.FC = () => {
 
   const renderAction = (problemLog: ProblemLogTD) => {
     return (
-      (currentUser?.roleName === "SUPERVISOR" || patientAllocation?.guardianApplicationUserId === currentUser?.userId) && (
+      (currentUser?.roleName === "SUPERVISOR") && (
         <div className="flex space-x-2">
           <Button
             size="sm"
@@ -89,7 +89,7 @@ const ProblemHistoryCard: React.FC = () => {
         <CardHeader>
           <CardTitle className="text-lg flex items-center justify-between">
             <span>Problem Log</span>
-            {(currentUser?.roleName === "SUPERVISOR" || patientAllocation?.guardianApplicationUserId === currentUser?.userId) && (
+            {(currentUser?.roleName === "SUPERVISOR")&& (
               <Button
                 size="sm"
                 className="h-8 w-24 gap-1"
