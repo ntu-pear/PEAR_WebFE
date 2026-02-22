@@ -265,9 +265,6 @@ export const deletePrescriptionListAPI = axios.create({
   baseURL: `${import.meta.env.VITE_PATIENT_SERVICE_URL}/PrescriptionList/delete`,
 });
 
-export const medicalDiagnosisListAPI = axios.create({
-  baseURL: `${VITE_PATIENT_SERVICE_URL}/MedicalDiagnosisList`,
-});
 export const createMedicalDiagnosisListAPI = axios.create({
   baseURL: `${import.meta.env.VITE_PATIENT_SERVICE_URL}/MedicalDiagnosisList/add`,
 });
@@ -280,9 +277,6 @@ export const deleteMedicalDiagnosisListAPI = axios.create({
   baseURL: `${import.meta.env.VITE_PATIENT_SERVICE_URL}/MedicalDiagnosisList/delete`,
 });
 
-export const problemListAPI = axios.create({
-  baseURL: `${VITE_PATIENT_SERVICE_URL}/ProblemList`,
-});
 export const createProblemListAPI = axios.create({
   baseURL: `${import.meta.env.VITE_PATIENT_SERVICE_URL}/ProblemList/add`,
 });
