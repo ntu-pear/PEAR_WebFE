@@ -177,7 +177,7 @@ const SocialHistoryCard: React.FC = () => {
                   <p className="text-sm text-muted-foreground">
                     {column.key === "accessLevelSensitive"
                       ? (column.customValue !== null ? convertPrivacyLevel(column.customValue) : "MEDIUM")
-                      : (socialHistory?.[column.key] ?? "-")
+                      : (socialHistory?.[column.key] ?? "NA")
                     }
                   </p>
                 </div>
@@ -192,8 +192,8 @@ const SocialHistoryCard: React.FC = () => {
                   <p className="text-sm font-medium">{column.header}</p>
                   <p className="text-sm text-muted-foreground">
                     {column.key === "accessLevelSensitive"
-                      ? (column.customValue !== null ? convertPrivacyLevel(column.customValue) : "-")
-                      : (socialHistory?.[column.key] ?? "-")
+                      ? (column.customValue !== null ? convertPrivacyLevel(column.customValue) : "MEDIUM")
+                      : (socialHistory?.[column.key] ?? "NA")
                     }
                   </p>
                 </div>

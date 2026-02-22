@@ -87,7 +87,7 @@ const AddRoutineExclusionModal: React.FC = () => {
         <div>
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
                 <div ref={modalRef} className="bg-background p-8 rounded-md w-[400px]">
-                    <h3 className="text-lg font-medium mb-5">Edit Routine Exclusion</h3>
+                    <h3 className="text-lg font-medium mb-5">Add Routine Exclusion</h3>
                     <form className="grid grid-cols-2 gap-4" onSubmit={handleAddRoutineExclusion}>
                         <div className="col-span-2">
                             <label className="block text-sm font-medium">
@@ -140,7 +140,7 @@ const AddRoutineExclusionModal: React.FC = () => {
                             <Button variant="outline" onClick={closeModal}>
                                 Cancel
                             </Button>
-                            <Button type="submit">Update</Button>
+                            <Button type="submit">Add</Button>
                         </div>
                     </form>
                 </div>

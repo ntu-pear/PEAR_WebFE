@@ -362,6 +362,18 @@ export const medicalHistoryAPI = axios.create({
   baseURL: `${VITE_PATIENT_SERVICE_URL}/MedicalHistory`
 });
 
+export const medicalDiagnosisListAPI = axios.create({
+  baseURL: `${VITE_PATIENT_SERVICE_URL}/MedicalDiagnosisList`
+})
+
+export const problemLogAPI = axios.create({
+  baseURL:`${VITE_PATIENT_SERVICE_URL}/Problems`
+})
+
+export const problemListAPI = axios.create({
+  baseURL:`${VITE_PATIENT_SERVICE_URL}/ProblemList`
+})
+
 //geocode
 export const geocodeAPI = axios.create({
   baseURL: `${VITE_GEOCODE_SERVICE_URL}/geocode`,
@@ -419,4 +431,8 @@ export const getDoctorNameAPI = (roleName: string) =>
 
 export const loggerAPI = axios.create({
   baseURL: `${VITE_LOGGER_SERVICE_URL}/Logs/Patient`,
+});
+
+export const activityLoggerAPI = axios.create({
+  baseURL: `${VITE_LOGGER_SERVICE_URL}/Logs/Activity`,
 });
