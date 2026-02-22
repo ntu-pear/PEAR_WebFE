@@ -313,7 +313,7 @@ export const guardianAPI = axios.create({
 });
 
 export const highlightsAPI = axios.create({
-  baseURL: `${VITE_PATIENT_SERVICE_URL}/get_all_highlights`,
+  baseURL: `${VITE_PATIENT_SERVICE_URL}/Highlight/get_all_highlights`,
 });
 
 export const highlightTypesAPI = axios.create({

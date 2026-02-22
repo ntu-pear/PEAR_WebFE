@@ -24,7 +24,7 @@ import {
   fetchHighlights,
   fetchHighlightTypes,
   HighlightTableData,
-  HighlightTypeList,
+  HighlightType,
 } from "@/api/patients/highlight";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
@@ -32,7 +32,7 @@ import { mockCaregiverNameList } from "@/mocks/mockHighlightTableData";
 
 const HighlightTable: React.FC = () => {
   const [highlights, setHighlights] = useState<HighlightTableData[]>([]);
-  const [highlightTypes, setHighlightTypes] = useState<HighlightTypeList[]>([]);
+  const [highlightTypes, setHighlightTypes] = useState<HighlightType[]>([]);
   const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
   const [selectedCaregiver, setSelectedCaregiver] = useState<string>("All");
   const [searchItem, setSearchItem] = useState("");
@@ -112,7 +112,7 @@ const HighlightTable: React.FC = () => {
     fetchHighlightTypes()
       .then((highlightTypes) => {
         setHighlightTypes(highlightTypes);
-        setSelectedTypes(highlightTypes.map(({ value }) => value));
+        setSelectedTypes(highlightTypes.map(({ TypeName }) => TypeName));
       })
       .catch((error) => console.error(error));
   }, []);

@@ -43,7 +43,7 @@ export interface HighlightTableData extends TableRowData {
   showType?: boolean;
 }
 
-interface HighlightType {
+export interface HighlightType {
   TypeName: string;
   TypeCode: string;
   IsDeleted: string;
@@ -63,6 +63,12 @@ export interface ViewHighlightTypeList {
   totalRecords: number;
   totalPages: number;
 }
+ //for consistency with supervisor
+export interface HighlightTypeList {
+  id: number;
+  value: string; // what HighlightTable expects to display + select
+}
+
 export const fetchHighlights = async (): Promise<HighlightTableData[]> => {
   const token = retrieveAccessTokenFromCookie();
   if (!token) throw new Error("No token found.");

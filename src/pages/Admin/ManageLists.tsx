@@ -103,11 +103,18 @@ const ManageLists: React.FC = () => {
         header: "Enabled",
         render: (v: boolean | undefined) => (v ? "Yes" : "No"),
       },
-    ] as const;
+    ];
   }
-  return [ { key: "value", header: "Value", className: "truncate w-full", render: (value: string, _listItem: ListItem) => ( <span title={value}>{value}</span> ), }, ];
-}, [debouncedSelectedType]);
 
+  return [
+    {
+      key: "value",
+      header: "Value",
+      className: "truncate w-full",
+      render: (value: string) => <span title={value}>{value}</span>,
+    },
+  ];
+}, [debouncedSelectedType]);
   return (
     <div className="flex min-h-screen w-full flex-col container mx-auto px-0 sm:px-4">
       <div className="flex flex-col sm:gap-4 sm:py-4 sm:pl-14">
