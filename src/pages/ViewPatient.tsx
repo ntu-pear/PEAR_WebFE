@@ -148,8 +148,8 @@ const ViewPatient: React.FC = () => {
                 Personal Preference
               </TabsTrigger>
               {
-                <TabsTrigger value="problem-history">
-                  Problem History
+                <TabsTrigger value="problem-log">
+                  Problem Log
                 </TabsTrigger>
               }
               {(currentUser?.roleName === "SUPERVISOR") && (
@@ -157,7 +157,7 @@ const ViewPatient: React.FC = () => {
                   Activity Preference
                 </TabsTrigger>
               )}
-              {(currentUser?.roleName === "SUPERVISOR" || currentUser?.roleName === "GUARDIAN") && (
+              {(currentUser?.roleName === "SUPERVISOR") && (
                 <TabsTrigger value="routine">Routine</TabsTrigger>
               )}
               <TabsTrigger value="prescription">Prescription</TabsTrigger>
@@ -172,9 +172,9 @@ const ViewPatient: React.FC = () => {
                 </TabsTrigger>
               )}
 
-              {(currentUser?.roleName === "SUPERVISOR" || currentUser?.roleName === "GUARDIAN")&& (
+              {
                 <TabsTrigger value="photo-album">Photo Album</TabsTrigger>
-              )}
+              }
               {(currentUser?.roleName === "SUPERVISOR" || currentUser?.roleName === "GUARDIAN") && (
                 <TabsTrigger value="guardian">Guardian</TabsTrigger>
               )}
@@ -190,7 +190,7 @@ const ViewPatient: React.FC = () => {
               {activeTab === "allergy" && <AllergyTab />}
               {activeTab === "vital" && <VitalTab />}
               {activeTab === "personal-preference" && <PersonalPreferenceTab />}
-              {activeTab === "problem-history" && <ProblemLogTab />}
+              {activeTab === "problem-log" && <ProblemLogTab />}
               {(currentUser?.roleName === "SUPERVISOR") &&
                 activeTab === "activity-preference" && (
                   <ActivityPreferenceTab />
@@ -206,7 +206,7 @@ const ViewPatient: React.FC = () => {
                   <ActivityRecTab />
                 )}
 
-              {(currentUser?.roleName === "SUPERVISOR" || currentUser?.roleName === "GUARDIAN") &&
+              {
                 activeTab === "photo-album" && <PhotoAlbumTab />}
               {(currentUser?.roleName === "SUPERVISOR" || currentUser?.roleName === "GUARDIAN") &&
                 activeTab === "guardian" && <GuardianTab />}

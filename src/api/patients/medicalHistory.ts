@@ -66,7 +66,7 @@ export interface Diagnosis {
 export const fetchMedicalHistory = async (
     id: Number,
     pageNo: number = 0,
-    pageSize: number = 10,
+    pageSize: number = 5,
 ): Promise<MedicalHistoryTDServer> => {
     const token = retrieveAccessTokenFromCookie()
     if (!token) {
@@ -107,7 +107,7 @@ export const convertToMedicalHistoryTD = (medicalHistoryList: medicalHistory[]):
             day: "2-digit",
             month: "short",
             year: "numeric"
-        }),
+        }).toUpperCase(),
         diagnosis_id: history.MedicalDiagnosisID
 
     })).sort((a, b) => {

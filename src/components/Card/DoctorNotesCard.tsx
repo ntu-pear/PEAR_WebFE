@@ -22,19 +22,20 @@ const DoctorNotesCard: React.FC = () => {
     doctornotes: [],
     pagination: {
       pageNo: 0,
-      pageSize: 0,
+      pageSize: 5,
       totalRecords: 0,
       totalPages: 0,
     },
   });
 
-  const handleFetchDoctorNotes = async (pageNo: number) => {
+  const handleFetchDoctorNotes = async (pageNo: number, pageSize:number) => {
     if (!id || isNaN(Number(id))) return;
     try {
       const fetchedDoctorNotes: DoctorNoteTDServer = await fetchDoctorNotes(
         Number(id),
         currentUser?.roleName.toLowerCase() as string,
-        pageNo
+        pageNo,
+        pageSize||10
       );
 
       setDoctorNotes(fetchedDoctorNotes);
@@ -49,7 +50,7 @@ const DoctorNotesCard: React.FC = () => {
   }, []);
 
   const refreshDoctorNotes = () => {
-    handleFetchDoctorNotes(doctorNotes.pagination.pageNo || 0);
+    handleFetchDoctorNotes(doctorNotes.pagination.pageNo || 0, doctorNotes.pagination.pageSize);
   };
 
   const doctorNotesColumns = [
@@ -93,6 +94,9 @@ const DoctorNotesCard: React.FC = () => {
       )
     );
   };
+  if (currentUser?.roleName === "GUARDIAN") {
+    return null;
+  }
 
   return (
     <>

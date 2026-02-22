@@ -27,9 +27,10 @@ test('Guardian - Manage Patient Page', async ({ page }) => {
     await page.waitForLoadState('networkidle'); // Wait for network requests to finish
     await page.waitForURL(/guardian\/manage-patients/);
 
-    const patientTabs = page.getByRole('tab')
+    const patientTabs = await page.getByRole('tab')
+    await patientTabs.first().waitFor({ state: 'visible' });
     const tabCount = await patientTabs.count();
-    expect(tabCount).toBeGreaterThan(0)
+    await expect(tabCount).toBeGreaterThan(0)
 
     // Loop through each tab
     for (let i = tabCount - 1; i >= 0; i--) {

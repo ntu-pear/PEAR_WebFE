@@ -57,6 +57,7 @@ import ManageApprovalRequest from "./pages/Supervisor/ManageApprovalRequest";
 import VerifyAccount from "./pages/VerifyAccount";
 import { ViewPatientProvider } from "./hooks/patient/useViewPatient";
 import PatientLogs from "./pages/logger/PatientLogs";
+import ActivityLogs from "./pages/logger/ActivityLogs";
 import AccountTable from "./pages/Admin/AccountTable";
 import ViewAccount from "./pages/Admin/ViewAccount";
 import { ViewAccountProvider } from "./hooks/admin/useViewAccount";
@@ -183,6 +184,10 @@ const App: React.FC = () => {
                       <Route
                         path="view-patient-logs"
                         element={<PatientLogs />}
+                      />
+                      <Route
+                        path="view-activity-logs"
+                        element={<ActivityLogs />}
                       />
                       <Route path="manage-list-items" element={<ViewLists />} />
                       <Route path="settings/*" element={<UserSettings />}>
