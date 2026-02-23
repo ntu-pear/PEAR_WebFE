@@ -50,6 +50,9 @@ interface DataTableClientProps<T extends TableRowData> {
   selectable?: boolean;
   selectedItems?: T[];
   onSelectChange?: (selected: T[]) => void;
+  getRowId?: (item: T) => string | number;
+  getViewMoreId?: (item: T) => string | number
+
 }
 
 export interface ServerPagination {
@@ -90,12 +93,17 @@ interface DataTableServerProps<T extends TableRowData> {
   expandable?: boolean;
   renderExpandedContent?: (item: T) => React.ReactNode;
   onExpand?: (item: T) => void;
+  getRowId?: (item: T) => string | number;
+  getViewMoreId?: (item: T) => string | number;
+
 }
 
 // Data Table with Client Pagination
 export function DataTableClient<T extends TableRowData>({
   data,
   columns,
+  getRowId,
+  getViewMoreId,
   itemsPerPage = 10, // Default to 10 items per page
   viewMore,
   viewMoreBaseLink,
@@ -109,6 +117,8 @@ export function DataTableClient<T extends TableRowData>({
   selectable = false,
   selectedItems,
   onSelectChange,
+
+
 }: DataTableClientProps<T>) {
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -181,34 +191,49 @@ export function DataTableClient<T extends TableRowData>({
               )}
             </TableRow>
           </TableHeader>
+          
           <TableBody>
-            {paginatedData.map((item) => (
-              <DataTableRow
-                key={item.id}
-                item={item}
-                columns={columns}
-                viewMore={viewMore}
-                viewMoreLink={`${viewMoreBaseLink}/${item.id}${
-                  activeTab ? `?tab=${activeTab}` : ""
-                }`}
-                renderActions={renderActions} // Pass the custom renderActions function
-                expandable={expandable}
-                renderExpandedContent={renderExpandedContent}
-                onExpand={onExpand}
-                selectable={selectable}
-                isSelected={
-                  selectable && selectedItems && selectedItems.includes(item)
-                }
-                onToggleSelect={() => {
-                  if (!selectedItems || !onSelectChange) return;
-                  const newSelected = selectedItems.includes(item)
-                    ? selectedItems.filter((i) => i.id !== item.id)
-                    : [...selectedItems, item];
-                  onSelectChange(newSelected);
-                }}
-              />
-            ))}
+            {paginatedData.map((item) => {
+              const rowId = getRowId ? getRowId(item) : item.id;
+              const viewId = getViewMoreId ? getViewMoreId(item) : rowId;
+
+              const isSelected =
+                selectable &&
+                selectedItems &&
+                selectedItems.some((i) => (getRowId ? getRowId(i) : i.id) === rowId);
+
+              return (
+                <DataTableRow
+                  key={rowId}
+                  item={item}
+                  columns={columns}
+                  viewMore={viewMore}
+                  viewMoreLink={
+                    viewMoreBaseLink
+                      ? `${viewMoreBaseLink}/${viewId}${activeTab ? `?tab=${activeTab}` : ""}`
+                      : undefined
+                  }
+                  renderActions={renderActions}
+                  expandable={expandable}
+                  renderExpandedContent={renderExpandedContent}
+                  onExpand={onExpand}
+                  selectable={selectable}
+                  isSelected={isSelected}
+                  onToggleSelect={() => {
+                    if (!selectedItems || !onSelectChange) return;
+                    const exists = selectedItems.some(
+                      (i) => (getRowId ? getRowId(i) : i.id) === rowId
+                    );
+                    const newSelected = exists
+                      ? selectedItems.filter((i) => (getRowId ? getRowId(i) : i.id) !== rowId)
+                      : [...selectedItems, item];
+                    onSelectChange(newSelected);
+                  }}
+                />
+              );
+            })}
           </TableBody>
+
         </Table>
       </div>
 
@@ -266,6 +291,9 @@ export function DataTableServer<T extends TableRowData>({
   expandable = false,
   renderExpandedContent,
   onExpand,
+  getRowId,
+  getViewMoreId,
+
 }: DataTableServerProps<T>) {
   const { pageNo, pageSize, totalRecords, totalPages } = pagination;
 
@@ -327,21 +355,28 @@ export function DataTableServer<T extends TableRowData>({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {data.map((item) => (
-              <DataTableRow
-                key={item.id}
-                item={item}
-                columns={columns}
-                viewMore={viewMore}
-                viewMoreLink={`${viewMoreBaseLink}/${item.id}${
-                  activeTab ? `?tab=${activeTab}` : ""
-                }`}
-                renderActions={renderActions} // Pass the custom renderActions function
-                expandable={expandable}
-                renderExpandedContent={renderExpandedContent}
-                onExpand={onExpand}
-              />
-            ))}
+            {data.map((item) => {
+              const rowId = getRowId ? getRowId(item) : item.id;
+              const viewId = getViewMoreId ? getViewMoreId(item) : rowId;
+
+              return (
+                <DataTableRow
+                  key={rowId}
+                  item={item}
+                  columns={columns}
+                  viewMore={viewMore}
+                  viewMoreLink={
+                    viewMoreBaseLink
+                      ? `${viewMoreBaseLink}/${viewId}${activeTab ? `?tab=${activeTab}` : ""}`
+                      : undefined
+                  }
+                  renderActions={renderActions}
+                  expandable={expandable}
+                  renderExpandedContent={renderExpandedContent}
+                  onExpand={onExpand}
+                />
+              );
+            })}
           </TableBody>
         </Table>
       </div>

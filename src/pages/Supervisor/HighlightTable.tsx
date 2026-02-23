@@ -82,9 +82,13 @@ const HighlightTable: React.FC = () => {
         patientName.toLowerCase().includes(searchItem.toLowerCase())
       );
 
-      filteredHighlights = filteredHighlights.filter(({ type }) =>
-        selectedTypes.includes(type)
-      );
+      
+      if (selectedTypes.length > 0) {
+        filteredHighlights = filteredHighlights.filter(({ type }) =>
+          selectedTypes.includes(type)
+        );
+      }
+
 
       filteredHighlights = filteredHighlights.filter(
         ({ caregiverId }) =>
@@ -93,6 +97,14 @@ const HighlightTable: React.FC = () => {
       );
       console.log("After filtering:", filteredHighlights); 
 
+      /*
+      const normalizedForTable = filteredHighlights.map(h => ({
+        ...h,
+        // Overwrite id so the table uses patientId everywhere
+        id: h.patientId,
+      }));
+      setHighlights(flattenHighlights(normalizedForTable));
+      */
       setHighlights(flattenHighlights(filteredHighlights)); 
     } catch (error) {
       console.error("Error fetching highlights:", error);
@@ -228,7 +240,7 @@ const HighlightTable: React.FC = () => {
         let detailsContent: React.ReactNode = null;
 
         switch (highlight.type) {
-          case "Prescription": {
+          case "PRESCIPTION": {
             const d = highlight.parsedHighlight?.Prescription;
             if (!d) {
               console.log("Prescription data is missing", highlight.id);
@@ -269,7 +281,7 @@ const HighlightTable: React.FC = () => {
             );
             break;
           }
-          case "Allergy": {
+          case "ALLERGY": {
             const d = highlight.parsedHighlight?.Allergy;
             if (!d) {
               console.log("Allergy data is missing", highlight.id);
@@ -321,7 +333,7 @@ const HighlightTable: React.FC = () => {
             );
             break;
           }
-          case "Vital": {
+          case "VITAL": {
             const d = highlight.parsedHighlight?.Vital;
             if (!d) {
               console.log("Vital data is missing", highlight.id);
@@ -360,7 +372,8 @@ const HighlightTable: React.FC = () => {
             );
             break;
           }
-          case "Problem": {
+          case "PROBLEM": {
+            /*
             const d = highlight.parsedHighlight?.Problem;
             if (!d) {
               console.log("Problem data is missing", highlight.id);
@@ -381,6 +394,50 @@ const HighlightTable: React.FC = () => {
                 </div>
               </div>
             );
+            */
+            const f = (highlight as any).additional_fields ?? {};
+
+            // If the backend didn’t send additional_fields, show a dash gracefully
+            if (!f || Object.keys(f).length === 0) {
+              console.log("Problem additional_fields is missing", highlight.id);
+              return <span>-</span>;
+            }
+
+            const problemName = f.problem_name ?? "";
+            const diagnosisDate =
+              f.date_of_diagnosis
+                ? String(f.date_of_diagnosis).split("T")[0] // handle date or date-time
+                : "";
+            const sourceInfo = f.source_of_information ?? "";
+            const remarks = f.problem_remarks ?? "";
+
+            detailsContent = (
+              <div className="space-y-1 text-sm">
+                <div>
+                  <b>Description:</b> {problemName}
+                </div>
+                {diagnosisDate && (
+                  <div>
+                    <b>Date of diagnosis:</b> {diagnosisDate}
+                  </div>
+                )}
+                {sourceInfo && (
+                  <div>
+                    <b>Source of information:</b> {sourceInfo}
+                  </div>
+                )}
+                <div>
+                  <b>Remarks:</b> {remarks || "-"}
+                </div>
+                {/* Optional: show who created/modified */}
+                {(highlight as any).ModifiedById && (
+                  <div>
+                    <b>Author:</b> {(highlight as any).ModifiedById}
+                  </div>
+                )}
+              </div>
+            );
+
             break;
           }
 
@@ -422,6 +479,7 @@ const HighlightTable: React.FC = () => {
                   <DropdownMenuContent align="end">
                     {highlightTypes.map(({ value }) => (
                       <DropdownMenuCheckboxItem
+                        key={value}
                         checked={selectedTypes.includes(value)}
                         onCheckedChange={(checked: boolean) => {
                           if (checked)
@@ -457,7 +515,7 @@ const HighlightTable: React.FC = () => {
                         All
                       </DropdownMenuRadioItem>
                       {mockCaregiverNameList.map(({ id, name }) => (
-                        <DropdownMenuRadioItem value={id.toString()}>
+                        <DropdownMenuRadioItem key={id} value={id.toString()}>
                           {name}
                         </DropdownMenuRadioItem>
                       ))}
@@ -480,6 +538,10 @@ const HighlightTable: React.FC = () => {
                 columns={tableColumns}
                 viewMore={false}
                 hideActionsHeader={true}
+                
+                getRowId={(row) => row.patientId}        // ← use patientId as the identity
+                getViewMoreId={(row) => row.patientId}   // ← if you enable viewMore later
+
               />
             </CardContent>
           </Card>
