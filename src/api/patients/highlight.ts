@@ -1,4 +1,4 @@
-import { TableRowData } from "@/components/Table/DataTable";
+import { TableRowData } from "@/components/Table/DataTable"; 
 import {
   createHighlightTypesAPI,
   deleteHighlightTypesAPI,
@@ -12,14 +12,28 @@ import { fetchPatientInfo } from "./patients";
 
 interface Highlight {
   PatientId: number;
-  Type: string;
-  HighlightJSON: string;
-  StartDate: string;
-  EndDate: string;
+  Type: string; //old?
+  HighlightJSON: string; //old?
+  StartDate: string; //old?
+  EndDate: string; //old?
+
+   // new backend fields
+  HighlightTypeId: number;
+  HighlightText: string;
+  SourceTable: string;
+  SourceRecordId: number;
+
+  highlight_type_name: string;
+  highlight_type_code: string;
+  source_remarks: string;
+
+  additional_fields?: any;  
+
   IsDeleted: number;
   Id: number;
-  ModifiedDate: string;
-  CreatedById: string;
+  CreatedDate: string;
+  ModifiedDate: string; 
+  CreatedById: string; 
   ModifiedById: string;
 }
 
@@ -87,7 +101,7 @@ export const fetchHighlights = async (): Promise<HighlightTableData[]> => {
 
     for (const highlight of res.data) {
       const patientId = highlight.PatientId;
-      console.log("Processing highlight id", highlight.Id, "HighlightJSON:", highlight.HighlightJSON);
+      //console.log("Processing highlight id", highlight.Id, "HighlightJSON:", highlight.HighlightJSON);
 
 
       if (!grouped[patientId]) {
@@ -117,6 +131,7 @@ export const fetchHighlights = async (): Promise<HighlightTableData[]> => {
         };
       }
 
+      /*
       let parsedHighlight = null;
       try {
         parsedHighlight = JSON.parse(highlight.HighlightJSON);
@@ -124,6 +139,8 @@ export const fetchHighlights = async (): Promise<HighlightTableData[]> => {
       } catch (e) {
         console.error("Failed to parse HighlightJSON for id", highlight.Id, e);
       }
+        */
+      const parsedHighlight = highlight.additional_fields ?? null; 
 
       if (!parsedHighlight) {
         console.warn("Skipping highlight with null parsedHighlight", highlight.Id);
@@ -132,7 +149,7 @@ export const fetchHighlights = async (): Promise<HighlightTableData[]> => {
       
       // Push only valid highlights
       highlights.push({
-        id: `${patientId}-${highlight.Type}-${highlight.Id}`,
+        id: `${patientId}-${highlight.highlight_type_code}-${highlight.Id}`,
         patientId: grouped[patientId].patientId,
         patientName: grouped[patientId].patientName,
         patientNric: grouped[patientId].patientNric,
@@ -141,10 +158,11 @@ export const fetchHighlights = async (): Promise<HighlightTableData[]> => {
         caregiverName: grouped[patientId].caregiverName,
         caregiverNric: grouped[patientId].caregiverNric,
         caregiverProfilePicture: grouped[patientId].caregiverProfilePicture,
-        type: highlight.Type,
-        value: parsedHighlight?.value ?? "", 
-        highlightJSON: highlight.HighlightJSON,
+        type: highlight.highlight_type_name,
+        value: highlight.HighlightText ?? "",
+        highlightJSON: JSON.stringify(parsedHighlight),
         parsedHighlight: parsedHighlight, 
+        sourceRemarks: highlight.source_remarks ?? "-",
         showPatientDetails: false,
         showCaregiverDetails: false,
         showType: false,

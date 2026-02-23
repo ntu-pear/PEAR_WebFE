@@ -1,13 +1,20 @@
-import React, { useCallback, useEffect, useState, ReactNode, PropsWithChildren } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { ListFilter } from "lucide-react";
-import {
+import { 
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+
 import { Button } from "@/components/ui/button";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -71,10 +78,9 @@ const HighlightTable: React.FC = () => {
       const highlights = await fetchHighlights();
       console.log("All Fetched highlights array:", highlights); 
 
-
       const parsedHighlights = highlights.map((h) => ({
-      ...h,
-      parsedHighlight: h.highlightJSON? JSON.parse(h.highlightJSON): null,
+        ...h,
+        parsedHighlight: h.highlightJSON ? JSON.parse(h.highlightJSON) : null,
       }));
       console.log("After parsing:", parsedHighlights); 
 
@@ -99,7 +105,9 @@ const HighlightTable: React.FC = () => {
     }
   };
 
-  const formatHighlightType = (highlightType: string) => {
+  // 🔧 FIX 1: make this defensive to avoid calling .replace on undefined/null
+  const formatHighlightType = (highlightType?: string | null) => {
+    if (!highlightType || typeof highlightType !== "string") return "-";
     const spaced = highlightType.replace(/([a-z])([A-Z])/g, "$1 $2");
 
     return spaced
@@ -120,23 +128,6 @@ const HighlightTable: React.FC = () => {
   useEffect(() => {
     handleFilter();
   }, [selectedTypes, selectedCaregiver, debouncedSearch]);
-
-  // Tooltip component for hover Highlights
-  interface TooltipProps {
-    content: ReactNode;
-  }
-
-  // Add PropsWithChildren to allow children
-  const Tooltip: React.FC<PropsWithChildren<TooltipProps>> = ({ children, content }) => {
-    return (
-      <div className="relative group inline-block">
-        {children}
-        <div className="absolute z-10 hidden group-hover:block w-72 p-2 bg-gray-800 text-white text-sm rounded shadow-lg">
-          {content}
-        </div>
-      </div>
-    );
-  };
 
   const tableColumns = [
     {
@@ -202,15 +193,11 @@ const HighlightTable: React.FC = () => {
       header: "Type",
       render: (value: string, highlight: HighlightTableData) =>
         highlight.showType ? (
-          <div className="font-medium">{formatHighlightType(value)}</div>
+          // 🔧 FIX 2: guard value in case it's undefined
+          <div className="font-medium">{formatHighlightType(value ?? "-")}</div>
         ) : (
           ""
         ),
-    },
-    {
-      key: "value",
-      header: "Value",
-      render: (value: string) => value,
     },
     {
       // TBD: Fix after highlight corresponds to correct highlight type ID
@@ -219,7 +206,6 @@ const HighlightTable: React.FC = () => {
       render: (_: string, highlight: HighlightTableData) => {
         console.log("Rendering highlight:", highlight); // 🔥 log the entire highlight object
         const parsed = highlight.parsedHighlight;
-
         if (!parsed) {
           console.log("parsedHighlight is null for this row", highlight.id);
           return <span>-</span>;
@@ -228,156 +214,155 @@ const HighlightTable: React.FC = () => {
         let detailsContent: React.ReactNode = null;
 
         switch (highlight.type) {
-          case "Prescription": {
-            const d = highlight.parsedHighlight?.Prescription;
-            if (!d) {
-              console.log("Prescription data is missing", highlight.id);
-              return <span>-</span>;
-            } 
-            console.log("Prescription data:", d);
+        
+          case "New Problem": {
+            console.log("PROBLEM case hit");
 
+            const f = parsed ?? {};
+            if (!f || Object.keys(f).length === 0) return <span>-</span>;
+            const problemName = f.problem_name ?? "";
+            const diagnosisDate = f.date_of_diagnosis
+              ? String(f.date_of_diagnosis).split("T")[0]
+              : "";
+            const sourceInfo = f.source_of_information ?? "";
+            const remarks = f.problem_remarks ?? "";
             detailsContent = (
               <div className="space-y-1 text-sm">
-                <div>
-                  <b>Drug name:</b> {d.prescriptionListDesc}
-                </div>
-                <div>
-                  <b>Dosage:</b> {d.dosage}
-                </div>
-                <div>
-                  <b>Frequency per day:</b> {d.frequencyPerDay}
-                </div>
-                <div>
-                  <b>Instruction:</b> {d.instruction}
-                </div>
-                <div>
-                  <b>Take after meal:</b> {d.afterMeal ? "Yes" : "No"}
-                </div>
-                <div>
-                  <b>Chronic:</b> {d.isChronic ? "Yes" : "No"}
-                </div>
-                <div>
-                  <b>Start date:</b> {d.startDate.split("T")[0]}
-                </div>
-                <div>
-                  <b>End date:</b> {d.endDate.split("T")[0]}
-                </div>
-                <div>
-                  <b>Remarks:</b> {d.prescriptionRemarks}
-                </div>
+                <div><b>Description:</b> {problemName}</div>
+                {diagnosisDate && <div><b>Date of diagnosis:</b> {diagnosisDate}</div>}
+                {sourceInfo && <div><b>Source of information:</b> {sourceInfo}</div>}
+                <div><b>Remarks:</b> {remarks || "-"}</div>
+              </div>
+            );
+            console.log("Final detailsContent:", detailsContent)
+            break;
+          }
+          
+          
+          case "New Allergy": {
+            // Fields for allergy live under `additional_fields`
+            // Remarks live OUTSIDE, on the root object as `source_remarks`
+
+            
+            const f = (parsed as any)?.additional_fields ?? (parsed as any) ?? {};
+
+            const allergyType = f.allergy_type ?? "-";
+            const reactionType = f.allergy_reaction_type ?? "-";
+            const remarks = highlight.sourceRemarks ?? "-"; 
+            
+            detailsContent = (
+              <div className="space-y-1 text-sm">
+                <div><b>Allergy:</b> {allergyType}</div>
+                <div><b>Reaction:</b> {reactionType}</div>
+                <div><b>Remarks:</b> {remarks}</div>
               </div>
             );
             break;
           }
-          case "Allergy": {
-            const d = highlight.parsedHighlight?.Allergy;
-            if (!d) {
-              console.log("Allergy data is missing", highlight.id);
-              return <span>-</span>;
-            }
-            console.log("Allergy data:", d);
+
+
+          case "New Medication": {
+            // Same nesting safety
+            const f = (parsed as any)?.additional_fields ?? (parsed as any) ?? {};
+            const remarks = highlight.sourceRemarks ?? "-"; 
+
+            const name = f.prescription_name ?? "-";
+            const dosage = f.dosage ?? "-";
+            const instruction = f.instruction ?? "-";
+
+            // Format "1900" -> "19:00"
+            const administerTimeRaw = f.administer_time ? String(f.administer_time) : "";
+            const administerTime =
+              administerTimeRaw && administerTimeRaw.length >= 3
+                ? `${administerTimeRaw.slice(0, 2)}:${administerTimeRaw.slice(2)}`
+                : administerTimeRaw || "-";
+
+            const startDate = f.start_date ? String(f.start_date).split("T")[0] : "-";
+            const endDate = f.end_date ? String(f.end_date).split("T")[0] : "-";
 
             detailsContent = (
               <div className="space-y-1 text-sm">
-                <div>
-                  <b>Allergy:</b> {d.allergyListDesc}
-                </div>
-                <div>
-                  <b>Reaction:</b> {d.allergyReaction}
-                </div>
-                <div>
-                  <b>Remarks:</b> {d.allergyRemarks}
-                </div>
+                <div><b>Medication:</b> {name}</div>
+                <div><b>Dosage:</b> {dosage}</div>
+                <div><b>Instruction:</b> {instruction}</div>
+                <div><b>Administer time:</b> {administerTime}</div>
+                <div><b>Start date:</b> {startDate}</div>
+                <div><b>End date:</b> {endDate}</div>
+                <div><b>Remarks:</b> {remarks}</div>
               </div>
             );
             break;
           }
-          case "ActivityExclusion": {
-            const d = highlight.parsedHighlight?.ActivityExclusion;
-            if (!d) {
-              console.log("ActivityExclusion data is missing", highlight.id);
-              return <span>-</span>;
-            }
-            console.log("ActivityExclusion data:", d);
+          case "New Prescription": {
+            // Same nesting safety
+            const f = (parsed as any)?.additional_fields ?? (parsed as any) ?? {};
+            const remarks = highlight.sourceRemarks ?? "-"; 
+
+            const name = f.prescription_name ?? "-";
+            const dosage = f.dosage ?? "-";
+            const frequency= f.frequency_per_day ?? "-";
+            const instruction = f.instruction ?? "-";
+
+            const is_after_meal_int = f.is_after_meal ?? "0"
+            const is_after_meal_bool = is_after_meal_int == 0 ? "No" : "Yes";
+
+            const startDate = f.start_date ? String(f.start_date).split("T")[0] : "-";
+            const endDate = f.end_date ? String(f.end_date).split("T")[0] : "-";
 
             detailsContent = (
               <div className="space-y-1 text-sm">
-                <div>
-                  <b>Activity name:</b> {d.activityTitle}
-                </div>
-                <div>
-                  <b>Activity description:</b> {d.activityDesc}
-                </div>
-                <div>
-                  <b>Start date:</b> {d.startDateTime.split("T")[0]}
-                </div>
-                <div>
-                  <b>End date:</b> {d.endDateTime.split("T")[0]}
-                </div>
-                <div>
-                  <b>Remarks:</b> {d.exclusionRemarks}
-                </div>
+                <div><b>Medication:</b> {name}</div>
+                <div><b>Dosage:</b> {dosage}</div>
+                <div><b>Frequency:</b> {frequency} <b>per day</b></div>
+                <div><b>Instruction:</b> {instruction}</div>
+                <div><b>To be taken after meals:</b> {is_after_meal_bool}</div>
+                <div><b>Start date:</b> {startDate}</div>
+                <div><b>End date:</b> {endDate}</div>
+                <div><b>Remarks:</b> {remarks}</div>
               </div>
             );
             break;
           }
-          case "Vital": {
-            const d = highlight.parsedHighlight?.Vital;
-            if (!d) {
-              console.log("Vital data is missing", highlight.id);
-              return <span>-</span>;
-            }
-            console.log("Vital data:", d);
+          case "Vital Signs Alert": {
+            const f = (parsed as any)?.additional_fields ?? (parsed as any) ?? {};
+            const fields = f.additional_fields ?? {};
+
+            const temperature = f.temperature ?? "-";
+            const systolicBP = f.systolic_bp ?? "-";
+            const diastolicBP = f.diastolic_bp ?? "-";
+            const heartRate = f.heart_rate ?? "-";
+            const spo2 = f.spo2 ?? "-";
+            const bloodSugar = f.blood_sugar_level ?? "-";
+
+            const baseline = f.default_baselines ?? {};
+            const baselineTemp = baseline.temperature ?? "-";
+            const baselineSystolic = baseline.systolic_bp ?? baseline.systolicBP ?? "-";
+            const baselineDiastolic = baseline.diastolic_bp ?? baseline.diastolicBP ?? "-";
+            const baselineHR = baseline.heart_rate ?? baseline.heartRate ?? "-";
+            const baselineSpo2 = baseline.spo2 ?? "-";
+            const baselineBloodSugar = baseline.blood_sugar ?? baseline.bloodSugar ?? "-";
+
+            const remarks = highlight.sourceRemarks ?? "-"; 
 
             detailsContent = (
               <div className="space-y-1 text-sm">
                 <div>
-                  <b>Taken after meal:</b> {d.afterMeal ? "Yes" : "No"}
+                  <b>Temperature (°C):</b> {temperature} (Normal: {baselineTemp})
                 </div>
                 <div>
-                  <b>Temperature (°C):</b> {d.temperature}
+                  <b>BP (mmHg):</b> {systolicBP}/{diastolicBP} (Normal: {baselineSystolic}/{baselineDiastolic})
                 </div>
                 <div>
-                  <b>SystolicBP/DiastolicBP (mmHg):</b> {d.systolicBP}/
-                  {d.diastolicBP}
+                  <b>Heart Rate (bpm):</b> {heartRate} (Normal: {baselineHR})
                 </div>
                 <div>
-                  <b>HeartRate (bpm):</b> {d.heartRate}
+                  <b>SpO₂ (%):</b> {spo2} (Normal: {baselineSpo2})
                 </div>
                 <div>
-                  <b>SpO₂ (%):</b> {d.spO2}
+                  <b>Blood Sugar Level (mmol/L):</b> {bloodSugar} (Normal: {baselineBloodSugar})
                 </div>
                 <div>
-                  <b>Blood sugar level (mmol/L):</b> {d.bloodSugarlevel}
-                </div>
-                <div>
-                  <b>Height (m):</b> {d.height}
-                </div>
-                <div>
-                  <b>Weight (kg):</b> {d.weight}
-                </div>
-              </div>
-            );
-            break;
-          }
-          case "Problem": {
-            const d = highlight.parsedHighlight?.Problem;
-            if (!d) {
-              console.log("Problem data is missing", highlight.id);
-              return <span>-</span>;
-            }
-            console.log("Problem data:", d);
-
-            detailsContent = (
-              <div className="space-y-1 text-sm">
-                <div>
-                  <b>Description:</b> {d.problemLogListDesc}
-                </div>
-                <div>
-                  <b>Remarks:</b> {d.problemLogRemarks}
-                </div>
-                <div>
-                  <b>Author:</b> {d.authorName}
+                  <b>Vital Remarks:</b> {remarks}
                 </div>
               </div>
             );
@@ -389,11 +374,20 @@ const HighlightTable: React.FC = () => {
         }
 
         return (
-          <Tooltip content={detailsContent}>
-            <button className="px-2 py-1 text-sm font-medium text-blue-600 border border-blue-600 rounded hover:bg-blue-50">
-              View Details
-            </button>
-          </Tooltip>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 px-2 text-sm font-medium"
+              >
+                View Details
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-80 p-3">
+              {detailsContent}
+            </PopoverContent>
+          </Popover>
         );
       },
     },
@@ -421,7 +415,9 @@ const HighlightTable: React.FC = () => {
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
                     {highlightTypes.map(({ TypeName }) => (
+                      // 🔧 FIX 3: add key (minimal & safe)
                       <DropdownMenuCheckboxItem
+                        key={TypeName}
                         checked={selectedTypes.includes(TypeName)}
                         onCheckedChange={(checked: boolean) => {
                           if (checked)
@@ -457,7 +453,7 @@ const HighlightTable: React.FC = () => {
                         All
                       </DropdownMenuRadioItem>
                       {mockCaregiverNameList.map(({ id, name }) => (
-                        <DropdownMenuRadioItem value={id.toString()}>
+                        <DropdownMenuRadioItem key={id} value={id.toString()}>
                           {name}
                         </DropdownMenuRadioItem>
                       ))}
