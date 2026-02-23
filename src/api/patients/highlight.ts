@@ -43,19 +43,30 @@ export interface HighlightTableData extends TableRowData {
   showType?: boolean;
 }
 
-interface HighlightType {
-  Value: string;
+export interface HighlightType {
+  TypeName: string;
+  TypeCode: string;
   IsDeleted: string;
-  HighlightTypeID: number;
-  CreatedDateTime: string;
-  UpdatedDateTime: string;
+  IsEnabled: boolean;
+  Description: string;
+  Id: number;
+  CreatedDate: string;
+  ModifiedDate: string;
   CreatedById: string;
   ModifiedById: string;
 }
 
+export interface ViewHighlightTypeList {
+  data: HighlightType[];
+  pageNo: number;
+  pageSize: number;
+  totalRecords: number;
+  totalPages: number;
+}
+ //for consistency with supervisor
 export interface HighlightTypeList {
   id: number;
-  value: string;
+  value: string; // what HighlightTable expects to display + select
 }
 
 export const fetchHighlights = async (): Promise<HighlightTableData[]> => {
@@ -151,13 +162,15 @@ export const fetchHighlights = async (): Promise<HighlightTableData[]> => {
   }
 };
 
-export const fetchHighlightTypes = async (): Promise<HighlightTypeList[]> => {
+export const fetchHighlightTypes = async (): Promise<HighlightType[]> => {
+  console.log("ss")
   const token = retrieveAccessTokenFromCookie();
   if (!token) throw new Error("No token found.");
 
   try {
+    console.log("ssdfsdf7854s")
     const res = await highlightTypesAPI.get<HighlightType[]>(
-      "?require_auth=true",
+      "",
       {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -166,23 +179,19 @@ export const fetchHighlightTypes = async (): Promise<HighlightTypeList[]> => {
     );
     console.log("GET all Highlight Types", res.data);
 
-    return res.data.reduce<HighlightTypeList[]>((highlights, curr) => {
-      if (curr.IsDeleted === "0") {
-        return highlights.concat({
-          id: curr.HighlightTypeID,
-          value: curr.Value,
-        });
-      }
-
-      return highlights;
-    }, []);
+    return res.data;
   } catch (error) {
     console.error("GET all highlight types", error);
     throw error;
   }
 };
 
-export const addHighlightType = async (value: string) => {
+export const addHighlightType = async (payload: {
+  TypeName: string;
+  TypeCode: string;
+  Description: string;
+  IsEnabled: boolean;
+}) => {
   const token = retrieveAccessTokenFromCookie();
   if (!token) throw new Error("No token found.");
 
@@ -190,17 +199,18 @@ export const addHighlightType = async (value: string) => {
     const res = await createHighlightTypesAPI.post(
       "",
       {
-        Value: value,
-        IsDeleted: "0",
+        TypeName: payload.TypeName,
+        TypeCode: payload.TypeCode,
+        Description: payload.Description,
+        IsEnabled: payload.IsEnabled,
+        IsDeleted: "0", // or "0" depending on what backend expects
       },
       {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       }
     );
-    console.log("POST add highlight type", res.data);
 
+    console.log("POST add highlight type", res.data);
     return res.data;
   } catch (error) {
     console.error("POST add highlight type", error);
@@ -208,7 +218,13 @@ export const addHighlightType = async (value: string) => {
   }
 };
 
-export const updateHighlightType = async (id: number, value: string) => {
+export const updateHighlightType = async (id: number, payload: {
+    TypeName: string;
+    TypeCode: string;
+    Description: string;
+    IsEnabled: boolean;
+  }
+) => {
   const token = retrieveAccessTokenFromCookie();
   if (!token) throw new Error("No token found.");
 
@@ -216,8 +232,11 @@ export const updateHighlightType = async (id: number, value: string) => {
     const res = await updateHighlightTypesAPI.put(
       `/${id}`,
       {
-        Value: value,
-        IsDeleted: "0",
+        TypeName: payload.TypeName,
+        TypeCode: payload.TypeCode,
+        Description: payload.Description,
+        IsEnabled: payload.IsEnabled,
+        IsDeleted: "0", // or "0" depending on what backend expects
       },
       {
         headers: {

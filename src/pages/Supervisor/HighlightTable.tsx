@@ -24,7 +24,7 @@ import {
   fetchHighlights,
   fetchHighlightTypes,
   HighlightTableData,
-  HighlightTypeList,
+  HighlightType,
 } from "@/api/patients/highlight";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
@@ -32,7 +32,7 @@ import { mockCaregiverNameList } from "@/mocks/mockHighlightTableData";
 
 const HighlightTable: React.FC = () => {
   const [highlights, setHighlights] = useState<HighlightTableData[]>([]);
-  const [highlightTypes, setHighlightTypes] = useState<HighlightTypeList[]>([]);
+  const [highlightTypes, setHighlightTypes] = useState<HighlightType[]>([]);
   const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
   const [selectedCaregiver, setSelectedCaregiver] = useState<string>("All");
   const [searchItem, setSearchItem] = useState("");
@@ -112,7 +112,7 @@ const HighlightTable: React.FC = () => {
     fetchHighlightTypes()
       .then((highlightTypes) => {
         setHighlightTypes(highlightTypes);
-        setSelectedTypes(highlightTypes.map(({ value }) => value));
+        setSelectedTypes(highlightTypes.map(({ TypeName }) => TypeName));
       })
       .catch((error) => console.error(error));
   }, []);
@@ -420,19 +420,19 @@ const HighlightTable: React.FC = () => {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    {highlightTypes.map(({ value }) => (
+                    {highlightTypes.map(({ TypeName }) => (
                       <DropdownMenuCheckboxItem
-                        checked={selectedTypes.includes(value)}
+                        checked={selectedTypes.includes(TypeName)}
                         onCheckedChange={(checked: boolean) => {
                           if (checked)
-                            setSelectedTypes((prev) => [...prev, value]);
+                            setSelectedTypes((prev) => [...prev, TypeName]);
                           else
                             setSelectedTypes((prev) =>
-                              prev.filter((item) => item !== value)
+                              prev.filter((item) => item !== TypeName)
                             );
                         }}
                       >
-                        {formatHighlightType(value)}
+                        {formatHighlightType(TypeName)}
                       </DropdownMenuCheckboxItem>
                     ))}
                   </DropdownMenuContent>

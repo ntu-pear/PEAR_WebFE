@@ -31,7 +31,7 @@ import { toast } from "sonner";
 import AddListItemModal from "@/components/Modal/Add/AddListItemModal";
 import EditListItemModal from "@/components/Modal/Edit/EditListItemModal";
 import DeleteListItemModal from "@/components/Modal/Delete/DeleteListItemModal";
-
+import { useMemo } from "react";
 const ManageLists: React.FC = () => {
   const { activeModal, openModal } = useModal();
 
@@ -41,12 +41,19 @@ const ManageLists: React.FC = () => {
   const debouncedSearch = useDebounce(search, 250);
   const debouncedSelectedType = useDebounce(selectedType, 250);
 
+  type ListItemUpsert = {
+  value: string;
+  typeCode?: string;
+  description?: string;
+  isEnabled?: boolean;
+};
+
   const fetchListItemsData = () => {
     fetchListItems(debouncedSelectedType).then((data) => {
       setListItems(
         data.filter(
           (item) =>
-            !item.isDeleted || item.isDeleted === "0" &&
+            (!item.isDeleted || item.isDeleted === "0") &&
             item.value.toLowerCase().includes(debouncedSearch.toLowerCase())
         )
       );
@@ -57,8 +64,8 @@ const ManageLists: React.FC = () => {
     fetchListItemsData();
   }, [debouncedSelectedType, debouncedSearch]);
 
-  const handleAdd = async (type: string, value: string) => {
-    await addListItem({ type, value })
+  const handleAdd = async (type: string, payload: ListItemUpsert) => {
+    await addListItem({ type, ...payload })
       .then(() => {
         fetchListItemsData();
         toast.success("Successfully added item.");
@@ -66,14 +73,15 @@ const ManageLists: React.FC = () => {
       .catch(() => toast.error("Failed to add item."));
   };
 
-  const handleEdit = async (type: string, id: string, value: string) => {
-    await updateListItem({ type, id, value })
+  const handleEdit = async (type: string, id: string, payload: ListItemUpsert) => {
+    await updateListItem({ type, id, ...payload })
       .then(() => {
         fetchListItemsData();
         toast.success("Successfully updated item.");
       })
       .catch(() => toast.error("Failed to update item."));
   };
+  
 
   const handleDelete = async (type: string, id: string) => {
     await deleteListItem({ type, id })
@@ -84,17 +92,29 @@ const ManageLists: React.FC = () => {
       .catch(() => toast.error("Failed to delete item."));
   };
 
-  const columns = [
+  const columns = useMemo(() => {
+  if (debouncedSelectedType === "Highlight") {
+    return [
+      { key: "value", header: "Name" },
+      { key: "typeCode", header: "Code" },
+      { key: "description", header: "Description" },
+      {
+        key: "isEnabled",
+        header: "Enabled",
+        render: (v: boolean | undefined) => (v ? "Yes" : "No"),
+      },
+    ];
+  }
+
+  return [
     {
       key: "value",
       header: "Value",
       className: "truncate w-full",
-      render: (value: string, _listItem: ListItem) => (
-        <span title={value}>{value}</span>
-      ),
+      render: (value: string) => <span title={value}>{value}</span>,
     },
   ];
-
+}, [debouncedSelectedType]);
   return (
     <div className="flex min-h-screen w-full flex-col container mx-auto px-0 sm:px-4">
       <div className="flex flex-col sm:gap-4 sm:py-4 sm:pl-14">
@@ -171,7 +191,9 @@ const ManageLists: React.FC = () => {
                         type: debouncedSelectedType,
                         listItem: row,
                         onSave: handleEdit,
-                        existingItems: listItems.map(({ value }) => value),
+                        existingItems: listItems
+                          .filter((i) => i.id !== row.id)
+                          .map((i) => i.value),
                       })
                     }
                   >
