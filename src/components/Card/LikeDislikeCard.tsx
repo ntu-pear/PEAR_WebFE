@@ -2,19 +2,17 @@ import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { DataTableServer } from "../Table/DataTable";
 import { PlusCircle } from "lucide-react";
 import { Button } from "../ui/button";
-import { personalPreferenceColumns } from "../Tab/PersonalPreferenceTab";
 import { useModal } from "@/hooks/useModal";
 import { useAuth } from "@/hooks/useAuth";
 import { useViewPatient } from "@/hooks/patient/useViewPatient";
-import { getPatientPersonalPreference, PersonalPreferenceTDServer } from "@/api/patients/personalPreference";
 import { useEffect, useState } from "react";
+import { getPatientPersonalPreference, PersonalPreferenceTDServer } from "@/api/patients/personalPreference";
 
-
-const HobbyCard: React.FC = () => {
+const LikeDislikeCard: React.FC = () => {
   const { currentUser } = useAuth();
   const { openModal } = useModal();
   const { id, patientAllocation } = useViewPatient();
-  const [hobbies, setHobbies] = useState<PersonalPreferenceTDServer>({
+  const [likes, setLikes] = useState<PersonalPreferenceTDServer>({
     personalPreference: [],
     pagination: {
       pageNo: 0,
@@ -23,28 +21,39 @@ const HobbyCard: React.FC = () => {
       totalPages: 0,
     }
   })
+  const personalPreferenceColumns = [
+    { key: "PreferenceName", header: "Preference Name" },
+    { key: "PerferenceRemarks", header: "Remarks" },
+    {
+      key: "IsLike",
+      header: "Like/Dislike",
+      render: (row: string) => {
+        return row === "Y" ? "LIKES" : "DISLIKES";
+      }
+    }
+  ];
 
   const fetchPersonalPreference = async (pageNo: number = 0,
     pageSize: number) => {
-    const response: PersonalPreferenceTDServer = await getPatientPersonalPreference(Number(id), pageNo, pageSize || 10, "Hobby")
-    setHobbies(response)
+    const response: PersonalPreferenceTDServer = await getPatientPersonalPreference(Number(id), pageNo, pageSize || 10, "LikesDislikes")
+    setLikes(response)
   }
 
   useEffect(() => {
-    fetchPersonalPreference(hobbies.pagination.pageNo, hobbies.pagination.pageSize)
-  },[])
-  
+    fetchPersonalPreference(likes.pagination.pageNo, likes.pagination.pageSize)
+  }, [id])
+
   return (
     <>
-      <Card className="my-2">
+      <Card>
         <CardHeader>
           <CardTitle className="text-lg flex items-center justify-between">
-            <span>Hobbies</span>
+            <span>Likes/Dislikes</span>
             {(currentUser?.roleName === "SUPERVISOR" || patientAllocation?.guardianApplicationUserId === currentUser?.userId) && (
               <Button
                 size="sm"
                 className="h-8 w-24 gap-1"
-                onClick={() => openModal("addHobby")}
+                onClick={() => openModal("addLike")}
               >
                 <PlusCircle className="h-4 w-4" />
                 <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
@@ -56,12 +65,13 @@ const HobbyCard: React.FC = () => {
         </CardHeader>
         <CardContent>
           <DataTableServer
-            data={hobbies.personalPreference}
+            data={likes.personalPreference}
+            pagination={likes.pagination}
+            fetchData={fetchPersonalPreference}
             columns={personalPreferenceColumns}
-            pagination={hobbies.pagination}
             viewMore={false}
             hideActionsHeader={currentUser?.roleName !== "SUPERVISOR" && patientAllocation?.guardianApplicationUserId !== currentUser?.userId}
-            fetchData={fetchPersonalPreference}
+          // renderActions={}
           />
         </CardContent>
       </Card>
@@ -69,4 +79,4 @@ const HobbyCard: React.FC = () => {
   );
 };
 
-export default HobbyCard;
+export default LikeDislikeCard;
