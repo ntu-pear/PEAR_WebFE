@@ -1,12 +1,12 @@
 import { TabsContent } from "../ui/tabs";
 import { useModal } from "@/hooks/useModal";
-import AddLikeModal from "../Modal/Add/AddLikeModal";
-import AddDislikeModal from "../Modal/Add/AddDislikeModal";
 import AddHobbyModal from "../Modal/Add/AddHobbyModal";
 import AddHabitModal from "../Modal/Add/AddHabitModal";
 import LikeDislikeCard from "../Card/LikeDislikeCard";
 import HobbyCard from "../Card/HobbyCard";
 import HabitCard from "../Card/HabitCard";
+import AddLikeDislikeModal from "../Modal/Add/AddLikeDislikeModal";
+import DeletePersonalPreference from "../Modal/Delete/DeletePersonalPreferenceModal";
 
 export const personalPreferenceColumns = [
   { key: "PreferenceName", header: "Preference Name"},
@@ -29,13 +29,14 @@ const PersonalPreferenceTab: React.FC = () => {
           <HabitCard />
         </div>
       </TabsContent>
-      {activeModal.name === "addLike" && <AddLikeModal />}
-
-      {activeModal.name === "addDislike" && <AddDislikeModal />}
+      {activeModal.name === "addLikeDislike" && <AddLikeDislikeModal />}
 
       {activeModal.name === "addHobby" && <AddHobbyModal />}
 
       {activeModal.name === "addHabit" && <AddHabitModal />}
+
+      {activeModal.name === "deletePreference" && <DeletePersonalPreference/>}
+
     </>
   );
 };

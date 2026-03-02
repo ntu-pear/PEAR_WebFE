@@ -6,7 +6,7 @@ import { personalPreferenceColumns } from "../Tab/PersonalPreferenceTab";
 import { useModal } from "@/hooks/useModal";
 import { useAuth } from "@/hooks/useAuth";
 import { useViewPatient } from "@/hooks/patient/useViewPatient";
-import { getPatientPersonalPreference, PersonalPreferenceTDServer } from "@/api/patients/personalPreference";
+import { getPatientPersonalPreference, PersonalPreferenceTD, PersonalPreferenceTDServer } from "@/api/patients/personalPreference";
 import { useEffect, useState } from "react";
 
 
@@ -32,8 +32,42 @@ const HobbyCard: React.FC = () => {
 
   useEffect(() => {
     fetchPersonalPreference(hobbies.pagination.pageNo, hobbies.pagination.pageSize)
-  },[])
-  
+  }, [])
+
+  const renderAction = (personalPreference: PersonalPreferenceTD) => {
+    return (
+      (currentUser?.roleName === "SUPERVISOR") && (
+        <div className="flex space-x-2">
+          <Button
+            size="sm"
+            className="mt-3"
+          // onClick={() =>
+          //   openModal("editProblem", {
+          //     problemLog: problemLog,
+          //     refreshData: fetchProblemLog,
+          //   })
+          // }
+          >
+            Edit
+          </Button>
+          <Button
+            variant="destructive"
+            size="sm"
+            className="mt-3"
+            onClick={() =>
+              openModal("deletePreference", {
+                personalPreferenceId: personalPreference.id,
+                refreshData: fetchPersonalPreference,
+              })
+            }
+          >
+            Delete
+          </Button>
+        </div>
+      )
+    )
+  }
+
   return (
     <>
       <Card className="my-2">
@@ -44,7 +78,7 @@ const HobbyCard: React.FC = () => {
               <Button
                 size="sm"
                 className="h-8 w-24 gap-1"
-                onClick={() => openModal("addHobby")}
+                onClick={() => openModal("addHobby", { refreshData: fetchPersonalPreference })}
               >
                 <PlusCircle className="h-4 w-4" />
                 <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
@@ -62,6 +96,7 @@ const HobbyCard: React.FC = () => {
             viewMore={false}
             hideActionsHeader={currentUser?.roleName !== "SUPERVISOR" && patientAllocation?.guardianApplicationUserId !== currentUser?.userId}
             fetchData={fetchPersonalPreference}
+            renderActions={renderAction}
           />
         </CardContent>
       </Card>

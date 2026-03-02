@@ -6,13 +6,14 @@ import { useModal } from "@/hooks/useModal";
 import { useAuth } from "@/hooks/useAuth";
 import { useViewPatient } from "@/hooks/patient/useViewPatient";
 import { useEffect, useState } from "react";
-import { getPatientPersonalPreference, PersonalPreferenceTDServer } from "@/api/patients/personalPreference";
+import { getPatientPersonalPreference, PersonalPreferenceTD, PersonalPreferenceTDServer } from "@/api/patients/personalPreference";
+import { toast } from "sonner";
 
 const LikeDislikeCard: React.FC = () => {
   const { currentUser } = useAuth();
   const { openModal } = useModal();
   const { id, patientAllocation } = useViewPatient();
-  const [likes, setLikes] = useState<PersonalPreferenceTDServer>({
+  const [likesDislikes, setLikesDislikes] = useState<PersonalPreferenceTDServer>({
     personalPreference: [],
     pagination: {
       pageNo: 0,
@@ -23,25 +24,69 @@ const LikeDislikeCard: React.FC = () => {
   })
   const personalPreferenceColumns = [
     { key: "PreferenceName", header: "Preference Name" },
-    { key: "PerferenceRemarks", header: "Remarks" },
     {
       key: "IsLike",
       header: "Like/Dislike",
       render: (row: string) => {
         return row === "Y" ? "LIKES" : "DISLIKES";
       }
-    }
+    },
+    { key: "PerferenceRemarks", header: "Remarks" },
   ];
 
   const fetchPersonalPreference = async (pageNo: number = 0,
     pageSize: number) => {
-    const response: PersonalPreferenceTDServer = await getPatientPersonalPreference(Number(id), pageNo, pageSize || 10, "LikesDislikes")
-    setLikes(response)
+    try {
+      const response: PersonalPreferenceTDServer = await getPatientPersonalPreference(Number(id), pageNo, pageSize || 10, "LikesDislikes")
+      setLikesDislikes(response)
+    } catch (error) {
+      if (error instanceof Error) {
+        toast.error(`Failed to fetch patient Likes/Dislikes. ${error}`)
+      } else {
+        toast.error("Failed to fetch patient Likes/Dislikes.")
+      }
+      console.error("Failed to fetch patient Likes/Dislikes")
+    }
+
   }
 
   useEffect(() => {
-    fetchPersonalPreference(likes.pagination.pageNo, likes.pagination.pageSize)
+    fetchPersonalPreference(likesDislikes.pagination.pageNo, likesDislikes.pagination.pageSize)
   }, [id])
+
+  const renderAction = (personalPreference: PersonalPreferenceTD) => {
+    return (
+      (currentUser?.roleName === "SUPERVISOR") && (
+        <div className="flex space-x-2">
+          <Button
+            size="sm"
+            className="mt-3"
+          // onClick={() =>
+          //   openModal("editProblem", {
+          //     problemLog: problemLog,
+          //     refreshData: fetchProblemLog,
+          //   })
+          // }
+          >
+            Edit
+          </Button>
+          <Button
+            variant="destructive"
+            size="sm"
+            className="mt-3"
+            onClick={() =>
+              openModal("deletePreference", {
+                personalPreferenceId: personalPreference.id,
+                refreshData: fetchPersonalPreference,
+              })
+            }
+          >
+            Delete
+          </Button>
+        </div>
+      )
+    )
+  }
 
   return (
     <>
@@ -53,7 +98,7 @@ const LikeDislikeCard: React.FC = () => {
               <Button
                 size="sm"
                 className="h-8 w-24 gap-1"
-                onClick={() => openModal("addLike")}
+                onClick={() => openModal("addLikeDislike", { refreshData: fetchPersonalPreference })}
               >
                 <PlusCircle className="h-4 w-4" />
                 <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
@@ -65,13 +110,13 @@ const LikeDislikeCard: React.FC = () => {
         </CardHeader>
         <CardContent>
           <DataTableServer
-            data={likes.personalPreference}
-            pagination={likes.pagination}
+            data={likesDislikes.personalPreference}
+            pagination={likesDislikes.pagination}
             fetchData={fetchPersonalPreference}
             columns={personalPreferenceColumns}
             viewMore={false}
             hideActionsHeader={currentUser?.roleName !== "SUPERVISOR" && patientAllocation?.guardianApplicationUserId !== currentUser?.userId}
-          // renderActions={}
+            renderActions={renderAction}
           />
         </CardContent>
       </Card>
