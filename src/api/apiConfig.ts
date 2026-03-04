@@ -51,7 +51,7 @@ export const adhocAPI = axios.create({
 
 // patient
 export const patientsAPI = axios.create({
-  baseURL: `${VITE_PATIENT_SERVICE_URL}/patients`,
+  baseURL: `${VITE_PATIENT_SERVICE_URL}/patients`, 
 });
 
 export const patientGuardianAPI = axios.create({

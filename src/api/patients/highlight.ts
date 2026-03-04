@@ -153,6 +153,7 @@ export const fetchHighlights = async (
         caregiverProfilePicture,
         type: highlight.highlight_type_name,
         value: highlight.HighlightText ?? "",
+        highlightCreatedDate: highlight.CreatedDate ?? "-", // new field
         highlightJSON: JSON.stringify(parsedHighlight),
         parsedHighlight,
         sourceRemarks: highlight.source_remarks ?? "-",

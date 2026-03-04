@@ -34,7 +34,7 @@ import {
   HighlightType,
 } from "@/api/patients/highlight";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-
+import { formatDate } from "@/utils/formatDate";
 import { mockCaregiverNameList } from "@/mocks/mockHighlightTableData";
 
 const HighlightTable: React.FC = () => {
@@ -193,6 +193,18 @@ const HighlightTable: React.FC = () => {
         ) : (
           <div></div>
         ),
+    },
+    {
+      key: "highlightCreatedDate",
+      header: "Created Date",
+      render: (_: string, highlight: HighlightTableData) => {
+        if (!highlight.highlightCreatedDate) return <div>-</div>;
+
+        // Use your existing helper
+        const formattedDate = formatDate(highlight.highlightCreatedDate);
+
+        return <div className="font-medium">{formattedDate}</div>;
+      },
     },
     {
       key: "type",
