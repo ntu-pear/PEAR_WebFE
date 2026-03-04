@@ -31,14 +31,23 @@ import MedicationTable from "@/components/Table/MedicationTable";
 import AddMedicationModal from "@/components/Modal/Add/AddMedicationModal";
 import DeleteMedicationModal from "@/components/Modal/Delete/DeleteMedicationModal";
 import EditMedicationModal from "@/components/Modal/Edit/EditMedicationModal";
+import { useLocation } from "react-router-dom";
 
 const ManageMedication: React.FC = () => {
   const { activeModal, openModal } = useModal();
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+  const patientIdFromURL = queryParams.get("patientId"); // e.g., "1"
 
   // Filters
   const [search, setSearch] = useState<string>("");
   const [tab, setTab] = useState<string>("activePatients");
   const [role, setRole] = useState<string>("allPatients");
+
+  // Dropdown selected patient
+  const [selectedPatientId, setSelectedPatientId] = useState<string | null>(
+    patientIdFromURL
+  );
 
   const debouncedSearch = useDebounce(search, 300);
   const debouncedTab = useDebounce(tab, 300);
@@ -55,6 +64,7 @@ const ManageMedication: React.FC = () => {
         totalPages: 0,
       },
     });
+
   const handleFilter = async (pageNo: number) => {
     try {
       const fetchedPatientTDServer: PatientTableDataServer =
@@ -64,7 +74,6 @@ const ManageMedication: React.FC = () => {
           pageNo
         );
 
-      // Mock caregiverID filtering -> Implement when patient allocation finalized
       const filteredPatientTDList = fetchedPatientTDServer.patients.filter(
         (ptd: PatientTableData) =>
           debouncedRole === "myPatients" && mockCaregiverID !== null
@@ -80,6 +89,7 @@ const ManageMedication: React.FC = () => {
       console.error("Error fetching patients:", error);
     }
   };
+
   useEffect(() => {
     handleFilter(patientTDServer.pagination.pageNo || 0);
   }, [debouncedSearch, debouncedTab, debouncedRole]);
@@ -89,19 +99,25 @@ const ManageMedication: React.FC = () => {
 
   const handleExpandPatient = async (patient: PatientTableData) => {
     const patientId = Number(patient.id);
-
     if (expandedPatientIds.includes(patientId)) {
       setExpandedPatientIds((prevIds) =>
         prevIds.filter((id) => id !== patientId)
       );
-
       return;
     }
-
     setExpandedPatientIds((prevIds) => prevIds.concat(patientId));
   };
 
-  // Patient Table
+  // Auto-expand patient if selected via URL
+  useEffect(() => {
+    if (selectedPatientId) {
+      const id = Number(selectedPatientId);
+      if (!expandedPatientIds.includes(id)) {
+        setExpandedPatientIds((prev) => [...prev, id]);
+      }
+    }
+  }, [selectedPatientId, expandedPatientIds]);
+
   const columns = [
     {
       key: "name",
@@ -151,14 +167,14 @@ const ManageMedication: React.FC = () => {
           <Tabs value={tab} onValueChange={setTab}>
             <div className="flex items-center">
               <TabsList>
-                <TabsTrigger value="activePatients">
-                  Active Patients
-                </TabsTrigger>
+                <TabsTrigger value="activePatients">Active Patients</TabsTrigger>
                 <TabsTrigger value="inactivePatients">
                   Inactive Patients
                 </TabsTrigger>
               </TabsList>
+
               <div className="ml-auto flex items-center gap-2">
+                {/* Role Filter */}
                 <DropdownMenu modal={false}>
                   <DropdownMenuTrigger asChild>
                     <Button variant="outline" size="sm" className="h-8 gap-1">
@@ -182,15 +198,39 @@ const ManageMedication: React.FC = () => {
                     </DropdownMenuRadioGroup>
                   </DropdownMenuContent>
                 </DropdownMenu>
+
+                {/* Patient Dropdown */}
+                <DropdownMenu modal={false}>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm" className="h-8 gap-1">
+                      <ListFilter className="h-4 w-4" />
+                      <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+                        Patient
+                      </span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuRadioGroup
+                      value={selectedPatientId || "all"}
+                      onValueChange={setSelectedPatientId}
+                    >
+                      <DropdownMenuRadioItem value="all">All Patients</DropdownMenuRadioItem>
+                      {patientTDServer.patients.map((p) => (
+                        <DropdownMenuRadioItem key={p.id} value={p.id.toString()}>
+                          {p.name}
+                        </DropdownMenuRadioItem>
+                      ))}
+                    </DropdownMenuRadioGroup>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             </div>
+
             <TabsContent value="activePatients">
               <Card>
                 <CardHeader>
                   <CardTitle>Manage Patient Medication</CardTitle>
-                  <CardDescription>
-                    Manage medications for patients
-                  </CardDescription>
+                  <CardDescription>Manage medications for patients</CardDescription>
                 </CardHeader>
                 <CardContent className="overflow-x-auto">
                   <DataTableServer
@@ -208,13 +248,12 @@ const ManageMedication: React.FC = () => {
                 </CardContent>
               </Card>
             </TabsContent>
+
             <TabsContent value="inactivePatients">
               <Card>
                 <CardHeader>
                   <CardTitle>Manage Patient Medication</CardTitle>
-                  <CardDescription>
-                    Manage medications for patients
-                  </CardDescription>
+                  <CardDescription>Manage medications for patients</CardDescription>
                 </CardHeader>
                 <CardContent className="overflow-x-auto">
                   <DataTableServer
@@ -228,6 +267,7 @@ const ManageMedication: React.FC = () => {
                     expandable={true}
                     renderExpandedContent={renderExpandedContent}
                     onExpand={handleExpandPatient}
+              
                   />
                 </CardContent>
               </Card>

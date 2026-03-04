@@ -34,8 +34,9 @@ import {
   HighlightType,
 } from "@/api/patients/highlight";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { formatDate } from "@/utils/formatDate";
+import { formatDateWithWeekday } from "@/utils/formatDate";
 import { mockCaregiverNameList } from "@/mocks/mockHighlightTableData";
+import { useNavigate } from "react-router";
 
 const HighlightTable: React.FC = () => {
   const [allHighlights, setAllHighlights] = useState<HighlightTableData[]>([]);
@@ -47,6 +48,7 @@ const HighlightTable: React.FC = () => {
   const [searchItem, setSearchItem] = useState("");
   const [showMyPatientsOnly, setShowMyPatientsOnly] = useState(true);
   const debouncedSearch = useDebounce(searchItem, 300);
+  const navigate = useNavigate();
 
   const handleInputChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => setSearchItem(e.target.value),
@@ -95,11 +97,10 @@ const HighlightTable: React.FC = () => {
     try {
       // Fetch both all patients and my patients highlights at once
       const [all, my] = await Promise.all([
-        fetchHighlights(true),  // showAllPatients = true
-        fetchHighlights(false), // showAllPatients = false
+        fetchHighlights(true),  
+        fetchHighlights(false), 
       ]);
 
-      // Store separately in state
       setAllHighlights(all);
       setMyHighlights(my);
 
@@ -196,12 +197,12 @@ const HighlightTable: React.FC = () => {
     },
     {
       key: "highlightCreatedDate",
-      header: "Created Date",
+      header: "Starting Date",
       render: (_: string, highlight: HighlightTableData) => {
         if (!highlight.highlightCreatedDate) return <div>-</div>;
 
         // Use your existing helper
-        const formattedDate = formatDate(highlight.highlightCreatedDate);
+        const formattedDate = formatDateWithWeekday(highlight.highlightCreatedDate);
 
         return <div className="font-medium">{formattedDate}</div>;
       },
@@ -295,14 +296,52 @@ const HighlightTable: React.FC = () => {
         }
 
         return (
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="outline" size="sm" className="h-8 px-2 text-sm font-medium">
-                View Details
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-80 p-3">{detailsContent}</PopoverContent>
-          </Popover>
+          <div className="flex items-center gap-2">
+            {/* View Details popover button */}
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="sm" className="h-8 px-2 text-sm font-medium">
+                  View Details
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-80 p-3">{detailsContent}</PopoverContent>
+            </Popover>
+
+            {/* Arrow button to go to highlight source */}
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 w-8 p-0"
+              onClick={() => {
+                // Map highlight type to tab name
+                if (highlight.type === "New Medication") {
+                  navigate(`/supervisor/manage-medication?`);
+                  return;
+                }
+                const tabMap: Record<string, string> = {
+                  "Vital Signs Alert": "vital",
+                  "New Allergy": "allergy",
+                  "New Problem": "problem-log",
+                  "New Prescription": "prescription",
+                  // add more if there are new types
+                };
+
+              const tab = tabMap[highlight.type] || "information"; 
+              navigate(`/supervisor/view-patient/${highlight.patientId}?tab=${tab}`);
+            }}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-4 w-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+              </svg>
+            </Button>
+          </div>
         );
       },
     },
