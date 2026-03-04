@@ -9,6 +9,8 @@ import {
 import { mockCaregiverNameList } from "@/mocks/mockHighlightTableData";
 import { retrieveAccessTokenFromCookie } from "../users/auth";
 import { fetchPatientInfo } from "./patients";
+import { getUserDetails } from "../users/user";
+import { patientsAPI } from "../apiConfig";
 
 interface Highlight {
   PatientId: number;
@@ -83,85 +85,76 @@ export interface HighlightTypeList {
   value: string; // what HighlightTable expects to display + select
 }
 
-export const fetchHighlights = async (): Promise<HighlightTableData[]> => {
+export const fetchHighlights = async (
+  showAllPatients: boolean = false
+): Promise<HighlightTableData[]> => {
   const token = retrieveAccessTokenFromCookie();
   if (!token) throw new Error("No token found.");
 
   try {
-    const res = await highlightsAPI.get<Highlight[]>("?require_auth=true", {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    const currentUser = await getUserDetails();
 
-    console.log("GET all Highlights", res.data);
+    // 1️⃣ Fetch all highlights
+    const highlightRes = await highlightsAPI.get<Highlight[]>(
+      "?require_auth=true",
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
 
+    let filteredHighlights = highlightRes.data;
+
+    // 2️⃣ Only filter if supervisor and toggle is false
+    if (currentUser.roleName?.toUpperCase() === "SUPERVISOR" && !showAllPatients) {
+      const patientRes = await patientsAPI.get(
+        `/by-supervisor/${currentUser.id}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      const supervisorPatientIds = new Set(
+        (patientRes.data?.data ?? []).map((p: any) => Number(p.id))
+      );
+
+      filteredHighlights = filteredHighlights.filter((h) =>
+        supervisorPatientIds.has(Number(h.PatientId))
+      );
+    }
+
+    // 3️⃣ Map to HighlightTableData (same as your current logic)
     const highlights: HighlightTableData[] = [];
-    const grouped: {
-      [id: number]: Omit<HighlightTableData, "id" | "type" | "value">;
-    } = {};
 
-    for (const highlight of res.data) {
+    const uniquePatientIds = [...new Set(filteredHighlights.map((h) => h.PatientId))];
+    const patientInfoMap: Record<number, { name: string; nric: string; profilePicture: string }> = {};
+
+    await Promise.all(
+      uniquePatientIds.map(async (patientId) => {
+        const info = await fetchPatientInfo(patientId);
+        patientInfoMap[patientId] = info;
+      })
+    );
+
+    for (const highlight of filteredHighlights) {
       const patientId = highlight.PatientId;
-      //console.log("Processing highlight id", highlight.Id, "HighlightJSON:", highlight.HighlightJSON);
+      const patientInfo = patientInfoMap[patientId];
 
+      const { id: caregiverId, name: caregiverName, nric: caregiverNric, profilePicture: caregiverProfilePicture } =
+        mockCaregiverNameList[patientId % mockCaregiverNameList.length];
 
-      if (!grouped[patientId]) {
-        const {
-          name: patientName,
-          nric: patientNric,
-          profilePicture: patientProfilePicture,
-        } = await fetchPatientInfo(patientId);
+      const parsedHighlight = highlight.additional_fields ?? null;
+      if (!parsedHighlight) continue;
 
-        // TBD: Replace when caregiver data is available
-        const {
-          id: caregiverId,
-          name: caregiverName,
-          nric: caregiverNric,
-          profilePicture: caregiverProfilePicture,
-        } = mockCaregiverNameList[patientId % mockCaregiverNameList.length];
-
-        grouped[patientId] = {
-          patientId,
-          patientName,
-          patientNric,
-          patientProfilePicture,
-          caregiverId,
-          caregiverName,
-          caregiverNric,
-          caregiverProfilePicture,
-        };
-      }
-
-      /*
-      let parsedHighlight = null;
-      try {
-        parsedHighlight = JSON.parse(highlight.HighlightJSON);
-        console.log("Parsed highlight for id", highlight.Id, parsedHighlight);
-      } catch (e) {
-        console.error("Failed to parse HighlightJSON for id", highlight.Id, e);
-      }
-        */
-      const parsedHighlight = highlight.additional_fields ?? null; 
-
-      if (!parsedHighlight) {
-        console.warn("Skipping highlight with null parsedHighlight", highlight.Id);
-        continue; 
-      }
-      
-      // Push only valid highlights
       highlights.push({
         id: `${patientId}-${highlight.highlight_type_code}-${highlight.Id}`,
-        patientId: grouped[patientId].patientId,
-        patientName: grouped[patientId].patientName,
-        patientNric: grouped[patientId].patientNric,
-        patientProfilePicture: grouped[patientId].patientProfilePicture,
-        caregiverId: grouped[patientId].caregiverId,
-        caregiverName: grouped[patientId].caregiverName,
-        caregiverNric: grouped[patientId].caregiverNric,
-        caregiverProfilePicture: grouped[patientId].caregiverProfilePicture,
+        patientId,
+        patientName: patientInfo?.name ?? "Unknown",
+        patientNric: patientInfo?.nric ?? "-",
+        patientProfilePicture: patientInfo?.profilePicture ?? "",
+        caregiverId,
+        caregiverName,
+        caregiverNric,
+        caregiverProfilePicture,
         type: highlight.highlight_type_name,
         value: highlight.HighlightText ?? "",
         highlightJSON: JSON.stringify(parsedHighlight),
-        parsedHighlight: parsedHighlight, 
+        parsedHighlight,
         sourceRemarks: highlight.source_remarks ?? "-",
         showPatientDetails: false,
         showCaregiverDetails: false,
@@ -170,12 +163,11 @@ export const fetchHighlights = async (): Promise<HighlightTableData[]> => {
     }
 
     return highlights.sort((a, b) => {
-      if (a.patientName !== b.patientName)
-        return a.patientName.localeCompare(b.patientName);
+      if (a.patientName !== b.patientName) return a.patientName.localeCompare(b.patientName);
       return a.type.localeCompare(b.type);
     });
   } catch (error) {
-    console.error("GET all Highlights", error);
+    console.error("fetchHighlights error:", error);
     throw error;
   }
 };
