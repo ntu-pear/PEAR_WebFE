@@ -205,6 +205,13 @@ const HighlightTable: React.FC = () => {
         ),
     },
     {
+      key: "highlightText", 
+      header: "Highlight Text",
+      render: (_: string, highlight: HighlightTableData) => (
+        <div className="font-medium">{highlight.value ?? highlight.highlightText ?? "-"}</div>
+      ),
+    },
+    {
       key: "details",
       header: "Details",
       render: (_: string, highlight: HighlightTableData) => {
