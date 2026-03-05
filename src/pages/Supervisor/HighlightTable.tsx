@@ -1,13 +1,20 @@
-import React, { useCallback, useEffect, useState, ReactNode, PropsWithChildren } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { ListFilter } from "lucide-react";
-import {
+import { 
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+
 import { Button } from "@/components/ui/button";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { ChevronDown } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -27,16 +34,21 @@ import {
   HighlightType,
 } from "@/api/patients/highlight";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-
+import { formatDateWithWeekday } from "@/utils/formatDate";
 import { mockCaregiverNameList } from "@/mocks/mockHighlightTableData";
+import { useNavigate } from "react-router";
 
 const HighlightTable: React.FC = () => {
+  const [allHighlights, setAllHighlights] = useState<HighlightTableData[]>([]);
+  const [myHighlights, setMyHighlights] = useState<HighlightTableData[]>([]);
   const [highlights, setHighlights] = useState<HighlightTableData[]>([]);
   const [highlightTypes, setHighlightTypes] = useState<HighlightType[]>([]);
   const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
   const [selectedCaregiver, setSelectedCaregiver] = useState<string>("All");
   const [searchItem, setSearchItem] = useState("");
+  const [showMyPatientsOnly, setShowMyPatientsOnly] = useState(true);
   const debouncedSearch = useDebounce(searchItem, 300);
+  const navigate = useNavigate();
 
   const handleInputChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => setSearchItem(e.target.value),
@@ -46,66 +58,51 @@ const HighlightTable: React.FC = () => {
   const flattenHighlights = (
     highlights: HighlightTableData[]
   ): HighlightTableData[] => {
-    let count = 0;
-
-    while (count < highlights.length) {
-      if (
-        count % 10 === 0 ||
-        highlights[count].patientId !== highlights[count - 1].patientId
-      ) {
-        highlights[count].showPatientDetails = true;
-        highlights[count].showCaregiverDetails = true;
-        highlights[count].showType = true;
-      } else if (highlights[count].type !== highlights[count - 1].type) {
-        highlights[count].showType = true;
-      }
-
-      count++;
-    }
-
-    return highlights;
+    return highlights.map((highlight, index) => {
+      return {
+        ...highlight,
+        showPatientDetails: true,
+        showCaregiverDetails: true,
+        showType:
+          index === 0 || highlight.type !== highlights[index - 1]?.type,
+      };
+    });
   };
 
-  const handleFilter = async () => {
+  // Filter highlights based on search, type, caregiver
+  const applyFilters = (data: HighlightTableData[]) => {
+    let filtered = data.filter(({ patientName }) =>
+      patientName.toLowerCase().includes(searchItem.toLowerCase())
+    );
+
+    filtered = filtered.filter(({ type }) =>
+      selectedTypes.includes(type)
+    );
+
+    filtered = filtered.filter(({ caregiverId }) =>
+      selectedCaregiver === "All" || caregiverId.toString() === selectedCaregiver
+    );
+
+    return flattenHighlights(filtered);
+  };
+
+  // Fetch all highlights once and split into "all" and "my patients"
+  const initializeHighlights = async () => {
     try {
-      const highlights = await fetchHighlights();
-      console.log("All Fetched highlights array:", highlights); 
+      // Fetch both all patients and my patients highlights at once
+      const [all, my] = await Promise.all([
+        fetchHighlights(true),  
+        fetchHighlights(false), 
+      ]);
 
+      setAllHighlights(all);
+      setMyHighlights(my);
 
-      const parsedHighlights = highlights.map((h) => ({
-      ...h,
-      parsedHighlight: h.highlightJSON? JSON.parse(h.highlightJSON): null,
-      }));
-      console.log("After parsing:", parsedHighlights); 
-
-      let filteredHighlights = parsedHighlights.filter(({ patientName }) =>
-        patientName.toLowerCase().includes(searchItem.toLowerCase())
-      );
-
-      filteredHighlights = filteredHighlights.filter(({ type }) =>
-        selectedTypes.includes(type)
-      );
-
-      filteredHighlights = filteredHighlights.filter(
-        ({ caregiverId }) =>
-          selectedCaregiver === "All" ||
-          caregiverId.toString() === selectedCaregiver
-      );
-      console.log("After filtering:", filteredHighlights); 
-
-      setHighlights(flattenHighlights(filteredHighlights)); 
+      // Show default table based on toggle
+      setHighlights(showMyPatientsOnly ? applyFilters(my) : applyFilters(all));
     } catch (error) {
       console.error("Error fetching highlights:", error);
     }
-  };
-
-  const formatHighlightType = (highlightType: string) => {
-    const spaced = highlightType.replace(/([a-z])([A-Z])/g, "$1 $2");
-
-    return spaced
-      .split(" ")
-      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(" ");
   };
 
   useEffect(() => {
@@ -114,28 +111,26 @@ const HighlightTable: React.FC = () => {
         setHighlightTypes(highlightTypes);
         setSelectedTypes(highlightTypes.map(({ TypeName }) => TypeName));
       })
-      .catch((error) => console.error(error));
+      .catch(console.error);
+
+    initializeHighlights();
   }, []);
 
+  // Re-apply filters whenever toggle, search, type, or caregiver changes
   useEffect(() => {
-    handleFilter();
-  }, [selectedTypes, selectedCaregiver, debouncedSearch]);
+    const data = showMyPatientsOnly ? myHighlights : allHighlights;
+    setHighlights(applyFilters(data));
+  }, [showMyPatientsOnly, selectedTypes, selectedCaregiver, debouncedSearch, myHighlights, allHighlights]);
 
-  // Tooltip component for hover Highlights
-  interface TooltipProps {
-    content: ReactNode;
-  }
+  // Format highlight type for display
+  const formatHighlightType = (highlightType?: string | null) => {
+    if (!highlightType || typeof highlightType !== "string") return "-";
+    const spaced = highlightType.replace(/([a-z])([A-Z])/g, "$1 $2");
 
-  // Add PropsWithChildren to allow children
-  const Tooltip: React.FC<PropsWithChildren<TooltipProps>> = ({ children, content }) => {
-    return (
-      <div className="relative group inline-block">
-        {children}
-        <div className="absolute z-10 hidden group-hover:block w-72 p-2 bg-gray-800 text-white text-sm rounded shadow-lg">
-          {content}
-        </div>
-      </div>
-    );
+    return spaced
+      .split(" ")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
   };
 
   const tableColumns = [
@@ -188,9 +183,6 @@ const HighlightTable: React.FC = () => {
             </Avatar>
             <div>
               <div className="font-medium">{value}</div>
-              <div className="text-sm text-muted-foreground">
-                {highlight.caregiverNric}
-              </div>
             </div>
           </div>
         ) : (
@@ -198,294 +190,235 @@ const HighlightTable: React.FC = () => {
         ),
     },
     {
+      key: "highlightCreatedDate",
+      header: "Starting Date",
+      render: (_: string, highlight: HighlightTableData) => {
+        if (!highlight.highlightCreatedDate) return <div>-</div>;
+
+        // Use your existing helper
+        const formattedDate = formatDateWithWeekday(highlight.highlightCreatedDate);
+
+        return <div className="font-medium">{formattedDate}</div>;
+      },
+    },
+    {
       key: "type",
       header: "Type",
       render: (value: string, highlight: HighlightTableData) =>
         highlight.showType ? (
-          <div className="font-medium">{formatHighlightType(value)}</div>
+          <div className="font-medium">{formatHighlightType(value ?? "-")}</div>
         ) : (
           ""
         ),
     },
     {
-      key: "value",
-      header: "Value",
-      render: (value: string) => value,
+      key: "highlightText", 
+      header: "Highlight Text",
+      render: (_: string, highlight: HighlightTableData) => (
+        <div className="font-medium">{highlight.value ?? highlight.highlightText ?? "-"}</div>
+      ),
     },
     {
-      // TBD: Fix after highlight corresponds to correct highlight type ID
       key: "details",
       header: "Details",
       render: (_: string, highlight: HighlightTableData) => {
-        console.log("Rendering highlight:", highlight); // 🔥 log the entire highlight object
         const parsed = highlight.parsedHighlight;
+        if (!parsed) return <span>-</span>;
 
-        if (!parsed) {
-          console.log("parsedHighlight is null for this row", highlight.id);
-          return <span>-</span>;
-        }
-        
         let detailsContent: React.ReactNode = null;
 
         switch (highlight.type) {
-          case "Prescription": {
-            const d = highlight.parsedHighlight?.Prescription;
-            if (!d) {
-              console.log("Prescription data is missing", highlight.id);
-              return <span>-</span>;
-            } 
-            console.log("Prescription data:", d);
-
+          case "New Problem": {
+            const f = parsed ?? {};
+            if (!f || Object.keys(f).length === 0) return <span>-</span>;
             detailsContent = (
               <div className="space-y-1 text-sm">
-                <div>
-                  <b>Drug name:</b> {d.prescriptionListDesc}
-                </div>
-                <div>
-                  <b>Dosage:</b> {d.dosage}
-                </div>
-                <div>
-                  <b>Frequency per day:</b> {d.frequencyPerDay}
-                </div>
-                <div>
-                  <b>Instruction:</b> {d.instruction}
-                </div>
-                <div>
-                  <b>Take after meal:</b> {d.afterMeal ? "Yes" : "No"}
-                </div>
-                <div>
-                  <b>Chronic:</b> {d.isChronic ? "Yes" : "No"}
-                </div>
-                <div>
-                  <b>Start date:</b> {d.startDate.split("T")[0]}
-                </div>
-                <div>
-                  <b>End date:</b> {d.endDate.split("T")[0]}
-                </div>
-                <div>
-                  <b>Remarks:</b> {d.prescriptionRemarks}
-                </div>
+                <div><b>Description:</b> {f.problem_name ?? ""}</div>
+                {f.date_of_diagnosis && <div><b>Date of diagnosis:</b> {String(f.date_of_diagnosis).split("T")[0]}</div>}
+                {f.source_of_information && <div><b>Source:</b> {f.source_of_information}</div>}
+                <div><b>Remarks:</b> {f.problem_remarks ?? "-"}</div>
               </div>
             );
             break;
           }
-          case "Allergy": {
-            const d = highlight.parsedHighlight?.Allergy;
-            if (!d) {
-              console.log("Allergy data is missing", highlight.id);
-              return <span>-</span>;
-            }
-            console.log("Allergy data:", d);
-
+          case "New Allergy": {
+            const f = (parsed as any)?.additional_fields ?? (parsed as any) ?? {};
             detailsContent = (
               <div className="space-y-1 text-sm">
-                <div>
-                  <b>Allergy:</b> {d.allergyListDesc}
-                </div>
-                <div>
-                  <b>Reaction:</b> {d.allergyReaction}
-                </div>
-                <div>
-                  <b>Remarks:</b> {d.allergyRemarks}
-                </div>
+                <div><b>Allergy:</b> {f.allergy_type ?? "-"}</div>
+                <div><b>Reaction:</b> {f.allergy_reaction_type ?? "-"}</div>
+                <div><b>Remarks:</b> {highlight.sourceRemarks ?? "-"}</div>
               </div>
             );
             break;
           }
-          case "ActivityExclusion": {
-            const d = highlight.parsedHighlight?.ActivityExclusion;
-            if (!d) {
-              console.log("ActivityExclusion data is missing", highlight.id);
-              return <span>-</span>;
-            }
-            console.log("ActivityExclusion data:", d);
-
+          case "New Medication":
+          case "New Prescription": {
+            const f = (parsed as any)?.additional_fields ?? (parsed as any) ?? {};
+            const startDate = f.start_date ? String(f.start_date).split("T")[0] : "-";
+            const endDate = f.end_date ? String(f.end_date).split("T")[0] : "-";
             detailsContent = (
               <div className="space-y-1 text-sm">
-                <div>
-                  <b>Activity name:</b> {d.activityTitle}
-                </div>
-                <div>
-                  <b>Activity description:</b> {d.activityDesc}
-                </div>
-                <div>
-                  <b>Start date:</b> {d.startDateTime.split("T")[0]}
-                </div>
-                <div>
-                  <b>End date:</b> {d.endDateTime.split("T")[0]}
-                </div>
-                <div>
-                  <b>Remarks:</b> {d.exclusionRemarks}
-                </div>
+                <div><b>Name:</b> {f.prescription_name ?? f.prescription_name ?? "-"}</div>
+                <div><b>Dosage:</b> {f.dosage ?? "-"}</div>
+                {highlight.type === "New Prescription" && <div><b>Frequency:</b> {f.frequency_per_day ?? "-"} per day</div>}
+                <div><b>Instruction:</b> {f.instruction ?? "-"}</div>
+                <div><b>Start:</b> {startDate}</div>
+                <div><b>End:</b> {endDate}</div>
+                <div><b>Remarks:</b> {highlight.sourceRemarks ?? "-"}</div>
               </div>
             );
             break;
           }
-          case "Vital": {
-            const d = highlight.parsedHighlight?.Vital;
-            if (!d) {
-              console.log("Vital data is missing", highlight.id);
-              return <span>-</span>;
-            }
-            console.log("Vital data:", d);
-
+          case "Vital Signs Alert": {
+            const f = (parsed as any)?.additional_fields ?? (parsed as any) ?? {};
+            const baseline = f.default_baselines ?? {};
             detailsContent = (
               <div className="space-y-1 text-sm">
-                <div>
-                  <b>Taken after meal:</b> {d.afterMeal ? "Yes" : "No"}
-                </div>
-                <div>
-                  <b>Temperature (°C):</b> {d.temperature}
-                </div>
-                <div>
-                  <b>SystolicBP/DiastolicBP (mmHg):</b> {d.systolicBP}/
-                  {d.diastolicBP}
-                </div>
-                <div>
-                  <b>HeartRate (bpm):</b> {d.heartRate}
-                </div>
-                <div>
-                  <b>SpO₂ (%):</b> {d.spO2}
-                </div>
-                <div>
-                  <b>Blood sugar level (mmol/L):</b> {d.bloodSugarlevel}
-                </div>
-                <div>
-                  <b>Height (m):</b> {d.height}
-                </div>
-                <div>
-                  <b>Weight (kg):</b> {d.weight}
-                </div>
+                <div><b>Temp (°C):</b> {f.temperature ?? "-"} (Normal: {baseline.temperature ?? "-"})</div>
+                <div><b>BP:</b> {f.systolic_bp ?? "-"} / {f.diastolic_bp ?? "-"} (Normal: {baseline.systolic_bp ?? "-"} / {baseline.diastolic_bp ?? "-"})</div>
+                <div><b>HR:</b> {f.heart_rate ?? "-"} (Normal: {baseline.heart_rate ?? "-"})</div>
+                <div><b>SpO₂:</b> {f.spo2 ?? "-"} (Normal: {baseline.spo2 ?? "-"})</div>
+                <div><b>Blood Sugar:</b> {f.blood_sugar_level ?? "-"} (Normal: {baseline.blood_sugar ?? "-"})</div>
+                <div><b>Remarks:</b> {highlight.sourceRemarks ?? "-"}</div>
               </div>
             );
             break;
           }
-          case "Problem": {
-            const d = highlight.parsedHighlight?.Problem;
-            if (!d) {
-              console.log("Problem data is missing", highlight.id);
-              return <span>-</span>;
-            }
-            console.log("Problem data:", d);
-
-            detailsContent = (
-              <div className="space-y-1 text-sm">
-                <div>
-                  <b>Description:</b> {d.problemLogListDesc}
-                </div>
-                <div>
-                  <b>Remarks:</b> {d.problemLogRemarks}
-                </div>
-                <div>
-                  <b>Author:</b> {d.authorName}
-                </div>
-              </div>
-            );
-            break;
-          }
-
           default:
             return <span>-</span>;
         }
 
         return (
-          <Tooltip content={detailsContent}>
-            <button className="px-2 py-1 text-sm font-medium text-blue-600 border border-blue-600 rounded hover:bg-blue-50">
-              View Details
-            </button>
-          </Tooltip>
+          <div className="flex items-center gap-2">
+            {/* View Details popover button */}
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="sm" className="h-8 px-2 text-sm font-medium">
+                  View Details
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-80 p-3">{detailsContent}</PopoverContent>
+            </Popover>
+
+            {/* Arrow button to go to highlight source */}
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 w-8 p-0"
+              onClick={() => {
+                // Map highlight type to tab name
+                if (highlight.type === "New Medication") {
+                  navigate(`/supervisor/manage-medication?`);
+                  return;
+                }
+                const tabMap: Record<string, string> = {
+                  "Vital Signs Alert": "vital",
+                  "New Allergy": "allergy",
+                  "New Problem": "problem-log",
+                  "New Prescription": "prescription",
+                  // add more if there are new types
+                };
+
+              const tab = tabMap[highlight.type] || "information"; 
+              navigate(`/supervisor/view-patient/${highlight.patientId}?tab=${tab}`);
+            }}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-4 w-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+              </svg>
+            </Button>
+          </div>
         );
       },
     },
   ];
 
   return (
-    <>
-      <div className="flex min-h-screen w-full flex-col container mx-auto px-0 sm:px-4">
-        <div className="flex flex-col sm:gap-4 sm:py-6">
-          <div className="flex">
-            <Searchbar
-              searchItem={searchItem}
-              onSearchChange={handleInputChange}
-            />
-            <div className="flex items-center gap-2 ml-auto">
-              <div className="flex">
-                <DropdownMenu modal={false}>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="sm" className="h-8 gap-1">
-                      <ListFilter className="h-4 w-4" />
-                      <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                        Category
-                      </span>
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    {highlightTypes.map(({ TypeName }) => (
-                      <DropdownMenuCheckboxItem
-                        checked={selectedTypes.includes(TypeName)}
-                        onCheckedChange={(checked: boolean) => {
-                          if (checked)
-                            setSelectedTypes((prev) => [...prev, TypeName]);
-                          else
-                            setSelectedTypes((prev) =>
-                              prev.filter((item) => item !== TypeName)
-                            );
-                        }}
-                      >
-                        {formatHighlightType(TypeName)}
-                      </DropdownMenuCheckboxItem>
-                    ))}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-              <div className="flex">
-                <DropdownMenu modal={false}>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="sm" className="h-8 gap-1">
-                      <ListFilter className="h-4 w-4" />
-                      <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                        Caregiver
-                      </span>
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuRadioGroup
-                      value={selectedCaregiver}
-                      onValueChange={setSelectedCaregiver}
-                    >
-                      <DropdownMenuRadioItem value="All">
-                        All
-                      </DropdownMenuRadioItem>
-                      {mockCaregiverNameList.map(({ id, name }) => (
-                        <DropdownMenuRadioItem value={id.toString()}>
-                          {name}
-                        </DropdownMenuRadioItem>
-                      ))}
-                    </DropdownMenuRadioGroup>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-            </div>
+    <div className="flex min-h-screen w-full flex-col container mx-auto px-0 sm:px-4">
+      <div className="flex flex-col sm:gap-4 sm:py-6">
+        <div className="flex">
+          <Searchbar searchItem={searchItem} onSearchChange={handleInputChange} />
+          <div className="flex items-center gap-2 ml-auto">
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 flex items-center gap-1"
+              onClick={() => setShowMyPatientsOnly(prev => !prev)}
+            >
+              {showMyPatientsOnly ? "My Patients" : "All Patients"}
+              <ChevronDown className="w-4 h-4 transition-transform duration-200"
+                          style={{ transform: showMyPatientsOnly ? "rotate(0deg)" : "rotate(180deg)" }} />
+            </Button>
+
+            <DropdownMenu modal={false}>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="h-8 gap-1">
+                  <ListFilter className="h-4 w-4" />
+                  <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">Category</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {highlightTypes.map(({ TypeName }) => (
+                  <DropdownMenuCheckboxItem
+                    key={TypeName}
+                    checked={selectedTypes.includes(TypeName)}
+                    onCheckedChange={(checked: boolean) => {
+                      if (checked) setSelectedTypes((prev) => [...prev, TypeName]);
+                      else setSelectedTypes((prev) => prev.filter((item) => item !== TypeName));
+                    }}
+                  >
+                    {formatHighlightType(TypeName)}
+                  </DropdownMenuCheckboxItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            <DropdownMenu modal={false}>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="h-8 gap-1">
+                  <ListFilter className="h-4 w-4" />
+                  <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">Caregiver</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuRadioGroup
+                  value={selectedCaregiver}
+                  onValueChange={setSelectedCaregiver}
+                >
+                  <DropdownMenuRadioItem value="All">All</DropdownMenuRadioItem>
+                  {mockCaregiverNameList.map(({ id, name }) => (
+                    <DropdownMenuRadioItem key={id} value={id.toString()}>{name}</DropdownMenuRadioItem>
+                  ))}
+                </DropdownMenuRadioGroup>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
-          <Card className="ml-4 sm:ml-6 px-4 py-2">
-            <CardHeader>
-              <CardTitle>Patient Highlights</CardTitle>
-              <CardDescription>
-                View recent changes to patient's information.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <DataTableClient
-                data={highlights}
-                columns={tableColumns}
-                viewMore={false}
-                hideActionsHeader={true}
-              />
-            </CardContent>
-          </Card>
         </div>
+
+        <Card className="ml-4 sm:ml-6 px-4 py-2">
+          <CardHeader>
+            <CardTitle>Patient Highlights</CardTitle>
+            <CardDescription>View recent changes to patient's information.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <DataTableClient
+              data={highlights}
+              columns={tableColumns}
+              viewMore={false}
+              hideActionsHeader={true}
+            />
+          </CardContent>
+        </Card>
       </div>
-    </>
+    </div>
   );
 };
 
