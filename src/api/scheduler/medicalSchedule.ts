@@ -1,3 +1,4 @@
+// src/api/scheduler/medicalSchedule.ts
 import { schedulerMedicationAPI } from "@/api/apiConfig";
 import { fetchPatientInfo } from "@/api/patients/patients";
 import { retrieveAccessTokenFromCookie } from "@/api/users/auth";
@@ -14,7 +15,7 @@ interface MedicationScheduleData {
   AssignedTo?: string;
 }
 
-// Frontend table-friendly type with caregiver name
+// Frontend table-friendly type
 export interface MedicationScheduleItem {
   patientId: number;
   patientName: string;
@@ -24,9 +25,9 @@ export interface MedicationScheduleItem {
   status: string;
   actualAdministerTime?: string;
   administeredBy?: string;
+  assignedTo?: string; // Caregiver
   id: string; // unique id for DataTableClient
-  profilePicture?: string;
-  caregiverName?: string;
+  profilePicture?: string; 
 }
 
 const authHeader = () => {
@@ -46,9 +47,9 @@ export const listMedicationSchedules = async (): Promise<MedicationScheduleItem[
 
     const mapped = await Promise.all(
       rawData.map(async (item, index) => {
-        // fetch patient info
         let patientName = "Unknown";
         let profilePicture = "";
+
         try {
           const patient = await fetchPatientInfo(item.PatientID);
           patientName = patient.name;
@@ -60,19 +61,20 @@ export const listMedicationSchedules = async (): Promise<MedicationScheduleItem[
         return {
           patientId: item.PatientID,
           patientName,
+          profilePicture,
           prescriptionName: item.PrescriptionName,
           administerDate: item.AdministerDate,
           administerTime: item.AdministerTime,
           status: item.Status,
           actualAdministerTime: item.ActualAdministerTime,
           administeredBy: item.AdministeredBy,
-          id: `${item.PatientID}-${item.PrescriptionName}-${index}`,
-          profilePicture,
-          caregiverName: item.AssignedTo || "UNASSIGNED",
+          assignedTo: item.AssignedTo,
+          id: `${item.PatientID}-${item.PrescriptionName}-${index}`, // unique ID
         };
       })
     );
 
+    // Optional: sort by patient name
     return mapped.sort((a, b) => a.patientName.localeCompare(b.patientName));
   } catch (error) {
     console.error("Failed to fetch medication schedules:", error);
@@ -80,7 +82,7 @@ export const listMedicationSchedules = async (): Promise<MedicationScheduleItem[
   }
 };
 
-// ✅ Update a medication schedule (mark as administered)
+// ✅ Update a medication schedule (mark as administered or edited)
 export const updateMedicationSchedule = async (item: MedicationScheduleItem) => {
   try {
     const payload = {
@@ -88,8 +90,8 @@ export const updateMedicationSchedule = async (item: MedicationScheduleItem) => 
       PrescriptionName: item.prescriptionName,
       AdministerDate: item.administerDate,
       AdministerTime: item.administerTime,
-      Status: "1",
-      AdministeredBy: item.administeredBy || "me",
+      Status: item.status,
+      AdministeredBy: item.administeredBy || "",
     };
 
     const res = await schedulerMedicationAPI.put<MedicationScheduleData>("/update/", payload, {

@@ -1,4 +1,3 @@
-// src/pages/Supervisor/ViewMedicationSchedule.tsx
 import React, { useEffect, useState } from "react";
 import {
   Card,
@@ -58,6 +57,12 @@ const ViewMedicationSchedule: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [searchQuery, setSearchQuery] = useState<string>("");
 
+  // Edit modal state
+  const [editItem, setEditItem] = useState<MedicationScheduleItem | null>(null);
+  const [editAdministerTime, setEditAdministerTime] = useState("");
+  const [editStatus, setEditStatus] = useState<"0" | "1">("0");
+  const [editAdministeredBy, setEditAdministeredBy] = useState("");
+
   const today = getFormattedDate();
 
   const fetchData = async () => {
@@ -86,7 +91,27 @@ const ViewMedicationSchedule: React.FC = () => {
   };
 
   const handleEdit = (item: MedicationScheduleItem) => {
-    console.log("Editing row:", item);
+    setEditItem(item);
+    setEditAdministerTime(String(item.administerTime));
+    setEditStatus(item.status as "0" | "1");
+    setEditAdministeredBy(item.administeredBy || "");
+  };
+
+  const handleEditConfirm = async () => {
+    if (!editItem) return;
+
+    try {
+      await updateMedicationSchedule({
+        ...editItem,
+        administerTime: editAdministerTime,
+        status: editStatus,
+        administeredBy: editAdministeredBy,
+      });
+      fetchData();
+      setEditItem(null);
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   const filteredData = data.filter((item) =>
@@ -100,15 +125,9 @@ const ViewMedicationSchedule: React.FC = () => {
       render: (_value, item) => (
         <div className="flex items-center gap-3">
           <Avatar>
-            <AvatarImage
-              src={item.profilePicture}
-              alt={item.patientName}
-            />
+            <AvatarImage src={item.profilePicture} alt={item.patientName} />
             <AvatarFallback>
-              {item.patientName
-                ?.split(" ")
-                .map((n) => n[0])
-                .join("")}
+              {item.patientName?.split(" ").map((n) => n[0]).join("")}
             </AvatarFallback>
           </Avatar>
           <div>
@@ -138,9 +157,9 @@ const ViewMedicationSchedule: React.FC = () => {
       render: (_value, item) => formatTimeHHMM(String(item.administerTime)),
     },
     {
-      key: "caregiverName",
+      key: "assignedTo",
       header: "Caregiver",
-      render: (value, item) => value || item.caregiverName || "-",
+      render: (_value, item) => item.administeredBy || item.assignedTo || "-",
     },
     {
       key: "actualAdministerTime",
@@ -223,6 +242,64 @@ const ViewMedicationSchedule: React.FC = () => {
                 )}
                 loading={loading}
               />
+
+              {/* Edit Modal */}
+              <AlertDialog
+                open={!!editItem}
+                onOpenChange={(open) => !open && setEditItem(null)}
+              >
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Edit Medication</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Edit details for <strong>{editItem?.patientName}</strong>
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <div className="flex flex-col gap-2 py-2">
+                    <label>
+                      Allocated Time (0000):
+                      <input
+                        type="text"
+                        value={editAdministerTime}
+                        onChange={(e) => setEditAdministerTime(e.target.value)}
+                        className="border p-1 rounded w-full"
+                      />
+                    </label>
+                    <label>
+                      Status:
+                      <select
+                        value={editStatus}
+                        onChange={(e) =>
+                          setEditStatus(e.target.value as "0" | "1")
+                        }
+                        className="border p-1 rounded w-full"
+                      >
+                        <option value="0">Not Taken</option>
+                        <option value="1">Taken</option>
+                      </select>
+                    </label>
+                    <label>
+                      Administered By:
+                      <input
+                        type="text"
+                        value={editAdministeredBy}
+                        onChange={(e) =>
+                          setEditAdministeredBy(e.target.value)
+                        }
+                        className="border p-1 rounded w-full"
+                      />
+                    </label>
+                  </div>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel onClick={() => setEditItem(null)}>
+                      Cancel
+                    </AlertDialogCancel>
+                    <AlertDialogAction onClick={handleEditConfirm}>
+                      Save
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </CardContent>
           </Card>
         </main>
