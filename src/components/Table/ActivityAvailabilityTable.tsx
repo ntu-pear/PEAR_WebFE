@@ -2,8 +2,7 @@ import { useMemo } from "react";
 import type { CentreActivityAvailabilityRow } from "@/hooks/activities/useCentreActivityAvailabilities";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import dayjs from "dayjs";
-import { formatDateWithWeekday, formatDate } from "@/utils/formatDate";
+import { formatDate } from "@/utils/formatDate";
 
 type Props = {
   data: CentreActivityAvailabilityRow[];
