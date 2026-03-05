@@ -58,21 +58,15 @@ const HighlightTable: React.FC = () => {
   const flattenHighlights = (
     highlights: HighlightTableData[]
   ): HighlightTableData[] => {
-    let count = 0;
-    while (count < highlights.length) {
-      if (
-        count === 0 ||
-        highlights[count].patientId !== highlights[count - 1].patientId
-      ) {
-        highlights[count].showPatientDetails = true;
-        highlights[count].showCaregiverDetails = true;
-        highlights[count].showType = true;
-      } else if (highlights[count].type !== highlights[count - 1].type) {
-        highlights[count].showType = true;
-      }
-      count++;
-    }
-    return highlights;
+    return highlights.map((highlight, index) => {
+      return {
+        ...highlight,
+        showPatientDetails: true,
+        showCaregiverDetails: true,
+        showType:
+          index === 0 || highlight.type !== highlights[index - 1]?.type,
+      };
+    });
   };
 
   // Filter highlights based on search, type, caregiver
