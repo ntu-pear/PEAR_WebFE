@@ -6,7 +6,7 @@ import { personalPreferenceColumns } from "../Tab/PersonalPreferenceTab";
 import { useModal } from "@/hooks/useModal";
 import { useAuth } from "@/hooks/useAuth";
 import { useViewPatient } from "@/hooks/patient/useViewPatient";
-import { getPatientPersonalPreference, PersonalPreferenceTD, PersonalPreferenceTDServer } from "@/api/patients/personalPreference";
+import { EditPersonalPreference, getPatientPersonalPreference, PersonalPreferenceTD, PersonalPreferenceTDServer } from "@/api/patients/personalPreference";
 import { useEffect, useState } from "react";
 
 
@@ -41,12 +41,20 @@ const HobbyCard: React.FC = () => {
           <Button
             size="sm"
             className="mt-3"
-          // onClick={() =>
-          //   openModal("editProblem", {
-          //     problemLog: problemLog,
-          //     refreshData: fetchProblemLog,
-          //   })
-          // }
+            onClick={() => {
+              const editPreference: EditPersonalPreference = {
+                PatientID: Number(id),
+                id: Number(personalPreference.id),
+                PersonalPreferenceListID: Number(personalPreference.PersonalPreferenceListID),
+                PreferenceName: personalPreference.PreferenceName,
+                IsLike: personalPreference.IsLike,
+                PreferenceRemarks: personalPreference.PerferenceRemarks
+              }
+              openModal("editHobby", {
+                editPreference: editPreference,
+                refreshData: fetchPersonalPreference,
+              })
+            }}
           >
             Edit
           </Button>

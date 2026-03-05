@@ -7,9 +7,12 @@ import HobbyCard from "../Card/HobbyCard";
 import HabitCard from "../Card/HabitCard";
 import AddLikeDislikeModal from "../Modal/Add/AddLikeDislikeModal";
 import DeletePersonalPreference from "../Modal/Delete/DeletePersonalPreferenceModal";
+import EditLikeDislike from "../Modal/Edit/EditLikeDislikeModal";
+import EditHobby from "../Modal/Edit/EditHobbyModal";
+import EditHabit from "../Modal/Edit/EditHabitModal";
 
 export const personalPreferenceColumns = [
-  { key: "PreferenceName", header: "Preference Name"},
+  { key: "PreferenceName", header: "Preference Name" },
   { key: "PerferenceRemarks", header: "Remarks" },
 ];
 
@@ -35,8 +38,13 @@ const PersonalPreferenceTab: React.FC = () => {
 
       {activeModal.name === "addHabit" && <AddHabitModal />}
 
-      {activeModal.name === "deletePreference" && <DeletePersonalPreference/>}
+      {activeModal.name === "deletePreference" && <DeletePersonalPreference />}
 
+      {activeModal.name === "editLikeDislike" && <EditLikeDislike />}
+
+      {activeModal.name === "editHobby" && <EditHobby/>}
+
+      {activeModal.name==="editHabit" && <EditHabit/>}
     </>
   );
 };

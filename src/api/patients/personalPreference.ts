@@ -29,6 +29,7 @@ export interface PersonalPreferenceTD extends TableRowData {
     PreferenceName: string
     PerferenceRemarks: string
     IsLike: string | null
+    PersonalPreferenceListID: number
 }
 
 export interface PersonalPreferenceTDServer {
@@ -53,6 +54,22 @@ export interface Preference {
 }
 
 export interface AddPersonalPreference {
+    PatientID: number,
+    PersonalPreferenceListID: number,
+    IsLike: string | null,
+    PreferenceRemarks: string
+}
+
+export interface EditPersonalPreference {
+    id: number,
+    PatientID: number,
+    PersonalPreferenceListID: number,
+    PreferenceName: string,
+    IsLike: string | null,
+    PreferenceRemarks: string
+}
+
+export interface EditPersonalPreferenceRequest {
     PatientID: number,
     PersonalPreferenceListID: number,
     IsLike: string | null,
@@ -102,6 +119,7 @@ export const getPatientPersonalPreference = async (
 export const convertToPersonalPreferenceTD = (ViewPersonalPreferenceList: PersonalPreference[]): PersonalPreferenceTD[] => {
     return ViewPersonalPreferenceList.map((preference: PersonalPreference) => ({
         id: preference.Id,
+        PersonalPreferenceListID: preference.PersonalPreferenceListID,
         PreferenceName: preference.preference_name,
         PerferenceRemarks: preference.PreferenceRemarks,
         IsLike: preference.IsLike
@@ -160,6 +178,23 @@ export const RemovePersonalPreference = async (id: number) => {
         })
     } catch (error) {
         console.error(`DELETE Personal Preference`, error);
+        throw error;
+    }
+}
+
+export const UpdatePersonalPreference = async (id:number, editPreference: EditPersonalPreferenceRequest) => {
+    const token = retrieveAccessTokenFromCookie()
+    if (!token) {
+        throw new Error("No token found.");
+    }
+    try {
+        await personalPreferenceAPI.put(`/update/${id}`,editPreference,{
+            headers:{
+                Authorization:`Bearer ${token}`
+            }
+        })
+    } catch (error) {
+        console.error(`PUT Personal Preference`, error);
         throw error;
     }
 }
