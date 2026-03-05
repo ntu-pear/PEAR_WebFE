@@ -40,6 +40,19 @@ const getFormattedDate = () => {
   });
 };
 
+// Format time in 0000 style
+const formatTimeHHMM = (time: string | undefined) => {
+  if (!time) return "-";
+  if (time.includes("T")) {
+    // ISO string
+    const date = new Date(time);
+    return `${String(date.getHours()).padStart(2, "0")}${String(
+      date.getMinutes()
+    ).padStart(2, "0")}`;
+  }
+  return time; // assume already in 0000
+};
+
 const ViewMedicationSchedule: React.FC = () => {
   const [data, setData] = useState<MedicationScheduleItem[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -47,7 +60,6 @@ const ViewMedicationSchedule: React.FC = () => {
 
   const today = getFormattedDate();
 
-  // Fetch medication schedules
   const fetchData = async () => {
     try {
       setLoading(true);
@@ -64,20 +76,17 @@ const ViewMedicationSchedule: React.FC = () => {
     fetchData();
   }, []);
 
-  // Handle Administer button
   const handleAdministered = async (item: MedicationScheduleItem) => {
     try {
       await updateMedicationSchedule(item);
-      fetchData(); // refresh table
+      fetchData();
     } catch (error) {
       console.error(error);
     }
   };
 
-  // Handle Edit button
   const handleEdit = (item: MedicationScheduleItem) => {
     console.log("Editing row:", item);
-    // Add your edit logic here
   };
 
   const filteredData = data.filter((item) =>
@@ -92,7 +101,7 @@ const ViewMedicationSchedule: React.FC = () => {
         <div className="flex items-center gap-3">
           <Avatar>
             <AvatarImage
-              src={`https://api.dicebear.com/6.x/initials/svg?seed=${item.patientName}`}
+              src={item.profilePicture}
               alt={item.patientName}
             />
             <AvatarFallback>
@@ -126,19 +135,17 @@ const ViewMedicationSchedule: React.FC = () => {
     {
       key: "administerTime",
       header: "Allocated Time",
-      render: (value) => value || <span>No Allocated Time</span>,
+      render: (_value, item) => formatTimeHHMM(String(item.administerTime)),
     },
-   {
+    {
+      key: "caregiverName",
+      header: "Caregiver",
+      render: (value, item) => value || item.caregiverName || "-",
+    },
+    {
       key: "actualAdministerTime",
       header: "Actual Administered Time",
-      render: (_value, item) => {
-        if (!item.actualAdministerTime) return <span>-</span>;
-        const date = new Date(item.actualAdministerTime);
-        // format HHmm
-        const hh = date.getHours().toString().padStart(2, "0");
-        const mm = date.getMinutes().toString().padStart(2, "0");
-        return `${hh}${mm}`;
-      },
+      render: (_value, item) => formatTimeHHMM(String(item.actualAdministerTime)),
     },
     {
       key: "administeredBy",
@@ -214,7 +221,7 @@ const ViewMedicationSchedule: React.FC = () => {
                     </AlertDialog>
                   </div>
                 )}
-                loading={loading} // ✅ pass loading to DataTableClient
+                loading={loading}
               />
             </CardContent>
           </Card>

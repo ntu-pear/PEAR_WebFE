@@ -11,9 +11,10 @@ interface MedicationScheduleData {
   Status: string; // "0" or "1"
   ActualAdministerTime?: string;
   AdministeredBy?: string;
+  AssignedTo?: string;
 }
 
-// Frontend table-friendly type
+// Frontend table-friendly type with caregiver name
 export interface MedicationScheduleItem {
   patientId: number;
   patientName: string;
@@ -24,6 +25,8 @@ export interface MedicationScheduleItem {
   actualAdministerTime?: string;
   administeredBy?: string;
   id: string; // unique id for DataTableClient
+  profilePicture?: string;
+  caregiverName?: string;
 }
 
 const authHeader = () => {
@@ -41,13 +44,15 @@ export const listMedicationSchedules = async (): Promise<MedicationScheduleItem[
 
     const rawData = res.data;
 
-    // Map PatientID to PatientName
     const mapped = await Promise.all(
       rawData.map(async (item, index) => {
+        // fetch patient info
         let patientName = "Unknown";
+        let profilePicture = "";
         try {
           const patient = await fetchPatientInfo(item.PatientID);
           patientName = patient.name;
+          profilePicture = patient.profilePicture || "";
         } catch (err) {
           console.warn(`Failed to fetch patient ${item.PatientID}`, err);
         }
@@ -61,12 +66,13 @@ export const listMedicationSchedules = async (): Promise<MedicationScheduleItem[
           status: item.Status,
           actualAdministerTime: item.ActualAdministerTime,
           administeredBy: item.AdministeredBy,
-          id: `${item.PatientID}-${item.PrescriptionName}-${index}`, // unique ID
+          id: `${item.PatientID}-${item.PrescriptionName}-${index}`,
+          profilePicture,
+          caregiverName: item.AssignedTo || "UNASSIGNED",
         };
       })
     );
 
-    // Optional: sort by patient name
     return mapped.sort((a, b) => a.patientName.localeCompare(b.patientName));
   } catch (error) {
     console.error("Failed to fetch medication schedules:", error);
@@ -82,8 +88,8 @@ export const updateMedicationSchedule = async (item: MedicationScheduleItem) => 
       PrescriptionName: item.prescriptionName,
       AdministerDate: item.administerDate,
       AdministerTime: item.administerTime,
-      Status: "1", // mark as administered
-      AdministeredBy: "me", // replace with current user if needed
+      Status: "1",
+      AdministeredBy: item.administeredBy || "me",
     };
 
     const res = await schedulerMedicationAPI.put<MedicationScheduleData>("/update/", payload, {
