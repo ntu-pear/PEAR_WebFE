@@ -36,7 +36,7 @@ const HabitCard: React.FC = () => {
 
   const renderAction = (personalPreference: PersonalPreferenceTD) => {
     return (
-      (currentUser?.roleName === "SUPERVISOR") && (
+      (currentUser?.roleName === "SUPERVISOR" || patientAllocation?.guardianApplicationUserId === currentUser?.userId) && (
         <div className="flex space-x-2">
           <Button
             size="sm"
@@ -82,7 +82,7 @@ const HabitCard: React.FC = () => {
         <CardHeader>
           <CardTitle className="text-lg flex items-center justify-between">
             <span>Habits</span>
-            {(currentUser?.roleName === "SUPERVISOR" || patientAllocation?.guardianApplicationUserId
+            {(currentUser?.roleName === "SUPERVISOR" || patientAllocation?.guardianApplicationUserId === currentUser?.userId
             ) && (
                 <Button
                   size="sm"
