@@ -1,4 +1,5 @@
-import React from "react"; 
+// src/pages/Supervisor/ViewMedicationSchedule.tsx
+import React, { useEffect, useState } from "react";
 import {
   Card,
   CardContent,
@@ -6,12 +7,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { DataTableClient } from "@/components/Table/DataTable";
+import { DataTableClient, DataTableColumns } from "@/components/Table/DataTable";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import {
-  mockPatientMedicationList,
-  PatientMedicationData,
-} from "@/mocks/mockPatientMedication";
 import Searchbar from "@/components/Searchbar";
 import { Button } from "@/components/ui/button";
 import { Pencil, Pill } from "lucide-react";
@@ -27,7 +24,13 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 
-// Function to get today's date
+import {
+  listMedicationSchedules,
+  updateMedicationSchedule,
+  MedicationScheduleItem,
+} from "@/api/scheduler/medicalSchedule";
+
+// Format today's date
 const getFormattedDate = () => {
   const today = new Date();
   return today.toLocaleDateString("en-GB", {
@@ -37,104 +40,121 @@ const getFormattedDate = () => {
   });
 };
 
-const handleEdit = (patient: PatientMedicationData) => {
-  console.log("Editing row:", patient);
-};
-
-const handleAdministered = (item: PatientMedicationData) => {
-  console.log("Administered clicked:", item);
-};
-
 const ViewMedicationSchedule: React.FC = () => {
-  const handleInputChange = () => {};
+  const [data, setData] = useState<MedicationScheduleItem[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [searchQuery, setSearchQuery] = useState<string>("");
+
   const today = getFormattedDate();
 
-  const columns = [
+  // Fetch medication schedules
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      const schedules = await listMedicationSchedules();
+      setData(schedules);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  // Handle Administer button
+  const handleAdministered = async (item: MedicationScheduleItem) => {
+    try {
+      await updateMedicationSchedule(item);
+      fetchData(); // refresh table
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  // Handle Edit button
+  const handleEdit = (item: MedicationScheduleItem) => {
+    console.log("Editing row:", item);
+    // Add your edit logic here
+  };
+
+  const filteredData = data.filter((item) =>
+    item.prescriptionName.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const columns: DataTableColumns<MedicationScheduleItem> = [
     {
-      key: "patient",
+      key: "patientName",
       header: "Patient",
-      className: "min-w-[150px]", // Ensures enough width for name + avatar
-      render: (value: string, patient: PatientMedicationData) => (
+      render: (_value, item) => (
         <div className="flex items-center gap-3">
           <Avatar>
             <AvatarImage
-              src={`https://api.dicebear.com/6.x/initials/svg?seed=${patient.patientName}`}
-              alt={patient.patientName}
+              src={`https://api.dicebear.com/6.x/initials/svg?seed=${item.patientName}`}
+              alt={item.patientName}
             />
             <AvatarFallback>
-              {patient.patientName
-                .split(" ")
+              {item.patientName
+                ?.split(" ")
                 .map((n) => n[0])
                 .join("")}
             </AvatarFallback>
           </Avatar>
           <div>
-            <div className="font-medium">{value}</div>
-            <div className="text-sm text-primary">{patient.patientName}</div>
+            <div className="font-medium">{item.patientName}</div>
           </div>
         </div>
       ),
     },
     {
-      key: "prescription.prescriptionName",
+      key: "prescriptionName",
       header: "Prescription Name",
-      className: "min-w-[150px]",
-      render: (value: any, item: PatientMedicationData) =>
-        item.prescription && value ? value : <span>-</span>,
+      render: (value) => value || <span>No Prescription</span>,
     },
     {
-      key: "prescription.status",
+      key: "status",
       header: "Status",
-      className: "min-w-[60px]",
-      render: (_: any, item: PatientMedicationData) =>
-        item.prescription ? (
-          item.prescription.status ? (
-            <span className="text-green-600 font-medium">Taken</span>
-          ) : (
-            <span className="text-red-600 font-medium">Not Taken</span>
-          )
+      render: (_value, item) =>
+        item.status === "1" ? (
+          <span className="text-green-600 font-medium">Taken</span>
         ) : (
-          <span>-</span>
+          <span className="text-red-600 font-medium">Not Taken</span>
         ),
     },
     {
-      key: "prescription.allocatedTime",
+      key: "administerTime",
       header: "Allocated Time",
-      className: "min-w-[140px]",
-      render: (value: any, item: PatientMedicationData) =>
-        item.prescription && value ? value : <span>-</span>,
+      render: (value) => value || <span>No Allocated Time</span>,
     },
-    {
-      key: "prescription.administredBy",
-      header: "Assigned Caregiver",
-      className: "min-w-[140px]",
-      render: (value: any, item: PatientMedicationData) =>
-        item.prescription && value ? value : <span>-</span>,
-    },
-    {
-      key: "prescription.allocatedTime",
+   {
+      key: "actualAdministerTime",
       header: "Actual Administered Time",
-      className: "min-w-[140px]",
-      render: (value: any, item: PatientMedicationData) =>
-        item.prescription && value ? value : <span>-</span>,
+      render: (_value, item) => {
+        if (!item.actualAdministerTime) return <span>-</span>;
+        const date = new Date(item.actualAdministerTime);
+        // format HHmm
+        const hh = date.getHours().toString().padStart(2, "0");
+        const mm = date.getMinutes().toString().padStart(2, "0");
+        return `${hh}${mm}`;
+      },
     },
     {
-      key: "prescription.administredBy",
-      header: "Administred By",
-      className: "min-w-[140px]",
-      render: (value: any, item: PatientMedicationData) =>
-        item.prescription && value ? value : <span>-</span>,
+      key: "administeredBy",
+      header: "Administered By",
+      render: (value) => value || <span>-</span>,
     },
   ];
-
-  const filteredData = mockPatientMedicationList.filter(
-    (patient) => patient.prescription
-  );
 
   return (
     <div className="flex min-h-screen w-full flex-col container mx-auto px-0 sm:px-4">
       <div className="flex flex-col sm:gap-4 sm:py-4 sm:pl-14">
-        <Searchbar onSearchChange={handleInputChange} />
+        <Searchbar
+          onSearchChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+            setSearchQuery(e.target.value)
+          }
+        />
         <main className="flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
           <Card>
             <CardHeader>
@@ -148,28 +168,27 @@ const ViewMedicationSchedule: React.FC = () => {
                 data={filteredData}
                 columns={columns}
                 viewMore={false}
-                // Actions column handled here
-                renderActions={(item) => (
+                renderActions={(item: MedicationScheduleItem) => (
                   <div className="flex gap-2">
-                    {/* EDIT BUTTON */}
                     <Button
                       size="sm"
                       variant="outline"
                       className="flex items-center gap-1"
                       onClick={() => handleEdit(item)}
                     >
-                      <Pencil className="h-4 w-4" /> Edit
+                      <Pencil className="h-4 w-4" />
+                      Edit
                     </Button>
 
-                    {/* ADMINISTER BUTTON WITH CONFIRMATION */}
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
                         <Button
                           size="sm"
                           className="flex items-center gap-1 bg-green-600 hover:bg-green-700 text-white"
-                          disabled={!!item.prescription?.status}
+                          disabled={item.status === "1"}
                         >
-                          <Pill className="h-4 w-4" /> Administer
+                          <Pill className="h-4 w-4" />
+                          Administer
                         </Button>
                       </AlertDialogTrigger>
 
@@ -179,11 +198,10 @@ const ViewMedicationSchedule: React.FC = () => {
                             Confirm Medication Administration
                           </AlertDialogTitle>
                           <AlertDialogDescription>
-                            Are you sure you want to mark this medication as administered for{" "}
-                            <strong>{item.patientName}</strong>?
+                            Are you sure you want to mark this medication as
+                            administered for <strong>{item.patientName}</strong>?
                           </AlertDialogDescription>
                         </AlertDialogHeader>
-
                         <AlertDialogFooter>
                           <AlertDialogCancel>Cancel</AlertDialogCancel>
                           <AlertDialogAction
@@ -196,6 +214,7 @@ const ViewMedicationSchedule: React.FC = () => {
                     </AlertDialog>
                   </div>
                 )}
+                loading={loading} // ✅ pass loading to DataTableClient
               />
             </CardContent>
           </Card>

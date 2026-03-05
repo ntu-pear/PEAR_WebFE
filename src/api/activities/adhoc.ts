@@ -1,4 +1,4 @@
-import { adhocAPI } from "@/api/apiConfig";
+import { adhocAPI } from "@/api/apiConfig"; 
 import { listActivities } from "./activities";
 import { fetchPatientInfo } from "@/api/patients/patients";
 import { retrieveAccessTokenFromCookie } from "@/api/users/auth";

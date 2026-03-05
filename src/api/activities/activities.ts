@@ -1,4 +1,4 @@
-import { activitiesAPI } from "@/api/apiConfig";
+import { activitiesAPI } from "@/api/apiConfig"; 
 import { retrieveAccessTokenFromCookie } from "@/api/users/auth";
 
 export interface Activity {
