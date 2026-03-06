@@ -223,10 +223,10 @@ const ManageApprovalRequest: React.FC = () => {
                             renderActions={(item) =>
                                 item.status === "Pending" && (
                                     <div className="flex gap-2">
-                                        <Button variant="approve" size="sm" className="h-8 gap-1">
+                                        <Button variant="default" size="sm" className="h-8 gap-1">
                                             Approve
                                         </Button>
-                                        <Button variant="reject" size="sm" className="h-8 gap-1">
+                                        <Button variant="default" size="sm" className="h-8 gap-1">
                                             Reject
                                         </Button>
                                     </div>
