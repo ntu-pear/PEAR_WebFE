@@ -375,6 +375,14 @@ export const problemListAPI = axios.create({
   baseURL:`${VITE_PATIENT_SERVICE_URL}/ProblemList`
 })
 
+export const personalPreferenceAPI = axios.create({
+  baseURL:`${VITE_PATIENT_SERVICE_URL}/PersonalPreferences`
+})
+
+export const personalPreferenceListAPI = axios.create({
+  baseURL:`${VITE_PATIENT_SERVICE_URL}/PersonalPreferenceList`
+}) 
+
 //geocode
 export const geocodeAPI = axios.create({
   baseURL: `${VITE_GEOCODE_SERVICE_URL}/geocode`,

@@ -127,7 +127,7 @@ const MobilityAidsCard: React.FC = () => {
             columns={mobilityAidsColumns}
             viewMore={false}
             renderActions={renderActions}
-            hideActionsHeader={currentUser?.roleName !== "SUPERVISOR"}
+            hideActionsHeader={currentUser?.roleName !== "SUPERVISOR" && patientAllocation?.guardianApplicationUserId !== currentUser?.userId}
             fetchData={handleFetchMobilityAids}
           />
         </CardContent>
