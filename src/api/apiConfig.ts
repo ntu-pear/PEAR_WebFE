@@ -12,6 +12,8 @@ const VITE_GEOCODE_SERVICE_URL: string = import.meta.env
 // console.log('Patient Service URL:' + VITE_PATIENT_SERVICE_URL);
 const VITE_LOGGER_SERVICE_URL: string = import.meta.env.VITE_LOGGER_SERVICE_URL;
 
+const VITE_SCHEDULER_SERVICE_URL: string = import.meta.env.VITE_SCHEDULER_SERVICE_URL;
+
 export const VITE_USER_SERVICE_URL: string = import.meta.env
   .VITE_USER_SERVICE_URL;
 
@@ -452,4 +454,13 @@ export const loggerAPI = axios.create({
 
 export const activityLoggerAPI = axios.create({
   baseURL: `${VITE_LOGGER_SERVICE_URL}/Logs/Activity`,
+});
+
+//scheduler
+export const schedulerAPI = axios.create({
+  baseURL: `${VITE_SCHEDULER_SERVICE_URL}`,
+});
+
+export const schedulerMedicationAPI = axios.create({
+  baseURL: `${VITE_SCHEDULER_SERVICE_URL}/MedicationSchedule`,
 });

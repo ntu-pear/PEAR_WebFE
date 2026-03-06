@@ -139,7 +139,7 @@ const ActivityPreferenceCard: React.FC = () => {
   },
   {
     key: "_actions",
-    header: "Actions",
+    header: "Actionsss",
     render: (_: any, item: any) => (
       <Button
         variant="outline"

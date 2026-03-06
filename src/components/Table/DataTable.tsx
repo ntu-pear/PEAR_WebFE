@@ -1,157 +1,103 @@
-import React, { useState, useMemo, useEffect } from "react"; 
+// src/components/Table/DataTable.tsx
+import React, { useState, useMemo, useEffect } from "react";
 import { ChevronUp, ChevronDown, ChevronsUpDown } from "lucide-react";
 import {
   Table,
   TableBody,
-  TableHead,
   TableHeader,
   TableRow,
+  TableHead as TableHeadCell,
 } from "@/components/ui/table";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import DataTableRow from "./DataTableRow";
 import { Button } from "@/components/ui/button";
+import DataTableRow from "./DataTableRow";
 
 export interface TableRowData {
   id: string | number;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [key: string]: any;
 }
-
-// type HighlightTypeRow = TableRowData & {
-//   typeName: string;
-//   typeCode: string;
-//   description: string;
-//   isEnabled: boolean;
-//   isDeleted: boolean; // optional if you want to show/filter
-//   createdDate?: string;
-//   modifiedDate?: string;
-// };
-
 
 type DataTableColumn<T extends Record<string, any>> = {
   key: keyof T;
   header: string;
   render?: (value: T[keyof T], item: T) => React.ReactNode;
   className?: string;
+  sortable?: boolean; // for server-side
 };
 
 export type DataTableColumns<T extends Record<string, any>> = Array<
   DataTableColumn<T>
 >;
 
+/* =========================
+   CLIENT-SIDE TABLE
+========================= */
 interface DataTableClientProps<T extends TableRowData> {
   data: T[];
   columns: DataTableColumns<T>;
-  itemsPerPage?: number; // Optional prop to specify number of items per page
+  itemsPerPage?: number;
   viewMore: boolean;
   viewMoreBaseLink?: string;
   activeTab?: string;
   hideActionsHeader?: boolean;
   className?: string;
-  renderActions?: (item: T) => React.ReactNode; // New prop to customize actions column
+  renderActions?: (item: T) => React.ReactNode;
   expandable?: boolean;
   renderExpandedContent?: (item: T) => React.ReactNode;
   onExpand?: (item: T) => void;
   selectable?: boolean;
   selectedItems?: T[];
   onSelectChange?: (selected: T[]) => void;
+  loading?: boolean; // ✅ Add loading prop
 }
 
-export interface ServerPagination {
-  pageNo: number;
-  pageSize: number;
-  totalRecords: number;
-  totalPages: number;
-}
-
-interface DataTableServerProps<T extends TableRowData> {
-  data: T[];
-  columns: Array<{
-    key: keyof T;
-    header: string;
-    sortable?: boolean; // Add sortable property
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    render?: (value: any, item: T) => React.ReactNode;
-    className?: string;
-  }>;
-  pagination: ServerPagination;
-  viewMore: boolean;
-  viewMoreBaseLink?: string;
-  activeTab?: string;
-  hideActionsHeader?: boolean;
-  className?: string;
-  renderActions?: (item: T) => React.ReactNode; // New prop to customize actions column
-  fetchData: (
-    pageNo: number,
-    pageSize: number,
-    sortColumn?: string,
-    sortDirection?: "asc" | "desc"
-  ) => void;
-  sortBy?: string | null; // Add sorting props
-  sortDir?: "asc" | "desc";
-  onSort?: (column: string) => void;
-  onPageSizeChange?: (pageSize: number | string) => void; // Add page size change handler
-  pageSizeOptions?: (number | string)[]; // Add configurable page size options
-  expandable?: boolean;
-  renderExpandedContent?: (item: T) => React.ReactNode;
-  onExpand?: (item: T) => void;
-}
-
-// Data Table with Client Pagination
 export function DataTableClient<T extends TableRowData>({
   data,
   columns,
-  itemsPerPage = 10, // Default to 10 items per page
+  itemsPerPage = 10,
   viewMore,
   viewMoreBaseLink,
   activeTab,
-  hideActionsHeader = false, //default show actions header
+  hideActionsHeader = false,
   className = "",
-  renderActions, // Accept renderActions function as a prop
+  renderActions,
   expandable = false,
   renderExpandedContent,
   onExpand,
   selectable = false,
   selectedItems,
   onSelectChange,
+  loading = false,
 }: DataTableClientProps<T>) {
   const [currentPage, setCurrentPage] = useState(1);
-
-  // Calculate the total number of pages
   const totalPages = Math.ceil(data.length / itemsPerPage);
 
-  // Get the data to display for the current page
   const paginatedData = useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
     return data.slice(startIndex, endIndex);
   }, [data, currentPage, itemsPerPage]);
 
-  // Handle page changes
   const handlePageChange = (newPage: number) => {
-    if (newPage < 1) {
-      setCurrentPage(1);
-    } else if (newPage > totalPages) {
-      setCurrentPage(totalPages);
-    } else {
-      setCurrentPage(newPage);
-    }
+    if (newPage < 1) setCurrentPage(1);
+    else if (newPage > totalPages) setCurrentPage(totalPages);
+    else setCurrentPage(newPage);
   };
 
   useEffect(() => {
-    if (data.length !== 0 && totalPages < currentPage)
-      setCurrentPage(totalPages);
-  }, []);
+    if (data.length !== 0 && totalPages < currentPage) setCurrentPage(totalPages);
+  }, [data.length, totalPages, currentPage]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-6">
+        <p className="text-gray-500">Loading...</p>
+      </div>
+    );
+  }
 
   if (data.length === 0) {
     return (
-      <div className="flex items-center justify-center py-4">
+      <div className="flex items-center justify-center py-6">
         <p className="text-gray-500">No data found</p>
       </div>
     );
@@ -164,32 +110,29 @@ export function DataTableClient<T extends TableRowData>({
           <TableHeader>
             <TableRow>
               {selectable && selectedItems && onSelectChange && (
-                <TableHead className="w-12 flex items-center justify-center">
+                <TableHeadCell className="w-12 flex items-center justify-center">
                   <input
                     type="checkbox"
-                    checked={
-                      selectedItems.length === data.length && data.length > 0
+                    checked={selectedItems.length === data.length && data.length > 0}
+                    onChange={() =>
+                      onSelectChange(
+                        selectedItems.length === data.length ? [] : data
+                      )
                     }
-                    onChange={() => {
-                      const allSelected = selectedItems.length === data.length;
-                      onSelectChange(allSelected ? [] : data);
-                    }}
                     className="form-checkbox h-4 w-4 text-primary rounded border-gray-300"
                   />
-                </TableHead>
+                </TableHeadCell>
               )}
-              {expandable && <TableHead className="w-12"></TableHead>}
+              {expandable && <TableHeadCell className="w-12"></TableHeadCell>}
               {columns.map((column) => (
-                <TableHead
+                <TableHeadCell
                   key={column.key.toString()}
                   className={`cursor-pointer ${column.className || ""}`}
                 >
                   {column.header}
-                </TableHead>
+                </TableHeadCell>
               ))}
-              {hideActionsHeader ? null : (
-                <TableHead className="pl-9">Actions</TableHead>
-              )}
+              {!hideActionsHeader && <TableHeadCell className="pl-9">Actions</TableHeadCell>}
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -199,17 +142,13 @@ export function DataTableClient<T extends TableRowData>({
                 item={item}
                 columns={columns}
                 viewMore={viewMore}
-                viewMoreLink={`${viewMoreBaseLink}/${item.id}${
-                  activeTab ? `?tab=${activeTab}` : ""
-                }`}
-                renderActions={renderActions} // Pass the custom renderActions function
+                viewMoreLink={`${viewMoreBaseLink}/${item.id}${activeTab ? `?tab=${activeTab}` : ""}`}
+                renderActions={renderActions}
                 expandable={expandable}
                 renderExpandedContent={renderExpandedContent}
                 onExpand={onExpand}
                 selectable={selectable}
-                isSelected={
-                  selectable && selectedItems && selectedItems.includes(item)
-                }
+                isSelected={selectable && selectedItems?.includes(item)}
                 onToggleSelect={() => {
                   if (!selectedItems || !onSelectChange) return;
                   const newSelected = selectedItems.includes(item)
@@ -223,13 +162,12 @@ export function DataTableClient<T extends TableRowData>({
         </Table>
       </div>
 
-      {/* Pagination Information and Controls */}
       {data.length > 0 && (
         <div className="flex items-center justify-between py-4">
           <div className="text-xs text-muted-foreground">
             Showing{" "}
             <strong>
-              {(currentPage - 1) * itemsPerPage + 1}-
+              {(currentPage - 1) * itemsPerPage + 1}- 
               {Math.min(currentPage * itemsPerPage, data.length)}
             </strong>{" "}
             of <strong>{data.length}</strong> records
@@ -258,6 +196,38 @@ export function DataTableClient<T extends TableRowData>({
   );
 }
 
+/* =========================
+   SERVER-SIDE TABLE
+========================= */
+export interface ServerPagination {
+  pageNo: number;
+  pageSize: number;
+  totalRecords: number;
+  totalPages: number;
+}
+
+interface DataTableServerProps<T extends TableRowData> {
+  data: T[];
+  columns: DataTableColumns<T>;
+  pagination: ServerPagination;
+  viewMore: boolean;
+  viewMoreBaseLink?: string;
+  activeTab?: string;
+  hideActionsHeader?: boolean;
+  className?: string;
+  renderActions?: (item: T) => React.ReactNode;
+  fetchData: (pageNo: number, pageSize: number, sortColumn?: string, sortDirection?: "asc" | "desc") => void;
+  sortBy?: string | null;
+  sortDir?: "asc" | "desc";
+  onSort?: (column: string) => void;
+  onPageSizeChange?: (pageSize: number | string) => void;
+  pageSizeOptions?: (number | string)[];
+  expandable?: boolean;
+  renderExpandedContent?: (item: T) => React.ReactNode;
+  onExpand?: (item: T) => void;
+  loading?: boolean;
+}
+
 export function DataTableServer<T extends TableRowData>({
   data,
   columns,
@@ -265,35 +235,37 @@ export function DataTableServer<T extends TableRowData>({
   viewMore,
   viewMoreBaseLink,
   activeTab,
-  hideActionsHeader = false, //default show actions header
+  hideActionsHeader = false,
   className = "",
-  renderActions, // Accept renderActions function as a prop
+  renderActions,
   fetchData,
   sortBy,
   sortDir,
   onSort,
-  onPageSizeChange,
-  pageSizeOptions = [5, 10, 20, 50, 100], // Default page size options
   expandable = false,
   renderExpandedContent,
   onExpand,
+  loading = false,
 }: DataTableServerProps<T>) {
   const { pageNo, pageSize, totalRecords, totalPages } = pagination;
-
-  // think pageNo is page offset
   const currentPage = pageNo + 1;
 
-  // Handle page changes
   const handlePageChange = async (newPage: number) => {
-    if (newPage < 1 || newPage > totalPages) {
-      return; // Skip invalid pages
-    }
-    await fetchData(newPage - 1, pageSize); // Pass page offset and pageSize
+    if (newPage < 1 || newPage > totalPages) return;
+    await fetchData(newPage - 1, pageSize);
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-6">
+        <p className="text-gray-500">Loading...</p>
+      </div>
+    );
+  }
 
   if (data.length === 0) {
     return (
-      <div className="flex items-center justify-center py-4">
+      <div className="flex items-center justify-center py-6">
         <p className="text-gray-500">No data found</p>
       </div>
     );
@@ -305,36 +277,24 @@ export function DataTableServer<T extends TableRowData>({
         <Table className={className}>
           <TableHeader>
             <TableRow>
-              {expandable && <TableHead className="w-12"></TableHead>}
+              {expandable && <TableHeadCell className="w-12"></TableHeadCell>}
               {columns.map((column) => (
-                <TableHead
+                <TableHeadCell
                   key={column.key.toString()}
-                  className={`${column.className || ""} ${column.sortable ? "cursor-pointer select-none" : ""}`}
-                  onClick={() =>
-                    column.sortable && onSort && onSort(column.key.toString())
-                  }
+                  className={`${column.className || ""} ${column.sortable ? "cursor-pointer" : ""}`}
+                  onClick={() => column.sortable && onSort?.(column.key.toString())}
                 >
                   <div className="flex items-center space-x-1">
                     <span>{column.header}</span>
                     {column.sortable && (
-                      <div className="flex flex-col">
-                        {sortBy === column.key.toString() ? (
-                          sortDir === "asc" ? (
-                            <ChevronUp className="h-4 w-4" />
-                          ) : (
-                            <ChevronDown className="h-4 w-4" />
-                          )
-                        ) : (
-                          <ChevronsUpDown className="h-4 w-4 text-gray-400" />
-                        )}
-                      </div>
+                      sortBy === column.key.toString() ? (
+                        sortDir === "asc" ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />
+                      ) : <ChevronsUpDown className="h-4 w-4 text-gray-400" />
                     )}
                   </div>
-                </TableHead>
+                </TableHeadCell>
               ))}
-              {hideActionsHeader ? null : (
-                <TableHead className="pl-9">Actions</TableHead>
-              )}
+              {!hideActionsHeader && <TableHeadCell className="pl-9">Actions</TableHeadCell>}
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -344,10 +304,8 @@ export function DataTableServer<T extends TableRowData>({
                 item={item}
                 columns={columns}
                 viewMore={viewMore}
-                viewMoreLink={`${viewMoreBaseLink}/${item.id}${
-                  activeTab ? `?tab=${activeTab}` : ""
-                }`}
-                renderActions={renderActions} // Pass the custom renderActions function
+                viewMoreLink={`${viewMoreBaseLink}/${item.id}${activeTab ? `?tab=${activeTab}` : ""}`}
+                renderActions={renderActions}
                 expandable={expandable}
                 renderExpandedContent={renderExpandedContent}
                 onExpand={onExpand}
@@ -357,41 +315,10 @@ export function DataTableServer<T extends TableRowData>({
         </Table>
       </div>
 
-      {/* Pagination Information and Controls 
-       start of page = pageNo (Offset) * pageSize + 1
-       end of page = currentPage * pageSize or totalRecords whichever is smaller
-      
-      */}
       {data.length > 0 && (
         <div className="flex items-center justify-between py-4">
-          <div className="flex items-center space-x-6">
-            <div className="text-xs text-muted-foreground">
-              Showing{" "}
-              <strong>
-                {pageNo * pageSize + 1}-{pageNo * pageSize + data.length}
-              </strong>{" "}
-              of <strong>{totalRecords}</strong> records
-            </div>
-            {onPageSizeChange && (
-              <div className="flex items-center space-x-2">
-                <p className="text-sm font-medium">Items per page</p>
-                <Select
-                  value={pageSize >= totalRecords ? "All" : pageSize.toString()}
-                  onValueChange={(value) => onPageSizeChange(value === "All" ? "All" : parseInt(value))}
-                >
-                  <SelectTrigger className="h-8 w-[70px]">
-                    <SelectValue placeholder={pageSize >= totalRecords ? "All" : pageSize.toString()} />
-                  </SelectTrigger>
-                  <SelectContent side="top">
-                    {pageSizeOptions.map((size) => (
-                      <SelectItem key={size} value={size.toString()}>
-                        {size}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
+          <div className="text-xs text-muted-foreground">
+            Showing <strong>{pageNo * pageSize + 1}-{pageNo * pageSize + data.length}</strong> of <strong>{totalRecords}</strong> records
           </div>
           <div className="flex items-center space-x-2">
             <Button
