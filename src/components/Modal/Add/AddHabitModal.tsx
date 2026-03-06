@@ -1,13 +1,61 @@
 import { useModal } from "@/hooks/useModal";
 import { Button } from "../../ui/button";
+import { useViewPatient } from "@/hooks/patient/useViewPatient";
+import { useState, useEffect } from "react";
+import { AddPersonalPreference, addPersonalPreferennce, getPersonalPreferenceList, Preference } from "@/api/patients/personalPreference";
+import { toast } from "sonner";
 
 const AddHabitModal: React.FC = () => {
-  const { modalRef, closeModal } = useModal();
-  const handleAddHabit = (event: React.FormEvent) => {
+  const { modalRef, closeModal, activeModal } = useModal();
+  const { refreshData } = activeModal.props as {
+    refreshData: () => void
+  }
+  const { id } = useViewPatient()
+  const [preferenceList, setPreferenceList] = useState<Preference[]>([])
+
+  const handleAddHabit = async (event: React.FormEvent) => {
     event.preventDefault();
-    console.log("Patient Habit Added!");
-    closeModal();
+    const formData = new FormData(event.target as HTMLFormElement)
+    const formDataObj = Object.fromEntries(formData.entries())
+    const newPreference: AddPersonalPreference = {
+      PatientID: Number(id),
+      PersonalPreferenceListID: Number(formDataObj.PersonalPreferenceListID as string),
+      IsLike: null,
+      PreferenceRemarks: formDataObj.PreferenceRemarks as string
+    }
+    try {
+      await addPersonalPreferennce(newPreference)
+      toast.success("New Patient Habit Added.")
+      console.log("New Patient Habit Added.")
+      refreshData()
+      closeModal()
+    } catch (error) {
+      if (error instanceof Error) {
+        toast.error(`Failed to add new Patient Habit. ${error}`)
+      } else {
+        toast.error("Failed to add new Patient Habit.")
+      }
+      console.error("Failed to add new Patient Habit")
+    }
+    closeModal()
   };
+
+  useEffect(() => {
+    const fetchPreferenceList = async () => {
+      try {
+        const response = await getPersonalPreferenceList("Habit")
+        setPreferenceList(response)
+      } catch (error) {
+        if (error instanceof Error) {
+          toast.error(`Failed to fetch Preference List (Habits). ${error}`)
+        } else {
+          toast.error("Failed to fetch Preference List (Habits).")
+        }
+        console.error("Failed to fetch Preference List (Habits).")
+      }
+    }
+    fetchPreferenceList()
+  }, [])
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
@@ -16,32 +64,28 @@ const AddHabitModal: React.FC = () => {
         <form onSubmit={handleAddHabit} className="grid grid-cols-2 gap-4">
           <div className="col-span-2">
             <label className="block text-sm font-medium">
-              Habits<span className="text-red-600">*</span>
+              Preference Name<span className="text-red-600">*</span>
             </label>
             <select
-              className="mt-1 block w-full p-2 border rounded-md text-gray-900"
+              className="mt-1 block w-full p-2 border rounded-md text-gray-900 overflow-auto"
               required
+              name="PersonalPreferenceListID"
             >
-              <option value="">Please select an option</option>
-              <option value="Abnormal_Sleep_Cycle">Abnormal Sleep Cycle</option>
-              <option value="Biting_Objects">Biting Objects</option>
-              <option value="Crack_Knuckles">Crack Knuckles</option>
-              <option value="Daydreaming">Daydreaming</option>
-              <option value="Fidget_with_Objects">Fidget with Objects</option>
-              <option value="Frequent_Toilet_Visits">
-                Frequent Toilet Visits
-              </option>
-              <option value="Hair_Fiddling">Hair Fiddling</option>
-              <option value="Licking_Lips">Licking Lips</option>
-              <option value="Pick_nose">Pick nose</option>
-              <option value="Scratch_People">Scratch People</option>
-              <option value="Skip_meals">Skip meals</option>
-              <option value="Sleep_Walking">Sleep Walking</option>
-              <option value="Snacking">Snacking</option>
-              <option value="Talking_to_onese">Talking to oneself</option>
-              <option value="Thumb_Sucking">Thumb Sucking</option>
-              <option value="Worrying">Worrying</option>
+              {
+                preferenceList.map((preference) => (
+                  <option key={preference.Id} value={preference.Id}>
+                    {preference.PreferenceName}
+                  </option>
+                ))
+              }
             </select>
+          </div>
+
+          <div className="col-span-2">
+            <label className="block text-sm font-medium">
+              Remarks<span className="text-red-600">*</span>
+            </label>
+            <textarea name="PreferenceRemarks" className="mt-1 block w-full p-2 border rounded-md text-gray-900" required />
           </div>
 
           <div className="col-span-2 mt-6 flex justify-end space-x-2">
