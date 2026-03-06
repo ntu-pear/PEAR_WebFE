@@ -1,12 +1,8 @@
-import { adhocAPI } from "@/api/apiConfig"; 
+import { adhocAPI } from "@/api/apiConfig";  
 import { listActivities } from "./activities";
 import { fetchPatientInfo } from "@/api/patients/patients";
 import { retrieveAccessTokenFromCookie } from "@/api/users/auth";
 import { formatDateTime } from "@/utils/formatDate";
-
-/* =========================
-   Auth Header (REQUIRED)
-========================= */
 
 const authHeader = () => {
   const token = retrieveAccessTokenFromCookie();
@@ -14,7 +10,7 @@ const authHeader = () => {
   return { Authorization: `Bearer ${token}` };
 };
 
-// Backend raw adhoc activity type
+// Backend raw 
 interface AdhocActivityData {
   id: number;
   PatientId: number;
@@ -26,7 +22,6 @@ interface AdhocActivityData {
   LastUpdated?: string;
 }
 
-// Frontend Table Type
 export interface AdhocActivity {
   id: number;
   patientId: number;
@@ -40,7 +35,6 @@ export interface AdhocActivity {
   newActivityTitle?: string;
   newActivityDescription?: string;
   lastUpdated?: string;
-  // for put endpoint
   status?: string;
   isDeleted?: boolean;
   createdDate?: string;
@@ -79,20 +73,17 @@ export const listAdhocActivities = async (
 
     const adhocs = res.data; // raw backend data
 
-    // 2️⃣ fetch all activities once to map ids
     const allActivities = await listActivities({ include_deleted: true, limit: 1000 });
     const activityMap = new Map<number, { title: string; description?: string }>();
     allActivities.forEach((a) =>
     activityMap.set(a.id, {
         title: a.title,
-        description: a.description ?? undefined, // ✅ convert null to undefined
+        description: a.description ?? undefined, 
     })
     );
 
-    // 3️⃣ map each adhoc
     const mapped = await Promise.all(
       adhocs.map(async (a: any) => {
-        // get patient name
         let patientName = "Unknown";
         try {
           const patient = await fetchPatientInfo(a.patient_id);
@@ -112,7 +103,7 @@ export const listAdhocActivities = async (
           endDate: formatDateTime(a.end_date),
           oldActivityId: a.old_centre_activity_id,
           oldActivityTitle: oldActivity?.title ?? "",
-          oldActivityDescription: oldActivity?.description ?? "", // ✅ fix null
+          oldActivityDescription: oldActivity?.description ?? "", 
           newActivityId: a.new_centre_activity_id,
           newActivityTitle: newActivity?.title ?? "",
           newActivityDescription: newActivity?.description ?? "",
@@ -121,7 +112,6 @@ export const listAdhocActivities = async (
       })
     );
 
-    // 4️⃣ sort by patient name
     return mapped.sort((a, b) => a.patientName.localeCompare(b.patientName));
   } catch (error) {
     console.error("Failed to fetch adhoc activities:", error);
@@ -129,7 +119,7 @@ export const listAdhocActivities = async (
   }
 };
 
-// Fetch adhoc by patient ID (optional, similar pattern)
+// Fetch adhoc by patient ID
 export const listAdhocByPatient = async (patientId: number): Promise<AdhocActivity[]> => {
   try {
     const res = await adhocAPI.get<AdhocActivityData[]>(`/patient/${patientId}`, { headers: authHeader() });
