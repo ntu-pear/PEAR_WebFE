@@ -1,5 +1,5 @@
 import { loggerAPI } from "../apiConfig";
-import { loggerActivityAPI } from "../apiConfig";
+import { activityLoggerAPI } from "../apiConfig";
 import { retrieveAccessTokenFromCookie } from "@/api/users/auth";
 import { AuditLogApiResponse } from "@/types/auditLog";
 
@@ -109,7 +109,7 @@ export async function fetchAuditLogs({
     params.search = search.trim();
   }
 
-  const response = await loggerActivityAPI.get<AuditLogApiResponse>("", {
+  const response = await activityLoggerAPI.get<AuditLogApiResponse>("", {
     params,
     headers: {
       Authorization: `Bearer ${token}`,
