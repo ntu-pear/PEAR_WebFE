@@ -11,6 +11,11 @@ const BaseDeleteModal: React.FC<BaseDeleteModalProps> = ({
   onSubmit,
   closeModal,
 }) => {
+    const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault(); 
+    e.stopPropagation(); 
+    await onSubmit(e);
+  };
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
       <div ref={modalRef} className="bg-background rounded-md w-[500px]">
@@ -20,12 +25,12 @@ const BaseDeleteModal: React.FC<BaseDeleteModalProps> = ({
           </h3>
         </div>
 
-        <form onSubmit={onSubmit} className="p-4">
+        <form onSubmit={handleSubmit} className="p-4">
           <p className="mb-6 text-gray-600 dark:text-gray-200 text-center">
             Deleting this item is irreversible. Please confirm your action.
           </p>
           <div className="col-span-2 mt-6 flex justify-end space-x-2">
-            <Button variant="outline" onClick={closeModal}>
+            <Button  type="button" variant="outline" onClick={closeModal}>
               Cancel
             </Button>
             <Button type="submit" variant="destructive">

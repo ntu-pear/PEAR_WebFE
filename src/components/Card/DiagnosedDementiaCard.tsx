@@ -22,18 +22,19 @@ const DiagnosedDementiaCard: React.FC = () => {
       diagnosedDementias: [],
       pagination: {
         pageNo: 0,
-        pageSize: 0,
+        pageSize: 5,
         totalRecords: 0,
         totalPages: 0,
       },
     });
 
-  const handleFetchDiagnosedDementia = async (pageNo: number) => {
+  const handleFetchDiagnosedDementia = async (pageNo: number, pageSize:number) => {
     if (!id || isNaN(Number(id))) return;
     try {
       const response: DiagnosedDementiaTDServer = await fetchDiagnosedDementia(
         Number(id),
-        pageNo
+        pageNo,
+        pageSize || 10
       );
       setDiagnosedDementiaTDServer(response);
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -48,7 +49,7 @@ const DiagnosedDementiaCard: React.FC = () => {
 
   const refreshDiagnosedDementiaData = () => {
     handleFetchDiagnosedDementia(
-      diagnosedDementiaTDServer.pagination.pageNo || 0
+      diagnosedDementiaTDServer.pagination.pageNo || 0, diagnosedDementiaTDServer.pagination.pageSize
     );
   };
 

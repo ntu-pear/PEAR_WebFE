@@ -17,6 +17,13 @@ export const formatDateString = (date: string) => {
   return formatDate(date).toString().toUpperCase();
 };
 
+export const formatDateWithWeekday = (date: string | null) => {
+  if (!date) return "-";
+  return dayjs.utc(date)
+    .tz("Asia/Singapore")
+    .format("ddd, DD-MM-YYYY"); // "ddd" gives short weekday, e.g., "Mon", "Tue"
+};
+
 export const formatTime = (date: string) => {
   return dayjs
     .utc(date) // Parse the date in UTC
@@ -52,4 +59,15 @@ export const formatDateTime = (date: string | null) => {
   if (!date) return "-";
   return dayjs(date)
     .format("DD/MMM/YYYY hh:mm A");
+};
+
+export const formatTimeForInput12h = () => {
+  return dayjs()
+    .tz("Asia/Singapore") // use Singapore time
+    .format("hh:mm A");   // 12-hour format with correct AM/PM
+};
+
+export const formatTimeFromHHMMSS = (time: string) => {
+  const today = dayjs().format("YYYY-MM-DD");
+  return dayjs.tz(`${today}T${time}`, "Asia/Singapore").format("hh:mm A");
 };

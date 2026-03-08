@@ -3,6 +3,7 @@ import { loggerActivityAPI } from "../apiConfig";
 import { retrieveAccessTokenFromCookie } from "@/api/users/auth";
 import { AuditLogApiResponse } from "@/types/auditLog";
 
+
 export interface LogsBase {
   timestamp: string;
   method: string;

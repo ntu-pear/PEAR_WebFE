@@ -124,7 +124,7 @@ const ActivityRecCard: React.FC = () => {
                 onClick={() =>
                   handleBulkUpdateActivityRecommendation("RECOMMENDED")
                 }
-                variant="approve"
+                variant="default"
               >
                 <ThumbsUp className="mr-2 h-4 w-4" />
                 Recommended
@@ -141,7 +141,7 @@ const ActivityRecCard: React.FC = () => {
                 onClick={() =>
                   handleBulkUpdateActivityRecommendation("NOT_RECOMMENDED")
                 }
-                variant="reject"
+                variant="default"
               >
                 <ThumbsDown className="mr-2 h-4 w-4" />
                 Not Recommended

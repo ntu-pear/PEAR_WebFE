@@ -158,6 +158,7 @@ const EditMobilityAid: React.FC = () => {
               name="RecoveryDate"
               value={rowData?.RecoveryDate || new Date().toISOString().split("T")[0]}
               onChange={handleChange}
+              min={rowData?.CreatedDateTime?.split("T")[0]}
               className="mt-1 block w-full p-2 border rounded-md text-gray-900"
               required
             />

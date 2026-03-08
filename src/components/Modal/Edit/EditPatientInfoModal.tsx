@@ -20,12 +20,7 @@ import {
   PreferredLanguage,
 } from "@/api/patients/preferredLanguage";
 import dayjs from "dayjs";
-import {
-  fetchPatientPrivacyLevel,
-  PatientPrivacyLevel,
-  UpdatePatientPrivacyLevel,
-  updatePatientPrivacyLevel,
-} from "@/api/patients/privacyLevel";
+import { validateNRIC } from "@/utils/validateNRIC";
 
 const EditPatientInfoModal: React.FC = () => {
   const { modalRef, activeModal, closeModal } = useModal();
@@ -34,13 +29,11 @@ const EditPatientInfoModal: React.FC = () => {
     submitterId,
     userRole,
     refreshPatientData,
-    refreshPatientPrivacyLevel,
   } = activeModal.props as {
     patientId: string;
     submitterId: string;
     userRole: "GUARDIAN" | "SUPERVISOR" | "DOCTOR"
     refreshPatientData: () => Promise<void>;
-    refreshPatientPrivacyLevel: () => Promise<void>;
   };
   const [isEditingPermanentAddr, setIsEditingPermanentAddr] = useState(false);
   const [isEditingTemporaryAddr, setIsEditingTemporaryAddr] = useState(false);
@@ -63,8 +56,6 @@ const EditPatientInfoModal: React.FC = () => {
   });
 
   const [patient, setPatient] = useState<PatientBase | null>(null);
-  const [patientPrivacyLevel, setPatientPrivacyLevel] =
-    useState<PatientPrivacyLevel | null>(null);
   const [preferredLanguage, setPreferredLanguage] = useState<
     PreferredLanguage[]
   >([]);
@@ -99,14 +90,7 @@ const EditPatientInfoModal: React.FC = () => {
     });
   };
 
-  const handleFetchPatientPrivacyLevel = async (patientId: string) => {
-    if (!patientId || isNaN(Number(patientId))) return;
-    const response = await fetchPatientPrivacyLevel(Number(patientId));
-    setPatientPrivacyLevel({
-      ...response,
-      accessLevelSensitive: response.accessLevelSensitive ?? 2,
-    });
-  };
+
 
   const handleFetchPreferredLanguage = async () => {
     const response = await fetchPreferredLanguageList();
@@ -345,6 +329,12 @@ const EditPatientInfoModal: React.FC = () => {
       return;
     }
 
+    if (!validateNRIC(patient.nric)) {
+      setCurrentTab("personal");
+      setNricHint("Invalid NRIC.");
+      return;
+    }
+
     const personalInfoValid = validatePersonalInfo();
     const addressValid = validateAddress();
     const additionalInfoValid = validateAdditionalInfo();
@@ -390,27 +380,14 @@ const EditPatientInfoModal: React.FC = () => {
       ModifiedById: submitterId as string,
     };
 
-    const editedPatientPrivacyLevel: UpdatePatientPrivacyLevel = {
-      accessLevelSensitive: patientPrivacyLevel?.accessLevelSensitive || 2, // default to initial value 2,
-      active: true,
-      modifiedDate: getDateTimeNowInUTC(),
-      modifiedById: submitterId as string,
-    };
+
 
     console.log("editedPatient", editedPatient);
-    console.log("editedPatientPrivacyLevel", editedPatientPrivacyLevel);
-
     try {
       await updatePatient(Number(patientId), editedPatient);
-      await updatePatientPrivacyLevel(
-        Number(patientId),
-        editedPatientPrivacyLevel
-      );
-
       closeModal();
       toast.success("Patient Information updated successfully.");
       await refreshPatientData();
-      await refreshPatientPrivacyLevel();
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       if (error instanceof Error) {
@@ -469,8 +446,6 @@ const EditPatientInfoModal: React.FC = () => {
   const validateAdditionalInfo = () => {
     if (!patient) return false;
     if (
-      patientPrivacyLevel?.accessLevelSensitive == null ||
-      // !patient.privacyLevel ||
       !patient.preferredLanguageId ||
       !patient.isRespiteCare ||
       !patient.isActive ||
@@ -483,7 +458,6 @@ const EditPatientInfoModal: React.FC = () => {
 
   useEffect(() => {
     handleFetchPatientInfo(patientId);
-    handleFetchPatientPrivacyLevel(patientId);
     handleFetchPreferredLanguage();
   }, []);
 
@@ -522,7 +496,8 @@ const EditPatientInfoModal: React.FC = () => {
             >
               <div>
                 <label className="block text-sm font-medium">
-                  Name <span className="text-red-600">*</span>
+                  Name
+                  {userRole === "SUPERVISOR" ? <span className="text-red-600">*</span> : null}
                 </label>
                 <input
                   type="text"
@@ -543,7 +518,8 @@ const EditPatientInfoModal: React.FC = () => {
 
               <div>
                 <label className="block text-sm font-medium">
-                  Preferred Name <span className="text-red-600">*</span>
+                  Preferred Name
+                  {userRole === "SUPERVISOR" ? <span className="text-red-600">*</span> : null}
                 </label>
                 <input
                   type="text"
@@ -563,7 +539,8 @@ const EditPatientInfoModal: React.FC = () => {
 
               <div>
                 <label className="block text-sm font-medium">
-                  NRIC<span className="text-red-600"> *</span>
+                  NRIC
+                  {userRole === "SUPERVISOR" ? <span className="text-red-600">*</span> : null}
                 </label>
                 <input
                   type="text"
@@ -588,7 +565,8 @@ const EditPatientInfoModal: React.FC = () => {
 
               <div>
                 <label className="block text-sm font-medium">
-                  Date of Birth<span className="text-red-600"> *</span>
+                  Date of Birth
+                  {userRole === "SUPERVISOR" ? <span className="text-red-600">*</span> : null}
                 </label>
                 <input
                   type="date"
@@ -606,7 +584,8 @@ const EditPatientInfoModal: React.FC = () => {
               <div className="col-span-2 grid grid-cols-2">
                 <div className="col-span-1">
                   <label className="block text-sm font-medium">
-                    Gender<span className="text-red-600"> *</span>
+                    Gender
+                    {userRole === "SUPERVISOR" ? <span className="text-red-600">*</span> : null}
                   </label>
                   <select
                     className={`mt-1 block w-full p-2 border rounded-md text-gray-900 ${userRole === "GUARDIAN" ? "bg-gray-200 dark:bg-gray-50 cursor-not-allowed" : ""}`}
@@ -675,7 +654,7 @@ const EditPatientInfoModal: React.FC = () => {
               <div className="col-span-2">
                 <div className="p-4 rounded-lg border grid grid-cols-[1fr_auto] items-center">
                   <h3 className="font-medium mb-2">
-                    Current Address<span className="text-red-600"> *</span>
+                    Current Address{userRole === "SUPERVISOR" ? <span className="text-red-600">*</span> : null}
                   </h3>
                   {!isEditingPermanentAddr && userRole !== "GUARDIAN" && (
                     <Button
@@ -951,31 +930,6 @@ const EditPatientInfoModal: React.FC = () => {
                 />
               </div> */}
 
-              <div>
-                <label className="block text-sm font-medium">
-                  Privacy Level <span className="text-red-600">*</span>
-                </label>
-                <select
-                  name="privacyLevel"
-                  value={patientPrivacyLevel?.accessLevelSensitive || 2}
-                  onChange={(e) =>
-                    setPatientPrivacyLevel((prev) => {
-                      if (!prev) return prev; // Prevent updating null state
-                      return {
-                        ...prev,
-                        accessLevelSensitive: Number(e.target.value), // Convert string to number
-                      };
-                    })
-                  }
-                  className="mt-1 block w-full p-2 border rounded-md text-gray-900"
-                  required
-                >
-                  <option value="">Please select an option</option>
-                  <option value="1">Low</option>
-                  <option value="2">Medium</option>
-                  <option value="3">High</option>
-                </select>
-              </div>
 
               <div>
                 <label className="block text-sm font-medium">

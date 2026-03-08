@@ -16,13 +16,24 @@ import {
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { getDateTimeNowInUTC } from "@/utils/formatDate";
+import { fetchPatientPrivacyLevel, PatientPrivacyLevel, updatePatientPrivacyLevel, UpdatePatientPrivacyLevel } from "@/api/patients/privacyLevel";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "../../ui/tooltip";
+import { Info } from "lucide-react";
+
 
 const EditSocialHistoryModal: React.FC = () => {
   const { modalRef, activeModal, closeModal } = useModal();
-  const { patientId, submitterId, refreshData } = activeModal.props as {
+  const { patientId, submitterId, refreshData, refreshPrivacyLevel
+  } = activeModal.props as {
     patientId: string;
     submitterId: string;
     refreshData: () => void;
+    refreshPrivacyLevel: () => void
   };
   const [rowData, setRowData] = useState<SocialHistory | null>(null);
   const [dietList, setDietList] = useState<SocialHistoryDDItem[]>([]);
@@ -33,6 +44,8 @@ const EditSocialHistoryModal: React.FC = () => {
   );
   const [petList, setPetList] = useState<SocialHistoryDDItem[]>([]);
   const [religionList, setReligionList] = useState<SocialHistoryDDItem[]>([]);
+  const [patientPrivacyLevel, setPatientPrivacyLevel] =
+    useState<PatientPrivacyLevel | null>(null);
 
   const handleFetchDietList = async () => {
     try {
@@ -92,6 +105,14 @@ const EditSocialHistoryModal: React.FC = () => {
     } catch (error) {
       toast.error("Failed to fetch Religion List");
     }
+  };
+  const handleFetchPatientPrivacyLevel = async (patientId: string) => {
+    if (!patientId || isNaN(Number(patientId))) return;
+    const response = await fetchPatientPrivacyLevel(Number(patientId));
+    setPatientPrivacyLevel({
+      ...response,
+      accessLevelSensitive: response.accessLevelSensitive ?? 2,
+    });
   };
 
   const handleChange = (
@@ -159,13 +180,25 @@ const EditSocialHistoryModal: React.FC = () => {
       modifiedDate: dateTimeNow,
     };
 
+    const editedPatientPrivacyLevel: UpdatePatientPrivacyLevel = {
+      accessLevelSensitive: patientPrivacyLevel?.accessLevelSensitive || 2, // default to initial value 2,
+      active: true,
+      modifiedDate: getDateTimeNowInUTC(),
+      modifiedById: submitterId as string,
+    };
+
     try {
       console.log("socialHistoryFormData", socialHistoryFormData);
 
       await updateSocialHistory(socialHistoryFormData);
+      await updatePatientPrivacyLevel(
+        Number(patientId),
+        editedPatientPrivacyLevel
+      );
       closeModal();
       toast.success("Patient social history updated successfully.");
-      refreshData();
+      await refreshData();
+      await refreshPrivacyLevel();
     } catch (error) {
       if (error instanceof Error) {
         toast.error(
@@ -177,7 +210,7 @@ const EditSocialHistoryModal: React.FC = () => {
           "Failed to update patient social history. An unknown error occurred."
         );
       }
-      console.log("Failed to update patient social history",error)
+      console.log("Failed to update patient social history", error)
       closeModal()
     }
 
@@ -192,6 +225,7 @@ const EditSocialHistoryModal: React.FC = () => {
     handlePetList();
     handleReligionList();
     handleFetchSocialHistory();
+    handleFetchPatientPrivacyLevel(patientId);
   }, []);
 
   return (
@@ -202,6 +236,46 @@ const EditSocialHistoryModal: React.FC = () => {
           onSubmit={handleEditSocialHistory}
           className="grid grid-cols-2 gap-4 overflow-y-auto max-h-[70vh] pr-2"
         >
+          <div>
+            <div className="flex items-center gap-1.5"> 
+              <label className="block text-sm font-medium">
+                Privacy Level <span className="text-red-600">*</span>
+              </label>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-xs">
+                    <div className="space-y-2 text-sm">
+                      <p className="font-semibold text-lg underline">Privacy Level:</p>
+                      <p><strong>Low:</strong> Sensitive social history information is accessible to users with <strong>Low</strong> access level.</p>
+                      <p><strong>Medium:</strong> Sensitive social history information is accessible to users with <strong>Medium</strong> or <strong>High</strong> access level.</p>
+                      <p><strong>High:</strong> Sensitive social history information is accessible only to users with <strong>High</strong> access level.</p>                            </div>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+            <select
+              name="privacyLevel"
+              value={patientPrivacyLevel?.accessLevelSensitive || 2}
+              onChange={(e) =>
+                setPatientPrivacyLevel((prev) => {
+                  if (!prev) return prev; // Prevent updating null state
+                  return {
+                    ...prev,
+                    accessLevelSensitive: Number(e.target.value), // Convert string to number
+                  };
+                })
+              }
+              className="mt-1 block w-full p-2 border rounded-md text-gray-900"
+              required
+            >
+              <option value="1">Low</option>
+              <option value="2">Medium</option>
+              <option value="3">High</option>
+            </select>
+          </div>
           <div>
             <label className="block text-sm font-medium">
               Alcohol Use<span className="text-red-600">*</span>

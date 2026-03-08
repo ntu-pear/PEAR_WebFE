@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback } from "react"; 
 import {
   Card,
   CardContent,
@@ -98,10 +98,10 @@ const ManageAdhoc: React.FC = () => {
     { key: "patientName", header: "Patient Name" },
     { key: "startDate", header: "Start Date" },
     { key: "endDate", header: "End Date" },
-    { key: "oldActivityTitle", header: "Old Activity" },
-    { key: "oldActivityDescription", header: "Old Activity Description" },
-    { key: "newActivityTitle", header: "New Activity" },
-    { key: "newActivityDescription", header: "New Activity Description" },
+    { key: "oldActivityTitle", header: "Original Activity" },
+    { key: "oldActivityDescription", header: "Original Activity Description" },
+    { key: "newActivityTitle", header: "Ad Hoc Activity" },
+    { key: "newActivityDescription", header: "Ad Hoc Activity Description" },
   ];
 
   return (

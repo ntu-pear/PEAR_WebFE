@@ -151,7 +151,7 @@ export const convertToMobilityAidTD = (
 export const fetchMobilityAids = async (
   patientId: number,
   pageNo: number = 0,
-  pageSize: number = 10
+  pageSize: number = 5
 ): Promise<MobilityAidTDServer> => {
   const token = retrieveAccessTokenFromCookie();
   if (!token) throw new Error("No token found.");

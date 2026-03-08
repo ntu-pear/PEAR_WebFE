@@ -214,29 +214,27 @@ const PatientActivityPreferenceCard: React.FC<
     );
   };
 
-  // NEW: Exclusion status helper
   const getExclusionStatus = (activityId: number) => {
     const exclusion = centreActivityExclusions.find(
       (e) => e.centreActivityId === activityId
     );
 
-    if (!exclusion) {
-      return <Badge variant="secondary">No Exclusion</Badge>;
-    }
-
-    const start = new Date(exclusion.startDate);
-    const end = exclusion.endDate ? new Date(exclusion.endDate) : null;
     const now = new Date();
 
-    if (now < start) {
-      return <Badge variant="pending">Pending</Badge>;
-    } else if (!end || end.getFullYear() >= 2999) {
-      return <Badge variant="approve">Active (Indefinite)</Badge>;
-    } else if (now <= end) {
-      return <Badge variant="approve">Active</Badge>;
-    } else {
-      return <Badge variant="destructive">Expired</Badge>;
-    }
+    const isActive =
+      exclusion &&
+      new Date(exclusion.startDate) <= now &&
+      (!exclusion.endDate || new Date(exclusion.endDate) >= now);
+
+    return (
+      <Badge
+        className={`px-2 py-1 text-xs min-h-[28px] ${
+          isActive ? "bg-red-500 text-white" : "bg-gray-300 text-gray-700"
+        }`}
+      >
+        {isActive ? "Yes" : "No"}
+      </Badge>
+    );
   };
 
   const columns: DataTableColumns<PatientActivityPreferenceWithRecommendation> =
@@ -274,21 +272,36 @@ const PatientActivityPreferenceCard: React.FC<
         key: "patientPreference" as keyof (typeof activityPreferences)[0],
         header: "Patient Preference",
         className: "w-[160px] text-center",
-        render: (value) => (
-          <div className="flex justify-center items-center w-full min-h-[40px]">
+        render: (value, item) => (
+          <button
+            className="flex justify-center items-center w-full min-h-[40px] cursor-pointer"
+            onClick={() => {
+              // Toggle logic
+              let newPref: "LIKE" | "NEUTRAL" | "DISLIKE";
+              if (item.patientPreference === "LIKE") {
+                newPref = "NEUTRAL";
+              } else if (item.patientPreference === "NEUTRAL") {
+                newPref = "DISLIKE";
+              } else {
+                newPref = "LIKE"; // default toggle from neutral
+              }
+              handleSingleUpdate(item, newPref);
+            }}
+            title="Click to toggle preference"
+          >
             {renderPreferenceBadge(String(value))}
-          </div>
+          </button>
         ),
       },
       {
         key: "exclusionStatus" as keyof (typeof activityPreferences)[0],
-        header: "Exclusion Status",
+        header: "Exclusion",
         className: "w-[150px] text-center",
         render: (_unused: any, item) => getExclusionStatus(item.centreActivityId),
       },
       {
         key: "doctorRecommendation" as keyof (typeof activityPreferences)[0],
-        header: "Doctor Recommendation",
+        header: "Doctor Recommendations",
         className: "w-[180px] text-center",
         render: (value) => (
           <div className="flex justify-center items-center w-full min-h-[40px]">
@@ -298,17 +311,22 @@ const PatientActivityPreferenceCard: React.FC<
       },
       {
         key: "doctorNotes" as keyof (typeof activityPreferences)[0],
-        header: "Doctor Notes",
+        header: "Doctor's Reasons",
         className: "min-w-[200px]",
-        render: (value) => (
-          <div className="relative group cursor-help text-sm text-muted-foreground">
-            <span>View Notes</span>
-            <div className="absolute invisible group-hover:visible z-50 bg-black text-white text-xs p-2 rounded shadow-lg max-w-xs -top-2 left-0 transform -translate-y-full">
-              {value || "No notes"}
-              <div className="absolute top-full left-4 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-black"></div>
+        render: (value, item) => {
+          if (!item.doctorRecommendation || !item.doctorNotes) {
+            return null; // returns empty cell
+          }
+          return (
+            <div className="relative group cursor-help text-sm text-muted-foreground">
+              <span>View Notes</span>
+              <div className="absolute invisible group-hover:visible z-50 bg-black text-white text-xs p-2 rounded shadow-lg max-w-xs -top-2 left-0 transform -translate-y-full">
+                {value || "No notes"}
+                <div className="absolute top-full left-4 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-black"></div>
+              </div>
             </div>
-          </div>
-        ),
+          );
+        },
       },
 
     ];
@@ -374,6 +392,7 @@ const PatientActivityPreferenceCard: React.FC<
   };
 
   // Define actions render function for supervisors
+  /*replaced
   const renderActions =
     (currentUser?.roleName === "SUPERVISOR")
       ? (item: PatientActivityPreferenceWithRecommendation) => (
@@ -422,7 +441,7 @@ const PatientActivityPreferenceCard: React.FC<
           </div>
         )
       : undefined;
-
+  */
   if (loading) {
     return (
       <Card>
@@ -547,7 +566,8 @@ const PatientActivityPreferenceCard: React.FC<
           data={activityPreferences}
           columns={columns}
           viewMore={false}
-          renderActions={renderActions}
+          hideActionsHeader={true}
+          renderActions={undefined}
         />
       </CardContent>
     </Card>
