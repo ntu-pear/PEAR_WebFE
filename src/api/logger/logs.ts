@@ -1,4 +1,7 @@
 import { loggerAPI } from "../apiConfig";
+import { loggerActivityAPI } from "../apiConfig";
+import { retrieveAccessTokenFromCookie } from "@/api/users/auth";
+import { AuditLogApiResponse } from "@/types/auditLog";
 
 export interface LogsBase {
   timestamp: string;
@@ -82,3 +85,36 @@ export const fetchAllLogs = async (
     throw error;
   }
 };
+
+type FetchAuditLogsParams = {
+  pageNo?: number;
+  pageSize?: number;
+  search?: string;
+};
+
+export async function fetchAuditLogs({
+  pageNo = 0,
+  pageSize = 10,
+  search = "",
+}: FetchAuditLogsParams): Promise<AuditLogApiResponse> {
+  const token = retrieveAccessTokenFromCookie();
+
+  const params: Record<string, string | number> = {
+    pageNo,
+    pageSize,
+  };
+
+  if (search.trim()) {
+    params.search = search.trim();
+  }
+
+  const response = await loggerActivityAPI.get<AuditLogApiResponse>("", {
+    params,
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+  });
+
+  return response.data;
+}

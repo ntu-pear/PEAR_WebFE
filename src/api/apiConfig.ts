@@ -378,3 +378,11 @@ export const getDoctorNameAPI = (roleName: string) =>
 export const loggerAPI = axios.create({
   baseURL: `${VITE_LOGGER_SERVICE_URL}/Logs/Patient`,
 });
+
+export const loggerUserAPI = axios.create({
+  baseURL: `${VITE_LOGGER_SERVICE_URL}/Logs/User`,
+});
+
+export const loggerActivityAPI = axios.create({
+  baseURL: `${VITE_LOGGER_SERVICE_URL}/Logs/Activity`,
+});
