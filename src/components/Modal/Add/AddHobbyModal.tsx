@@ -64,7 +64,7 @@ const AddHobbyModal: React.FC = () => {
         <form onSubmit={handleAddHobby} className="grid grid-cols-2 gap-4">
           <div className="col-span-2">
             <label className="block text-sm font-medium">
-              Preference Name<span className="text-red-600">*</span>
+              Hobby Name<span className="text-red-600">*</span>
             </label>
             <select
               className="mt-1 block w-full p-2 border rounded-md text-gray-900 overflow-auto"
