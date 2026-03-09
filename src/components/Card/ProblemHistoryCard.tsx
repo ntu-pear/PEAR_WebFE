@@ -25,9 +25,9 @@ const ProblemHistoryCard: React.FC = () => {
   })
   const problemLogColumns = [
     { key: "ProblemName", header: "Problem Name" },
-    { key: "SourceOfInformation", header: "Source of Information" },
     { key: "ProblemRemarks", header: "Remarks" },
-    { key: "DateOfDiagnosis", header: "Date of Diagnosis" }
+    { key: "DateOfDiagnosis", header: "Date of Diagnosis" },
+    { key: "SourceOfInformation", header: "Author" },
   ];
 
   const fetchProblemLog = async (pageNo: number, pageSize: number) => {
