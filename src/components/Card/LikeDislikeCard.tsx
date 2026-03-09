@@ -30,7 +30,7 @@ const LikeDislikeCard: React.FC = () => {
       render: (row: string) => {
         const isLike = row === "Y"
         return(
-          <span style={{color:isLike?"black":"red"}}>
+          <span style={{color:isLike?"green":"red"}}>
             {isLike?"LIKE":"DISLIKE"}
           </span>
         )
