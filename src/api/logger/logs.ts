@@ -90,7 +90,7 @@ export const fetchAllLogs = async (
 ): Promise<LogsTableDataServer> => {
   try {
     const params = new URLSearchParams();
-    if (patientName) params.append("patient_name", patientName);
+    if (patientName) params.append("patient_full_name", patientName);
     if (action) params.append("action", action);
     if (caregiver) params.append("caregiver", caregiver);
     if (logType) params.append("log_type", logType);
@@ -121,7 +121,7 @@ export const exportLogs = async (
     if (filters.action) params.append("action", filters.action);
     if (filters.caregiver) params.append("caregiver", filters.caregiver);
     if (filters.logType) params.append("log_type", filters.logType);
-    if (filters.patientName) params.append("patient_name", filters.patientName);
+    if (filters.patientName) params.append("patient_full_name", filters.patientName);
     if (filters.startDate) params.append("start_date", filters.startDate);
     if (filters.endDate) params.append("end_date", filters.endDate);
     if (filters.logTypeCategory) params.append("log_type_category", filters.logTypeCategory);
