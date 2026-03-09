@@ -28,7 +28,12 @@ const LikeDislikeCard: React.FC = () => {
       key: "IsLike",
       header: "Like/Dislike",
       render: (row: string) => {
-        return row === "Y" ? "LIKES" : "DISLIKES";
+        const isLike = row === "Y"
+        return(
+          <span style={{color:isLike?"black":"red"}}>
+            {isLike?"LIKE":"DISLIKE"}
+          </span>
+        )
       }
     },
     { key: "PerferenceRemarks", header: "Remarks" },
