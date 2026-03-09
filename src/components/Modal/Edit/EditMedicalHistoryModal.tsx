@@ -4,6 +4,7 @@ import { Button } from "../../ui/button";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
+import dayjs from "dayjs";
 
 const EditMedicalHistoryModal: React.FC = () => {
     const { modalRef, activeModal, closeModal } = useModal();
@@ -13,6 +14,8 @@ const EditMedicalHistoryModal: React.FC = () => {
     }
     const [history, setHistory] = useState(medicalHistory)
     const { currentUser } = useAuth()
+    const fiveYearsAgo = dayjs().subtract(5, "year").format("YYYY-MM-DD");
+    
 
     const formatDateForInput = (dateStr: string) => {
         const date = new Date(dateStr);
@@ -101,6 +104,7 @@ const EditMedicalHistoryModal: React.FC = () => {
                             className="mt-1 block w-full p-2 border rounded-md text-gray-900"
                             value={formatDateForInput(history.date_of_diagnosis)}
                             max={new Date().toISOString().split("T")[0]}
+                            min={fiveYearsAgo}
                             required
                             onChange={(e) => { setHistory({ ...history, date_of_diagnosis: e.target.value }) }}
                         >
