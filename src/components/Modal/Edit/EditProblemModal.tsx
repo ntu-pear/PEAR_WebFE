@@ -42,7 +42,7 @@ const EditProblemModal = () => {
                 ProblemListID: rowData.ProblemListID,
                 DateOfDiagnosis: formDataObj.DateOfDiagnosis as string,
                 ProblemRemarks: rowData.ProblemRemarks,
-                SourceOfInformation: rowData.SourceOfInformation
+                SourceOfInformation: String(currentUser.fullName)
             }
             await editProblemLog(problemLog.Id, problem)
             toast.success("Sucessfully update problem log")
@@ -75,20 +75,6 @@ const EditProblemModal = () => {
                     </input>
                 </div>
                 <form className="grid grid-cols-2 gap-4">
-                    <div className="col-span-2">
-                        <label className="block text-sm font-medium">
-                            Source of Information <span className="text-red-600">*</span>
-                        </label>
-                        <input
-                            type="text"
-                            name="SourceOfInformation"
-                            className="mt-1 block w-full p-2 border rounded-md text-gray-900"
-                            value={rowData.SourceOfInformation}
-                            required
-                            onChange={(e) => setRowData((prev) => ({ ...prev, SourceOfInformation: e.target.value }))}
-                        >
-                        </input>
-                    </div>
                     <div className="col-span-2">
                         <label className="block text-sm font-medium">
                             Remarks<span className="text-red-600">*</span>

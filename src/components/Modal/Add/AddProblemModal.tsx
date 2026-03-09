@@ -4,11 +4,13 @@ import { useEffect, useState } from "react";
 import { addPatientProblemLog, AddProblemLog, getProblemList, ProblemList } from "@/api/patients/problemLog";
 import { useViewPatient } from "@/hooks/patient/useViewPatient";
 import { toast } from "sonner";
+import { useAuth } from "@/hooks/useAuth";
 
 const AddProblemModal: React.FC = () => {
   const { modalRef, closeModal, activeModal } = useModal();
   const [problemList, setProblemList] = useState<ProblemList[]>()
   const { id } = useViewPatient()
+  const { currentUser } = useAuth();
   const { refreshData } = activeModal.props as {
     refreshData: () => void
   }
@@ -21,7 +23,7 @@ const AddProblemModal: React.FC = () => {
       ProblemListID: Number(formDataObj.ProblemListID),
       DateOfDiagnosis: formDataObj.DateOfDiagnosis as string,
       ProblemRemarks: formDataObj.ProblemRemarks as string,
-      SourceOfInformation: formDataObj.SourceOfInformation as string
+      SourceOfInformation: String(currentUser?.fullName.toUpperCase())
     }
     try {
       await addPatientProblemLog(newProblemLog)
@@ -75,7 +77,7 @@ const AddProblemModal: React.FC = () => {
             </select>
           </div>
 
-          <div className="col-span-2">
+          {/* <div className="col-span-2">
             <label className="block text-sm font-medium">
               Source of Information <span className="text-red-600">*</span>
             </label>
@@ -85,7 +87,7 @@ const AddProblemModal: React.FC = () => {
               className="mt-1 block w-full p-2 border rounded-md text-gray-900"
               required>
             </input>
-          </div>
+          </div> */}
 
           <div className="col-span-2">
             <label className="block text-sm font-medium">

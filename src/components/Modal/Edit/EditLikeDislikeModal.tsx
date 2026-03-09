@@ -61,9 +61,9 @@ const EditLikeDislike: React.FC = () => {
                         </label>
                         <div className="flex gap-2 mt-2">
                             <input type="radio" name="IsLike" value="Y" required checked={rowData.IsLike === "Y"} onChange={(e) => setRowData((prev) => ({ ...prev, IsLike: e.target.value }))}></input>
-                            <label>Like</label>
+                            <label className="text-green-600 font-medium">Like</label>
                             <input type="radio" name="IsLike" value="N" checked={rowData.IsLike === "N"} onChange={(e) => setRowData((prev) => ({ ...prev, IsLike: e.target.value }))}></input>
-                            <label>Dislike</label>
+                            <label className="text-orange-600 font-medium">Dislike</label>
                         </div>
                     </div>
                     <div className="col-span-2">

@@ -11,10 +11,6 @@ import EditLikeDislike from "../Modal/Edit/EditLikeDislikeModal";
 import EditHobby from "../Modal/Edit/EditHobbyModal";
 import EditHabit from "../Modal/Edit/EditHabitModal";
 
-export const personalPreferenceColumns = [
-  { key: "PreferenceName", header: "Preference Name" },
-  { key: "PerferenceRemarks", header: "Remarks" },
-];
 
 const PersonalPreferenceTab: React.FC = () => {
   const { activeModal } = useModal();

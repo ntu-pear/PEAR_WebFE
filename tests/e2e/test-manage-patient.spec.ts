@@ -24,7 +24,7 @@ test('Guardian - Manage Patient Page', async ({ page }) => {
 
     // Wait for navigation to complete and page to be fully loaded else menu button might not work
     await page.waitForURL(/\/(?!login)/); // Wait for URL to change from login page
-    await page.waitForLoadState('networkidle'); // Wait for network requests to finish
+    // await page.waitForLoadState('networkidle'); // Wait for network requests to finish
     await page.waitForURL(/guardian\/manage-patients/);
 
     const patientTabs = await page.getByRole('tab')

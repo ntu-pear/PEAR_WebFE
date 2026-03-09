@@ -88,9 +88,9 @@ const AddLikeDislikeModal: React.FC = () => {
             </label>
             <div className="flex gap-2 mt-2">
               <input type="radio" name="IsLike" value="Y" required   ></input>
-              <label>Like</label>
+              <label className="text-green-600 font-medium">Like</label>
               <input type="radio" name="IsLike" value="N"></input>
-              <label>Dislike</label>
+              <label className="text-orange-600 font-medium">Dislike</label>
             </div>
           </div>
 
