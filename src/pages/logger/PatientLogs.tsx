@@ -47,6 +47,11 @@ const LOG_TYPE_OPTIONS = [
   { value: "guardian", label: "Guardian" },
   { value: "prescription", label: "Prescription" },
   { value: "patient_allocation", label: "Patient Allocation" },
+  { value: "dementia_allocation", label: "Dementia Allocation"},
+  { value: "guardian_relationship", label: "Guardian Relationship"},
+  { value: "highlight", label: "Highlight"},
+  { value: "mobility", label: "Mobility"},
+  { value: "personal_preference", label: "Personal Preference"}
 ];
 
 const ACTION_OPTIONS = [
