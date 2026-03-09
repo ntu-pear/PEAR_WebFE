@@ -66,7 +66,7 @@ const convertToLogsTDServer = (
 
 export interface LogFilters {
   action?: string | null;
-  caregiver?: string | null;
+  userFullName?: string | null;
   logType?: string | null;
   patientName?: string | null;
   startDate?: string | null;
@@ -77,7 +77,7 @@ export interface LogFilters {
 
 export const fetchAllLogs = async (
   action: string | null,
-  caregiver: string | null,
+  userFullName: string | null,
   logType: string | null,
   patientName: string | null,
   startDate: string | null,
@@ -92,7 +92,7 @@ export const fetchAllLogs = async (
     const params = new URLSearchParams();
     if (patientName) params.append("patient_full_name", patientName);
     if (action) params.append("action", action);
-    if (caregiver) params.append("caregiver", caregiver);
+    if (userFullName) params.append("user_full_name", userFullName);
     if (logType) params.append("log_type", logType);
     if (startDate) params.append("start_date", startDate);
     if (endDate) params.append("end_date", endDate);
@@ -119,7 +119,7 @@ export const exportLogs = async (
     params.append("export", "true");
     params.append("format", format);
     if (filters.action) params.append("action", filters.action);
-    if (filters.caregiver) params.append("caregiver", filters.caregiver);
+    if (filters.userFullName) params.append("user_full_name", filters.userFullName);
     if (filters.logType) params.append("log_type", filters.logType);
     if (filters.patientName) params.append("patient_full_name", filters.patientName);
     if (filters.startDate) params.append("start_date", filters.startDate);
