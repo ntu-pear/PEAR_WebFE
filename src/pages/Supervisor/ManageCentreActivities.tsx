@@ -78,7 +78,17 @@ export default function ManageCentreActivities() {
       }
     }
                 
-    return toRows(filtered ?? []);
+    const rows = toRows(filtered ?? []);
+
+    // When showing deleted, move deleted rows to the top
+    if (includeDeleted) {
+      rows.sort((a, b) => {
+        if (a.is_deleted === b.is_deleted) return 0;
+        return a.is_deleted ? -1 : 1;
+      });
+    }
+
+    return rows;
   }, [centreActivities, includeDeleted, fixed, compulsory, group]);
 
   const handleCreate = async (values: CentreActivityFormValues) => {
@@ -189,7 +199,7 @@ export default function ManageCentreActivities() {
               onClick={() => setIncludeDeleted(v => !v)}
             >
               <Filter className="mr-2 h-4 w-4" />
-              {includeDeleted ? "Showing Deleted" : "Deleted Hidden"}
+              {includeDeleted ? "Showing All Including Deleted" : "Deleted Hidden"}
             </Button>
           </div>
         </div>
