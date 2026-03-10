@@ -1,16 +1,23 @@
 import { loggerAPI } from "../apiConfig";
 
+export type LogType = "patient" | "system" | "user";
 
 export interface LogsBase {
+  id?: number;
   timestamp: string;
   method: string;
   table: string;
   message: string;
   user: string;
-  patient_id: number;
   user_full_name: string;
+  patient_id: number | null;
+  patient_full_name?: string;
+  entity_id?: number | null;
+  entity_name?: string;
   original_data?: Record<string, any>;
   updated_data?: Record<string, any>;
+  log_type?: LogType;
+  is_system_config?: boolean;
 }
 
 export interface ViewLogsList {
@@ -34,7 +41,7 @@ const convertToLogsTDServer = (
   logsPagination: ViewLogsList
 ): LogsTableDataServer => {
   if (!Array.isArray(logsPagination.data)) {
-    console.error("patients is not an array", logsPagination.data);
+    console.error("logs is not an array", logsPagination.data);
     return {
       logs: [],
       pagination: {
@@ -43,10 +50,10 @@ const convertToLogsTDServer = (
         totalRecords: 0,
         totalPages: 0,
       },
-    }; // Return default pagination values
+    };
   }
 
-  const UpdatedTD = {
+  return {
     logs: logsPagination.data,
     pagination: {
       pageNo: logsPagination.pageNo,
@@ -55,31 +62,77 @@ const convertToLogsTDServer = (
       totalPages: logsPagination.totalPages,
     },
   };
-  console.log("convertToLogsTDServer: ", UpdatedTD);
-
-  return UpdatedTD;
 };
 
+export interface LogFilters {
+  action?: string | null;
+  userFullName?: string | null;
+  logType?: string | null;
+  patientName?: string | null;
+  startDate?: string | null;
+  endDate?: string | null;
+  logTypeCategory?: LogType | null;
+  isSystemConfig?: boolean | null;
+}
+
 export const fetchAllLogs = async (
-  action: string,
-  user: string | null,
-  table: string,
-  patient: string | null,
+  action: string | null,
+  userFullName: string | null,
+  logType: string | null,
+  patientName: string | null,
   startDate: string | null,
   endDate: string | null,
   timestamp_order: string = "desc",
   pageNo: number = 0,
-  pageSize: number = 10
+  pageSize: number = 100,
+  logTypeCategory: LogType | null = null,
+  isSystemConfig: boolean | null = null
 ): Promise<LogsTableDataServer> => {
   try {
-    console.log(patient, typeof patient);
-    const response = await loggerAPI.get<ViewLogsList>(
-      `?patient=${patient}&action=${action}&user=${user}&table=${table}&timestamp_order=${timestamp_order}&pageNo=${pageNo}&pageSize=${pageSize}&start_date=${startDate}&end_date=${endDate}`
-    );
-    console.log("GET all Patients", response.data);
+    const params = new URLSearchParams();
+    if (patientName) params.append("patient_full_name", patientName);
+    if (action) params.append("action", action);
+    if (userFullName) params.append("user_full_name", userFullName);
+    if (logType) params.append("log_type", logType);
+    if (startDate) params.append("start_date", startDate);
+    if (endDate) params.append("end_date", endDate);
+    if (logTypeCategory) params.append("log_type_category", logTypeCategory);
+    if (isSystemConfig !== null) params.append("is_system_config", String(isSystemConfig));
+    params.append("timestamp_order", timestamp_order);
+    params.append("pageNo", String(pageNo));
+    params.append("pageSize", String(pageSize));
+
+    const response = await loggerAPI.get<ViewLogsList>(`?${params.toString()}`);
     return convertToLogsTDServer(response.data);
   } catch (error) {
-    console.error("GET all Patients", error);
+    console.error("GET Logs failed", error);
+    throw error;
+  }
+};
+
+export const exportLogs = async (
+  filters: LogFilters,
+  format: "csv" | "json" = "csv"
+): Promise<Blob> => {
+  try {
+    const params = new URLSearchParams();
+    params.append("export", "true");
+    params.append("format", format);
+    if (filters.action) params.append("action", filters.action);
+    if (filters.userFullName) params.append("user_full_name", filters.userFullName);
+    if (filters.logType) params.append("log_type", filters.logType);
+    if (filters.patientName) params.append("patient_full_name", filters.patientName);
+    if (filters.startDate) params.append("start_date", filters.startDate);
+    if (filters.endDate) params.append("end_date", filters.endDate);
+    if (filters.logTypeCategory) params.append("log_type_category", filters.logTypeCategory);
+    if (filters.isSystemConfig !== null) params.append("is_system_config", String(filters.isSystemConfig));
+
+    const response = await loggerAPI.get(`/export?${params.toString()}`, {
+      responseType: "blob",
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Export logs failed", error);
     throw error;
   }
 };
