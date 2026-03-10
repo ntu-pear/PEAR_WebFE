@@ -33,7 +33,23 @@ export default function ManageActivities() {
   // reset to first page whenever list or search/toggle changes
   useEffect(() => setPage(1), [search, includeDeleted, data]);
 
-  const rows = useMemo(() => toRows(data ?? []), [data]);
+  //const rows = useMemo(() => toRows(data ?? []), [data]);
+
+  const rows = useMemo(() => {
+    const mapped = toRows(data ?? []);
+
+    const sorted = [...mapped].sort((a, b) => {
+      if (includeDeleted && a.is_deleted !== b.is_deleted) {
+        return a.is_deleted ? -1 : 1;
+      }
+      return a.title.localeCompare(b.title);
+    });
+
+    return sorted.map((row) => ({
+      ...row,
+      title: row.title.toUpperCase(),
+    }));
+  }, [data, includeDeleted]);
 
   return (
     <div className="flex min-h-screen w-full flex-col container mx-auto px-0 sm:px-4">
@@ -57,7 +73,7 @@ export default function ManageActivities() {
               onClick={() => setIncludeDeleted(v => !v)}
             >
               <Filter className="mr-2 h-4 w-4" />
-              {includeDeleted ? "Showing Deleted" : "Deleted Hidden"}
+              {includeDeleted ? "Showing All including Deleted" : "Deleted Hidden"}
             </Button>
           </div>
         </div>
