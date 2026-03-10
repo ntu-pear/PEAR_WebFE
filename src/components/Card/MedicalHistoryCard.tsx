@@ -115,7 +115,7 @@ const MedicalHistoryCard: React.FC = () => {
             pagination={medicalHistoryList.pagination}
             columns={medicalDetailsColumns}
             viewMore={false}
-            hideActionsHeader={currentUser?.roleName !== "SUPERVISOR"}
+            hideActionsHeader={currentUser?.roleName !== "SUPERVISOR" && patientAllocation?.guardianApplicationUserId !== currentUser?.userId}
             fetchData={fetchPatientMedicalHistory}
             renderActions={renderActions}
           />

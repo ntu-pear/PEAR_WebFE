@@ -172,9 +172,9 @@ const ViewPatient: React.FC = () => {
                 </TabsTrigger>
               )}
 
-              {(currentUser?.roleName === "SUPERVISOR" || currentUser?.roleName === "GUARDIAN")&& (
+              {
                 <TabsTrigger value="photo-album">Photo Album</TabsTrigger>
-              )}
+              }
               {(currentUser?.roleName === "SUPERVISOR" || currentUser?.roleName === "GUARDIAN") && (
                 <TabsTrigger value="guardian">Guardian</TabsTrigger>
               )}
@@ -206,7 +206,7 @@ const ViewPatient: React.FC = () => {
                   <ActivityRecTab />
                 )}
 
-              {(currentUser?.roleName === "SUPERVISOR" || currentUser?.roleName === "GUARDIAN") &&
+              {
                 activeTab === "photo-album" && <PhotoAlbumTab />}
               {(currentUser?.roleName === "SUPERVISOR" || currentUser?.roleName === "GUARDIAN") &&
                 activeTab === "guardian" && <GuardianTab />}

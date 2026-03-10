@@ -5,14 +5,15 @@ import { Button } from "../ui/button";
 import { useModal } from "@/hooks/useModal";
 import { useAuth } from "@/hooks/useAuth";
 import { useViewPatient } from "@/hooks/patient/useViewPatient";
-import { EditPersonalPreference, getPatientPersonalPreference, PersonalPreferenceTD, PersonalPreferenceTDServer } from "@/api/patients/personalPreference";
 import { useEffect, useState } from "react";
+import { EditPersonalPreference, getPatientPersonalPreference, PersonalPreferenceTD, PersonalPreferenceTDServer } from "@/api/patients/personalPreference";
+import { toast } from "sonner";
 
-const HabitCard: React.FC = () => {
+const LikeDislikeCard: React.FC = () => {
   const { currentUser } = useAuth();
   const { openModal } = useModal();
-  const { id, patientAllocation } = useViewPatient()
-  const [habits, setHabits] = useState<PersonalPreferenceTDServer>({
+  const { id, patientAllocation } = useViewPatient();
+  const [likesDislikes, setLikesDislikes] = useState<PersonalPreferenceTDServer>({
     personalPreference: [],
     pagination: {
       pageNo: 0,
@@ -22,19 +23,40 @@ const HabitCard: React.FC = () => {
     }
   })
   const personalPreferenceColumns = [
-    { key: "PreferenceName", header: "Habit Name" },
+    { key: "PreferenceName", header: "Preference Name" },
+    {
+      key: "IsLike",
+      header: "Like/Dislike",
+      render: (row: string) => {
+        const isLike = row === "Y"
+        return(
+          <span style={{color:isLike?"green":"red"}}>
+            {isLike?"LIKE":"DISLIKE"}
+          </span>
+        )
+      }
+    },
     { key: "PerferenceRemarks", header: "Remarks" },
   ];
 
-  const fetchPersonalPreference = async (
-    pageNo: number = 0,
+  const fetchPersonalPreference = async (pageNo: number = 0,
     pageSize: number) => {
-    const response: PersonalPreferenceTDServer = await getPatientPersonalPreference(Number(id), pageNo, pageSize || 10, "Habit")
-    setHabits(response)
+    try {
+      const response: PersonalPreferenceTDServer = await getPatientPersonalPreference(Number(id), pageNo, pageSize || 10, "LikesDislikes")
+      setLikesDislikes(response)
+    } catch (error) {
+      if (error instanceof Error) {
+        toast.error(`Failed to fetch patient Likes/Dislikes. ${error}`)
+      } else {
+        toast.error("Failed to fetch patient Likes/Dislikes.")
+      }
+      console.error("Failed to fetch patient Likes/Dislikes")
+    }
+
   }
 
   useEffect(() => {
-    fetchPersonalPreference(habits.pagination.pageNo, habits.pagination.pageSize)
+    fetchPersonalPreference(likesDislikes.pagination.pageNo, likesDislikes.pagination.pageSize)
   }, [id])
 
   const renderAction = (personalPreference: PersonalPreferenceTD) => {
@@ -49,11 +71,11 @@ const HabitCard: React.FC = () => {
                 PatientID: Number(id),
                 id: Number(personalPreference.id),
                 PersonalPreferenceListID: Number(personalPreference.PersonalPreferenceListID),
-                PreferenceName: personalPreference.PreferenceName,
+                PreferenceName:personalPreference.PreferenceName,
                 IsLike: personalPreference.IsLike,
                 PreferenceRemarks: personalPreference.PerferenceRemarks
               }
-              openModal("editHabit", {
+              openModal("editLikeDislike", {
                 editPreference: editPreference,
                 refreshData: fetchPersonalPreference,
               })
@@ -68,7 +90,7 @@ const HabitCard: React.FC = () => {
             onClick={() =>
               openModal("deletePreference", {
                 personalPreferenceId: personalPreference.id,
-                refreshData: fetchPersonalPreference
+                refreshData: fetchPersonalPreference,
               })
             }
           >
@@ -81,33 +103,32 @@ const HabitCard: React.FC = () => {
 
   return (
     <>
-      <Card className="my-2">
+      <Card>
         <CardHeader>
           <CardTitle className="text-lg flex items-center justify-between">
-            <span>Habits</span>
-            {(currentUser?.roleName === "SUPERVISOR" || patientAllocation?.guardianApplicationUserId === currentUser?.userId
-            ) && (
-                <Button
-                  size="sm"
-                  className="h-8 w-24 gap-1"
-                  onClick={() => openModal("addHabit", { refreshData: fetchPersonalPreference })}
-                >
-                  <PlusCircle className="h-4 w-4" />
-                  <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                    Add
-                  </span>
-                </Button>
-              )}
+            <span>Likes/Dislikes</span>
+            {(currentUser?.roleName === "SUPERVISOR" || patientAllocation?.guardianApplicationUserId === currentUser?.userId) && (
+              <Button
+                size="sm"
+                className="h-8 w-24 gap-1"
+                onClick={() => openModal("addLikeDislike", { refreshData: fetchPersonalPreference })}
+              >
+                <PlusCircle className="h-4 w-4" />
+                <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+                  Add
+                </span>
+              </Button>
+            )}
           </CardTitle>
         </CardHeader>
         <CardContent>
           <DataTableServer
-            data={habits.personalPreference}
-            pagination={habits.pagination}
+            data={likesDislikes.personalPreference}
+            pagination={likesDislikes.pagination}
+            fetchData={fetchPersonalPreference}
             columns={personalPreferenceColumns}
             viewMore={false}
             hideActionsHeader={currentUser?.roleName !== "SUPERVISOR" && patientAllocation?.guardianApplicationUserId !== currentUser?.userId}
-            fetchData={fetchPersonalPreference}
             renderActions={renderAction}
           />
         </CardContent>
@@ -116,4 +137,4 @@ const HabitCard: React.FC = () => {
   );
 };
 
-export default HabitCard;
+export default LikeDislikeCard;

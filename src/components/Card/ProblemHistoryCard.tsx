@@ -25,9 +25,9 @@ const ProblemHistoryCard: React.FC = () => {
   })
   const problemLogColumns = [
     { key: "ProblemName", header: "Problem Name" },
-    { key: "SourceOfInformation", header: "Source of Information" },
     { key: "ProblemRemarks", header: "Remarks" },
-    { key: "DateOfDiagnosis", header: "Date of Diagnosis" }
+    { key: "DateOfDiagnosis", header: "Date of Diagnosis" },
+    { key: "SourceOfInformation", header: "Author" },
   ];
 
   const fetchProblemLog = async (pageNo: number, pageSize: number) => {
@@ -51,7 +51,7 @@ const ProblemHistoryCard: React.FC = () => {
 
   const renderAction = (problemLog: ProblemLogTD) => {
     return (
-      (currentUser?.roleName === "SUPERVISOR" || patientAllocation?.guardianApplicationUserId === currentUser?.userId) && (
+      (currentUser?.roleName === "SUPERVISOR") && (
         <div className="flex space-x-2">
           <Button
             size="sm"
@@ -89,7 +89,7 @@ const ProblemHistoryCard: React.FC = () => {
         <CardHeader>
           <CardTitle className="text-lg flex items-center justify-between">
             <span>Problem Log</span>
-            {(currentUser?.roleName === "SUPERVISOR" || patientAllocation?.guardianApplicationUserId === currentUser?.userId) && (
+            {(currentUser?.roleName === "SUPERVISOR")&& (
               <Button
                 size="sm"
                 className="h-8 w-24 gap-1"

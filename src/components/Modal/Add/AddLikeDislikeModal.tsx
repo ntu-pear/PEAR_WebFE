@@ -1,11 +1,11 @@
 import { useModal } from "@/hooks/useModal";
 import { Button } from "../../ui/button";
-import { useViewPatient } from "@/hooks/patient/useViewPatient";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { AddPersonalPreference, addPersonalPreferennce, getPersonalPreferenceList, Preference } from "@/api/patients/personalPreference";
 import { toast } from "sonner";
+import { useViewPatient } from "@/hooks/patient/useViewPatient";
 
-const AddHabitModal: React.FC = () => {
+const AddLikeDislikeModal: React.FC = () => {
   const { modalRef, closeModal, activeModal } = useModal();
   const { refreshData } = activeModal.props as {
     refreshData: () => void
@@ -13,29 +13,29 @@ const AddHabitModal: React.FC = () => {
   const { id } = useViewPatient()
   const [preferenceList, setPreferenceList] = useState<Preference[]>([])
 
-  const handleAddHabit = async (event: React.FormEvent) => {
+  const handleAddLike = async (event: React.FormEvent) => {
     event.preventDefault();
     const formData = new FormData(event.target as HTMLFormElement)
     const formDataObj = Object.fromEntries(formData.entries())
     const newPreference: AddPersonalPreference = {
       PatientID: Number(id),
       PersonalPreferenceListID: Number(formDataObj.PersonalPreferenceListID as string),
-      IsLike: null,
+      IsLike: formDataObj.IsLike as string,
       PreferenceRemarks: formDataObj.PreferenceRemarks as string
     }
     try {
       await addPersonalPreferennce(newPreference)
-      toast.success("New Patient Habit Added.")
-      console.log("New Patient Habit Added.")
+      toast.success("New Patient Like/Dislike Added.")
+      console.log("New Patient Like/Dislike Added.")
       refreshData()
       closeModal()
     } catch (error) {
       if (error instanceof Error) {
-        toast.error(`Failed to add new Patient Habit. ${error}`)
+        toast.error(`Failed to add new Patient Like/Dislike. ${error}`)
       } else {
-        toast.error("Failed to add new Patient Habit.")
+        toast.error("Failed to add new Patient Like/Dislike.")
       }
-      console.error("Failed to add new Patient Habit")
+      console.error("Failed to add new Patient Like/Dislike")
     }
     closeModal()
   };
@@ -43,28 +43,29 @@ const AddHabitModal: React.FC = () => {
   useEffect(() => {
     const fetchPreferenceList = async () => {
       try {
-        const response = await getPersonalPreferenceList("Habit")
+        const response = await getPersonalPreferenceList("LikesDislikes")
         setPreferenceList(response)
       } catch (error) {
         if (error instanceof Error) {
-          toast.error(`Failed to fetch Preference List (Habits). ${error}`)
+          toast.error(`Failed to fetch Preference List (Likes/Dislikes). ${error}`)
         } else {
-          toast.error("Failed to fetch Preference List (Habits).")
+          toast.error("Failed to fetch Preference List (Likes/Dislikes).")
         }
-        console.error("Failed to fetch Preference List (Habits).")
+        console.error("Failed to fetch Preference List (Likes/Dislikes).")
       }
     }
     fetchPreferenceList()
   }, [])
 
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
       <div ref={modalRef} className="bg-background p-8 rounded-md w-[400px]">
-        <h3 className="text-lg font-medium mb-5">Add Habit</h3>
-        <form onSubmit={handleAddHabit} className="grid grid-cols-2 gap-4">
+        <h3 className="text-lg font-medium mb-5">Add Like/Dislike</h3>
+        <form onSubmit={handleAddLike} className="grid grid-cols-2 gap-4">
           <div className="col-span-2">
             <label className="block text-sm font-medium">
-              Habit Name<span className="text-red-600">*</span>
+              Preference Name<span className="text-red-600">*</span>
             </label>
             <select
               className="mt-1 block w-full p-2 border rounded-md text-gray-900 overflow-auto"
@@ -79,6 +80,18 @@ const AddHabitModal: React.FC = () => {
                 ))
               }
             </select>
+          </div>
+
+          <div className="col-span-2">
+            <label className="block text-sm font-medium">
+              Like/Dislike<span className="text-red-600">*</span>
+            </label>
+            <div className="flex gap-2 mt-2">
+              <input type="radio" name="IsLike" value="Y" required   ></input>
+              <label className="text-green-600 font-medium">Like</label>
+              <input type="radio" name="IsLike" value="N"></input>
+              <label className="text-orange-600 font-medium">Dislike</label>
+            </div>
           </div>
 
           <div className="col-span-2">
@@ -100,4 +113,4 @@ const AddHabitModal: React.FC = () => {
   );
 };
 
-export default AddHabitModal;
+export default AddLikeDislikeModal;

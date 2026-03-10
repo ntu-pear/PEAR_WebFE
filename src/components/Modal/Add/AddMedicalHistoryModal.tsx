@@ -3,6 +3,7 @@ import { Button } from "../../ui/button";
 import { toast } from "sonner";
 import { AddMedicalHistory, Diagnosis, fetchDiagnosisList } from "@/api/patients/medicalHistory";
 import { useEffect, useState } from "react";
+import dayjs from "dayjs";
 
 const AddMedicalHistoryModal: React.FC = () => {
   const { modalRef, closeModal, activeModal } = useModal();
@@ -12,10 +13,12 @@ const AddMedicalHistoryModal: React.FC = () => {
     submitterId: string;
     refreshData: () => void;
   };
+  const fiveYearsAgo = dayjs().subtract(5, "year").format("YYYY-MM-DD");
   const handleAddMedicalHistory = async (event: React.FormEvent) => {
     event.preventDefault();
     const formData = new FormData(event.target as HTMLFormElement)
     const formDataObj = Object.fromEntries(formData.entries())
+    
 
     const newHistory: AddMedicalHistory = {
       PatientID: Number(patientId),
@@ -107,6 +110,7 @@ const AddMedicalHistoryModal: React.FC = () => {
                 name="DateOfDiagnosis"
                 type="date"
                 className="mt-1 block w-full p-2 border rounded-md text-gray-900"
+                min={fiveYearsAgo}
                 max={new Date().toISOString().split("T")[0]}
                 required
               >

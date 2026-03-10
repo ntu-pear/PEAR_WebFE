@@ -17,6 +17,13 @@ export const formatDateString = (date: string) => {
   return formatDate(date).toString().toUpperCase();
 };
 
+export const formatDateWithWeekday = (date: string | null) => {
+  if (!date) return "-";
+  return dayjs.utc(date)
+    .tz("Asia/Singapore")
+    .format("ddd, DD-MM-YYYY"); // "ddd" gives short weekday, e.g., "Mon", "Tue"
+};
+
 export const formatTime = (date: string) => {
   return dayjs
     .utc(date) // Parse the date in UTC

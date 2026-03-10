@@ -12,6 +12,8 @@ const VITE_GEOCODE_SERVICE_URL: string = import.meta.env
 // console.log('Patient Service URL:' + VITE_PATIENT_SERVICE_URL);
 const VITE_LOGGER_SERVICE_URL: string = import.meta.env.VITE_LOGGER_SERVICE_URL;
 
+const VITE_SCHEDULER_SERVICE_URL: string = import.meta.env.VITE_SCHEDULER_SERVICE_URL;
+
 export const VITE_USER_SERVICE_URL: string = import.meta.env
   .VITE_USER_SERVICE_URL;
 
@@ -51,7 +53,7 @@ export const adhocAPI = axios.create({
 
 // patient
 export const patientsAPI = axios.create({
-  baseURL: `${VITE_PATIENT_SERVICE_URL}/patients`,
+  baseURL: `${VITE_PATIENT_SERVICE_URL}/patients`, 
 });
 
 export const patientGuardianAPI = axios.create({
@@ -264,6 +266,46 @@ export const updatePrescriptionListAPI = axios.create({
 export const deletePrescriptionListAPI = axios.create({
   baseURL: `${import.meta.env.VITE_PATIENT_SERVICE_URL}/PrescriptionList/delete`,
 });
+
+export const createMedicalDiagnosisListAPI = axios.create({
+  baseURL: `${import.meta.env.VITE_PATIENT_SERVICE_URL}/MedicalDiagnosisList/add`,
+});
+
+export const updateMedicalDiagnosisListAPI = axios.create({
+  baseURL: `${import.meta.env.VITE_PATIENT_SERVICE_URL}/MedicalDiagnosisList/update`,
+});
+
+export const deleteMedicalDiagnosisListAPI = axios.create({
+  baseURL: `${import.meta.env.VITE_PATIENT_SERVICE_URL}/MedicalDiagnosisList/delete`,
+});
+
+export const createProblemListAPI = axios.create({
+  baseURL: `${import.meta.env.VITE_PATIENT_SERVICE_URL}/ProblemList/add`,
+});
+
+export const updateProblemListAPI = axios.create({
+  baseURL: `${import.meta.env.VITE_PATIENT_SERVICE_URL}/ProblemList/update`,
+});
+
+export const deleteProblemListAPI = axios.create({
+  baseURL: `${import.meta.env.VITE_PATIENT_SERVICE_URL}/ProblemList/delete`,
+});
+
+export const dementiaStageListAPI = axios.create({
+  baseURL: `${VITE_PATIENT_SERVICE_URL}/DementiaStage/List`,
+});
+export const createDementiaStageListAPI = axios.create({
+  baseURL: `${import.meta.env.VITE_PATIENT_SERVICE_URL}/DementiaStage/List/add`,
+});
+
+export const updateDementiaStageListAPI = axios.create({
+  baseURL: `${import.meta.env.VITE_PATIENT_SERVICE_URL}/DementiaStage/List/update`,
+});
+
+export const deleteDementiaStageListAPI = axios.create({
+  baseURL: `${import.meta.env.VITE_PATIENT_SERVICE_URL}/DementiaStage/List/delete`,
+});
+
 export const medicationAPI = axios.create({
   baseURL: `${VITE_PATIENT_SERVICE_URL}/Medication`,
 });
@@ -273,23 +315,23 @@ export const guardianAPI = axios.create({
 });
 
 export const highlightsAPI = axios.create({
-  baseURL: `${VITE_PATIENT_SERVICE_URL}/get_all_highlights`,
+  baseURL: `${VITE_PATIENT_SERVICE_URL}/Highlight/get_all_highlights`,
 });
 
 export const highlightTypesAPI = axios.create({
-  baseURL: `${VITE_PATIENT_SERVICE_URL}/get_highlight_types`,
+  baseURL: `${VITE_PATIENT_SERVICE_URL}/HighlightType/get_highlight_types`,
 });
 
 export const createHighlightTypesAPI = axios.create({
-  baseURL: `${VITE_PATIENT_SERVICE_URL}/create_highlight_type`,
+  baseURL: `${VITE_PATIENT_SERVICE_URL}/HighlightType/create_highlight_type`,
 });
 
 export const updateHighlightTypesAPI = axios.create({
-  baseURL: `${VITE_PATIENT_SERVICE_URL}/update_highlight_type`,
+  baseURL: `${VITE_PATIENT_SERVICE_URL}/HighlightType/update_highlight_type`,
 });
 
 export const deleteHighlightTypesAPI = axios.create({
-  baseURL: `${VITE_PATIENT_SERVICE_URL}/delete_highlight_type`,
+  baseURL: `${VITE_PATIENT_SERVICE_URL}/HighlightType/delete_highlight_type`,
 });
 
 export const getPatientPrivacyLevelAPI = axios.create({
@@ -320,6 +362,13 @@ export const medicalDiagnosisListAPI = axios.create({
   baseURL: `${VITE_PATIENT_SERVICE_URL}/MedicalDiagnosisList`
 })
 
+export const photoAlbumListAPI = axios.create({
+  baseURL:`${VITE_PATIENT_SERVICE_URL}/PhotoListAlbum`
+})
+
+export const personalPhotosAPI = axios.create({
+  baseURL:`${VITE_PATIENT_SERVICE_URL}/PersonalPhoto`
+})
 export const problemLogAPI = axios.create({
   baseURL:`${VITE_PATIENT_SERVICE_URL}/Problems`
 })
@@ -327,6 +376,14 @@ export const problemLogAPI = axios.create({
 export const problemListAPI = axios.create({
   baseURL:`${VITE_PATIENT_SERVICE_URL}/ProblemList`
 })
+
+export const personalPreferenceAPI = axios.create({
+  baseURL:`${VITE_PATIENT_SERVICE_URL}/PersonalPreferences`
+})
+
+export const personalPreferenceListAPI = axios.create({
+  baseURL:`${VITE_PATIENT_SERVICE_URL}/PersonalPreferenceList`
+}) 
 
 //geocode
 export const geocodeAPI = axios.create({
@@ -374,6 +431,14 @@ export const adminAPI = axios.create({
   baseURL: `${VITE_USER_SERVICE_URL}/admin`,
 });
 
+export const fetchAdminConfigsAPI = axios.create({
+  baseURL: `${VITE_USER_SERVICE_URL}/admin/config`,
+});
+
+export const updateAdminConfigsAPI = axios.create({
+  baseURL: `${VITE_USER_SERVICE_URL}/admin/config`,
+});
+
 export const supervisorAPI = axios.create({
   baseURL: `${VITE_USER_SERVICE_URL}/supervisor`,
 });
@@ -389,4 +454,13 @@ export const loggerAPI = axios.create({
 
 export const activityLoggerAPI = axios.create({
   baseURL: `${VITE_LOGGER_SERVICE_URL}/Logs/Activity`,
+});
+
+//scheduler
+export const schedulerAPI = axios.create({
+  baseURL: `${VITE_SCHEDULER_SERVICE_URL}`,
+});
+
+export const schedulerMedicationAPI = axios.create({
+  baseURL: `${VITE_SCHEDULER_SERVICE_URL}/MedicationSchedule`,
 });

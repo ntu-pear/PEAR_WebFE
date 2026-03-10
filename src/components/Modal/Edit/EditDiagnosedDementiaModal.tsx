@@ -125,7 +125,7 @@ const EditDiagnosedDementiaModal: React.FC = () => {
                         <Button variant="outline" onClick={closeModal}>
                             Cancel
                         </Button>
-                        <Button type="submit">Assign</Button>
+                        <Button type="submit">Update</Button>
                     </div>
                 </form>
             </div>

@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import type { CentreActivityAvailabilityRow } from "@/hooks/activities/useCentreActivityAvailabilities";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import dayjs from "dayjs";
+import { formatDate } from "@/utils/formatDate";
 
 type Props = {
   data: CentreActivityAvailabilityRow[];
@@ -74,7 +74,6 @@ export default function AvailabilityTable({
                             <TableHead className="w-40">Days</TableHead> 
                             <TableHead className="w-40">Created Date</TableHead>
                             <TableHead className="w-40">Modified Date</TableHead>
-                            <TableHead className="w-28">Deleted?</TableHead>
                             <TableHead className="w-96">Actions</TableHead>
                         </TableRow>
                     </TableHeader>
@@ -87,14 +86,15 @@ export default function AvailabilityTable({
                         {items.map((a) => (
                             <TableRow key={a.id}>
                                 <TableCell className="font-medium">{a.id}</TableCell>
-                                <TableCell>{a.start_date}</TableCell>
-                                <TableCell>{a.end_date}</TableCell>
+                                <TableCell>{formatDate(a.start_date)}</TableCell>
+                                <TableCell>{formatDate(a.end_date)}</TableCell>
                                 <TableCell>{a.start_time}</TableCell>
                                 <TableCell>{a.end_time}</TableCell>
                                 <TableCell>{formatDays(a.days_of_week)}</TableCell> {/* Render days */}
-                                <TableCell>{dayjs(a.created_date).format("YYYY-MM-DD")}</TableCell>
-                                <TableCell>{a.modified_date ? dayjs(a.modified_date).format("YYYY-MM-DD") : "-"}</TableCell>
-                                <TableCell>{a.is_deleted ? "Yes" : "No"}</TableCell>
+                                <TableCell>{formatDate(a.created_date)}</TableCell>
+                                <TableCell>
+                                    {a.modified_date ? formatDate(a.modified_date) : "-"}
+                                </TableCell>
                                 <TableCell className="space-x-2">
                                     <Button size="sm" variant="secondary" onClick={() => onEdit(a)}>
                                         Edit
