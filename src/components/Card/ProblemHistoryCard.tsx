@@ -18,7 +18,7 @@ const ProblemHistoryCard: React.FC = () => {
     problem_log: [],
     pagination: {
       pageNo: 0,
-      pageSize: 5,
+      pageSize: 10,
       totalRecords: 0,
       totalPages: 0
     }
@@ -47,7 +47,7 @@ const ProblemHistoryCard: React.FC = () => {
 
   useEffect(() => {
     fetchProblemLog(problemLogsList.pagination.pageNo || 0, problemLogsList.pagination.pageSize || 10)
-  }, [])
+  }, [id])
 
   const renderAction = (problemLog: ProblemLogTD) => {
     return (
@@ -59,7 +59,7 @@ const ProblemHistoryCard: React.FC = () => {
             onClick={() =>
               openModal("editProblem", {
                 problemLog: problemLog,
-                refreshData: fetchProblemLog,
+                refreshData: () => fetchProblemLog(problemLogsList.pagination.pageNo || 0, problemLogsList.pagination.pageSize || 10)
               })
             }
           >
@@ -72,7 +72,15 @@ const ProblemHistoryCard: React.FC = () => {
             onClick={() =>
               openModal("deleteProblem", {
                 problemLogId: problemLog.Id,
-                refreshData: fetchProblemLog,
+                refreshData: () => {
+                  const isLastItemOnPage =
+                    problemLogsList.problem_log.length === 1 &&
+                    problemLogsList.pagination.pageNo > 0;
+                  fetchProblemLog(
+                    isLastItemOnPage ? problemLogsList.pagination.pageNo - 1 : problemLogsList.pagination.pageNo || 0,
+                    problemLogsList.pagination.pageSize || 10
+                  );
+                }
               })
             }
           >
@@ -89,11 +97,13 @@ const ProblemHistoryCard: React.FC = () => {
         <CardHeader>
           <CardTitle className="text-lg flex items-center justify-between">
             <span>Problem Log</span>
-            {(currentUser?.roleName === "SUPERVISOR")&& (
+            {(currentUser?.roleName === "SUPERVISOR") && (
               <Button
                 size="sm"
                 className="h-8 w-24 gap-1"
-                onClick={() => openModal("addProblem", { refreshData: fetchProblemLog })}
+                onClick={() => openModal("addProblem", {
+                  refreshData: () => fetchProblemLog(problemLogsList.pagination.pageNo || 0, problemLogsList.pagination.pageSize || 10)
+                })}
               >
                 <PlusCircle className="h-4 w-4" />
                 <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">

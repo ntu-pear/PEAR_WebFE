@@ -7,6 +7,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useViewPatient } from "@/hooks/patient/useViewPatient";
 import { EditPersonalPreference, getPatientPersonalPreference, PersonalPreferenceTD, PersonalPreferenceTDServer } from "@/api/patients/personalPreference";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 const HabitCard: React.FC = () => {
   const { currentUser } = useAuth();
@@ -16,7 +17,7 @@ const HabitCard: React.FC = () => {
     personalPreference: [],
     pagination: {
       pageNo: 0,
-      pageSize: 5,
+      pageSize: 10,
       totalRecords: 0,
       totalPages: 0,
     }
@@ -27,15 +28,25 @@ const HabitCard: React.FC = () => {
   ];
 
   const fetchPersonalPreference = async (
-    pageNo: number = 0,
+    pageNo: number,
     pageSize: number) => {
-    const response: PersonalPreferenceTDServer = await getPatientPersonalPreference(Number(id), pageNo, pageSize || 10, "Habit")
-    setHabits(response)
+    try {
+      const response: PersonalPreferenceTDServer = await getPatientPersonalPreference(Number(id), pageNo, pageSize || 10, "Habit")
+      setHabits(response)
+    } catch (error) {
+      if (error instanceof Error) {
+        toast.error(`Failed to fetch patient Habits. ${error}`)
+      } else {
+        toast.error("Failed to fetch patient Habits.")
+      }
+      console.error("Failed to fetch patient Habits")
+    }
   }
 
   useEffect(() => {
-    fetchPersonalPreference(habits.pagination.pageNo, habits.pagination.pageSize)
+    fetchPersonalPreference(habits.pagination.pageNo || 0, habits.pagination.pageSize || 10)
   }, [id])
+
 
   const renderAction = (personalPreference: PersonalPreferenceTD) => {
     return (
@@ -55,7 +66,7 @@ const HabitCard: React.FC = () => {
               }
               openModal("editHabit", {
                 editPreference: editPreference,
-                refreshData: fetchPersonalPreference,
+                refreshData: () => fetchPersonalPreference(habits.pagination.pageNo || 0, habits.pagination.pageSize || 10)
               })
             }}
           >
@@ -68,7 +79,15 @@ const HabitCard: React.FC = () => {
             onClick={() =>
               openModal("deletePreference", {
                 personalPreferenceId: personalPreference.id,
-                refreshData: fetchPersonalPreference
+                refreshData: () => {
+                  const isLastItemOnPage =
+                    habits.personalPreference.length === 1 &&
+                    habits.pagination.pageNo > 0;
+                  fetchPersonalPreference(
+                    isLastItemOnPage ? habits.pagination.pageNo - 1 : habits.pagination.pageNo || 0,
+                    habits.pagination.pageSize || 10
+                  );
+                }
               })
             }
           >
@@ -90,7 +109,7 @@ const HabitCard: React.FC = () => {
                 <Button
                   size="sm"
                   className="h-8 w-24 gap-1"
-                  onClick={() => openModal("addHabit", { refreshData: fetchPersonalPreference })}
+                  onClick={() => openModal("addHabit", { refreshData: () => fetchPersonalPreference(habits.pagination.pageNo || 0, habits.pagination.pageSize || 10) })}
                 >
                   <PlusCircle className="h-4 w-4" />
                   <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">

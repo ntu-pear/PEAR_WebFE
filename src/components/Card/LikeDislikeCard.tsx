@@ -17,7 +17,7 @@ const LikeDislikeCard: React.FC = () => {
     personalPreference: [],
     pagination: {
       pageNo: 0,
-      pageSize: 5,
+      pageSize: 10,
       totalRecords: 0,
       totalPages: 0,
     }
@@ -29,9 +29,9 @@ const LikeDislikeCard: React.FC = () => {
       header: "Like/Dislike",
       render: (row: string) => {
         const isLike = row === "Y"
-        return(
-          <span style={{color:isLike?"green":"red"}}>
-            {isLike?"LIKE":"DISLIKE"}
+        return (
+          <span style={{ color: isLike ? "green" : "red" }}>
+            {isLike ? "LIKE" : "DISLIKE"}
           </span>
         )
       }
@@ -71,13 +71,13 @@ const LikeDislikeCard: React.FC = () => {
                 PatientID: Number(id),
                 id: Number(personalPreference.id),
                 PersonalPreferenceListID: Number(personalPreference.PersonalPreferenceListID),
-                PreferenceName:personalPreference.PreferenceName,
+                PreferenceName: personalPreference.PreferenceName,
                 IsLike: personalPreference.IsLike,
                 PreferenceRemarks: personalPreference.PerferenceRemarks
               }
               openModal("editLikeDislike", {
                 editPreference: editPreference,
-                refreshData: fetchPersonalPreference,
+                refreshData: () => fetchPersonalPreference(likesDislikes.pagination.pageNo || 0, likesDislikes.pagination.pageSize || 10)
               })
             }}
           >
@@ -90,7 +90,15 @@ const LikeDislikeCard: React.FC = () => {
             onClick={() =>
               openModal("deletePreference", {
                 personalPreferenceId: personalPreference.id,
-                refreshData: fetchPersonalPreference,
+                refreshData: () => {
+                  const isLastItemOnPage =
+                    likesDislikes.personalPreference.length === 1 &&
+                    likesDislikes.pagination.pageNo > 0;
+                  fetchPersonalPreference(
+                    isLastItemOnPage ? likesDislikes.pagination.pageNo - 1 : likesDislikes.pagination.pageNo || 0,
+                    likesDislikes.pagination.pageSize || 10
+                  );
+                }
               })
             }
           >
@@ -111,7 +119,9 @@ const LikeDislikeCard: React.FC = () => {
               <Button
                 size="sm"
                 className="h-8 w-24 gap-1"
-                onClick={() => openModal("addLikeDislike", { refreshData: fetchPersonalPreference })}
+                onClick={() => openModal("addLikeDislike", {
+                  refreshData: () => fetchPersonalPreference(likesDislikes.pagination.pageNo || 0, likesDislikes.pagination.pageSize || 10)
+                })}
               >
                 <PlusCircle className="h-4 w-4" />
                 <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">

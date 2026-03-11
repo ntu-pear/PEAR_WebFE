@@ -17,7 +17,7 @@ const HobbyCard: React.FC = () => {
     personalPreference: [],
     pagination: {
       pageNo: 0,
-      pageSize: 5,
+      pageSize: 10,
       totalRecords: 0,
       totalPages: 0,
     }
@@ -55,7 +55,7 @@ const HobbyCard: React.FC = () => {
               }
               openModal("editHobby", {
                 editPreference: editPreference,
-                refreshData: fetchPersonalPreference,
+                refreshData: () => fetchPersonalPreference(hobbies.pagination.pageNo || 0, hobbies.pagination.pageSize || 10)
               })
             }}
           >
@@ -68,7 +68,15 @@ const HobbyCard: React.FC = () => {
             onClick={() =>
               openModal("deletePreference", {
                 personalPreferenceId: personalPreference.id,
-                refreshData: fetchPersonalPreference,
+                refreshData: () => {
+                  const isLastItemOnPage =
+                    hobbies.personalPreference.length === 1 &&
+                    hobbies.pagination.pageNo > 0;
+                  fetchPersonalPreference(
+                    isLastItemOnPage ? hobbies.pagination.pageNo - 1 : hobbies.pagination.pageNo || 0,
+                    hobbies.pagination.pageSize || 10
+                  );
+                }
               })
             }
           >
@@ -89,7 +97,9 @@ const HobbyCard: React.FC = () => {
               <Button
                 size="sm"
                 className="h-8 w-24 gap-1"
-                onClick={() => openModal("addHobby", { refreshData: fetchPersonalPreference })}
+                onClick={() => openModal("addHobby", {
+                  refreshData: () => fetchPersonalPreference(hobbies.pagination.pageNo || 0, hobbies.pagination.pageSize || 10)
+                })}
               >
                 <PlusCircle className="h-4 w-4" />
                 <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">

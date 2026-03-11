@@ -248,7 +248,7 @@ const AddPatient: React.FC = () => {
     remove,
   } = useFieldArray({ control, name: "guardians" });
   const preferredLanguageListObj = useGetPreferredLanguageList();
-  const { mutateAsync: addPatient } = useAddPatient();
+  const { mutateAsync: addPatient, isSuccess } = useAddPatient();
   const { mutateAsync: addPatientPrivacyLevel } = useAddPatientPrivacyLevel();
   const { mutateAsync: updatePatientProfilePhoto } = useUploadPatientPhoto();
   const { currentUser } = useAuth();
@@ -287,115 +287,119 @@ const AddPatient: React.FC = () => {
     if (!currentUser || !currentUser.userId) {
       return;
     }
-
-    const patientFormData: AddPatientSection = {
-      name: data.patientInfoSchema.name,
-      nric: data.patientInfoSchema.nric,
-      address: data.patientInfoSchema.address,
-      tempAddress: data.patientInfoSchema.tempAddress,
-      homeNo: data.patientInfoSchema.homeNo,
-      handphoneNo: data.patientInfoSchema.handphoneNo,
-      gender: data.patientInfoSchema.gender,
-      dateOfBirth: convertToUTCISOString(data.patientInfoSchema.dateOfBirth),
-      isApproved: "1",
-      preferredName: data.patientInfoSchema.preferredName,
-      preferredLanguageId: undefined,
-      updateBit: "1",
-      autoGame: "1",
-      startDate: convertToUTCISOString(data.patientInfoSchema.startDate),
-      endDate: data.patientInfoSchema.endDate
-        ? convertToUTCISOString(data.patientInfoSchema.endDate)
-        : undefined,
-      isActive: "1",
-      isRespiteCare: data.patientInfoSchema.isRespiteCare,
-      privacyLevel: 2,
-      terminationReason: "",
-      inActiveReason: "",
-      inActiveDate: undefined,
-      profilePicture: "",
-      isDeleted: 0,
-      createdDate: getDateTimeNowInUTC(),
-      modifiedDate: getDateTimeNowInUTC(),
-      CreatedById: currentUser?.userId,
-      ModifiedById: currentUser?.userId,
-    };
-
-    console.log("addPatient formData", patientFormData);
-    const response = await addPatient(patientFormData);
-    const patientId = response.data.id;
-
-    if (patientId && data.guardians.length > 0 && currentUser?.userId) {
-      const creator = String(currentUser.userId);
-      const now = getDateTimeNowInUTC();
-
-      const guardians: IGuardianFormData[] = data.guardians.map((g) => ({
-        active: "Y",
-        firstName: g.firstName,
-        lastName: g.lastName,
-        preferredName: g.preferredName || "",
-        gender: g.gender,
-        contactNo: g.contactNo,
-        nric: g.nric,
-        email: g.email?.trim() === "" ? null : g.email,
-        dateOfBirth: convertToUTCISOString(g.dateOfBirth),
-        address: g.address,
-        tempAddress: g.tempAddress || "",
-        status: "Y",
-        isDeleted: "0",
-        guardianApplicationUserId: null,
-        createdDate: now,
-        modifiedDate: now,
-        CreatedById: creator,
-        ModifiedById: creator,
-        patientId,
-        relationshipName: g.relationshipName,
-      }));
-
-      const createdGuardians = await Promise.all(
-        guardians.map((guardian) => addPatientGuardian(guardian))
-      );
-
-      const allocation = {
-        active: "Y",
-        patientId: patientId,
-        guardianId: createdGuardians[0].id,
-        guardian2Id: createdGuardians[1] ? createdGuardians[1].id : null,
-        createdDate: now,
-        modifiedDate: now,
-        CreatedById: creator,
-        ModifiedById: creator,
-      } as const;
-
-      await createGuardianAllocation(allocation)
-    }
-
-    if (patientId) {
-      const addPatientPrivacyLevelForm: AddPatientPrivacyLevel = {
-        accessLevelSensitive: 2,
-        active: true,
-        createdById: currentUser?.userId,
-        modifiedById: currentUser?.userId,
+    try {
+      const patientFormData: AddPatientSection = {
+        name: data.patientInfoSchema.name,
+        nric: data.patientInfoSchema.nric,
+        address: data.patientInfoSchema.address,
+        tempAddress: data.patientInfoSchema.tempAddress,
+        homeNo: data.patientInfoSchema.homeNo,
+        handphoneNo: data.patientInfoSchema.handphoneNo,
+        gender: data.patientInfoSchema.gender,
+        dateOfBirth: convertToUTCISOString(data.patientInfoSchema.dateOfBirth),
+        isApproved: "1",
+        preferredName: data.patientInfoSchema.preferredName,
+        preferredLanguageId: undefined,
+        updateBit: "1",
+        autoGame: "1",
+        startDate: convertToUTCISOString(data.patientInfoSchema.startDate),
+        endDate: data.patientInfoSchema.endDate
+          ? convertToUTCISOString(data.patientInfoSchema.endDate)
+          : undefined,
+        isActive: "1",
+        isRespiteCare: data.patientInfoSchema.isRespiteCare,
+        privacyLevel: 2,
+        terminationReason: "",
+        inActiveReason: "",
+        inActiveDate: undefined,
+        profilePicture: "",
+        isDeleted: 0,
         createdDate: getDateTimeNowInUTC(),
         modifiedDate: getDateTimeNowInUTC(),
+        CreatedById: currentUser?.userId,
+        ModifiedById: currentUser?.userId,
       };
-      console.log("patientId", patientId);
-      console.log("addPatientPrivacyLevelForm", addPatientPrivacyLevelForm);
-      await addPatientPrivacyLevel({
-        patientId,
-        formData: addPatientPrivacyLevelForm,
-      });
-    }
 
-    if (patientId && profilePhotoFile) {
-      const photoFileFormData = new FormData();
-      photoFileFormData.append("file", profilePhotoFile);
+      console.log("addPatient formData", patientFormData);
+      const response = await addPatient(patientFormData);
+      const patientId = response.data.id;
 
-      console.log("patientId", patientId);
-      console.log("photoFileFormData", photoFileFormData);
-      await updatePatientProfilePhoto({
-        patientId,
-        formData: photoFileFormData,
-      });
+      if (patientId && data.guardians.length > 0 && currentUser?.userId) {
+        const creator = String(currentUser.userId);
+        const now = getDateTimeNowInUTC();
+
+        const guardians: IGuardianFormData[] = data.guardians.map((g) => ({
+          active: "Y",
+          firstName: g.firstName,
+          lastName: g.lastName,
+          preferredName: g.preferredName || "",
+          gender: g.gender,
+          contactNo: g.contactNo,
+          nric: g.nric,
+          email: g.email?.trim() === "" ? null : g.email,
+          dateOfBirth: convertToUTCISOString(g.dateOfBirth),
+          address: g.address,
+          tempAddress: g.tempAddress || "",
+          status: "Y",
+          isDeleted: "0",
+          guardianApplicationUserId: null,
+          createdDate: now,
+          modifiedDate: now,
+          CreatedById: creator,
+          ModifiedById: creator,
+          patientId,
+          relationshipName: g.relationshipName,
+        }));
+
+        const createdGuardians = await Promise.all(
+          guardians.map((guardian) => addPatientGuardian(guardian))
+        );
+
+        const allocation = {
+          active: "Y",
+          patientId: patientId,
+          guardianId: createdGuardians[0].id,
+          guardian2Id: createdGuardians[1] ? createdGuardians[1].id : null,
+          createdDate: now,
+          modifiedDate: now,
+          CreatedById: creator,
+          ModifiedById: creator,
+        } as const;
+
+        await createGuardianAllocation(allocation)
+      }
+
+      if (patientId) {
+        const addPatientPrivacyLevelForm: AddPatientPrivacyLevel = {
+          accessLevelSensitive: 2,
+          active: true,
+          createdById: currentUser?.userId,
+          modifiedById: currentUser?.userId,
+          createdDate: getDateTimeNowInUTC(),
+          modifiedDate: getDateTimeNowInUTC(),
+        };
+        console.log("patientId", patientId);
+        console.log("addPatientPrivacyLevelForm", addPatientPrivacyLevelForm);
+        await addPatientPrivacyLevel({
+          patientId,
+          formData: addPatientPrivacyLevelForm,
+        });
+      }
+
+      if (patientId && profilePhotoFile) {
+        const photoFileFormData = new FormData();
+        photoFileFormData.append("file", profilePhotoFile);
+
+        console.log("patientId", patientId);
+        console.log("photoFileFormData", photoFileFormData);
+        await updatePatientProfilePhoto({
+          patientId,
+          formData: photoFileFormData,
+        });
+      }
+    } catch (error) {
+      toast.error("Failed to add patient. Please try again.");
+      console.error("Add patient error:", error);
     }
   };
 
@@ -470,6 +474,33 @@ const AddPatient: React.FC = () => {
       hasInitializedGuardian.current = true;
     }
   }, [append, guardianFields.length]);
+
+
+  if (isSuccess) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen gap-4">
+        <div className="flex items-center justify-center w-16 h-16 rounded-full bg-green-100">
+          <svg
+            className="w-8 h-8 text-green-600"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M5 13l4 4L19 7"
+            />
+          </svg>
+        </div>
+        <h2 className="text-2xl font-semibold text-gray-800">
+          Patient Created Successfully
+        </h2>
+        <p className="text-gray-500">Redirecting to patient list...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen w-full flex-col lg:flex-row container mx-auto px-4">
@@ -990,7 +1021,7 @@ const AddPatient: React.FC = () => {
 
                         <div className="sm:col-span-3">
                           <Label>
-                            Relationship{" "}
+                            Patient's{" "}
                             <span className="text-destructive">*</span>
                           </Label>
                           <select

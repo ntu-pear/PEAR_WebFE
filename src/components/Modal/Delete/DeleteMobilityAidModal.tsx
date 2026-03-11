@@ -15,7 +15,7 @@ const DeleteMobilityAidModal: React.FC = () => {
     if (!mobilityAidId || isNaN(Number(mobilityAidId))) return;
     try {
       await deleteMobilityAid(Number(mobilityAidId));
-      refreshData();
+      await refreshData();
       closeModal();
       toast.success("Patient mobility aid deleted successfully.");
       // eslint-disable-next-line @typescript-eslint/no-unused-vars

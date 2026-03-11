@@ -17,7 +17,7 @@ const MedicalHistoryCard: React.FC = () => {
     medicalHistory: [],
     pagination: {
       pageNo: 0,
-      pageSize: 5,
+      pageSize: 10,
       totalRecords: 0,
       totalPages: 0,
     }
@@ -31,15 +31,15 @@ const MedicalHistoryCard: React.FC = () => {
   ];
 
   const fetchPatientMedicalHistory = async (
-    pageNo: number=0,
-    pageSize: number=10) => {
+    pageNo: number = 0,
+    pageSize: number = 10) => {
     try {
       const history = await fetchMedicalHistory(Number(id), pageNo, pageSize || 10)
       setMedicalHistoryList(history)
     } catch (error) {
       if (error instanceof Error) {
         toast.error(`Failed to fetch patient medical history. ${error}`);
-      }else{
+      } else {
         toast.error("Failed to fetch patient medical history")
       }
       console.error("Failed to fetch patient medical history")
@@ -48,7 +48,7 @@ const MedicalHistoryCard: React.FC = () => {
 
   useEffect(() => {
     fetchPatientMedicalHistory(medicalHistoryList.pagination.pageNo, medicalHistoryList.pagination.pageSize)
-  }, [])
+  }, [id, medicalHistoryList.pagination.pageNo, medicalHistoryList.pagination.pageSize])
 
 
   const renderActions = (medicalHistory: MedicalHistoryTD) => {
@@ -61,7 +61,7 @@ const MedicalHistoryCard: React.FC = () => {
             onClick={() =>
               openModal("editMedicalHistory", {
                 medicalHistory: medicalHistory,
-                refreshData: fetchPatientMedicalHistory,
+                refreshData: () => { fetchPatientMedicalHistory(medicalHistoryList.pagination.pageNo || 0, medicalHistoryList.pagination.pageSize || 10) },
               })
             }
           >
@@ -74,7 +74,15 @@ const MedicalHistoryCard: React.FC = () => {
             onClick={() =>
               openModal("deleteMedicalHistory", {
                 medicalHistoryId: Number(medicalHistory.id),
-                refreshData: fetchPatientMedicalHistory,
+                refreshData: () => {
+                  const isLastItemOnPage =
+                    medicalHistoryList.medicalHistory.length === 1 &&
+                    medicalHistoryList.pagination.pageNo > 0;
+                  fetchPatientMedicalHistory(
+                    isLastItemOnPage ? medicalHistoryList.pagination.pageNo - 1 : medicalHistoryList.pagination.pageNo || 0,
+                    medicalHistoryList.pagination.pageSize || 10
+                  );
+                },
               })
             }
           >
@@ -98,7 +106,7 @@ const MedicalHistoryCard: React.FC = () => {
                 onClick={() => openModal("addMedicalHistory", {
                   patientId: id,
                   submitterId: currentUser?.userId,
-                  refreshData: fetchPatientMedicalHistory
+                  refreshData: () => { fetchPatientMedicalHistory(medicalHistoryList.pagination.pageNo||0, medicalHistoryList.pagination.pageSize || 10) },
                 })}
               >
                 <PlusCircle className="h-4 w-4" />

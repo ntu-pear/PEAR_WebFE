@@ -61,13 +61,13 @@ export interface AddMobilityAid {
   IsRecovered: boolean;
   CreatedById: string;
   ModifiedById: string;
-  RecoveryDate: string|null;
+  RecoveryDate: string | null;
 }
 
 export interface UpdateMobilityAid {
   MobilityRemarks: string;
   IsRecovered: boolean;
-  RecoveryDate: string|null
+  RecoveryDate: string | null
 }
 
 export const fetchMobilityList = async (): Promise<MobilityList[]> => {
@@ -80,7 +80,7 @@ export const fetchMobilityList = async (): Promise<MobilityList[]> => {
         Authorization: `Bearer ${token}`,
       },
     });
-    const activeMobilityList = response.data.filter((l)=>Number(l.IsDeleted)===0)
+    const activeMobilityList = response.data.filter((l) => Number(l.IsDeleted) === 0)
     console.log("GET Patient Mobility List", activeMobilityList);
     return activeMobilityList;
   } catch (error) {
@@ -115,24 +115,32 @@ export const convertToMobilityAidTD = (
 
   const mobilityAidsTransformed = viewMobilityAidList.data
     .filter((ma) => !ma.IsDeleted)
+    .sort((a, b) => {
+      if (a.IsRecovered !== b.IsRecovered) {
+        return a.IsRecovered === false ? -1 : 1;
+      }
+
+      // Both RECOVERED: sort by RecoveryDate descending
+      if (a.IsRecovered === true && b.IsRecovered === true) {
+        const dateA = a.RecoveryDate ? new Date(a.RecoveryDate).getTime() : 0;
+        const dateB = b.RecoveryDate ? new Date(b.RecoveryDate).getTime() : 0;
+        return dateB - dateA;
+      }
+
+      // Both NOT RECOVERED: RecoveryDate is null, no meaningful sort
+      return 0;
+    })
     .map((ma) => ({
       id: ma.MobilityID,
       mobilityAids:
-        mobilityList
-          .find((ml) => ml.MobilityListId === ma.MobilityListId)
+        mobilityList.find((ml) => ml.MobilityListId === ma.MobilityListId)
           ?.Value?.toUpperCase() || "",
       remark: ma.MobilityRemarks,
       condition: ma.IsRecovered ? "FULLY RECOVERED" : "NOT RECOVERED",
       date: ma.CreatedDateTime ? formatDateString(ma.CreatedDateTime) : "",
-      recoveryDate: ma.IsRecovered && ma.RecoveryDate? formatDateString(ma.RecoveryDate):""
+      recoveryDate:
+        ma.IsRecovered && ma.RecoveryDate ? formatDateString(ma.RecoveryDate) : "",
     }));
-
-  mobilityAidsTransformed.sort((a,b)=>{
-    if (a.condition!=b.condition){
-      return a.condition==="NOT RECOVERED"?-1:1
-    }
-    return (b.recoveryDate||"").localeCompare(a.recoveryDate||"")
-  })
 
   const updatedTD = {
     mobilityAids: mobilityAidsTransformed,
