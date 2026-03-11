@@ -2,17 +2,18 @@ import { Form, DatePicker, message } from "antd";
 import { Dayjs } from "dayjs";
 import { RuleObject } from "antd/es/form";
 import React, { useEffect, useState } from "react";
-import { listActivities, Activity } from "@/api/activities/activities";
 import { fetchAllPatientTD } from "@/api/patients/patients";
 import { createAdhocActivity } from "@/api/activities/adhoc"; 
+import { listCentreActivities, CentreActivity, getActivities } from "@/api/activities/centreActivities";
 
 const AddAdhoc: React.FC = () => {
-    const [activities, setActivities] = useState<Activity[]>([]);
+  const [activities, setActivities] = useState<CentreActivity[]>([]);
   const [loadingActivities, setLoadingActivities] = useState(true);
 
   const [patients, setPatients] = useState<{ id: number; name: string }[]>([]);
   const [loadingPatients, setLoadingPatients] = useState(true);
 
+  const [activityMap, setActivityMap] = useState<Record<number, string>>({});
 
 
   const [form] = Form.useForm();
@@ -78,6 +79,13 @@ const AddAdhoc: React.FC = () => {
 
 
         setPatients(mappedPatients);
+
+        // set default patient in the form
+        if (mappedPatients.length > 0) {
+          form.setFieldsValue({
+            patient_id: mappedPatients[0].id,
+          });
+        }
       } catch (error) {
         console.error("Failed to fetch patients", error);
         message.error("Failed to load patients");
@@ -92,11 +100,25 @@ const AddAdhoc: React.FC = () => {
   useEffect(() => {
     const fetchActivities = async () => {
       try {
-        const res = await listActivities({
+        //Get centre activities
+        const centreRes = await listCentreActivities({
           include_deleted: false,
           limit: 1000,
         });
-        setActivities(res);
+
+        setActivities(centreRes);
+
+        //Get base activities (titles)
+        const activityRes = await getActivities();
+
+        const map: Record<number, string> = {};
+
+        activityRes.forEach(a => {
+          map[a.id] = a.title;
+        });
+
+        setActivityMap(map);
+
       } catch (error) {
         console.error("Failed to fetch activities", error);
         message.error("Failed to load activities");
@@ -107,7 +129,6 @@ const AddAdhoc: React.FC = () => {
 
     fetchActivities();
   }, []);
-
   return (
     <div className="flex min-h-screen w-full flex-col lg:flex-row container mx-auto px-4">
       {/* Left Sidebar Navigation */}
@@ -154,6 +175,7 @@ const AddAdhoc: React.FC = () => {
                   }
                   //name="patient_name"
                   name="patient_id"
+                  initialValue={patients[0]?.id}
                   rules={[
                     { required: true, message: "Please select a patient!" },
                   ]}
@@ -202,7 +224,7 @@ const AddAdhoc: React.FC = () => {
 
                     {activities.map((activity) => (
                       <option key={activity.id} value={activity.id}>
-                        {activity.title}
+                        {activityMap[activity.activity_id] ?? "Unknown Activity"}
                       </option>
                     ))}
                   </select>
@@ -235,7 +257,7 @@ const AddAdhoc: React.FC = () => {
 
                     {activities.map((activity) => (
                       <option key={activity.id} value={activity.id}>
-                        {activity.title}
+                        {activityMap[activity.activity_id] ?? "Unknown Activity"}
                       </option>
                     ))}
                   </select>
