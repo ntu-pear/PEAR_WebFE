@@ -63,6 +63,15 @@ export default function ManageActivityAvailabilities() {
         }
 
         const rows = toRows(filtered ?? []);
+
+        // If showing deleted, move deleted rows to the top
+        if (includeDeleted) {
+        rows.sort((a, b) => {
+            if (a.is_deleted === b.is_deleted) return 0;
+            return a.is_deleted ? -1 : 1;
+        });
+        }
+
         console.log("Filtered rows for table:", rows);
 
         return rows;
@@ -153,7 +162,7 @@ export default function ManageActivityAvailabilities() {
                         onClick={() => setIncludeDeleted(v => !v)}
                         >
                         <Filter className="mr-2 h-4 w-4" />
-                        {includeDeleted ? "Showing Deleted" : "Deleted Hidden"}
+                        {includeDeleted ? "Showing All Including Deleted" : "Deleted Hidden"}
                         </Button>
                     </div>
                 </div>

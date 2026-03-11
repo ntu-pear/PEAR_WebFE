@@ -45,7 +45,7 @@ const EditHobby: React.FC = () => {
                 <h3 className="text-lg font-medium mb-5">Edit Hobby</h3>
                 <div className="col-span-2">
                     <label className="block text-sm font-medium">
-                        Preference Name<span className="text-red-600">*</span>
+                        Hobby Name<span className="text-red-600">*</span>
                     </label>
                     <input
                         name="PreferenceName"

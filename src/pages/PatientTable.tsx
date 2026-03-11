@@ -84,9 +84,10 @@ const PatientTable: React.FC = () => {
     });
   const [activeStatus, setActiveStatus] = useState("All");
   const [searchItem, setSearchItem] = useState("");
-  const [tabValue, setTabValue] = useState(
-    hasAccessToAllPatients ? "all_patients" : "my_patients"
-  );
+  // const [tabValue, setTabValue] = useState(
+  //   hasAccessToAllPatients ? "all_patients" : "my_patients"
+  // );
+  const [tabValue, setTabValue] = useState("my_patients");
   const debouncedActiveStatus = useDebounce(activeStatus, 300);
   const debouncedSearch = useDebounce(searchItem, 300);
   const debounceTabValue = useDebounce(tabValue, 300);
@@ -132,7 +133,7 @@ const PatientTable: React.FC = () => {
             activeStatus,
             pageNo
           );
-        } 
+        }
       }
 
       setPatientTDServer({
@@ -148,11 +149,11 @@ const PatientTable: React.FC = () => {
     try {
       const guardianId = String(currentUser?.userId)
       const fetchedPatientList = await fetchGuardianPatients(guardianId)
-      console.log("guardian fetchedPatientList",fetchedPatientList)
+      console.log("guardian fetchedPatientList", fetchedPatientList)
       setPatientTDServer({
         patients: fetchedPatientList.data,
-        pagination:{
-          pageNo:Number(fetchedPatientList.pageNo),
+        pagination: {
+          pageNo: Number(fetchedPatientList.pageNo),
           pageSize: Number(fetchedPatientList.pageSize),
           totalPages: Number(fetchedPatientList.totalPages),
           totalRecords: Number(fetchedPatientList.totalRecords)
@@ -325,7 +326,7 @@ const PatientTable: React.FC = () => {
                       </div>
                       <div className="flex flex-col">
                         <h1 className="font-bold text-md">Gender:</h1>
-                        <p>{patient?.gender === "M"  ? "Male" : "Female"}</p>
+                        <p>{patient?.gender === "M" ? "Male" : "Female"}</p>
                       </div>
                       <div className="flex flex-col">
                         <h1 className="font-bold text-md">Address:</h1>
@@ -373,10 +374,10 @@ const PatientTable: React.FC = () => {
           >
             <div className="flex items-center">
               <TabsList>
+                <TabsTrigger value="my_patients">My Patients</TabsTrigger>
                 {hasAccessToAllPatients && (
                   <TabsTrigger value="all_patients">All Patients</TabsTrigger>
                 )}
-                <TabsTrigger value="my_patients">My Patients</TabsTrigger>
               </TabsList>
               <div className="flex items-center gap-2 ml-auto">
                 <div className="flex">

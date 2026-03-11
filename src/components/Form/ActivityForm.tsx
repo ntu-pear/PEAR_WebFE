@@ -75,9 +75,12 @@ export default function ActivityForm({ initial, onSubmit, submitting }: Props) {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="description">Activity Description</Label>
+        <Label htmlFor="description">
+          Activity Description <span className="text-red-500">*</span>
+        </Label>
         <Textarea
           id="description"
+          required
           value={description ?? ""}
           onChange={(e) => {
             setDescription(e.target.value);

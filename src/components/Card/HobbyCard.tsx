@@ -2,7 +2,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { DataTableServer } from "../Table/DataTable";
 import { PlusCircle } from "lucide-react";
 import { Button } from "../ui/button";
-import { personalPreferenceColumns } from "../Tab/PersonalPreferenceTab";
 import { useModal } from "@/hooks/useModal";
 import { useAuth } from "@/hooks/useAuth";
 import { useViewPatient } from "@/hooks/patient/useViewPatient";
@@ -23,6 +22,10 @@ const HobbyCard: React.FC = () => {
       totalPages: 0,
     }
   })
+  const personalPreferenceColumns = [
+    { key: "PreferenceName", header: "Hobby Name" },
+    { key: "PerferenceRemarks", header: "Remarks" },
+  ];
 
   const fetchPersonalPreference = async (pageNo: number = 0,
     pageSize: number) => {
