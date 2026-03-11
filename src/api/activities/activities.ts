@@ -41,7 +41,7 @@ export async function listActivities(params?: { include_deleted?: boolean; skip?
       limit: params?.limit ?? 200,
     },
   });
-  return res.data;
+  return res.data.sort((a, b) => a.title.localeCompare(b.title));
 }
 
 export async function getActivityById(id: number) {
