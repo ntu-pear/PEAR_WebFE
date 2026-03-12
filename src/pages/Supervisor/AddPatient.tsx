@@ -24,6 +24,7 @@ import { AddPatientPrivacyLevel } from "@/api/patients/privacyLevel";
 import { addPatientGuardian, IGuardianFormData } from "@/api/patients/guardian";
 import { createGuardianAllocation } from "@/api/patients/patientAllocation";
 import { validateNRIC } from "@/utils/validateNRIC";
+import { useNavigate } from "react-router";
 
 const patientInfoSchema = z
   .object({
@@ -208,6 +209,7 @@ const RELATIONSHIP_OPTIONS = [
 ];
 
 const AddPatient: React.FC = () => {
+  const navigate = useNavigate();
   const [activeSection, setActiveSection] = useState<string>("personal-info");
   const sections = useRef<{ [key: string]: HTMLElement | null }>({
     "personal-info": null,
@@ -248,7 +250,7 @@ const AddPatient: React.FC = () => {
     remove,
   } = useFieldArray({ control, name: "guardians" });
   const preferredLanguageListObj = useGetPreferredLanguageList();
-  const { mutateAsync: addPatient, isSuccess } = useAddPatient();
+  const { mutateAsync: addPatient, isSuccess  } = useAddPatient();
   const { mutateAsync: addPatientPrivacyLevel } = useAddPatientPrivacyLevel();
   const { mutateAsync: updatePatientProfilePhoto } = useUploadPatientPhoto();
   const { currentUser } = useAuth();
@@ -397,6 +399,7 @@ const AddPatient: React.FC = () => {
           formData: photoFileFormData,
         });
       }
+      toast.success("Successfully added new patient");
     } catch (error) {
       toast.error("Failed to add patient. Please try again.");
       console.error("Add patient error:", error);
@@ -474,6 +477,15 @@ const AddPatient: React.FC = () => {
       hasInitializedGuardian.current = true;
     }
   }, [append, guardianFields.length]);
+
+  useEffect(() => {
+    if (isSuccess) {
+      const timer = setTimeout(() => {
+        navigate("/supervisor/manage-patients");
+      }, 10000); 
+      return () => clearTimeout(timer);
+    }
+  }, [isSuccess, navigate]);
 
 
   if (isSuccess) {
