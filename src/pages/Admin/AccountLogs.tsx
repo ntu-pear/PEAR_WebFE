@@ -1,4 +1,4 @@
-import React, {  useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import {
   Card,
@@ -8,7 +8,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
-// import Searchbar from "@/components/Searchbar";
+import Searchbar from "@/components/Searchbar";
 import {
   Table,
   TableBody,
@@ -91,23 +91,23 @@ const AccountLogs: React.FC = () => {
       logs: [],
     });
 
-  // const [searchItem, setSearchItem] = useState("");
+  const [searchItem, setSearchItem] = useState("");
   const [tabValue, setTabValue] = useState("all");
   const debouncedSearch = useDebounce(searchItem, 300);
 
-  // const handleInputChange = useCallback(
-  //   (e: React.ChangeEvent<HTMLInputElement>) => {
-  //     setSearchItem(e.target.value);
-  //   },
-  //   []
-  // );
+  const handleInputChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setSearchItem(e.target.value);
+    },
+    []
+  );
 
   const handleFilter = async (pageNo: number, pageSize: number) => {
     try {
       const fetchedLogs = await fetchAuditLogs({
         pageNo,
         pageSize,
-        search: debouncedSearch,
+        user: debouncedSearch,
       });
 
       setExpandedRows({});
@@ -165,12 +165,12 @@ const AccountLogs: React.FC = () => {
     <div className="flex min-h-screen w-full flex-col container mx-auto px-0 sm:px-4">
       <div className="flex flex-col sm:gap-4 sm:py-4 sm:pl-14 sm:pr-14">
         <div className="flex items-center">
-          {/* <Searchbar
+          {<Searchbar
             searchItem={searchItem}
             onSearchChange={handleInputChange}
             placeholder="Search by user ID..."
             ariaLabel="Search logs"
-          /> */}
+          /> }
         </div>
 
         <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
