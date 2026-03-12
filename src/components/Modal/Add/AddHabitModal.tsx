@@ -27,7 +27,7 @@ const AddHabitModal: React.FC = () => {
       await addPersonalPreferennce(newPreference)
       toast.success("New Patient Habit Added.")
       console.log("New Patient Habit Added.")
-      refreshData()
+      await refreshData()
       closeModal()
     } catch (error) {
       if (error instanceof Error) {

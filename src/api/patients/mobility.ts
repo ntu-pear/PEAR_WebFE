@@ -61,13 +61,13 @@ export interface AddMobilityAid {
   IsRecovered: boolean;
   CreatedById: string;
   ModifiedById: string;
-  RecoveryDate: string|null;
+  RecoveryDate: string | null;
 }
 
 export interface UpdateMobilityAid {
   MobilityRemarks: string;
   IsRecovered: boolean;
-  RecoveryDate: string|null
+  RecoveryDate: string | null
 }
 
 export const fetchMobilityList = async (): Promise<MobilityList[]> => {
@@ -80,7 +80,7 @@ export const fetchMobilityList = async (): Promise<MobilityList[]> => {
         Authorization: `Bearer ${token}`,
       },
     });
-    const activeMobilityList = response.data.filter((l)=>Number(l.IsDeleted)===0)
+    const activeMobilityList = response.data.filter((l) => Number(l.IsDeleted) === 0)
     console.log("GET Patient Mobility List", activeMobilityList);
     return activeMobilityList;
   } catch (error) {
@@ -92,67 +92,45 @@ export const fetchMobilityList = async (): Promise<MobilityList[]> => {
 export const convertToMobilityAidTD = (
   mobilityList: MobilityList[],
   viewMobilityAidList: ViewMobilityAidList
-): MobilityAidTDServer => {
+): MobilityAidTD[] => {
   if (!Array.isArray(mobilityList)) {
     console.error("mobilityList is not an array", mobilityList);
   }
 
   if (!Array.isArray(viewMobilityAidList.data)) {
-    console.error(
-      "viewMobilityAidList.data is not an array",
-      viewMobilityAidList.data
-    );
-    return {
-      mobilityAids: [],
-      pagination: {
-        pageNo: 0,
-        pageSize: 0,
-        totalRecords: 0,
-        totalPages: 0,
-      },
-    };
+    console.error("viewMobilityAidList.data is not an array", viewMobilityAidList.data);
+    return []
   }
 
-  const mobilityAidsTransformed = viewMobilityAidList.data
+  return viewMobilityAidList.data
     .filter((ma) => !ma.IsDeleted)
     .map((ma) => ({
       id: ma.MobilityID,
       mobilityAids:
-        mobilityList
-          .find((ml) => ml.MobilityListId === ma.MobilityListId)
+        mobilityList.find((ml) => ml.MobilityListId === ma.MobilityListId)
           ?.Value?.toUpperCase() || "",
       remark: ma.MobilityRemarks,
       condition: ma.IsRecovered ? "FULLY RECOVERED" : "NOT RECOVERED",
       date: ma.CreatedDateTime ? formatDateString(ma.CreatedDateTime) : "",
-      recoveryDate: ma.IsRecovered && ma.RecoveryDate? formatDateString(ma.RecoveryDate):""
-    }));
-
-  mobilityAidsTransformed.sort((a,b)=>{
-    if (a.condition!=b.condition){
-      return a.condition==="NOT RECOVERED"?-1:1
-    }
-    return (b.recoveryDate||"").localeCompare(a.recoveryDate||"")
-  })
-
-  const updatedTD = {
-    mobilityAids: mobilityAidsTransformed,
-    pagination: {
-      pageNo: viewMobilityAidList.pageNo,
-      pageSize: viewMobilityAidList.pageSize,
-      totalRecords: viewMobilityAidList.totalRecords,
-      totalPages: viewMobilityAidList.totalPages,
-    },
-  };
-  console.log("convertToMobilityAidTD: ", updatedTD);
-
-  return updatedTD;
+      recoveryDate:
+        ma.IsRecovered && ma.RecoveryDate ? formatDateString(ma.RecoveryDate) : "",
+      _rawRecoveryDate: ma.RecoveryDate,
+      _isRecovered: ma.IsRecovered,
+    }))
+    .sort((a, b) => {
+      if (a._isRecovered !== b._isRecovered) return a._isRecovered ? 1 : -1;
+      if (!a._isRecovered && !b._isRecovered) return a.mobilityAids.localeCompare(b.mobilityAids);
+      const dateA = a._rawRecoveryDate ? new Date(a._rawRecoveryDate).getTime() : 0;
+      const dateB = b._rawRecoveryDate ? new Date(b._rawRecoveryDate).getTime() : 0;
+      if (dateB !== dateA) return dateB - dateA;
+      return a.mobilityAids.localeCompare(b.mobilityAids);
+    })
+    .map(({ _rawRecoveryDate, _isRecovered, ...rest }) => rest);
 };
 
 export const fetchMobilityAids = async (
   patientId: number,
-  pageNo: number = 0,
-  pageSize: number = 5
-): Promise<MobilityAidTDServer> => {
+): Promise<MobilityAidTD[]> => {
   const token = retrieveAccessTokenFromCookie();
   if (!token) throw new Error("No token found.");
 
@@ -161,7 +139,7 @@ export const fetchMobilityAids = async (
 
     const mobilityAidsResponse =
       await patientMobilityAPI.get<ViewMobilityAidList>(
-        `/Patient/${patientId}?pageNo=${pageNo}&pageSize=${pageSize}`,
+        `/Patient/${patientId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -171,19 +149,12 @@ export const fetchMobilityAids = async (
     console.log("GET Patient Mobility Aids", mobilityAidsResponse.data);
 
     return convertToMobilityAidTD(mobilityList, mobilityAidsResponse.data);
+
   } catch (error) {
     if (error instanceof AxiosError) {
       if (error.response && error.response.status === 404) {
         console.warn("GET Patient Mobility Aids.", error);
-        return {
-          mobilityAids: [],
-          pagination: {
-            pageNo: 0,
-            pageSize: 0,
-            totalRecords: 0,
-            totalPages: 0,
-          },
-        };
+        return []
       }
     }
     console.error("GET Patient Mobility Aids", error);

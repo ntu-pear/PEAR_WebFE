@@ -64,33 +64,19 @@ export interface EditProblemLog {
 
 export const fetchPatientProblemLog = async (
     id: number,
-    pageNo: number = 0,
-    pageSize: number = 5,
-): Promise<ProblemLogTDServer> => {
+): Promise<ProblemLogTD[]> => {
     const token = retrieveAccessTokenFromCookie()
     if (!token) {
         throw new Error("No token found.");
     }
     try {
         const response = await problemLogAPI.get(`by-patient/${id}`, {
-            params: {
-                pageNo: pageNo | 0,
-                pageSize: pageSize
-            },
             headers: {
                 Authorization: `Bearer ${token}`
             }
         })
-        const problemLog: ProblemLogTD[] = convertToProblemLogTD(response.data.data)
-        return {
-            problem_log: problemLog,
-            pagination: {
-                pageNo: response.data.pageNo,
-                pageSize: response.data.pageSize,
-                totalRecords: response.data.totalRecords,
-                totalPages: response.data.totalPages
-            }
-        }
+        return convertToProblemLogTD(response.data.data)
+
     } catch (error) {
         console.error("GET patient problem log", error);
         throw error;
@@ -111,10 +97,11 @@ const convertToProblemLogTD = (problemLog: ProblemLog[]): ProblemLogTD[] => {
         SourceOfInformation: problem.SourceOfInformation,
         ProblemName: problem.ProblemName,
     })).sort((a, b) => {
-        const aDate = new Date(a.DateOfDiagnosis)
-        const bDate = new Date(b.DateOfDiagnosis)
-        return bDate.getTime() - aDate.getTime()
-    })
+        const dateDiff = new Date(b.DateOfDiagnosis).getTime()
+            - new Date(a.DateOfDiagnosis).getTime();
+        if (dateDiff !== 0) return dateDiff;                       
+        return a.ProblemName.localeCompare(b.ProblemName);        
+    });
 }
 
 export const getProblemList = async (): Promise<ProblemList[]> => {
@@ -176,9 +163,9 @@ export const editProblemLog = async (id: number, problemLog: EditProblemLog) => 
         throw new Error("No token found.");
     }
     try {
-        await problemLogAPI.put(`/update/${id}`,problemLog,{
-            headers:{
-                Authorization:`Bearer ${token}`
+        await problemLogAPI.put(`/update/${id}`, problemLog, {
+            headers: {
+                Authorization: `Bearer ${token}`
             }
         })
     } catch (error) {

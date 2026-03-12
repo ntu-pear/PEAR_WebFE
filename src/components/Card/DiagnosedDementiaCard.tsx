@@ -1,10 +1,9 @@
 import {
   DiagnosedDementiaTD,
-  DiagnosedDementiaTDServer,
   fetchDiagnosedDementia,
 } from "@/api/patients/diagnosedDementia";
 import { useViewPatient } from "@/hooks/patient/useViewPatient";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { DataTableServer } from "../Table/DataTable";
@@ -18,23 +17,15 @@ const DiagnosedDementiaCard: React.FC = () => {
   const { currentUser } = useAuth();
   const { openModal } = useModal();
   const [diagnosedDementiaTDServer, setDiagnosedDementiaTDServer] =
-    useState<DiagnosedDementiaTDServer>({
-      diagnosedDementias: [],
-      pagination: {
-        pageNo: 0,
-        pageSize: 5,
-        totalRecords: 0,
-        totalPages: 0,
-      },
-    });
+    useState<DiagnosedDementiaTD[]>([]);
+  const [pageNo, setPageNo] = useState(0)
+  const [pageSize, setPageSize] = useState(10)
 
-  const handleFetchDiagnosedDementia = async (pageNo: number, pageSize:number) => {
+  const handleFetchDiagnosedDementia = async () => {
     if (!id || isNaN(Number(id))) return;
     try {
-      const response: DiagnosedDementiaTDServer = await fetchDiagnosedDementia(
+      const response: DiagnosedDementiaTD[] = await fetchDiagnosedDementia(
         Number(id),
-        pageNo,
-        pageSize || 10
       );
       setDiagnosedDementiaTDServer(response);
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -44,14 +35,26 @@ const DiagnosedDementiaCard: React.FC = () => {
   };
 
   useEffect(() => {
-    refreshDiagnosedDementiaData();
-  }, []);
+    handleFetchDiagnosedDementia();
+  }, [id]);
 
-  const refreshDiagnosedDementiaData = () => {
-    handleFetchDiagnosedDementia(
-      diagnosedDementiaTDServer.pagination.pageNo || 0, diagnosedDementiaTDServer.pagination.pageSize
-    );
-  };
+  const pagedDementias = useMemo(() => {
+    const start = pageNo * pageSize
+    return diagnosedDementiaTDServer.slice(start, start + pageSize)
+  }, [diagnosedDementiaTDServer, pageNo, pageSize])
+
+  const pagination = useMemo(() => ({
+    pageNo,
+    pageSize,
+    totalRecords: diagnosedDementiaTDServer.length,
+    totalPages: Math.ceil(diagnosedDementiaTDServer.length / pageSize)
+  }), [diagnosedDementiaTDServer, pageNo, pageSize])
+
+  // ✅ Called by DataTableServer — updates state only, no API call
+  const handleFetchData = (newPageNo: number, newPageSize: number) => {
+    setPageNo(newPageNo)
+    setPageSize(newPageSize)
+  }
 
   const dementiaColumns = [
     { key: "dementiaType", header: "Dementia Type" },
@@ -83,7 +86,11 @@ const DiagnosedDementiaCard: React.FC = () => {
             onClick={() =>
               openModal("deleteDiagnosedDementia", {
                 dementiaId: item.id,
-                refreshData: handleFetchDiagnosedDementia,
+                refreshData: () => {
+                  const isLastItemOnPage = pagedDementias.length === 1 && pageNo > 0
+                  if (isLastItemOnPage) setPageNo(p => p - 1)
+                  handleFetchDiagnosedDementia()
+                },
               })
             }
           >
@@ -122,13 +129,13 @@ const DiagnosedDementiaCard: React.FC = () => {
         </CardHeader>
         <CardContent>
           <DataTableServer
-            data={diagnosedDementiaTDServer.diagnosedDementias}
-            pagination={diagnosedDementiaTDServer.pagination}
+            data={pagedDementias}
+            pagination={pagination}
             columns={dementiaColumns}
             viewMore={false}
             renderActions={renderActions}
             hideActionsHeader={currentUser?.roleName !== "DOCTOR"}
-            fetchData={handleFetchDiagnosedDementia}
+            fetchData={handleFetchData}
             className={
               currentUser?.roleName === "DOCTOR"
                 ? `w-full overflow-x-auto

@@ -5,8 +5,8 @@ import { Card, CardHeader, CardTitle, CardContent } from "../ui/card";
 import { Button } from "../ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { useViewPatient } from "@/hooks/patient/useViewPatient";
-import { fetchPatientProblemLog, ProblemLogTD, ProblemLogTDServer } from "@/api/patients/problemLog";
-import { useEffect, useState } from "react";
+import { fetchPatientProblemLog, ProblemLogTD } from "@/api/patients/problemLog";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 
@@ -14,15 +14,10 @@ const ProblemHistoryCard: React.FC = () => {
   const { currentUser } = useAuth();
   const { openModal } = useModal();
   const { id, patientAllocation } = useViewPatient()
-  const [problemLogsList, setProblemLogsList] = useState<ProblemLogTDServer>({
-    problem_log: [],
-    pagination: {
-      pageNo: 0,
-      pageSize: 5,
-      totalRecords: 0,
-      totalPages: 0
-    }
-  })
+  const [problemLogsList, setProblemLogsList] = useState<ProblemLogTD[]>([])
+  const [pageNo, setPageNo] = useState(0)
+  const [pageSize, setPageSize] = useState(10)
+
   const problemLogColumns = [
     { key: "ProblemName", header: "Problem Name" },
     { key: "ProblemRemarks", header: "Remarks" },
@@ -30,9 +25,9 @@ const ProblemHistoryCard: React.FC = () => {
     { key: "SourceOfInformation", header: "Author" },
   ];
 
-  const fetchProblemLog = async (pageNo: number, pageSize: number) => {
+  const fetchProblemLog = async () => {
     try {
-      const problemLog = await fetchPatientProblemLog(Number(id), pageNo, pageSize)
+      const problemLog = await fetchPatientProblemLog(Number(id))
       console.log(problemLog)
       setProblemLogsList(problemLog)
     } catch (error) {
@@ -45,9 +40,27 @@ const ProblemHistoryCard: React.FC = () => {
     }
   }
 
+  const handleFetchData = (newPageNo: number, newPageSize: number) => {
+    setPageNo(newPageNo)
+    setPageSize(newPageSize)
+  }
+
   useEffect(() => {
-    fetchProblemLog(problemLogsList.pagination.pageNo || 0, problemLogsList.pagination.pageSize || 10)
-  }, [])
+    fetchProblemLog()
+  }, [id])
+
+  const paginatedProblem = useMemo(() => {
+    const start = pageNo * pageSize
+    return problemLogsList.slice(start, start + pageSize)
+  }, [problemLogsList, pageNo, pageSize])
+
+  const pagination = useMemo(() => ({
+    pageNo,
+    pageSize,
+    totalRecords: problemLogsList.length,
+    totalPages: Math.ceil(problemLogsList.length / pageSize)
+  }), [problemLogsList, pageNo, pageSize])
+
 
   const renderAction = (problemLog: ProblemLogTD) => {
     return (
@@ -59,7 +72,7 @@ const ProblemHistoryCard: React.FC = () => {
             onClick={() =>
               openModal("editProblem", {
                 problemLog: problemLog,
-                refreshData: fetchProblemLog,
+                refreshData: () => { fetchProblemLog() }
               })
             }
           >
@@ -72,7 +85,11 @@ const ProblemHistoryCard: React.FC = () => {
             onClick={() =>
               openModal("deleteProblem", {
                 problemLogId: problemLog.Id,
-                refreshData: fetchProblemLog,
+                refreshData: () => {
+                  const isLastItemOnPage = paginatedProblem.length === 1 && pageNo > 0
+                  if (isLastItemOnPage) setPageNo(p => p - 1)
+                  fetchProblemLog()
+                }
               })
             }
           >
@@ -89,11 +106,13 @@ const ProblemHistoryCard: React.FC = () => {
         <CardHeader>
           <CardTitle className="text-lg flex items-center justify-between">
             <span>Problem Log</span>
-            {(currentUser?.roleName === "SUPERVISOR")&& (
+            {(currentUser?.roleName === "SUPERVISOR") && (
               <Button
                 size="sm"
                 className="h-8 w-24 gap-1"
-                onClick={() => openModal("addProblem", { refreshData: fetchProblemLog })}
+                onClick={() => openModal("addProblem", {
+                  refreshData: () => { fetchProblemLog() }
+                })}
               >
                 <PlusCircle className="h-4 w-4" />
                 <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
@@ -105,12 +124,12 @@ const ProblemHistoryCard: React.FC = () => {
         </CardHeader>
         <CardContent>
           <DataTableServer
-            data={problemLogsList.problem_log}
-            pagination={problemLogsList.pagination}
+            data={paginatedProblem}
+            pagination={pagination}
             columns={problemLogColumns}
             viewMore={false}
             hideActionsHeader={currentUser?.roleName !== "SUPERVISOR" || patientAllocation?.guardianApplicationUserId !== currentUser?.userId}
-            fetchData={fetchProblemLog}
+            fetchData={handleFetchData}
             renderActions={renderAction}
           />
         </CardContent>

@@ -5,37 +5,58 @@ import { Button } from "../ui/button";
 import { useModal } from "@/hooks/useModal";
 import { useAuth } from "@/hooks/useAuth";
 import { useViewPatient } from "@/hooks/patient/useViewPatient";
-import { EditPersonalPreference, getPatientPersonalPreference, PersonalPreferenceTD, PersonalPreferenceTDServer } from "@/api/patients/personalPreference";
-import { useEffect, useState } from "react";
+import { EditPersonalPreference, getPatientPersonalPreference, PersonalPreferenceTD } from "@/api/patients/personalPreference";
+import { useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
 
 const HabitCard: React.FC = () => {
   const { currentUser } = useAuth();
   const { openModal } = useModal();
   const { id, patientAllocation } = useViewPatient()
-  const [habits, setHabits] = useState<PersonalPreferenceTDServer>({
-    personalPreference: [],
-    pagination: {
-      pageNo: 0,
-      pageSize: 5,
-      totalRecords: 0,
-      totalPages: 0,
-    }
-  })
+  const [habits, setHabits] = useState<PersonalPreferenceTD[]>([])
+  const [pageNo, setPageNo] = useState(0)
+  const [pageSize, setPageSize] = useState(10)
+
   const personalPreferenceColumns = [
     { key: "PreferenceName", header: "Habit Name" },
     { key: "PerferenceRemarks", header: "Remarks" },
   ];
 
-  const fetchPersonalPreference = async (
-    pageNo: number = 0,
-    pageSize: number) => {
-    const response: PersonalPreferenceTDServer = await getPatientPersonalPreference(Number(id), pageNo, pageSize || 10, "Habit")
-    setHabits(response)
+  const fetchPersonalPreference = async () => {
+    try {
+      const response: PersonalPreferenceTD[] = await getPatientPersonalPreference(Number(id), "Habit")
+      setHabits(response)
+    } catch (error) {
+      if (error instanceof Error) {
+        toast.error(`Failed to fetch patient Habits. ${error}`)
+      } else {
+        toast.error("Failed to fetch patient Habits.")
+      }
+      console.error("Failed to fetch patient Habits")
+    }
   }
 
   useEffect(() => {
-    fetchPersonalPreference(habits.pagination.pageNo, habits.pagination.pageSize)
+    fetchPersonalPreference()
   }, [id])
+
+
+  const paginatedhabits = useMemo(() => {
+    const start = pageNo * pageSize
+    return habits.slice(start, start + pageSize)
+  }, [pageNo, pageSize, habits])
+
+  const pagination = useMemo(() => ({
+    pageNo,
+    pageSize,
+    totalRecords: habits.length,
+    totalPages: Math.ceil(habits.length / pageSize)
+  }), [habits, pageSize, pageNo])
+
+  const handleFetchData = (newPageNo: number, newPageSize: number) => {
+    setPageNo(newPageNo)
+    setPageSize(newPageSize)
+  }
 
   const renderAction = (personalPreference: PersonalPreferenceTD) => {
     return (
@@ -55,7 +76,7 @@ const HabitCard: React.FC = () => {
               }
               openModal("editHabit", {
                 editPreference: editPreference,
-                refreshData: fetchPersonalPreference,
+                refreshData: () => {fetchPersonalPreference()}
               })
             }}
           >
@@ -68,7 +89,11 @@ const HabitCard: React.FC = () => {
             onClick={() =>
               openModal("deletePreference", {
                 personalPreferenceId: personalPreference.id,
-                refreshData: fetchPersonalPreference
+                refreshData: () => {
+                  const isLastItemOnPage = paginatedhabits.length === 1 && pageNo > 0;
+                  if(isLastItemOnPage) setPageNo(p=>p-1)
+                  fetchPersonalPreference();
+                }
               })
             }
           >
@@ -90,7 +115,7 @@ const HabitCard: React.FC = () => {
                 <Button
                   size="sm"
                   className="h-8 w-24 gap-1"
-                  onClick={() => openModal("addHabit", { refreshData: fetchPersonalPreference })}
+                  onClick={() => openModal("addHabit", { refreshData: () => {fetchPersonalPreference()} })}
                 >
                   <PlusCircle className="h-4 w-4" />
                   <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
@@ -102,12 +127,12 @@ const HabitCard: React.FC = () => {
         </CardHeader>
         <CardContent>
           <DataTableServer
-            data={habits.personalPreference}
-            pagination={habits.pagination}
+            data={paginatedhabits}
+            pagination={pagination}
             columns={personalPreferenceColumns}
             viewMore={false}
             hideActionsHeader={currentUser?.roleName !== "SUPERVISOR" && patientAllocation?.guardianApplicationUserId !== currentUser?.userId}
-            fetchData={fetchPersonalPreference}
+            fetchData={handleFetchData}
             renderActions={renderAction}
           />
         </CardContent>

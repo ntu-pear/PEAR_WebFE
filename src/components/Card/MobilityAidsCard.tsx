@@ -1,12 +1,11 @@
 import {
   fetchMobilityAids,
   MobilityAidTD,
-  MobilityAidTDServer,
 } from "@/api/patients/mobility";
 import { useViewPatient } from "@/hooks/patient/useViewPatient";
 import { useAuth } from "@/hooks/useAuth";
 import { useModal } from "@/hooks/useModal";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Button } from "../ui/button";
@@ -17,26 +16,16 @@ const MobilityAidsCard: React.FC = () => {
   const { currentUser } = useAuth();
   const { id, patientAllocation } = useViewPatient();
   const { openModal } = useModal();
-  const [mobilityAidsTDServer, setMobilityAidsTDServer] =
-    useState<MobilityAidTDServer>({
-      mobilityAids: [],
-      pagination: {
-        pageNo: 0,
-        pageSize: 5,
-        totalRecords: 0,
-        totalPages: 0,
-      },
-    });
+  const [mobilityAidsTDServer, setMobilityAidsTDServer] = useState<MobilityAidTD[]>([]);
+  const [pageNo, setPageNo] = useState(0)
+  const [pageSize, setPageSize] = useState(10)
 
-  const handleFetchMobilityAids = async (pageNo: number, pageSize:number) => {
+  const handleFetchMobilityAids = async () => {
     if (!id || isNaN(Number(id))) return;
     try {
-      const fetchedData: MobilityAidTDServer = await fetchMobilityAids(
-        Number(id),
-        pageNo,
-        pageSize||10
+      const fetchedData: MobilityAidTD[] = await fetchMobilityAids(
+        Number(id)
       );
-
       setMobilityAidsTDServer(fetchedData);
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
@@ -45,18 +34,31 @@ const MobilityAidsCard: React.FC = () => {
   };
 
   useEffect(() => {
-    refreshMobilityData();
-  }, []);
+    handleFetchMobilityAids();
+  }, [id]);
 
-  const refreshMobilityData = () => {
-    handleFetchMobilityAids(mobilityAidsTDServer.pagination.pageNo || 0, mobilityAidsTDServer.pagination.pageSize||5);
-  };
+  const pagedMobilityAids = useMemo(() => {
+    const start = pageNo * pageSize
+    return mobilityAidsTDServer.slice(start, start + pageSize)
+  }, [mobilityAidsTDServer, pageNo, pageSize])
+
+  const pagination = useMemo(() => ({
+    pageNo,
+    pageSize,
+    totalRecords: mobilityAidsTDServer.length,
+    totalPages: Math.ceil(mobilityAidsTDServer.length / pageSize)
+  }), [mobilityAidsTDServer, pageSize, pageNo])
+
+  const handleFetchData = (newPageNo: number, newPageSize: number) => {
+    setPageNo(newPageNo)
+    setPageSize(newPageSize)
+  }
 
   const mobilityAidsColumns = [
     { key: "mobilityAids", header: "Mobility Aids" },
     { key: "remark", header: "Remark" },
     { key: "condition", header: "Condition" },
-    { key: "recoveryDate", header: "Recovery Date"},
+    { key: "recoveryDate", header: "Recovery Date" },
     { key: "date", header: "Created Date" },
   ];
 
@@ -70,7 +72,7 @@ const MobilityAidsCard: React.FC = () => {
             onClick={() =>
               openModal("editMobilityAids", {
                 mobilityAidId: String(item.id),
-                refreshData: handleFetchMobilityAids,
+                refreshData: () => { handleFetchMobilityAids() },
               })
             }
           >
@@ -83,8 +85,13 @@ const MobilityAidsCard: React.FC = () => {
             onClick={() =>
               openModal("deleteMobilityAids", {
                 mobilityAidId: String(item.id),
-                refreshData: handleFetchMobilityAids,
-              })
+                refreshData: () => {
+                  const isLastItemOnPage = pagedMobilityAids.length === 1 && pageNo > 0
+                  if (isLastItemOnPage) setPageNo(p => p - 1)
+                  handleFetchMobilityAids()
+                }
+              },
+              )
             }
           >
             Delete
@@ -108,7 +115,7 @@ const MobilityAidsCard: React.FC = () => {
                   openModal("addMobilityAids", {
                     patientId: String(id),
                     submitterId: currentUser?.userId,
-                    refreshMobilityData,
+                    refreshMobilityData: () => {handleFetchMobilityAids()},
                   })
                 }
               >
@@ -122,13 +129,13 @@ const MobilityAidsCard: React.FC = () => {
         </CardHeader>
         <CardContent>
           <DataTableServer
-            data={mobilityAidsTDServer.mobilityAids}
-            pagination={mobilityAidsTDServer.pagination}
+            data={pagedMobilityAids}
+            pagination={pagination}
             columns={mobilityAidsColumns}
             viewMore={false}
             renderActions={renderActions}
             hideActionsHeader={currentUser?.roleName !== "SUPERVISOR" && patientAllocation?.guardianApplicationUserId !== currentUser?.userId}
-            fetchData={handleFetchMobilityAids}
+            fetchData={handleFetchData}
           />
         </CardContent>
       </Card>

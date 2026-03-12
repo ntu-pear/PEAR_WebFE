@@ -5,37 +5,48 @@ import { Button } from "../ui/button";
 import { useModal } from "@/hooks/useModal";
 import { useAuth } from "@/hooks/useAuth";
 import { useViewPatient } from "@/hooks/patient/useViewPatient";
-import { EditPersonalPreference, getPatientPersonalPreference, PersonalPreferenceTD, PersonalPreferenceTDServer } from "@/api/patients/personalPreference";
-import { useEffect, useState } from "react";
+import { EditPersonalPreference, getPatientPersonalPreference, PersonalPreferenceTD } from "@/api/patients/personalPreference";
+import { useEffect, useMemo, useState } from "react";
 
 
 const HobbyCard: React.FC = () => {
   const { currentUser } = useAuth();
   const { openModal } = useModal();
   const { id, patientAllocation } = useViewPatient();
-  const [hobbies, setHobbies] = useState<PersonalPreferenceTDServer>({
-    personalPreference: [],
-    pagination: {
-      pageNo: 0,
-      pageSize: 5,
-      totalRecords: 0,
-      totalPages: 0,
-    }
-  })
+  const [hobbies, setHobbies] = useState<PersonalPreferenceTD[]>([])
+  const [pageNo, setPageNo] = useState(0)
+  const [pageSize, setPageSize] = useState(10)
+
   const personalPreferenceColumns = [
     { key: "PreferenceName", header: "Hobby Name" },
     { key: "PerferenceRemarks", header: "Remarks" },
   ];
 
-  const fetchPersonalPreference = async (pageNo: number = 0,
-    pageSize: number) => {
-    const response: PersonalPreferenceTDServer = await getPatientPersonalPreference(Number(id), pageNo, pageSize || 10, "Hobby")
+  const fetchPersonalPreference = async () => {
+    const response: PersonalPreferenceTD[] = await getPatientPersonalPreference(Number(id), "Hobby")
     setHobbies(response)
   }
 
   useEffect(() => {
-    fetchPersonalPreference(hobbies.pagination.pageNo, hobbies.pagination.pageSize)
+    fetchPersonalPreference()
   }, [])
+
+  const paginatedhobbies = useMemo(() => {
+    const start = pageNo * pageSize
+    return hobbies.slice(start, start + pageSize)
+  }, [pageNo, pageSize, hobbies])
+
+  const pagination = useMemo(() => ({
+    pageNo,
+    pageSize,
+    totalRecords: hobbies.length,
+    totalPages: Math.ceil(hobbies.length / pageSize)
+  }), [hobbies, pageSize, pageNo])
+
+  const handleFetchData = (newPageNo: number, newPageSize: number) => {
+    setPageNo(newPageNo)
+    setPageSize(newPageSize)
+  }
 
   const renderAction = (personalPreference: PersonalPreferenceTD) => {
     return (
@@ -55,7 +66,7 @@ const HobbyCard: React.FC = () => {
               }
               openModal("editHobby", {
                 editPreference: editPreference,
-                refreshData: fetchPersonalPreference,
+                refreshData: () => {fetchPersonalPreference()}
               })
             }}
           >
@@ -68,7 +79,11 @@ const HobbyCard: React.FC = () => {
             onClick={() =>
               openModal("deletePreference", {
                 personalPreferenceId: personalPreference.id,
-                refreshData: fetchPersonalPreference,
+                refreshData: () => {
+                  const isLastItemOnPage = paginatedhobbies.length === 1 && pageNo > 0
+                  if (isLastItemOnPage) setPageNo(p => p - 1)
+                  fetchPersonalPreference()
+                }
               })
             }
           >
@@ -89,7 +104,9 @@ const HobbyCard: React.FC = () => {
               <Button
                 size="sm"
                 className="h-8 w-24 gap-1"
-                onClick={() => openModal("addHobby", { refreshData: fetchPersonalPreference })}
+                onClick={() => openModal("addHobby", {
+                  refreshData: () => {fetchPersonalPreference()}
+                })}
               >
                 <PlusCircle className="h-4 w-4" />
                 <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
@@ -101,12 +118,12 @@ const HobbyCard: React.FC = () => {
         </CardHeader>
         <CardContent>
           <DataTableServer
-            data={hobbies.personalPreference}
+            data={paginatedhobbies}
             columns={personalPreferenceColumns}
-            pagination={hobbies.pagination}
+            pagination={pagination}
             viewMore={false}
             hideActionsHeader={currentUser?.roleName !== "SUPERVISOR" && patientAllocation?.guardianApplicationUserId !== currentUser?.userId}
-            fetchData={fetchPersonalPreference}
+            fetchData={handleFetchData}
             renderActions={renderAction}
           />
         </CardContent>
