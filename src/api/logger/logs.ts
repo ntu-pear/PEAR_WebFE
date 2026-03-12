@@ -1,4 +1,7 @@
 import { loggerAPI } from "../apiConfig";
+import { activityLoggerAPI } from "../apiConfig";
+import { retrieveAccessTokenFromCookie } from "@/api/users/auth";
+import { AuditLogApiResponse } from "@/types/auditLog";
 
 export type LogType = "patient" | "system" | "user";
 
@@ -110,29 +113,35 @@ export const fetchAllLogs = async (
   }
 };
 
-export const exportLogs = async (
-  filters: LogFilters,
-  format: "csv" | "json" = "csv"
-): Promise<Blob> => {
-  try {
-    const params = new URLSearchParams();
-    params.append("export", "true");
-    params.append("format", format);
-    if (filters.action) params.append("action", filters.action);
-    if (filters.userFullName) params.append("user_full_name", filters.userFullName);
-    if (filters.logType) params.append("log_type", filters.logType);
-    if (filters.patientName) params.append("patient_full_name", filters.patientName);
-    if (filters.startDate) params.append("start_date", filters.startDate);
-    if (filters.endDate) params.append("end_date", filters.endDate);
-    if (filters.logTypeCategory) params.append("log_type_category", filters.logTypeCategory);
-    if (filters.isSystemConfig !== null) params.append("is_system_config", String(filters.isSystemConfig));
-
-    const response = await loggerAPI.get(`/export?${params.toString()}`, {
-      responseType: "blob",
-    });
-    return response.data;
-  } catch (error) {
-    console.error("Export logs failed", error);
-    throw error;
-  }
+type FetchAuditLogsParams = {
+  pageNo?: number;
+  pageSize?: number;
+  search?: string;
 };
+
+export async function fetchAuditLogs({
+  pageNo = 0,
+  pageSize = 10,
+  search = "",
+}: FetchAuditLogsParams): Promise<AuditLogApiResponse> {
+  const token = retrieveAccessTokenFromCookie();
+
+  const params: Record<string, string | number> = {
+    pageNo,
+    pageSize,
+  };
+
+  if (search.trim()) {
+    params.search = search.trim();
+  }
+
+  const response = await activityLoggerAPI.get<AuditLogApiResponse>("", {
+    params,
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+  });
+
+  return response.data;
+}
