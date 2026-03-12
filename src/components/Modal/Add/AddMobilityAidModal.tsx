@@ -135,6 +135,8 @@ const AddMobilityAidModal: React.FC = () => {
               value={recoveryDate}
               onChange={(e) => setRecoveryDate(e.target.value)}
               className="mt-1 block w-full p-2 border rounded-md text-gray-900"
+              // min={new Date().toISOString().split("T")[0]}
+              max={new Date().toISOString().split("T")[0]}
               required
             />
           </div>)}
