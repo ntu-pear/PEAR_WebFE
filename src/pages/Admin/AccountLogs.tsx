@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, {  useEffect, useState } from "react";
 import { toast } from "sonner";
 import {
   Card,
@@ -8,7 +8,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
-import Searchbar from "@/components/Searchbar";
+// import Searchbar from "@/components/Searchbar";
 import {
   Table,
   TableBody,
@@ -91,23 +91,23 @@ const AccountLogs: React.FC = () => {
       logs: [],
     });
 
-  const [searchItem, setSearchItem] = useState("");
+  // const [searchItem, setSearchItem] = useState("");
   const [tabValue, setTabValue] = useState("all");
   const debouncedSearch = useDebounce(searchItem, 300);
 
-  const handleInputChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      setSearchItem(e.target.value);
-    },
-    []
-  );
+  // const handleInputChange = useCallback(
+  //   (e: React.ChangeEvent<HTMLInputElement>) => {
+  //     setSearchItem(e.target.value);
+  //   },
+  //   []
+  // );
 
   const handleFilter = async (pageNo: number, pageSize: number) => {
     try {
       const fetchedLogs = await fetchAuditLogs({
         pageNo,
         pageSize,
-        user: debouncedSearch,
+        search: debouncedSearch,
       });
 
       setExpandedRows({});
