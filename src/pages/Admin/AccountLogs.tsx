@@ -107,7 +107,7 @@ const AccountLogs: React.FC = () => {
       const fetchedLogs = await fetchAuditLogs({
         pageNo,
         pageSize,
-        user: debouncedSearch,
+        search: debouncedSearch,
       });
 
       setExpandedRows({});
