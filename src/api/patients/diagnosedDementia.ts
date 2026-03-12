@@ -187,58 +187,38 @@ export const deleteDementiaType = async (id: number) => {
 
 export const convertToDiagnosedDementiaTD = (
   viewDiagnosedDementiaList: ViewDiagnosedDementiaList
-): DiagnosedDementiaTDServer => {
-
+): DiagnosedDementiaTD[] => {
   if (!Array.isArray(viewDiagnosedDementiaList.data)) {
-    console.log(
-      "Diagnosed Dementia is not an array",
-      viewDiagnosedDementiaList.data
-    );
-    return {
-      diagnosedDementias: [],
-      pagination: {
-        pageNo: 0,
-        pageSize: 0,
-        totalRecords: 0,
-        totalPages: 0,
-      },
-    };
+    console.log("Diagnosed Dementia is not an array", viewDiagnosedDementiaList.data);
+    return [];
   }
 
-  const diagnosedDementias: DiagnosedDementiaTD[] = viewDiagnosedDementiaList.data.map((data) => ({
-    id: data.id,
-    dementiaType: data.DementiaTypeValue,
-    dementia_stage_value: data.dementia_stage_value,
-    dementiaDate: formatDateString(data.CreatedDate),
-    DementiaTypeListId: data.DementiaTypeListId,
-    DementiaStageId: data.DementiaStageId,
-  }))
-
-  const updatedTD = {
-    diagnosedDementias: diagnosedDementias,
-    pagination: {
-      pageNo: viewDiagnosedDementiaList.pageNo,
-      pageSize: viewDiagnosedDementiaList.pageSize,
-      totalRecords: viewDiagnosedDementiaList.totalRecords,
-      totalPages: viewDiagnosedDementiaList.totalPages,
-    },
-  };
-
-  return updatedTD;
+  return viewDiagnosedDementiaList.data
+    .sort((a, b) => {
+      const dateDiff = new Date(b.CreatedDate).getTime() - new Date(a.CreatedDate).getTime()
+      if (dateDiff !== 0) return dateDiff  // descending date
+      return a.DementiaTypeValue.localeCompare(b.DementiaTypeValue)  // then alpha
+    })
+    .map((data) => ({
+      id: data.id,
+      dementiaType: data.DementiaTypeValue,
+      dementia_stage_value: data.dementia_stage_value,
+      dementiaDate: formatDateString(data.CreatedDate),  
+      DementiaTypeListId: data.DementiaTypeListId,
+      DementiaStageId: data.DementiaStageId,
+    }))
 };
 
 export const fetchDiagnosedDementia = async (
   patientId: number,
-  pageNo: number = 0,
-  pageSize: number = 10
-): Promise<DiagnosedDementiaTDServer> => {
+): Promise<DiagnosedDementiaTD[]> => {
   const token = retrieveAccessTokenFromCookie();
   if (!token) throw new Error("No token found.");
 
   try {
     const ddResponse =
       await patientAssignedDementiaAPI.get<ViewDiagnosedDementiaList>(
-        `/Patient/${patientId}?pageNo=${pageNo}&pageSize=${pageSize}`,
+        `/Patient/${patientId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -254,15 +234,7 @@ export const fetchDiagnosedDementia = async (
         console.warn(
           "Patient assigned dementia not found, returning empty array."
         );
-        return {
-          diagnosedDementias: [],
-          pagination: {
-            pageNo: 0,
-            pageSize: 0,
-            totalRecords: 0,
-            totalPages: 0,
-          },
-        };
+        return []
       }
     }
     console.error("GET all dementia List/ patient assigned dementia", error);

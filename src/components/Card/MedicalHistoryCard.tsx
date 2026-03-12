@@ -5,23 +5,17 @@ import { PlusCircle } from "lucide-react";
 import { DataTableServer } from "../Table/DataTable";
 import { useAuth } from "@/hooks/useAuth";
 import { useViewPatient } from "@/hooks/patient/useViewPatient";
-import { useEffect, useState } from "react";
-import { fetchMedicalHistory, MedicalHistoryTD, MedicalHistoryTDServer } from "@/api/patients/medicalHistory";
+import { useEffect, useMemo, useState } from "react";
+import { fetchMedicalHistory, MedicalHistoryTD } from "@/api/patients/medicalHistory";
 import { toast } from "sonner";
 
 const MedicalHistoryCard: React.FC = () => {
   const { currentUser } = useAuth();
   const { openModal } = useModal();
   const { id, patientAllocation } = useViewPatient();
-  const [medicalHistoryList, setMedicalHistoryList] = useState<MedicalHistoryTDServer>({
-    medicalHistory: [],
-    pagination: {
-      pageNo: 0,
-      pageSize: 10,
-      totalRecords: 0,
-      totalPages: 0,
-    }
-  })
+  const [medicalHistoryList, setMedicalHistoryList] = useState<MedicalHistoryTD[]>([])
+  const [pageNo, setPageNo] = useState(0)
+  const [pageSize, setPageSize] = useState(10)
 
   const medicalDetailsColumns = [
     { key: "diagnosis_name", header: "Diagnosis Name" },
@@ -30,11 +24,9 @@ const MedicalHistoryCard: React.FC = () => {
     { key: "date_of_diagnosis", header: "Date of Diagnosis" },
   ];
 
-  const fetchPatientMedicalHistory = async (
-    pageNo: number = 0,
-    pageSize: number = 10) => {
+  const fetchPatientMedicalHistory = async () => {
     try {
-      const history = await fetchMedicalHistory(Number(id), pageNo, pageSize || 10)
+      const history = await fetchMedicalHistory(Number(id))
       setMedicalHistoryList(history)
     } catch (error) {
       if (error instanceof Error) {
@@ -47,9 +39,25 @@ const MedicalHistoryCard: React.FC = () => {
   }
 
   useEffect(() => {
-    fetchPatientMedicalHistory(medicalHistoryList.pagination.pageNo, medicalHistoryList.pagination.pageSize)
-  }, [id, medicalHistoryList.pagination.pageNo, medicalHistoryList.pagination.pageSize])
+    fetchPatientMedicalHistory()
+  }, [id])
 
+  const paginatedHistory = useMemo(() => {
+    const start = pageNo * pageSize
+    return medicalHistoryList.slice(start, start + pageSize)
+  }, [medicalHistoryList, pageNo, pageSize])
+
+  const pagination = useMemo(() => ({
+    pageNo,
+    pageSize,
+    totalRecords: medicalHistoryList.length,
+    totalPages: Math.ceil(medicalHistoryList.length / pageSize)
+  }), [medicalHistoryList, pageNo, pageSize])
+
+  const handleFetchData = (newPageNo: number, newPageSize: number) => {
+    setPageNo(newPageNo)
+    setPageSize(newPageSize)
+  }
 
   const renderActions = (medicalHistory: MedicalHistoryTD) => {
     return (
@@ -61,7 +69,7 @@ const MedicalHistoryCard: React.FC = () => {
             onClick={() =>
               openModal("editMedicalHistory", {
                 medicalHistory: medicalHistory,
-                refreshData: () => { fetchPatientMedicalHistory(medicalHistoryList.pagination.pageNo || 0, medicalHistoryList.pagination.pageSize || 10) },
+                refreshData: () => { fetchPatientMedicalHistory() },
               })
             }
           >
@@ -75,14 +83,10 @@ const MedicalHistoryCard: React.FC = () => {
               openModal("deleteMedicalHistory", {
                 medicalHistoryId: Number(medicalHistory.id),
                 refreshData: () => {
-                  const isLastItemOnPage =
-                    medicalHistoryList.medicalHistory.length === 1 &&
-                    medicalHistoryList.pagination.pageNo > 0;
-                  fetchPatientMedicalHistory(
-                    isLastItemOnPage ? medicalHistoryList.pagination.pageNo - 1 : medicalHistoryList.pagination.pageNo || 0,
-                    medicalHistoryList.pagination.pageSize || 10
-                  );
-                },
+                  const isLastItemOnPage = paginatedHistory.length === 1 && pageNo > 0
+                  if (isLastItemOnPage) setPageNo(p => p - 1)
+                  fetchPatientMedicalHistory()
+                }
               })
             }
           >
@@ -106,7 +110,7 @@ const MedicalHistoryCard: React.FC = () => {
                 onClick={() => openModal("addMedicalHistory", {
                   patientId: id,
                   submitterId: currentUser?.userId,
-                  refreshData: () => { fetchPatientMedicalHistory(medicalHistoryList.pagination.pageNo||0, medicalHistoryList.pagination.pageSize || 10) },
+                  refreshData: () => { fetchPatientMedicalHistory() },
                 })}
               >
                 <PlusCircle className="h-4 w-4" />
@@ -119,12 +123,12 @@ const MedicalHistoryCard: React.FC = () => {
         </CardHeader>
         <CardContent>
           <DataTableServer
-            data={medicalHistoryList.medicalHistory}
-            pagination={medicalHistoryList.pagination}
+            data={paginatedHistory}
+            pagination={pagination}
             columns={medicalDetailsColumns}
             viewMore={false}
             hideActionsHeader={currentUser?.roleName !== "SUPERVISOR" && patientAllocation?.guardianApplicationUserId !== currentUser?.userId}
-            fetchData={fetchPatientMedicalHistory}
+            fetchData={handleFetchData}
             renderActions={renderActions}
           />
         </CardContent>

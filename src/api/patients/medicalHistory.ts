@@ -64,33 +64,20 @@ export interface Diagnosis {
 }
 
 export const fetchMedicalHistory = async (
-    id: Number,
-    pageNo: number = 0,
-    pageSize: number = 5,
-): Promise<MedicalHistoryTDServer> => {
+    id: Number
+): Promise<MedicalHistoryTD[]> => {
     const token = retrieveAccessTokenFromCookie()
     if (!token) {
         throw new Error("No token found.");
     }
     try {
         const response = await medicalHistoryAPI.get(`/by-patient/${id}`, {
-            params: {
-                pageNo,
-                pageSize,
-            },
             headers: {
                 Authorization: `Bearer ${token}`
             }
         })
+        return convertToMedicalHistoryTD(response.data.data)
 
-        const pagination = {
-            pageNo: response.data.pageNo,
-            pageSize: response.data.pageSize,
-            totalRecords: response.data.totalRecords,
-            totalPages: response.data.totalPages
-        }
-        const history = convertToMedicalHistoryTD(response.data.data)
-        return { medicalHistory: history, pagination }
     } catch (error) {
         console.error("GET patient medical history", error);
         throw error;
@@ -98,7 +85,11 @@ export const fetchMedicalHistory = async (
 }
 
 export const convertToMedicalHistoryTD = (medicalHistoryList: medicalHistory[]): MedicalHistoryTD[] => {
-    return medicalHistoryList.map(history => ({
+    return medicalHistoryList.sort((a, b) => {
+        const dateA = new Date(a.DateOfDiagnosis)
+        const dateB = new Date(b.DateOfDiagnosis)
+        return dateB.getTime() - dateA.getTime()
+    }).map(history => ({
         id: history.Id,
         diagnosis_name: history.diagnosis_name,
         source_of_information: history.SourceOfInformation,
@@ -110,11 +101,7 @@ export const convertToMedicalHistoryTD = (medicalHistoryList: medicalHistory[]):
         }).toUpperCase(),
         diagnosis_id: history.MedicalDiagnosisID
 
-    })).sort((a, b) => {
-        const dateA = new Date(a.date_of_diagnosis)
-        const dateB = new Date(b.date_of_diagnosis)
-        return dateB.getTime() - dateA.getTime()
-    }) //descending order
+    })) //descending order
 }
 
 export const updateMedicalHistory = async (medicalHistory: MedicalHistoryTD, ModifiedByID: string) => {
@@ -166,7 +153,7 @@ export const fetchDiagnosisList = async () => {
 
         console.log("fetchDiagnosisList", response)
         return response.data.data.filter(
-            (d: Diagnosis)  => Number(d.IsDeleted) === 0
+            (d: Diagnosis) => Number(d.IsDeleted) === 0
         );
     } catch (error) {
         console.error("GET Medical Diagnosis List", error);

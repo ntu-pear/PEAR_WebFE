@@ -5,23 +5,18 @@ import { Button } from "../ui/button";
 import { useModal } from "@/hooks/useModal";
 import { useAuth } from "@/hooks/useAuth";
 import { useViewPatient } from "@/hooks/patient/useViewPatient";
-import { useEffect, useState } from "react";
-import { EditPersonalPreference, getPatientPersonalPreference, PersonalPreferenceTD, PersonalPreferenceTDServer } from "@/api/patients/personalPreference";
+import { useEffect, useMemo, useState } from "react";
+import { EditPersonalPreference, getPatientPersonalPreference, PersonalPreferenceTD } from "@/api/patients/personalPreference";
 import { toast } from "sonner";
 
 const LikeDislikeCard: React.FC = () => {
   const { currentUser } = useAuth();
   const { openModal } = useModal();
   const { id, patientAllocation } = useViewPatient();
-  const [likesDislikes, setLikesDislikes] = useState<PersonalPreferenceTDServer>({
-    personalPreference: [],
-    pagination: {
-      pageNo: 0,
-      pageSize: 10,
-      totalRecords: 0,
-      totalPages: 0,
-    }
-  })
+  const [likesDislikes, setLikesDislikes] = useState<PersonalPreferenceTD[]>([])
+  const [pageNo, setPageNo] = useState(0)
+  const [pageSize, setPageSize] = useState(10)
+
   const personalPreferenceColumns = [
     { key: "PreferenceName", header: "Preference Name" },
     {
@@ -39,10 +34,9 @@ const LikeDislikeCard: React.FC = () => {
     { key: "PerferenceRemarks", header: "Remarks" },
   ];
 
-  const fetchPersonalPreference = async (pageNo: number = 0,
-    pageSize: number) => {
+  const fetchPersonalPreference = async () => {
     try {
-      const response: PersonalPreferenceTDServer = await getPatientPersonalPreference(Number(id), pageNo, pageSize || 10, "LikesDislikes")
+      const response: PersonalPreferenceTD[] = await getPatientPersonalPreference(Number(id), "LikesDislikes")
       setLikesDislikes(response)
     } catch (error) {
       if (error instanceof Error) {
@@ -56,8 +50,25 @@ const LikeDislikeCard: React.FC = () => {
   }
 
   useEffect(() => {
-    fetchPersonalPreference(likesDislikes.pagination.pageNo, likesDislikes.pagination.pageSize)
+    fetchPersonalPreference()
   }, [id])
+
+  const paginatedlikedislike = useMemo(()=>{
+    const start = pageNo*pageSize
+    return likesDislikes.slice(start, start+pageSize)
+  },[pageNo, pageSize, likesDislikes])
+
+  const pagination = useMemo(() => ({
+    pageNo,
+    pageSize,
+    totalRecords: likesDislikes.length,
+    totalPages: Math.ceil(likesDislikes.length / pageSize)
+  }), [likesDislikes, pageSize, pageNo])
+
+  const handleFetchData = (newPageNo: number, newPageSize: number) => {
+    setPageNo(newPageNo)
+    setPageSize(newPageSize)
+  }
 
   const renderAction = (personalPreference: PersonalPreferenceTD) => {
     return (
@@ -77,7 +88,7 @@ const LikeDislikeCard: React.FC = () => {
               }
               openModal("editLikeDislike", {
                 editPreference: editPreference,
-                refreshData: () => fetchPersonalPreference(likesDislikes.pagination.pageNo || 0, likesDislikes.pagination.pageSize || 10)
+                refreshData: () => {fetchPersonalPreference()}
               })
             }}
           >
@@ -91,13 +102,9 @@ const LikeDislikeCard: React.FC = () => {
               openModal("deletePreference", {
                 personalPreferenceId: personalPreference.id,
                 refreshData: () => {
-                  const isLastItemOnPage =
-                    likesDislikes.personalPreference.length === 1 &&
-                    likesDislikes.pagination.pageNo > 0;
-                  fetchPersonalPreference(
-                    isLastItemOnPage ? likesDislikes.pagination.pageNo - 1 : likesDislikes.pagination.pageNo || 0,
-                    likesDislikes.pagination.pageSize || 10
-                  );
+                  const isLastItemOnPage = paginatedlikedislike.length === 1 && pageNo > 0
+                  if (isLastItemOnPage) setPageNo(p => p - 1)
+                  fetchPersonalPreference()
                 }
               })
             }
@@ -120,7 +127,7 @@ const LikeDislikeCard: React.FC = () => {
                 size="sm"
                 className="h-8 w-24 gap-1"
                 onClick={() => openModal("addLikeDislike", {
-                  refreshData: () => fetchPersonalPreference(likesDislikes.pagination.pageNo || 0, likesDislikes.pagination.pageSize || 10)
+                  refreshData: () => {fetchPersonalPreference()}
                 })}
               >
                 <PlusCircle className="h-4 w-4" />
@@ -133,9 +140,9 @@ const LikeDislikeCard: React.FC = () => {
         </CardHeader>
         <CardContent>
           <DataTableServer
-            data={likesDislikes.personalPreference}
-            pagination={likesDislikes.pagination}
-            fetchData={fetchPersonalPreference}
+            data={paginatedlikedislike}
+            pagination={pagination}
+            fetchData={handleFetchData}
             columns={personalPreferenceColumns}
             viewMore={false}
             hideActionsHeader={currentUser?.roleName !== "SUPERVISOR" && patientAllocation?.guardianApplicationUserId !== currentUser?.userId}

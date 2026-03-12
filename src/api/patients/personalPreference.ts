@@ -78,10 +78,8 @@ export interface EditPersonalPreferenceRequest {
 
 export const getPatientPersonalPreference = async (
     id: Number,
-    pageNo: number = 0,
-    pageSize: number = 5,
     preferenceType: "LikesDislikes" | "Habit" | "Hobby"
-): Promise<PersonalPreferenceTDServer> => {
+): Promise<PersonalPreferenceTD[]> => {
     const token = retrieveAccessTokenFromCookie()
     if (!token) {
         throw new Error("No token found.");
@@ -92,23 +90,11 @@ export const getPatientPersonalPreference = async (
                 Authorization: `Bearer ${token}`
             },
             params: {
-                pageNo: pageNo,
-                pageSize: pageSize,
                 preferenceType: preferenceType
             }
         })
-        const ViewPersonalPreferenceList: ViewPersonalPreferenceList = response.data
-        const personalPreference = convertToPersonalPreferenceTD(ViewPersonalPreferenceList.data)
+        return convertToPersonalPreferenceTD(response.data.data)
 
-        return {
-            personalPreference: personalPreference,
-            pagination: {
-                pageNo: ViewPersonalPreferenceList.pageNo,
-                pageSize: ViewPersonalPreferenceList.pageSize,
-                totalRecords: ViewPersonalPreferenceList.totalRecords,
-                totalPages: ViewPersonalPreferenceList.totalPages
-            }
-        }
     } catch (error) {
         console.error("GET Patient Personal Preference", error);
         throw error;
@@ -140,7 +126,7 @@ export const getPersonalPreferenceList = async (preferenceType: "LikesDislikes" 
                 preferenceType: preferenceType
             }
         })
-        return response.data.data
+        return response.data.data.sort((a:Preference,b:Preference)=>a.PreferenceName.localeCompare(b.PreferenceName))
     } catch (error) {
         console.error(`Get Personal Preference List (${preferenceType})`, error);
         throw error;

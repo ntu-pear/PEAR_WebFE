@@ -92,44 +92,18 @@ export const fetchMobilityList = async (): Promise<MobilityList[]> => {
 export const convertToMobilityAidTD = (
   mobilityList: MobilityList[],
   viewMobilityAidList: ViewMobilityAidList
-): MobilityAidTDServer => {
+): MobilityAidTD[] => {
   if (!Array.isArray(mobilityList)) {
     console.error("mobilityList is not an array", mobilityList);
   }
 
   if (!Array.isArray(viewMobilityAidList.data)) {
-    console.error(
-      "viewMobilityAidList.data is not an array",
-      viewMobilityAidList.data
-    );
-    return {
-      mobilityAids: [],
-      pagination: {
-        pageNo: 0,
-        pageSize: 0,
-        totalRecords: 0,
-        totalPages: 0,
-      },
-    };
+    console.error("viewMobilityAidList.data is not an array", viewMobilityAidList.data);
+    return []
   }
 
-  const mobilityAidsTransformed = viewMobilityAidList.data
+  return viewMobilityAidList.data
     .filter((ma) => !ma.IsDeleted)
-    .sort((a, b) => {
-      if (a.IsRecovered !== b.IsRecovered) {
-        return a.IsRecovered === false ? -1 : 1;
-      }
-
-      // Both RECOVERED: sort by RecoveryDate descending
-      if (a.IsRecovered === true && b.IsRecovered === true) {
-        const dateA = a.RecoveryDate ? new Date(a.RecoveryDate).getTime() : 0;
-        const dateB = b.RecoveryDate ? new Date(b.RecoveryDate).getTime() : 0;
-        return dateB - dateA;
-      }
-
-      // Both NOT RECOVERED: RecoveryDate is null, no meaningful sort
-      return 0;
-    })
     .map((ma) => ({
       id: ma.MobilityID,
       mobilityAids:
@@ -140,27 +114,23 @@ export const convertToMobilityAidTD = (
       date: ma.CreatedDateTime ? formatDateString(ma.CreatedDateTime) : "",
       recoveryDate:
         ma.IsRecovered && ma.RecoveryDate ? formatDateString(ma.RecoveryDate) : "",
-    }));
-
-  const updatedTD = {
-    mobilityAids: mobilityAidsTransformed,
-    pagination: {
-      pageNo: viewMobilityAidList.pageNo,
-      pageSize: viewMobilityAidList.pageSize,
-      totalRecords: viewMobilityAidList.totalRecords,
-      totalPages: viewMobilityAidList.totalPages,
-    },
-  };
-  console.log("convertToMobilityAidTD: ", updatedTD);
-
-  return updatedTD;
+      _rawRecoveryDate: ma.RecoveryDate,
+      _isRecovered: ma.IsRecovered,
+    }))
+    .sort((a, b) => {
+      if (a._isRecovered !== b._isRecovered) return a._isRecovered ? 1 : -1;
+      if (!a._isRecovered && !b._isRecovered) return a.mobilityAids.localeCompare(b.mobilityAids);
+      const dateA = a._rawRecoveryDate ? new Date(a._rawRecoveryDate).getTime() : 0;
+      const dateB = b._rawRecoveryDate ? new Date(b._rawRecoveryDate).getTime() : 0;
+      if (dateB !== dateA) return dateB - dateA;
+      return a.mobilityAids.localeCompare(b.mobilityAids);
+    })
+    .map(({ _rawRecoveryDate, _isRecovered, ...rest }) => rest);
 };
 
 export const fetchMobilityAids = async (
   patientId: number,
-  pageNo: number = 0,
-  pageSize: number = 5
-): Promise<MobilityAidTDServer> => {
+): Promise<MobilityAidTD[]> => {
   const token = retrieveAccessTokenFromCookie();
   if (!token) throw new Error("No token found.");
 
@@ -169,7 +139,7 @@ export const fetchMobilityAids = async (
 
     const mobilityAidsResponse =
       await patientMobilityAPI.get<ViewMobilityAidList>(
-        `/Patient/${patientId}?pageNo=${pageNo}&pageSize=${pageSize}`,
+        `/Patient/${patientId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -179,19 +149,12 @@ export const fetchMobilityAids = async (
     console.log("GET Patient Mobility Aids", mobilityAidsResponse.data);
 
     return convertToMobilityAidTD(mobilityList, mobilityAidsResponse.data);
+
   } catch (error) {
     if (error instanceof AxiosError) {
       if (error.response && error.response.status === 404) {
         console.warn("GET Patient Mobility Aids.", error);
-        return {
-          mobilityAids: [],
-          pagination: {
-            pageNo: 0,
-            pageSize: 0,
-            totalRecords: 0,
-            totalPages: 0,
-          },
-        };
+        return []
       }
     }
     console.error("GET Patient Mobility Aids", error);
