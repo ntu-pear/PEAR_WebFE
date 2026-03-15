@@ -123,7 +123,7 @@ export const fetchUserById = async (id: string): Promise<User> => {
   if (!token) throw new Error("No token found.");
 
   try {
-    const response = await adminAPI.get<User>(`/${id}`, {
+    const response = await adminAPI.get<User>(`/user/${id}`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -189,7 +189,7 @@ export const updateUser = async (
     const token = retrieveAccessTokenFromCookie();
     if (!token) throw new Error("Token not found");
     const response = await adminAPI.put<User>(
-      `/${userId}`,
+      `user/${userId}`,
       userData,
       { headers: { Authorization: `Bearer ${token}` } }
     );
@@ -201,6 +201,7 @@ export const updateUser = async (
     } else if (error.response?.status === 404) {
       toast.error("User not found.");
     } else {
+      console.log("Error", error.response.data)
       toast.error("Failed to update user.");
     }
     console.error("Update user", error);
