@@ -247,46 +247,77 @@ const sortUsers = (users: User[], column: string, direction: "asc" | "desc") => 
   };
 
   const columns: {
-    key: keyof User;
-    header: string;
-    sortable?: boolean;
-    render?: (value: any) => React.ReactNode;
-  }[] = [
-    { key: "id", header: "ID", sortable: true },
-    { key: "nric_FullName", header: "Name", sortable: true },
-    {
-      key: "isDeleted",
-      header: "Status",
-      sortable: true,
-      render: (value: boolean | undefined) => {
-        const status =
-          value === false ? "Active" : value === true ? "Inactive" : "";
+  key: keyof User;
+  header: string;
+  sortable?: boolean;
+  render?: (value: any, user: User) => React.ReactNode;
+}[] = [
+  {
+    key: "profilePicture",
+    header: "",
+    sortable: false,
+    render: (value: string | null, user: User) => {
+      const imageUrl = value?.trim();
+      const fullName = user.nric_FullName?.trim() || "User";
 
-        const variant =
-          status === "Active"
-            ? "default"
-            : status === "Inactive"
-              ? "secondary"
-              : "outline";
+      const initials = fullName
+        .split(/\s+/)
+        .filter(Boolean)
+        .slice(0, 2)
+        .map((part) => part[0]?.toUpperCase())
+        .join("");
 
-        return <Badge variant={variant}>{status}</Badge>;
-      },
+      return imageUrl ? (
+        <img
+          src={imageUrl}
+          alt={fullName}
+          className="h-10 w-10 rounded-full object-cover border"
+          onError={(e) => {
+            e.currentTarget.style.display = "none";
+          }}
+        />
+      ) : (
+        <div className="h-10 w-10 rounded-full border bg-muted flex items-center justify-center text-xs font-medium">
+          {initials || "U"}
+        </div>
+      );
     },
-    { key: "email", header: "Email", sortable: true },
-    {
-      key: "loginTimeStamp",
-      header: "Last Login",
-      sortable: true,
-      render: renderLoginTimeStamp,
+  },
+  { key: "id", header: "ID", sortable: true },
+  { key: "nric_FullName", header: "Name", sortable: true },
+  {
+    key: "isDeleted",
+    header: "Status",
+    sortable: true,
+    render: (value: boolean | undefined) => {
+      const status =
+        value === false ? "Active" : value === true ? "Inactive" : "";
+
+      const variant =
+        status === "Active"
+          ? "default"
+          : status === "Inactive"
+            ? "secondary"
+            : "outline";
+
+      return <Badge variant={variant}>{status}</Badge>;
     },
-    {
-      key: "createdDate",
-      header: "Created Date",
-      sortable: true,
-      render: renderCreatedDate,
-    },
-    { key: "roleName", header: "Role", sortable: true },
-  ];
+  },
+  { key: "email", header: "Email", sortable: true },
+  {
+    key: "loginTimeStamp",
+    header: "Last Login",
+    sortable: true,
+    render: renderLoginTimeStamp,
+  },
+  {
+    key: "createdDate",
+    header: "Created Date",
+    sortable: true,
+    render: renderCreatedDate,
+  },
+  { key: "roleName", header: "Role", sortable: true },
+];
 
   return (
     <div className="flex min-h-screen w-full flex-col container mx-auto px-0 sm:px-4">
