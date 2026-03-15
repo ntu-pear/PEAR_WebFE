@@ -20,6 +20,7 @@ export interface ViewAccountContextType {
     isMasked: boolean;
   };
   getNRIC: () => string;
+  getUnmaskedNRIC: () => Promise<string>;
   resetUnmaskedNRICData: () => void;
   setAccountInfo: React.Dispatch<React.SetStateAction<User | null>>;
   refreshAccountData: () => Promise<void>;
@@ -44,7 +45,6 @@ export const ViewAccountProvider: React.FC<{ children: ReactNode }> = ({
   }>({ nric: "", maskedNric: "", isMasked: false });
 
   const resetUnmaskedNRICData = () => {
-    // reset the unmasked nric when the account info changes
     setNricData((prevState) => ({
       ...prevState,
       nric: "",
@@ -89,21 +89,36 @@ export const ViewAccountProvider: React.FC<{ children: ReactNode }> = ({
       } else {
         setModifiedByAccount(null);
       }
-    } catch (error) {
+    } catch {
       toast.error("Failed to fetch account information");
     }
   };
 
-  //get nric depending on the isMasked state
   const getNRIC = () => {
-    if (nricData.isMasked) {
-      return nricData.maskedNric;
+    return nricData.isMasked ? nricData.maskedNric : nricData.nric;
+  };
+
+  const getUnmaskedNRIC = async (): Promise<string> => {
+    if (!id) throw new Error("No account id found.");
+
+    if (nricData.nric) {
+      return nricData.nric;
     }
-    return nricData.nric;
+
+    const updatedNric: string = await fetchUserNRIC(id);
+
+    setNricData((prevState) => ({
+      nric: updatedNric,
+      maskedNric: prevState.maskedNric,
+      isMasked: prevState.isMasked,
+    }));
+
+    return updatedNric;
   };
 
   const handleNRICToggle = async () => {
     if (!id) return;
+
     if (!nricData.isMasked || nricData.nric) {
       setNricData((prevState) => ({
         nric: prevState.nric,
@@ -121,8 +136,8 @@ export const ViewAccountProvider: React.FC<{ children: ReactNode }> = ({
         maskedNric: prevState.maskedNric,
         isMasked: !prevState.isMasked,
       }));
-    } catch (error) {
-      toast.error("Failed to fetch patient NRIC");
+    } catch {
+      toast.error("Failed to fetch account NRIC");
     }
   };
 
@@ -139,6 +154,7 @@ export const ViewAccountProvider: React.FC<{ children: ReactNode }> = ({
         modifiedByAccount,
         nricData,
         getNRIC,
+        getUnmaskedNRIC,
         resetUnmaskedNRICData,
         setAccountInfo,
         refreshAccountData,
