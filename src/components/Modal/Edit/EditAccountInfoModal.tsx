@@ -282,22 +282,22 @@ console.log(
         <form onSubmit={form.handleSubmit(onSubmit)}>
           <div className="grid grid-cols-2 gap-4">
             <Input
-              label="Preferred Name"
-              name="preferredName"
-              formReturn={form}
-              validation={{
-                onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
-                  handleSanitizedChange("preferredName", e.target.value),
-              }}
-            />
-
-            <Input
               label="Full Name"
               name="fullName"
               formReturn={form}
               validation={{
                 onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
                   handleSanitizedChange("fullName", e.target.value),
+              }}
+            />
+
+            <Input
+              label="Preferred Name"
+              name="preferredName"
+              formReturn={form}
+              validation={{
+                onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
+                  handleSanitizedChange("preferredName", e.target.value),
               }}
             />
 
