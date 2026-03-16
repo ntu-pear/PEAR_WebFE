@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
@@ -10,36 +10,108 @@ import {
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
-import { ChevronDown, ChevronUp } from "lucide-react"; 
+import {
+  ChevronDown,
+  ChevronUp,
+  Download,
+  Filter,
+  X,
+  FileText,
+  User,
+  Calendar,
+  Activity,
+  Search,
+} from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 import { fetchActivityLogs, ActivityLogsList } from "@/api/logger/activityLogs";
 
+const TABLE_OPTIONS = [
+  { value: "all", label: "All Tables" },
+  { value: "CENTRE_ACTIVITY", label: "Centre Activity" },
+  { value: "CENTRE_ACTIVITY_EXCLUSION", label: "Activity Exclusions" },
+  { value: "CENTRE_ACTIVITY_PREFERENCE", label: "Preferences"},
+  { value: "CENTRE_ACTIVITY_RECOMMENDATION", label: "Activity Recommendation" },
+  { value: "Activity", label: "Activity" },
+  { value: "AdHoc", label: "Ad Hoc" },
+  { value: "ROUTINE", label: "Routines"},
+  {value: "ROUTINE_EXCLUSION", label: "Routine Exclusions"}  
+];
+
+const ACTION_OPTIONS = [
+  { value: "all", label: "All Actions" },
+  { value: "create", label: "Create" },
+  { value: "update", label: "Update" },
+  { value: "delete", label: "Delete" },
+];
+
 const ActivityLogs: React.FC = () => {
   const [expandedRows, setExpandedRows] = useState<{ [key: number]: boolean }>({});
-  const [table, setTable] = useState("");
-  const [user, setUser] = useState("");
-  const [action, setAction] = useState("");
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
-  const [filtersVisible, setFiltersVisible] = useState(true); 
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [filtersVisible, setFiltersVisible] = useState(true);
 
-  const [filters, setFilters] = useState({
-    table: "",
-    user: "",
-    action: "",
-    startDate: "",
-    endDate: "",
-  });
+  // Filter states
+  const [patientName, setPatientName] = useState<string>("");
+  const [caregiverName, setCaregiverName] = useState<string>("");
+  const [selectedTable, setSelectedTable] = useState<string>("all");
+  const [selectedAction, setSelectedAction] = useState<string>("all");
+  const [startDate, setStartDate] = useState<string>("");
+  const [endDate, setEndDate] = useState<string>("");
 
+  // Logs data
   const [logsData, setLogsData] = useState<ActivityLogsList>({
     data: [],
     pageNo: 0,
-    pageSize: 10,
+    pageSize: 100,
     totalRecords: 0,
     totalPages: 0,
   });
+
   const [jumpPage, setJumpPage] = useState(1);
+  const [loading, setLoading] = useState(false);
+
+  const handleLogs = useCallback(
+    async (page: number = 0) => {
+      setLoading(true);
+      setExpandedRows({});
+      try {
+        const response = await fetchActivityLogs(
+          selectedAction === "all" ? null : selectedAction,
+          null, // user ID - not using
+          caregiverName || null,
+          selectedTable === "all" ? null : selectedTable,
+          null, // patient ID - not using
+          patientName || null,
+          null, // activity ID
+          null, // log_type
+          startDate || null,
+          endDate || null,
+          "desc",
+          page,
+          100
+        );
+        setLogsData(response);
+        setJumpPage(response.pageNo + 1);
+      } catch (error) {
+        console.error("Error fetching activity logs", error);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [selectedAction, caregiverName, selectedTable, patientName, startDate, endDate]
+  );
+
+  useEffect(() => {
+    handleLogs(0);
+  }, [handleLogs]);
 
   const toggleRow = (index: number) => {
     setExpandedRows((prev) => ({
@@ -48,40 +120,13 @@ const ActivityLogs: React.FC = () => {
     }));
   };
 
-  const handleLogs = async (page: number = 0) => {
-    setExpandedRows({});
-    try {
-      const res = await fetchActivityLogs(
-        filters.action || null,
-        filters.user || null,
-        filters.table || null,
-        filters.startDate || null,
-        filters.endDate || null,
-        "desc",
-        page,
-        logsData.pageSize
-      );
-      setLogsData(res);
-      setJumpPage(res.pageNo + 1);
-    } catch (error) {
-      console.error("Error fetching activity logs", error);
-    }
-  };
-
   const handleFilterReset = () => {
-    setAction("");
-    setUser("");
-    setTable("");
+    setPatientName("");
+    setCaregiverName("");
+    setSelectedTable("all");
+    setSelectedAction("all");
     setStartDate("");
     setEndDate("");
-    setFilters({
-      table: "",
-      user: "",
-      action: "",
-      startDate: "",
-      endDate: "",
-    });
-    handleLogs(0);
   };
 
   const goToPage = (page: number) => {
@@ -95,226 +140,465 @@ const ActivityLogs: React.FC = () => {
     goToPage(page - 1);
   };
 
-  useEffect(() => {
-    handleLogs(0);
-  }, [filters]);
+  const handleExport = (type: "internal" | "external") => {
+    const logs = logsData.data;
+    const headers = [
+      "Date/Time",
+      "Patient",
+      "User",
+      "Action",
+      "Table",
+      "Description",
+    ];
+
+    const rows = logs.map((log) => [
+      format(new Date(log.timestamp), "yyyy-MM-dd HH:mm:ss"),
+      type === "internal" ? log.patient_full_name || log.patient_id || "-" : log.patient_id || "-",
+      type === "internal" ? log.user_full_name || log.user : log.user,
+      log.method,
+      log.table,
+      `"${log.message.replace(/"/g, '""')}"`,
+    ]);
+
+    const csvContent = [headers.join(","), ...rows.map((r) => r.join(","))].join(
+      "\n"
+    );
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `activity-logs-${type}-${format(new Date(), "yyyy-MM-dd")}.csv`;
+    link.click();
+  };
+
+  // Compute diff between original and updated data
+  const computeDiff = (original: any, updated: any) => {
+    const changes: { field: string; old: any; new: any }[] = [];
+    const allKeys = new Set([...Object.keys(original || {}), ...Object.keys(updated || {})]);
+
+    allKeys.forEach((key) => {
+      const oldVal = original?.[key];
+      const newVal = updated?.[key];
+      if (JSON.stringify(oldVal) !== JSON.stringify(newVal)) {
+        changes.push({ field: key, old: oldVal, new: newVal });
+      }
+    });
+
+    return changes;
+  };
+
+  const getActionBadgeColor = (method: string) => {
+    switch (method.toLowerCase()) {
+      case "create":
+        return "bg-green-100 text-green-800 hover:bg-green-100";
+      case "update":
+        return "bg-blue-100 text-blue-800 hover:bg-blue-100";
+      case "delete":
+        return "bg-red-100 text-red-800 hover:bg-red-100";
+      default:
+        return "bg-gray-100 text-gray-800 hover:bg-gray-100";
+    }
+  };
 
   return (
-    <div className="flex min-h-screen w-full container mx-auto static max-w-[1400px]">
+    <div className="flex min-h-screen w-full">
       {/* ================= FILTER SIDEBAR ================= */}
-      <div className="w-full sm:w-1/4 md:w-1/6 p-6 border absolute left-0 h-full bg-white">
-        {/* Filter header with toggle */}
-        <div
-          className="p-4 border-b flex justify-between items-center cursor-pointer"
-          onClick={() => setFiltersVisible((prev) => !prev)}
-        >
-          <h3 className="text-2xl font-semibold">Filters</h3>
-          {filtersVisible ? <ChevronUp /> : <ChevronDown />}
-        </div>
-
-        {/* Filter content - only visible when toggled */}
-        {filtersVisible && (
-          <div className="p-4 space-y-6 overflow-y-auto">
-            {/* Date Range */}
-            <div className="space-y-2">
-              <label className="block text-sm font-medium">Date Range</label>
-              <Input
-                type="date"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                className="w-full"
-              />
-              <Input
-                type="date"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-                className="w-full"
-              />
-            </div>
-
-            {/* Table */}
-            <div className="space-y-2">
-              <label className="block text-sm font-medium">Table</label>
-              <Input
-                type="text"
-                placeholder="Table name..."
-                value={table}
-                onChange={(e) => setTable(e.target.value)}
-                className="w-full"
-              />
-            </div>
-
-            {/* Action */}
-            <div className="space-y-2">
-              <label className="block text-sm font-medium">Action</label>
-              {["create", "update", "delete"].map((a) => (
-                <div key={a} className="flex items-center">
-                  <input
-                    type="checkbox"
-                    className="mr-2"
-                    checked={action === a}
-                    onChange={(e) => setAction(e.target.checked ? a : "")}
-                  />
-                  <label className="capitalize">{a}</label>
-                </div>
-              ))}
-            </div>
-
-            {/* User */}
-            <div className="space-y-2">
-              <label className="block text-sm font-medium">User</label>
-              <Input
-                type="text"
-                placeholder="Account ID..."
-                value={user}
-                onChange={(e) => setUser(e.target.value)}
-                className="w-full"
-              />
-            </div>
-
-            {/* Buttons */}
-            <div className="pt-2 space-y-2">
+      <div
+        className={`${
+          sidebarCollapsed ? "w-12" : "w-64"
+        } flex-shrink-0 border-r bg-white transition-all duration-300`}
+      >
+        {sidebarCollapsed ? (
+          <div className="p-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setSidebarCollapsed(false)}
+              className="w-8 h-8"
+            >
+              <Filter className="h-4 w-4" />
+            </Button>
+          </div>
+        ) : (
+          <div className="p-4">
+            {/* Filter header with collapse */}
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold flex items-center gap-2">
+                <Filter className="h-5 w-5" />
+                Filters
+              </h3>
               <Button
-                className="w-full"
-                onClick={() => setFilters({ table, user, action, startDate, endDate })}
+                variant="ghost"
+                size="icon"
+                onClick={() => setSidebarCollapsed(true)}
+                className="h-8 w-8"
               >
-                Apply Filters
-              </Button>
-              <Button variant="outline" className="w-full" onClick={handleFilterReset}>
-                Reset
+                <X className="h-4 w-4" />
               </Button>
             </div>
+
+            {/* Toggle filters visibility */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setFiltersVisible(!filtersVisible)}
+              className="w-full justify-between mb-2"
+            >
+              {filtersVisible ? "Hide Filters" : "Show Filters"}
+              {filtersVisible ? (
+                <ChevronUp className="h-4 w-4" />
+              ) : (
+                <ChevronDown className="h-4 w-4" />
+              )}
+            </Button>
+
+            {filtersVisible && (
+              <div className="space-y-4">
+                {/* Patient Name Filter */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium flex items-center gap-1">
+                    <User className="h-4 w-4" />
+                    Patient Name
+                  </label>
+                  <Input
+                    type="text"
+                    value={patientName}
+                    onChange={(e) => setPatientName(e.target.value)}
+                    placeholder="Search patient name..."
+                  />
+                </div>
+
+                {/* Caregiver Name Filter */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium flex items-center gap-1">
+                    <User className="h-4 w-4" />
+                    Caregiver/Guardian
+                  </label>
+                  <Input
+                    type="text"
+                    value={caregiverName}
+                    onChange={(e) => setCaregiverName(e.target.value)}
+                    placeholder="Search caregiver name..."
+                  />
+                </div>
+
+                {/* Table Filter */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium flex items-center gap-1">
+                    <FileText className="h-4 w-4" />
+                    Table
+                  </label>
+                  <Select value={selectedTable} onValueChange={setSelectedTable}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select table" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {TABLE_OPTIONS.map((opt) => (
+                        <SelectItem key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Action Filter */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium flex items-center gap-1">
+                    <Activity className="h-4 w-4" />
+                    Action
+                  </label>
+                  <Select value={selectedAction} onValueChange={setSelectedAction}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select action" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {ACTION_OPTIONS.map((opt) => (
+                        <SelectItem key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Date Range */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium flex items-center gap-1">
+                    <Calendar className="h-4 w-4" />
+                    Date Range
+                  </label>
+                  <Input
+                    type="date"
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                    placeholder="Start date"
+                  />
+                  <Input
+                    type="date"
+                    value={endDate}
+                    onChange={(e) => setEndDate(e.target.value)}
+                    placeholder="End date"
+                  />
+                </div>
+
+                {/* Buttons */}
+                <div className="pt-2 space-y-2">
+                  <Button className="w-full" onClick={() => handleLogs(0)}>
+                    <Search className="h-4 w-4 mr-2" />
+                    Apply Filters
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="w-full"
+                    onClick={handleFilterReset}
+                  >
+                    Reset
+                  </Button>
+                </div>
+
+                {/* Export */}
+                <div className="pt-4 border-t space-y-2">
+                  <label className="text-sm font-medium">Export</label>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full"
+                    onClick={() => handleExport("internal")}
+                  >
+                    <Download className="h-4 w-4 mr-2" />
+                    Internal (Full)
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full"
+                    onClick={() => handleExport("external")}
+                  >
+                    <Download className="h-4 w-4 mr-2" />
+                    External (Anon)
+                  </Button>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
 
-      {/* ================= ACTIVITY LOGS TABLE ================= */}
-      <div className="py-6 flex-1 justify-center ml-[20%]">
-        <Card>
-          <CardHeader>
-            <CardTitle>Activity Logs</CardTitle>
+      {/* ================= MAIN CONTENT ================= */}
+      <div className="flex-1 p-6 overflow-auto">
+        <Card className="w-full">
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle className="text-2xl">Activity Logs</CardTitle>
+            <div className="text-sm text-muted-foreground">
+              Showing {logsData.data.length} of {logsData.totalRecords} records
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>#</TableHead>
-                    <TableHead>Table</TableHead>
-                    <TableHead>EntityID</TableHead>
-                    <TableHead>User</TableHead>
-                    <TableHead>Action</TableHead>
-                    <TableHead>Description</TableHead>
-                    <TableHead>Date Time</TableHead>
-                    <TableHead>Details</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {logsData.data.map((log, index) => (
-                    <React.Fragment key={index}>
+            {loading ? (
+              <div className="flex justify-center py-8">
+                <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" />
+              </div>
+            ) : (
+              <>
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
                       <TableRow>
-                        <TableCell>{index + 1 + logsData.pageNo * logsData.pageSize}</TableCell>
-                        <TableCell>{log.table}</TableCell>
-                        <TableCell>{log.entity_id ?? "-"}</TableCell>
-                        <TableCell>{log.user_full_name} ({log.user})</TableCell>
-                        <TableCell className="capitalize">{log.method}</TableCell>
-                        <TableCell>{log.message}</TableCell>
-                        <TableCell>{format(new Date(log.timestamp), "dd/MM/yyyy HH:mm")}</TableCell>
-                        <TableCell>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => toggleRow(index)}
-                          >
-                            {expandedRows[index] ? "Hide" : "View"} Details
-                          </Button>
-                        </TableCell>
+                        <TableHead className="w-12">#</TableHead>
+                        <TableHead className="w-32">Date/Time</TableHead>
+                        <TableHead className="w-40">Patient</TableHead>
+                        <TableHead className="w-40">Caregiver</TableHead>
+                        <TableHead className="w-24">Action</TableHead>
+                        <TableHead className="w-32">Table</TableHead>
+                        <TableHead>Description</TableHead>
+                        <TableHead className="w-24">Details</TableHead>
                       </TableRow>
-
-                      {expandedRows[index] && (
+                    </TableHeader>
+                    <TableBody>
+                      {logsData.data.length === 0 ? (
                         <TableRow>
-                          <TableCell colSpan={8}>
-                            <div className="flex gap-4 p-4 border-t bg-gray-100">
-                              {/* Old and New State tables */}
-                              {["original_data", "updated_data"].map((key) => {
-                                const title = key === "original_data" ? "Old State" : "New State";
-                                const data = log[key as "original_data" | "updated_data"];
-                                const compare = log[key === "original_data" ? "updated_data" : "original_data"];
-                                const mode = key === "original_data" ? "old" : "new";
-                                return (
-                                  <div key={key} className="w-full sm:w-1/2 border rounded-md p-2 bg-white shadow-md">
-                                    <h3 className="text-sm font-semibold mb-2">{title}</h3>
-                                    <Table>
-                                      <TableHeader>
-                                        <TableRow>
-                                          <TableHead>Attribute</TableHead>
-                                          <TableHead>Value</TableHead>
-                                        </TableRow>
-                                      </TableHeader>
-                                      <TableBody>
-                                        {data && Object.keys(data).length > 0 ? (
-                                          Object.entries(data).map(([attr, val]) => {
-                                            const isDeleted = mode === "old" && compare && Object.keys(compare).length === 0;
-                                            const isCreated = mode === "new" && compare && Object.keys(compare).length === 0;
-                                            const isUpdated = !isDeleted && !isCreated && compare && compare[attr] !== val;
-                                            return (
-                                              <TableRow key={attr}>
-                                                <TableCell className={`font-semibold ${isUpdated ? "text-yellow-600" : isDeleted ? "text-red-500" : isCreated ? "text-green-500" : "text-gray-500"}`}>
-                                                  {attr}
-                                                </TableCell>
-                                                <TableCell className={`${isUpdated ? "bg-yellow-200" : isDeleted ? "bg-red-200" : isCreated ? "bg-green-200" : ""}`}>
-                                                  {String(val)}
-                                                </TableCell>
-                                              </TableRow>
-                                            );
-                                          })
-                                        ) : (
-                                          <TableRow>
-                                            <TableCell colSpan={2} className="text-gray-500 text-center">
-                                              No data
-                                            </TableCell>
-                                          </TableRow>
-                                        )}
-                                      </TableBody>
-                                    </Table>
-                                  </div>
-                                );
-                              })}
-                            </div>
+                          <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                            No logs found
                           </TableCell>
                         </TableRow>
+                      ) : (
+                        logsData.data.map((log, index) => (
+                          <React.Fragment key={index}>
+                            <TableRow className="hover:bg-muted/50">
+                              <TableCell className="font-mono text-xs">
+                                {index + 1 + logsData.pageNo * logsData.pageSize}
+                              </TableCell>
+                              <TableCell className="text-sm whitespace-nowrap">
+                                {format(new Date(log.timestamp), "dd/MM/yyyy HH:mm")}
+                              </TableCell>
+                              <TableCell>
+                                <div className="font-medium">
+                                  {log.patient_full_name || "-"}
+                                </div>
+                                {log.patient_id && (
+                                  <div className="text-xs text-muted-foreground">
+                                    ID: {log.patient_id}
+                                  </div>
+                                )}
+                              </TableCell>
+                              <TableCell>
+                                <div className="font-medium">{log.user_full_name}</div>
+                                <div className="text-xs text-muted-foreground">
+                                  {log.user}
+                                </div>
+                              </TableCell>
+                              <TableCell>
+                                <Badge className={getActionBadgeColor(log.method)}>
+                                  {log.method}
+                                </Badge>
+                              </TableCell>
+                              <TableCell>
+                                <Badge variant="outline">
+                                  {log.table || "-"}
+                                </Badge>
+                              </TableCell>
+                              <TableCell className="max-w-md truncate">
+                                {log.message}
+                              </TableCell>
+                              <TableCell>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => toggleRow(index)}
+                                >
+                                  {expandedRows[index] ? (
+                                    <ChevronUp className="h-4 w-4" />
+                                  ) : (
+                                    <ChevronDown className="h-4 w-4" />
+                                  )}
+                                </Button>
+                              </TableCell>
+                            </TableRow>
+
+                            {/* Expanded Details Row */}
+                            {expandedRows[index] && (
+                              <TableRow>
+                                <TableCell colSpan={8} className="p-0">
+                                  <div className="bg-muted/30 p-4">
+                                    <div className="mb-4">
+                                      <h4 className="font-semibold mb-2">Change Details</h4>
+                                      <div className="grid grid-cols-2 gap-4 text-sm">
+                                        <div>
+                                          <span className="text-muted-foreground">Entity ID:</span>{" "}
+                                          {log.entity_id || "-"}
+                                        </div>
+                                      </div>
+                                    </div>
+
+                                    {/* Changes Table */}
+                                    {(log.original_data || log.updated_data) && (
+                                      <div className="mt-4">
+                                        <h5 className="text-sm font-medium mb-2">
+                                          Field Changes
+                                        </h5>
+                                        <Table>
+                                          <TableHeader>
+                                            <TableRow>
+                                              <TableHead>Field</TableHead>
+                                              <TableHead>Old Value</TableHead>
+                                              <TableHead>New Value</TableHead>
+                                              <TableHead>Change</TableHead>
+                                            </TableRow>
+                                          </TableHeader>
+
+                                          <TableBody>
+                                            {computeDiff(log.original_data, log.updated_data).map((change, idx) => (
+                                                <TableRow key={idx}>
+                                                  <TableCell className="font-medium">
+                                                    {change.field}
+                                                  </TableCell>
+                                                  <TableCell className="text-red-600 bg-red-50/50">
+                                                    {change.old === undefined ? "-" : String(change.old)}
+                                                  </TableCell>
+                                                  <TableCell className="text-green-600 bg-green-50/50">
+                                                    {change.new === undefined ? "-" : String(change.new)}
+                                                  </TableCell>
+                                                  <TableCell>
+                                                    {!change.old && change.new ? (
+                                                      <Badge className="bg-green-100 text-green-800">Added</Badge>
+                                                    ) : change.old && !change.new ? (
+                                                      <Badge className="bg-red-100 text-red-800">Removed</Badge>
+                                                    ) : (
+                                                      <Badge className="bg-blue-100 text-blue-800">Modified</Badge>
+                                                    )}
+                                                  </TableCell>
+                                                </TableRow>
+                                              ))}
+                                            {computeDiff(log.original_data, log.updated_data)
+                                              .length === 0 && (
+                                              <TableRow>
+                                                <TableCell
+                                                  colSpan={4}
+                                                  className="text-center text-muted-foreground"
+                                                >
+                                                  No changes detected
+                                                </TableCell>
+                                              </TableRow>
+                                            )}
+                                          </TableBody>
+                                        </Table>
+                                      </div>
+                                    )}
+                                  </div>
+                                </TableCell>
+                              </TableRow>
+                            )}
+                          </React.Fragment>
+                        ))
                       )}
-                    </React.Fragment>
-                  ))}
-                </TableBody>
-              </Table>
+                    </TableBody>
+                  </Table>
+                </div>
 
-              {/* ================= PAGINATION ================= */}
-              <div className="flex items-center justify-end gap-2 mt-4">
-                <span>
-                  Page{" "}
-                  <input
-                    type="number"
-                    className="w-12 text-center border rounded-md"
-                    min={1}
-                    max={logsData.totalPages || 1}
-                    value={jumpPage}
-                    onChange={(e) => setJumpPage(Number(e.target.value))}
-                  />{" "}
-                  of {logsData.totalPages || 1}
-                </span>
-                <Button variant="outline" size="sm" onClick={handleJump}>
-                  Go
-                </Button>
-                <Button variant="outline" size="sm" disabled={logsData.pageNo <= 0} onClick={() => goToPage(logsData.pageNo - 1)}>
-                  Prev
-                </Button>
-                <Button variant="outline" size="sm" disabled={logsData.pageNo >= (logsData.totalPages - 1)} onClick={() => goToPage(logsData.pageNo + 1)}>
-                  Next
-                </Button>
-              </div>
-
-            </div>
+                {/* Pagination */}
+                {logsData.totalPages > 0 && (
+                  <div className="flex items-center justify-end gap-2 mt-4">
+                    <span className="text-sm text-muted-foreground">
+                      Page
+                    </span>
+                    <input
+                      type="number"
+                      className="w-16 text-center border rounded-md px-2 py-1 text-sm"
+                      min={1}
+                      max={logsData.totalPages}
+                      value={jumpPage}
+                      onChange={(e) => setJumpPage(Number(e.target.value))}
+                    />
+                    <span className="text-sm text-muted-foreground">
+                      of {logsData.totalPages}
+                    </span>
+                    <Button variant="outline" size="sm" onClick={handleJump}>
+                      Go
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={logsData.pageNo <= 0}
+                      onClick={() => goToPage(logsData.pageNo - 1)}
+                    >
+                      Prev
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={
+                        logsData.pageNo >=
+                        logsData.totalPages - 1
+                      }
+                      onClick={() => goToPage(logsData.pageNo + 1)}
+                    >
+                      Next
+                    </Button>
+                  </div>
+                )}
+              </>
+            )}
           </CardContent>
         </Card>
       </div>
