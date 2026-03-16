@@ -24,8 +24,12 @@ export default function Select<T extends FieldValues>({
 }: Props<T>) {
   const {
     register,
+    watch,
+    setValue,
     formState: { errors },
   } = form;
+
+  const selectedValue = watch(name) ?? "";
 
   return (
     <div className="pb-2 flex flex-col">
@@ -37,6 +41,14 @@ export default function Select<T extends FieldValues>({
         id={name}
         className="border border-gray-300 rounded-md p-2 bg-white dark:bg-slate-700"
         {...register(name, { required, ...validation })}
+        value={selectedValue}
+        onChange={(e) =>
+          setValue(name, e.target.value as any, {
+            shouldDirty: true,
+            shouldTouch: true,
+            shouldValidate: true,
+          })
+        }
       >
         <option value="">Please select an option</option>
         {options.map(({ value, name }) => (
