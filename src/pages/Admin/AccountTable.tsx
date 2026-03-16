@@ -326,7 +326,7 @@ const sortUsers = (users: User[], column: string, direction: "asc" | "desc") => 
           <Searchbar
             searchItem={searchItem}
             onSearchChange={handleInputChange}
-            placeholder="Search by name..."
+            placeholder="Search by full name..."
             ariaLabel="Search by name"
           />
           <div className="flex items-center gap-2 ml-auto sm:px-6">
