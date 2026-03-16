@@ -139,7 +139,7 @@ console.log("accountInfo", accountInfo);
                   })
                 }
               >
-                Set as Inactive
+                Delete Account
               </Button>
             </div>
           </div>
