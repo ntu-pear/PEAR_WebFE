@@ -8,15 +8,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import {
   ChevronDown,
   ChevronUp,
-  Filter,
-  X,
   FileText,
   User,
   Calendar,
@@ -24,15 +21,13 @@ import {
   Search,
   Shield,
 } from "lucide-react";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
 import { fetchSystemLogs, SystemLogsList } from "@/api/logger/systemLogs";
+import FilterSidebar from "@/components/Filters/FilterSidebar";
+import TextFilterField from "@/components/Filters/TextFilterField";
+import SelectFilterField from "@/components/Filters/SelectFilterField";
+import DateRangeFilterField from "@/components/Filters/DateRangeFilterField";
+import FilterActionButtons from "@/components/Filters/FilterActionButtons";
 
 const TABLE_OPTIONS = [
   { value: "all", label: "All Tables" },
@@ -40,27 +35,27 @@ const TABLE_OPTIONS = [
   { value: "AllergyReactionType", label: "Allergy Reaction Type" },
   { value: "AllergyType", label: "Allergy Type" },
   { value: "CARE_CENTRE", label: "Care Centre" },
-  { value: "CENTRE_ACTIVITY_AVAILABILITY", label: "Centre availability"},
-  { value: "CENTRE_ACTIVITY", label: "Centre Activities"},
+  { value: "CENTRE_ACTIVITY_AVAILABILITY", label: "Centre availability" },
+  { value: "CENTRE_ACTIVITY", label: "Centre Activities" },
   { value: "DementiaStage", label: "Dementia Stage" },
   { value: "DementiaType", label: "Dementia Type" },
   { value: "Doctor", label: "Doctor" },
   { value: "DosageForm", label: "Dosage Form" },
   { value: "Frequency", label: "Frequency" },
-  { value: "HighlightType", label: "Highlight types"},
+  { value: "HighlightType", label: "Highlight types" },
   { value: "Instruction", label: "Instruction" },
   { value: "Mobility", label: "Mobility" },
   { value: "Problem", label: "Problem" },
-  { value: "PatientAssignedDementiaList", label: "Patient Assigned Dementia"},
-  { value: "PatientDementiaStageList", label: "Patient Dementia Stage"},
-  { value: "PatientGuardianRelationshipMapping", label: "Guardian Relationship"},
-  { value: "PatientList", label: "Patient List"},
-  { value: "PatientListDiet", label: "Diet"},
-  { value: "PatientListEducation", label: "Education"},
+  { value: "PatientAssignedDementiaList", label: "Patient Assigned Dementia" },
+  { value: "PatientDementiaStageList", label: "Patient Dementia Stage" },
+  { value: "PatientGuardianRelationshipMapping", label: "Guardian Relationship" },
+  { value: "PatientList", label: "Patient List" },
+  { value: "PatientListDiet", label: "Diet" },
+  { value: "PatientListEducation", label: "Education" },
   { value: "Role", label: "Role" },
   { value: "SocialHistory", label: "Social History" },
   { value: "VitalType", label: "Vital Type" },
-  { value: "PatientGuardian", label: "Guardian"}
+  { value: "PatientGuardian", label: "Guardian" },
 ];
 
 const ACTION_OPTIONS = [
@@ -71,18 +66,16 @@ const ACTION_OPTIONS = [
 ];
 
 const SystemConfigLogs: React.FC = () => {
-  const [expandedRows, setExpandedRows] = useState<{ [key: number]: boolean }>({});
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [filtersVisible, setFiltersVisible] = useState(true);
+  const [expandedRows, setExpandedRows] = useState<{ [key: number]: boolean }>(
+    {}
+  );
 
-  // Filter states
-  const [adminName, setAdminName] = useState<string>("");
-  const [selectedTable, setSelectedTable] = useState<string>("all");
-  const [selectedAction, setSelectedAction] = useState<string>("all");
-  const [startDate, setStartDate] = useState<string>("");
-  const [endDate, setEndDate] = useState<string>("");
+  const [adminName, setAdminName] = useState("");
+  const [selectedTable, setSelectedTable] = useState("all");
+  const [selectedAction, setSelectedAction] = useState("all");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
 
-  // Logs data
   const [logsData, setLogsData] = useState<SystemLogsList>({
     data: [],
     pageNo: 0,
@@ -101,10 +94,10 @@ const SystemConfigLogs: React.FC = () => {
       try {
         const response = await fetchSystemLogs(
           selectedAction === "all" ? null : selectedAction,
-          null, // user ID - not using
+          null,
           adminName || null,
           selectedTable === "all" ? null : selectedTable,
-          null, // entity ID
+          null,
           startDate || null,
           endDate || null,
           "desc",
@@ -152,10 +145,12 @@ const SystemConfigLogs: React.FC = () => {
     goToPage(page - 1);
   };
 
-  // Compute diff between original and updated data
   const computeDiff = (original: any, updated: any) => {
     const changes: { field: string; old: any; new: any }[] = [];
-    const allKeys = new Set([...Object.keys(original || {}), ...Object.keys(updated || {})]);
+    const allKeys = new Set([
+      ...Object.keys(original || {}),
+      ...Object.keys(updated || {}),
+    ]);
 
     allKeys.forEach((key) => {
       const oldVal = original?.[key];
@@ -183,154 +178,49 @@ const SystemConfigLogs: React.FC = () => {
 
   return (
     <div className="flex min-h-screen w-full">
-      {/* ================= FILTER SIDEBAR ================= */}
-      <div
-        className={`${
-          sidebarCollapsed ? "w-12" : "w-64"
-        } flex-shrink-0 border-r bg-white transition-all duration-300`}
-      >
-        {sidebarCollapsed ? (
-          <div className="p-2">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setSidebarCollapsed(false)}
-              className="w-8 h-8"
-            >
-              <Filter className="h-4 w-4" />
-            </Button>
-          </div>
-        ) : (
-          <div className="p-4">
-            {/* Filter header with collapse */}
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold flex items-center gap-2">
-                <Filter className="h-5 w-5" />
-                Filters
-              </h3>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setSidebarCollapsed(true)}
-                className="h-8 w-8"
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
+      <FilterSidebar title="Filters">
+        <TextFilterField
+          label="System Admin"
+          icon={User}
+          value={adminName}
+          onChange={setAdminName}
+          placeholder="Search admin name..."
+        />
 
-            {/* Toggle filters visibility */}
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setFiltersVisible(!filtersVisible)}
-              className="w-full justify-between mb-2"
-            >
-              {filtersVisible ? "Hide Filters" : "Show Filters"}
-              {filtersVisible ? (
-                <ChevronUp className="h-4 w-4" />
-              ) : (
-                <ChevronDown className="h-4 w-4" />
-              )}
-            </Button>
+        <SelectFilterField
+          label="Table"
+          icon={FileText}
+          value={selectedTable}
+          onChange={setSelectedTable}
+          options={TABLE_OPTIONS}
+          placeholder="Select table"
+        />
 
-            {filtersVisible && (
-              <div className="space-y-4">
-                {/* System Admin Filter */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium flex items-center gap-1">
-                    <User className="h-4 w-4" />
-                    System Admin
-                  </label>
-                  <Input
-                    type="text"
-                    value={adminName}
-                    onChange={(e) => setAdminName(e.target.value)}
-                    placeholder="Search admin name..."
-                  />
-                </div>
+        <SelectFilterField
+          label="Action"
+          icon={Activity}
+          value={selectedAction}
+          onChange={setSelectedAction}
+          options={ACTION_OPTIONS}
+          placeholder="Select action"
+        />
 
-                {/* Table Filter */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium flex items-center gap-1">
-                    <FileText className="h-4 w-4" />
-                    Table
-                  </label>
-                  <Select value={selectedTable} onValueChange={setSelectedTable}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select table" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {TABLE_OPTIONS.map((opt) => (
-                        <SelectItem key={opt.value} value={opt.value}>
-                          {opt.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+        <DateRangeFilterField
+          label="Date Range"
+          icon={Calendar}
+          startDate={startDate}
+          endDate={endDate}
+          onStartDateChange={setStartDate}
+          onEndDateChange={setEndDate}
+        />
 
-                {/* Action Filter */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium flex items-center gap-1">
-                    <Activity className="h-4 w-4" />
-                    Action
-                  </label>
-                  <Select value={selectedAction} onValueChange={setSelectedAction}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select action" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {ACTION_OPTIONS.map((opt) => (
-                        <SelectItem key={opt.value} value={opt.value}>
-                          {opt.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+        <FilterActionButtons
+          applyIcon={Search}
+          onApply={() => handleLogs(0)}
+          onReset={handleFilterReset}
+        />
+      </FilterSidebar>
 
-                {/* Date Range */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium flex items-center gap-1">
-                    <Calendar className="h-4 w-4" />
-                    Date Range
-                  </label>
-                  <Input
-                    type="date"
-                    value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
-                    placeholder="Start date"
-                  />
-                  <Input
-                    type="date"
-                    value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
-                    placeholder="End date"
-                  />
-                </div>
-
-                {/* Buttons */}
-                <div className="pt-2 space-y-2">
-                  <Button className="w-full" onClick={() => handleLogs(0)}>
-                    <Search className="h-4 w-4 mr-2" />
-                    Apply Filters
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="w-full"
-                    onClick={handleFilterReset}
-                  >
-                    Reset
-                  </Button>
-                </div>
-
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-
-      {/* ================= MAIN CONTENT ================= */}
       <div className="flex-1 p-6 overflow-auto">
         <Card className="w-full">
           <CardHeader className="flex flex-row items-center justify-between">
@@ -347,6 +237,7 @@ const SystemConfigLogs: React.FC = () => {
               </div>
             </div>
           </CardHeader>
+
           <CardContent>
             {loading ? (
               <div className="flex justify-center py-8">
@@ -370,7 +261,10 @@ const SystemConfigLogs: React.FC = () => {
                     <TableBody>
                       {logsData.data.length === 0 ? (
                         <TableRow>
-                          <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                          <TableCell
+                            colSpan={7}
+                            className="text-center py-8 text-muted-foreground"
+                          >
                             No logs found
                           </TableCell>
                         </TableRow>
@@ -385,8 +279,12 @@ const SystemConfigLogs: React.FC = () => {
                                 {format(new Date(log.timestamp), "dd/MM/yyyy HH:mm")}
                               </TableCell>
                               <TableCell>
-                                <div className="font-medium">{log.user_full_name || "-"}</div>
-                                <div className="text-xs text-muted-foreground">{log.user}</div>
+                                <div className="font-medium">
+                                  {log.user_full_name || "-"}
+                                </div>
+                                <div className="text-xs text-muted-foreground">
+                                  {log.user}
+                                </div>
                               </TableCell>
                               <TableCell>
                                 <Badge className={getActionBadgeColor(log.method)}>
@@ -396,9 +294,15 @@ const SystemConfigLogs: React.FC = () => {
                               <TableCell>
                                 <Badge variant="outline">{log.table || "-"}</Badge>
                               </TableCell>
-                              <TableCell className="max-w-md truncate">{log.message}</TableCell>
+                              <TableCell className="max-w-md truncate">
+                                {log.message}
+                              </TableCell>
                               <TableCell>
-                                <Button variant="ghost" size="sm" onClick={() => toggleRow(index)}>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => toggleRow(index)}
+                                >
                                   {expandedRows[index] ? (
                                     <ChevronUp className="h-4 w-4" />
                                   ) : (
@@ -408,31 +312,37 @@ const SystemConfigLogs: React.FC = () => {
                               </TableCell>
                             </TableRow>
 
-                            {/* Expanded Details Row */}
                             {expandedRows[index] && (
                               <TableRow>
                                 <TableCell colSpan={7} className="p-0">
                                   <div className="bg-muted/30 p-4">
                                     <div className="mb-4">
-                                      <h4 className="font-semibold mb-2">Change Details</h4>
+                                      <h4 className="font-semibold mb-2">
+                                        Change Details
+                                      </h4>
                                       <div className="grid grid-cols-2 gap-4 text-sm">
                                         <div>
-                                          <span className="text-muted-foreground">Entity ID:</span>{" "}
+                                          <span className="text-muted-foreground">
+                                            Entity ID:
+                                          </span>{" "}
                                           {log.entity_id || "-"}
                                         </div>
                                         {log.entity_name && (
                                           <div>
-                                            <span className="text-muted-foreground">Entity Name:</span>{" "}
+                                            <span className="text-muted-foreground">
+                                              Entity Name:
+                                            </span>{" "}
                                             {log.entity_name}
                                           </div>
                                         )}
                                       </div>
                                     </div>
 
-                                    {/* Changes Table */}
                                     {(log.original_data || log.updated_data) && (
                                       <div className="mt-4">
-                                        <h5 className="text-sm font-medium mb-2">Field Changes</h5>
+                                        <h5 className="text-sm font-medium mb-2">
+                                          Field Changes
+                                        </h5>
                                         <Table>
                                           <TableHeader>
                                             <TableRow>
@@ -443,42 +353,45 @@ const SystemConfigLogs: React.FC = () => {
                                             </TableRow>
                                           </TableHeader>
                                           <TableBody>
-                                            {computeDiff(log.original_data, log.updated_data).map(
-                                              (change, idx) => (
-                                                <TableRow key={idx}>
-                                                  <TableCell className="font-medium">
-                                                    {change.field}
-                                                  </TableCell>
-                                                  <TableCell className="text-red-600 bg-red-50/50">
-                                                    {change.old === undefined
-                                                      ? "-"
-                                                      : String(change.old)}
-                                                  </TableCell>
-                                                  <TableCell className="text-green-600 bg-green-50/50">
-                                                    {change.new === undefined
-                                                      ? "-"
-                                                      : String(change.new)}
-                                                  </TableCell>
-                                                  <TableCell>
-                                                    {!change.old && change.new ? (
-                                                      <Badge className="bg-green-100 text-green-800">
-                                                        Added
-                                                      </Badge>
-                                                    ) : change.old && !change.new ? (
-                                                      <Badge className="bg-red-100 text-red-800">
-                                                        Removed
-                                                      </Badge>
-                                                    ) : (
-                                                      <Badge className="bg-blue-100 text-blue-800">
-                                                        Modified
-                                                      </Badge>
-                                                    )}
-                                                  </TableCell>
-                                                </TableRow>
-                                              )
-                                            )}
-                                            {computeDiff(log.original_data, log.updated_data)
-                                              .length === 0 && (
+                                            {computeDiff(
+                                              log.original_data,
+                                              log.updated_data
+                                            ).map((change, idx) => (
+                                              <TableRow key={idx}>
+                                                <TableCell className="font-medium">
+                                                  {change.field}
+                                                </TableCell>
+                                                <TableCell className="text-red-600 bg-red-50/50">
+                                                  {change.old === undefined
+                                                    ? "-"
+                                                    : String(change.old)}
+                                                </TableCell>
+                                                <TableCell className="text-green-600 bg-green-50/50">
+                                                  {change.new === undefined
+                                                    ? "-"
+                                                    : String(change.new)}
+                                                </TableCell>
+                                                <TableCell>
+                                                  {!change.old && change.new ? (
+                                                    <Badge className="bg-green-100 text-green-800">
+                                                      Added
+                                                    </Badge>
+                                                  ) : change.old && !change.new ? (
+                                                    <Badge className="bg-red-100 text-red-800">
+                                                      Removed
+                                                    </Badge>
+                                                  ) : (
+                                                    <Badge className="bg-blue-100 text-blue-800">
+                                                      Modified
+                                                    </Badge>
+                                                  )}
+                                                </TableCell>
+                                              </TableRow>
+                                            ))}
+                                            {computeDiff(
+                                              log.original_data,
+                                              log.updated_data
+                                            ).length === 0 && (
                                               <TableRow>
                                                 <TableCell
                                                   colSpan={4}
@@ -503,7 +416,6 @@ const SystemConfigLogs: React.FC = () => {
                   </Table>
                 </div>
 
-                {/* Pagination */}
                 {logsData.totalPages > 0 && (
                   <div className="flex items-center justify-end gap-2 mt-4">
                     <span className="text-sm text-muted-foreground">Page</span>
