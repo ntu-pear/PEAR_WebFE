@@ -79,7 +79,7 @@ const AccountLogs: React.FC = () => {
   const handleLogs = useCallback(
     async (page: number = 0) => {
       setLoading(true);
-      setExpandedRows({});
+      setExpandedRows;
       try {
         const response = await fetchUserLogs(
           "auth",
