@@ -15,7 +15,6 @@ import { format } from "date-fns";
 import {
   ChevronDown,
   ChevronUp,
-  Download,
   Filter,
   X,
   FileText,
@@ -151,28 +150,6 @@ const SystemConfigLogs: React.FC = () => {
   const handleJump = () => {
     const page = Math.max(1, Math.min(jumpPage, logsData.totalPages));
     goToPage(page - 1);
-  };
-
-  const handleExport = () => {
-    const logs = logsData.data;
-    const headers = ["Date/Time", "Admin", "Action", "Table", "Description", "Entity ID"];
-
-    const rows = logs.map((log) => [
-      format(new Date(log.timestamp), "yyyy-MM-dd HH:mm:ss"),
-      log.user_full_name || log.user,
-      log.method,
-      log.table,
-      `"${log.message.replace(/"/g, '""')}"`,
-      log.entity_id || "-",
-    ]);
-
-    const csvContent = [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
-
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = `system-config-logs-${format(new Date(), "yyyy-MM-dd")}.csv`;
-    link.click();
   };
 
   // Compute diff between original and updated data

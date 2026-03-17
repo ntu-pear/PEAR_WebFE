@@ -53,7 +53,7 @@ const ROLE_OPTIONS = [
 ];
 
 const AccountLogs: React.FC = () => {
-  const [expandedRows, setExpandedRows] = useState<{ [key: number]: boolean }>({});
+  const [setExpandedRows] = useState<{ [key: number]: boolean }>({});
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [filtersVisible, setFiltersVisible] = useState(true);
 
@@ -107,12 +107,6 @@ const AccountLogs: React.FC = () => {
     handleLogs(0);
   }, [handleLogs]);
 
-  const toggleRow = (index: number) => {
-    setExpandedRows((prev) => ({
-      ...prev,
-      [index]: !prev[index],
-    }));
-  };
 
   const handleFilterReset = () => {
     setSelectedAction("all");
