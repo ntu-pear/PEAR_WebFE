@@ -15,7 +15,6 @@ import { format } from "date-fns";
 import {
   ChevronDown,
   ChevronUp,
-  Download,
   Filter,
   X,
   FileText,
@@ -23,6 +22,7 @@ import {
   Calendar,
   Activity,
   Search,
+  Shield,
 } from "lucide-react";
 import {
   Select,
@@ -32,18 +32,35 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-import { fetchActivityLogs, ActivityLogsList } from "@/api/logger/activityLogs";
+import { fetchSystemLogs, SystemLogsList } from "@/api/logger/systemLogs";
 
 const TABLE_OPTIONS = [
   { value: "all", label: "All Tables" },
-  { value: "CENTRE_ACTIVITY", label: "Centre Activity" },
-  { value: "CENTRE_ACTIVITY_EXCLUSION", label: "Activity Exclusions" },
-  { value: "CENTRE_ACTIVITY_PREFERENCE", label: "Preferences"},
-  { value: "CENTRE_ACTIVITY_RECOMMENDATION", label: "Activity Recommendation" },
-  { value: "Activity", label: "Activity" },
-  { value: "AdHoc", label: "Ad Hoc" },
-  { value: "ROUTINE", label: "Routines"},
-  {value: "ROUTINE_EXCLUSION", label: "Routine Exclusions"}  
+  { value: "ACTIVITY", label: "Activity" },
+  { value: "AllergyReactionType", label: "Allergy Reaction Type" },
+  { value: "AllergyType", label: "Allergy Type" },
+  { value: "CARE_CENTRE", label: "Care Centre" },
+  { value: "CENTRE_ACTIVITY_AVAILABILITY", label: "Centre availability"},
+  { value: "CENTRE_ACTIVITY", label: "Centre Activities"},
+  { value: "DementiaStage", label: "Dementia Stage" },
+  { value: "DementiaType", label: "Dementia Type" },
+  { value: "Doctor", label: "Doctor" },
+  { value: "DosageForm", label: "Dosage Form" },
+  { value: "Frequency", label: "Frequency" },
+  { value: "HighlightType", label: "Highlight types"},
+  { value: "Instruction", label: "Instruction" },
+  { value: "Mobility", label: "Mobility" },
+  { value: "Problem", label: "Problem" },
+  { value: "PatientAssignedDementiaList", label: "Patient Assigned Dementia"},
+  { value: "PatientDementiaStageList", label: "Patient Dementia Stage"},
+  { value: "PatientGuardianRelationshipMapping", label: "Guardian Relationship"},
+  { value: "PatientList", label: "Patient List"},
+  { value: "PatientListDiet", label: "Diet"},
+  { value: "PatientListEducation", label: "Education"},
+  { value: "Role", label: "Role" },
+  { value: "SocialHistory", label: "Social History" },
+  { value: "VitalType", label: "Vital Type" },
+  { value: "PatientGuardian", label: "Guardian"}
 ];
 
 const ACTION_OPTIONS = [
@@ -53,21 +70,20 @@ const ACTION_OPTIONS = [
   { value: "delete", label: "Delete" },
 ];
 
-const ActivityLogs: React.FC = () => {
+const SystemConfigLogs: React.FC = () => {
   const [expandedRows, setExpandedRows] = useState<{ [key: number]: boolean }>({});
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [filtersVisible, setFiltersVisible] = useState(true);
 
   // Filter states
-  const [patientName, setPatientName] = useState<string>("");
-  const [caregiverName, setCaregiverName] = useState<string>("");
+  const [adminName, setAdminName] = useState<string>("");
   const [selectedTable, setSelectedTable] = useState<string>("all");
   const [selectedAction, setSelectedAction] = useState<string>("all");
   const [startDate, setStartDate] = useState<string>("");
   const [endDate, setEndDate] = useState<string>("");
 
   // Logs data
-  const [logsData, setLogsData] = useState<ActivityLogsList>({
+  const [logsData, setLogsData] = useState<SystemLogsList>({
     data: [],
     pageNo: 0,
     pageSize: 100,
@@ -83,15 +99,12 @@ const ActivityLogs: React.FC = () => {
       setLoading(true);
       setExpandedRows({});
       try {
-        const response = await fetchActivityLogs(
+        const response = await fetchSystemLogs(
           selectedAction === "all" ? null : selectedAction,
           null, // user ID - not using
-          caregiverName || null,
+          adminName || null,
           selectedTable === "all" ? null : selectedTable,
-          null, // patient ID - not using
-          patientName || null,
-          null, // activity ID
-          null, // log_type
+          null, // entity ID
           startDate || null,
           endDate || null,
           "desc",
@@ -101,12 +114,12 @@ const ActivityLogs: React.FC = () => {
         setLogsData(response);
         setJumpPage(response.pageNo + 1);
       } catch (error) {
-        console.error("Error fetching activity logs", error);
+        console.error("Error fetching system logs", error);
       } finally {
         setLoading(false);
       }
     },
-    [selectedAction, caregiverName, selectedTable, patientName, startDate, endDate]
+    [selectedAction, adminName, selectedTable, startDate, endDate]
   );
 
   useEffect(() => {
@@ -121,8 +134,7 @@ const ActivityLogs: React.FC = () => {
   };
 
   const handleFilterReset = () => {
-    setPatientName("");
-    setCaregiverName("");
+    setAdminName("");
     setSelectedTable("all");
     setSelectedAction("all");
     setStartDate("");
@@ -138,37 +150,6 @@ const ActivityLogs: React.FC = () => {
   const handleJump = () => {
     const page = Math.max(1, Math.min(jumpPage, logsData.totalPages));
     goToPage(page - 1);
-  };
-
-  const handleExport = (type: "internal" | "external") => {
-    const logs = logsData.data;
-    const headers = [
-      "Date/Time",
-      "Patient",
-      "User",
-      "Action",
-      "Table",
-      "Description",
-    ];
-
-    const rows = logs.map((log) => [
-      format(new Date(log.timestamp), "yyyy-MM-dd HH:mm:ss"),
-      type === "internal" ? log.patient_full_name || log.patient_id || "-" : log.patient_id || "-",
-      type === "internal" ? log.user_full_name || log.user : log.user,
-      log.method,
-      log.table,
-      `"${log.message.replace(/"/g, '""')}"`,
-    ]);
-
-    const csvContent = [headers.join(","), ...rows.map((r) => r.join(","))].join(
-      "\n"
-    );
-
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = `activity-logs-${type}-${format(new Date(), "yyyy-MM-dd")}.csv`;
-    link.click();
   };
 
   // Compute diff between original and updated data
@@ -254,31 +235,17 @@ const ActivityLogs: React.FC = () => {
 
             {filtersVisible && (
               <div className="space-y-4">
-                {/* Patient Name Filter */}
+                {/* System Admin Filter */}
                 <div className="space-y-2">
                   <label className="text-sm font-medium flex items-center gap-1">
                     <User className="h-4 w-4" />
-                    Patient Name
+                    System Admin
                   </label>
                   <Input
                     type="text"
-                    value={patientName}
-                    onChange={(e) => setPatientName(e.target.value)}
-                    placeholder="Search patient name..."
-                  />
-                </div>
-
-                {/* Caregiver Name Filter */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium flex items-center gap-1">
-                    <User className="h-4 w-4" />
-                    Caregiver/Guardian
-                  </label>
-                  <Input
-                    type="text"
-                    value={caregiverName}
-                    onChange={(e) => setCaregiverName(e.target.value)}
-                    placeholder="Search caregiver name..."
+                    value={adminName}
+                    onChange={(e) => setAdminName(e.target.value)}
+                    placeholder="Search admin name..."
                   />
                 </div>
 
@@ -357,28 +324,6 @@ const ActivityLogs: React.FC = () => {
                   </Button>
                 </div>
 
-                {/* Export */}
-                <div className="pt-4 border-t space-y-2">
-                  <label className="text-sm font-medium">Export</label>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="w-full"
-                    onClick={() => handleExport("internal")}
-                  >
-                    <Download className="h-4 w-4 mr-2" />
-                    Internal (Full)
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="w-full"
-                    onClick={() => handleExport("external")}
-                  >
-                    <Download className="h-4 w-4 mr-2" />
-                    External (Anon)
-                  </Button>
-                </div>
               </div>
             )}
           </div>
@@ -389,9 +334,17 @@ const ActivityLogs: React.FC = () => {
       <div className="flex-1 p-6 overflow-auto">
         <Card className="w-full">
           <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-2xl">Activity Logs</CardTitle>
-            <div className="text-sm text-muted-foreground">
-              Showing {logsData.data.length} of {logsData.totalRecords} records
+            <div className="flex items-center gap-2">
+              <Shield className="h-6 w-6 text-primary" />
+              <CardTitle className="text-2xl">System Configuration Logs</CardTitle>
+            </div>
+            <div className="flex items-center gap-4">
+              <Badge variant="outline" className="text-muted-foreground">
+                Read Only
+              </Badge>
+              <div className="text-sm text-muted-foreground">
+                Showing {logsData.data.length} of {logsData.totalRecords} records
+              </div>
             </div>
           </CardHeader>
           <CardContent>
@@ -407,10 +360,9 @@ const ActivityLogs: React.FC = () => {
                       <TableRow>
                         <TableHead className="w-12">#</TableHead>
                         <TableHead className="w-32">Date/Time</TableHead>
-                        <TableHead className="w-40">Patient</TableHead>
-                        <TableHead className="w-40">Caregiver</TableHead>
+                        <TableHead className="w-40">System Admin</TableHead>
                         <TableHead className="w-24">Action</TableHead>
-                        <TableHead className="w-32">Table</TableHead>
+                        <TableHead className="w-40">Table</TableHead>
                         <TableHead>Description</TableHead>
                         <TableHead className="w-24">Details</TableHead>
                       </TableRow>
@@ -418,7 +370,7 @@ const ActivityLogs: React.FC = () => {
                     <TableBody>
                       {logsData.data.length === 0 ? (
                         <TableRow>
-                          <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                          <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                             No logs found
                           </TableCell>
                         </TableRow>
@@ -433,20 +385,8 @@ const ActivityLogs: React.FC = () => {
                                 {format(new Date(log.timestamp), "dd/MM/yyyy HH:mm")}
                               </TableCell>
                               <TableCell>
-                                <div className="font-medium">
-                                  {log.patient_full_name || "-"}
-                                </div>
-                                {log.patient_id && (
-                                  <div className="text-xs text-muted-foreground">
-                                    ID: {log.patient_id}
-                                  </div>
-                                )}
-                              </TableCell>
-                              <TableCell>
-                                <div className="font-medium">{log.user_full_name}</div>
-                                <div className="text-xs text-muted-foreground">
-                                  {log.user}
-                                </div>
+                                <div className="font-medium">{log.user_full_name || "-"}</div>
+                                <div className="text-xs text-muted-foreground">{log.user}</div>
                               </TableCell>
                               <TableCell>
                                 <Badge className={getActionBadgeColor(log.method)}>
@@ -454,19 +394,11 @@ const ActivityLogs: React.FC = () => {
                                 </Badge>
                               </TableCell>
                               <TableCell>
-                                <Badge variant="outline">
-                                  {log.table || "-"}
-                                </Badge>
+                                <Badge variant="outline">{log.table || "-"}</Badge>
                               </TableCell>
-                              <TableCell className="max-w-md truncate">
-                                {log.message}
-                              </TableCell>
+                              <TableCell className="max-w-md truncate">{log.message}</TableCell>
                               <TableCell>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => toggleRow(index)}
-                                >
+                                <Button variant="ghost" size="sm" onClick={() => toggleRow(index)}>
                                   {expandedRows[index] ? (
                                     <ChevronUp className="h-4 w-4" />
                                   ) : (
@@ -479,7 +411,7 @@ const ActivityLogs: React.FC = () => {
                             {/* Expanded Details Row */}
                             {expandedRows[index] && (
                               <TableRow>
-                                <TableCell colSpan={8} className="p-0">
+                                <TableCell colSpan={7} className="p-0">
                                   <div className="bg-muted/30 p-4">
                                     <div className="mb-4">
                                       <h4 className="font-semibold mb-2">Change Details</h4>
@@ -488,15 +420,19 @@ const ActivityLogs: React.FC = () => {
                                           <span className="text-muted-foreground">Entity ID:</span>{" "}
                                           {log.entity_id || "-"}
                                         </div>
+                                        {log.entity_name && (
+                                          <div>
+                                            <span className="text-muted-foreground">Entity Name:</span>{" "}
+                                            {log.entity_name}
+                                          </div>
+                                        )}
                                       </div>
                                     </div>
 
                                     {/* Changes Table */}
                                     {(log.original_data || log.updated_data) && (
                                       <div className="mt-4">
-                                        <h5 className="text-sm font-medium mb-2">
-                                          Field Changes
-                                        </h5>
+                                        <h5 className="text-sm font-medium mb-2">Field Changes</h5>
                                         <Table>
                                           <TableHeader>
                                             <TableRow>
@@ -506,30 +442,41 @@ const ActivityLogs: React.FC = () => {
                                               <TableHead>Change</TableHead>
                                             </TableRow>
                                           </TableHeader>
-
                                           <TableBody>
-                                            {computeDiff(log.original_data, log.updated_data).map((change, idx) => (
+                                            {computeDiff(log.original_data, log.updated_data).map(
+                                              (change, idx) => (
                                                 <TableRow key={idx}>
                                                   <TableCell className="font-medium">
                                                     {change.field}
                                                   </TableCell>
                                                   <TableCell className="text-red-600 bg-red-50/50">
-                                                    {change.old === undefined ? "-" : String(change.old)}
+                                                    {change.old === undefined
+                                                      ? "-"
+                                                      : String(change.old)}
                                                   </TableCell>
                                                   <TableCell className="text-green-600 bg-green-50/50">
-                                                    {change.new === undefined ? "-" : String(change.new)}
+                                                    {change.new === undefined
+                                                      ? "-"
+                                                      : String(change.new)}
                                                   </TableCell>
                                                   <TableCell>
                                                     {!change.old && change.new ? (
-                                                      <Badge className="bg-green-100 text-green-800">Added</Badge>
+                                                      <Badge className="bg-green-100 text-green-800">
+                                                        Added
+                                                      </Badge>
                                                     ) : change.old && !change.new ? (
-                                                      <Badge className="bg-red-100 text-red-800">Removed</Badge>
+                                                      <Badge className="bg-red-100 text-red-800">
+                                                        Removed
+                                                      </Badge>
                                                     ) : (
-                                                      <Badge className="bg-blue-100 text-blue-800">Modified</Badge>
+                                                      <Badge className="bg-blue-100 text-blue-800">
+                                                        Modified
+                                                      </Badge>
                                                     )}
                                                   </TableCell>
                                                 </TableRow>
-                                              ))}
+                                              )
+                                            )}
                                             {computeDiff(log.original_data, log.updated_data)
                                               .length === 0 && (
                                               <TableRow>
@@ -559,9 +506,7 @@ const ActivityLogs: React.FC = () => {
                 {/* Pagination */}
                 {logsData.totalPages > 0 && (
                   <div className="flex items-center justify-end gap-2 mt-4">
-                    <span className="text-sm text-muted-foreground">
-                      Page
-                    </span>
+                    <span className="text-sm text-muted-foreground">Page</span>
                     <input
                       type="number"
                       className="w-16 text-center border rounded-md px-2 py-1 text-sm"
@@ -587,10 +532,7 @@ const ActivityLogs: React.FC = () => {
                     <Button
                       variant="outline"
                       size="sm"
-                      disabled={
-                        logsData.pageNo >=
-                        logsData.totalPages - 1
-                      }
+                      disabled={logsData.pageNo >= logsData.totalPages - 1}
                       onClick={() => goToPage(logsData.pageNo + 1)}
                     >
                       Next
@@ -606,4 +548,4 @@ const ActivityLogs: React.FC = () => {
   );
 };
 
-export default ActivityLogs;
+export default SystemConfigLogs;

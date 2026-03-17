@@ -59,6 +59,7 @@ import VerifyAccount from "./pages/VerifyAccount";
 import { ViewPatientProvider } from "./hooks/patient/useViewPatient";
 import PatientLogs from "./pages/logger/PatientLogs";
 import ActivityLogs from "./pages/logger/ActivityLogs";
+import SystemConfigLogs from "./pages/logger/SystemConfigLogs";
 import AccountTable from "./pages/Admin/AccountTable";
 import ViewAccount from "./pages/Admin/ViewAccount";
 import { ViewAccountProvider } from "./hooks/admin/useViewAccount";
@@ -257,6 +258,10 @@ const App: React.FC = () => {
                       <Route
                         path="account-logs"
                         element={<AccountLogs />}
+                      />
+                      <Route 
+                        path="system-config-logs"
+                        element={<SystemConfigLogs />}
                       />
                       {(useFeatureFlag("staging") ||
                         !useFeatureFlag("production")) && (

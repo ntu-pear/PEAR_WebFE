@@ -250,6 +250,11 @@ const adminMenu: MenuSection[] = [
         path: "/admin/account-logs",
       },
       {
+        title: "System Config Logs",
+        icon: "Shield",
+        path: "/admin/system-config-logs",
+      },
+      {
         title: "Manage Approval Requests",
         icon: "SquareCheck",
         path: "/admin/manage-approval-requests",
