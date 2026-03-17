@@ -456,6 +456,14 @@ export const activityLoggerAPI = axios.create({
   baseURL: `${VITE_LOGGER_SERVICE_URL}/Logs/Activity`,
 });
 
+export const systemConfigAPI = axios.create({
+  baseURL: `${VITE_LOGGER_SERVICE_URL}/Logs/System`
+})
+
+export const userLoggerAPI = axios.create({
+  baseURL: `${VITE_LOGGER_SERVICE_URL}/Logs/User`
+})
+
 //scheduler
 export const schedulerAPI = axios.create({
   baseURL: `${VITE_SCHEDULER_SERVICE_URL}`,
