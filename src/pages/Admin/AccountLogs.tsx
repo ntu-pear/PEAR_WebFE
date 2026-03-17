@@ -1,14 +1,5 @@
-import React, { useCallback, useEffect, useState } from "react";
-import { toast } from "sonner";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Tabs, TabsContent } from "@/components/ui/tabs";
-import Searchbar from "@/components/Searchbar";
+import React, { useEffect, useState, useCallback } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -17,429 +8,472 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import useDebounce from "@/hooks/useDebounce";
-import { fetchAuditLogs } from "@/api/logger/logs";
-import { formatDateTime } from "@/utils/formatDate";
+import { Badge } from "@/components/ui/badge";
+import { format } from "date-fns";
+import {
+  ChevronDown,
+  ChevronUp,
+  Download,
+  Filter,
+  X,
+  User,
+  Calendar,
+  Activity,
+  Search,
+  Shield,
+  LogIn,
+} from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
-type AuditLogRecord = {
-  id?: string | number;
-  timestamp: string;
-  method: string;
-  table: string;
-  user: string;
-  user_full_name: string;
-  patient_id: number | null;
-  entity_id: number | null;
-  original_data: Record<string, unknown> | null;
-  updated_data: Record<string, unknown> | null;
-  message: string;
-  role: string | null;
-};
+import { fetchUserLogs, UserLogsList } from "@/api/logger/userLogs";
 
-type AuditLogTableDataServer = {
-  page: number;
-  page_size: number;
-  total: number;
-  logs: AuditLogRecord[];
-};
+const ACTION_OPTIONS = [
+  { value: "all", label: "All Actions" },
+  { value: "login", label: "Login" },
+  { value: "logout", label: "Logout" },
+  { value: "password_change", label: "Password Change" },
+];
 
-const PAGE_SIZE_OPTIONS: (number | string)[] = [5, 10, 20, 50, 100, "All"];
-
-const formatMethod = (method: string) => {
-  switch (method?.toLowerCase()) {
-    case "create":
-      return "Create";
-    case "update":
-      return "Update";
-    case "delete":
-      return "Delete";
-    default:
-      return method ?? "-";
-  }
-};
-
-const stringifyValue = (value: unknown) => {
-  if (value === null || value === undefined) return "-";
-  if (typeof value === "boolean") return value ? "true" : "false";
-  if (typeof value === "object") return JSON.stringify(value);
-  return String(value);
-};
-
-const getPatientId = (log: AuditLogRecord) => {
-  return (
-    log.patient_id ??
-    ((log.updated_data?.patient_id as number | undefined) ??
-      (log.original_data?.patient_id as number | undefined) ??
-      "-")
-  );
-};
-
-const buildDescription = (log: AuditLogRecord) => {
-  return log.message || "-";
-};
+const ROLE_OPTIONS = [
+  { value: "all", label: "All Roles" },
+  { value: "ADMIN", label: "Admin" },
+  { value: "SUPERVISOR", label: "Supervisor" },
+  { value: "DOCTOR", label: "Doctor" },
+  { value: "CAREGIVER", label: "Caregiver" },
+  { value: "GUARDIAN", label: "Guardian" },
+  { value: "GAME_THERAPIST", label: "Game Therapist" },
+];
 
 const AccountLogs: React.FC = () => {
-  const [expandedRows, setExpandedRows] = useState<{ [key: string]: boolean }>(
-    {}
-  );
-  const [accountLogsTDServer, setAccountLogsTDServer] =
-    useState<AuditLogTableDataServer>({
-      page: 0,
-      page_size: 10,
-      total: 0,
-      logs: [],
-    });
+  const [expandedRows, setExpandedRows] = useState<{ [key: number]: boolean }>({});
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [filtersVisible, setFiltersVisible] = useState(true);
 
-  const [searchItem, setSearchItem] = useState("");
-  const [tabValue, setTabValue] = useState("all");
-  const debouncedSearch = useDebounce(searchItem, 300);
+  // Filter states
+  const [selectedAction, setSelectedAction] = useState<string>("all");
+  const [selectedRole, setSelectedRole] = useState<string>("all");
+  const [userName, setUserName] = useState<string>("");
+  const [startDate, setStartDate] = useState<string>("");
+  const [endDate, setEndDate] = useState<string>("");
 
-  const handleInputChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      setSearchItem(e.target.value);
-    },
-    []
-  );
+  // Logs data
+  const [logsData, setLogsData] = useState<UserLogsList>({
+    data: [],
+    pageNo: 0,
+    pageSize: 100,
+    totalRecords: 0,
+    totalPages: 0,
+  });
 
-  const handleFilter = async (pageNo: number, pageSize: number) => {
-    try {
-      const fetchedLogs = await fetchAuditLogs({
-        pageNo,
-        pageSize,
-        search: debouncedSearch,
-      });
+  const [jumpPage, setJumpPage] = useState(1);
+  const [loading, setLoading] = useState(false);
 
+  const handleLogs = useCallback(
+    async (page: number = 0) => {
+      setLoading(true);
       setExpandedRows({});
-      setAccountLogsTDServer({
-        page: fetchedLogs.pageNo,
-        page_size: fetchedLogs.pageSize,
-        total: fetchedLogs.totalRecords,
-        logs: fetchedLogs.data,
-      });
-    } catch (error) {
-      console.error(error);
-      toast.error("Error fetching account logs");
-    }
-  };
+      try {
+        const response = await fetchUserLogs(
+          "auth",
+          selectedAction === "all" ? null : selectedAction,
+          null,
+          userName || null,
+          startDate || null,
+          endDate || null,
+          "desc",
+          page,
+          100
+        );
+        setLogsData(response);
+        setJumpPage(response.pageNo + 1);
+      } catch (error) {
+        console.error("Error fetching user logs", error);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [selectedAction, userName, startDate, endDate]
+  );
 
-  const handlePageChange = async (newPage: number) => {
-    const totalPages = Math.ceil(
-      accountLogsTDServer.total / accountLogsTDServer.page_size
-    );
+  useEffect(() => {
+    handleLogs(0);
+  }, [handleLogs]);
 
-    if (newPage < 1 || newPage > totalPages) return;
-    await handleFilter(newPage - 1, accountLogsTDServer.page_size);
-  };
-
-  const handlePageSizeChange = async (
-    e: React.ChangeEvent<HTMLSelectElement>
-  ) => {
-    const value = e.target.value;
-    const newPageSize =
-      value === "All"
-        ? Math.max(accountLogsTDServer.total, 1)
-        : Number(value);
-
-    await handleFilter(0, newPageSize);
-  };
-
-  const toggleRow = (rowKey: string) => {
+  const toggleRow = (index: number) => {
     setExpandedRows((prev) => ({
       ...prev,
-      [rowKey]: !prev[rowKey],
+      [index]: !prev[index],
     }));
   };
 
-  useEffect(() => {
-    handleFilter(0, accountLogsTDServer.page_size || 10);
-  }, [debouncedSearch]);
+  const handleFilterReset = () => {
+    setSelectedAction("all");
+    setSelectedRole("all");
+    setUserName("");
+    setStartDate("");
+    setEndDate("");
+  };
 
-  const { page, page_size, total, logs } = accountLogsTDServer;
-  const totalPages = Math.max(Math.ceil(total / page_size), 1);
-  const currentPage = page + 1;
-  const startRecord = total === 0 ? 0 : page * page_size + 1;
-  const endRecord = total === 0 ? 0 : page * page_size + logs.length;
+  const goToPage = (page: number) => {
+    if (page >= 0 && page < logsData.totalPages) {
+      handleLogs(page);
+    }
+  };
+
+  const handleJump = () => {
+    const page = Math.max(1, Math.min(jumpPage, logsData.totalPages));
+    goToPage(page - 1);
+  };
+
+  const handleExport = () => {
+    const logs = logsData.data;
+    const headers = ["Date/Time", "User", "Role", "Action", "Description"];
+
+    const rows = logs.map((log) => [
+      format(new Date(log.timestamp), "yyyy-MM-dd HH:mm:ss"),
+      log.user_full_name || log.user,
+      log.role || "-",
+      log.method,
+      log.message,
+    ]);
+
+    const csvContent = [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `auth-logs-${format(new Date(), "yyyy-MM-dd")}.csv`;
+    link.click();
+  };
+
+  const getActionBadgeColor = (method: string) => {
+    switch (method.toLowerCase()) {
+      case "login":
+        return "bg-green-100 text-green-800 hover:bg-green-100";
+      case "logout":
+        return "bg-gray-100 text-gray-800 hover:bg-gray-100";
+      case "password_change":
+        return "bg-yellow-100 text-yellow-800 hover:bg-yellow-100";
+      default:
+        return "bg-gray-100 text-gray-800 hover:bg-gray-100";
+    }
+  };
+
+  const getRoleBadgeColor = (role: string) => {
+    switch (role?.toUpperCase()) {
+      case "ADMIN":
+        return "bg-purple-100 text-purple-800";
+      case "SUPERVISOR":
+        return "bg-blue-100 text-blue-800";
+      case "DOCTOR":
+        return "bg-green-100 text-green-800";
+      case "CAREGIVER":
+        return "bg-orange-100 text-orange-800";
+      case "GUARDIAN":
+        return "bg-pink-100 text-pink-800";
+      case "GAME_THERAPIST":
+        return "bg-teal-100 text-teal-800";
+      default:
+        return "bg-gray-100 text-gray-800";
+    }
+  };
+
+  // Filter logs by role on client side
+  const filteredLogs =
+    selectedRole === "all"
+      ? logsData.data
+      : logsData.data.filter((log) => log.role?.toUpperCase() === selectedRole.toUpperCase());
 
   return (
-    <div className="flex min-h-screen w-full flex-col container mx-auto px-0 sm:px-4">
-      <div className="flex flex-col sm:gap-4 sm:py-4 sm:pl-14 sm:pr-14">
-        <div className="flex items-center">
-          {<Searchbar
-            searchItem={searchItem}
-            onSearchChange={handleInputChange}
-            placeholder="Search by user ID..."
-            ariaLabel="Search logs"
-          /> }
-        </div>
+    <div className="flex min-h-screen w-full">
+      {/* ================= FILTER SIDEBAR ================= */}
+      <div
+        className={`${
+          sidebarCollapsed ? "w-12" : "w-64"
+        } flex-shrink-0 border-r bg-white transition-all duration-300`}
+      >
+        {sidebarCollapsed ? (
+          <div className="p-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setSidebarCollapsed(false)}
+              className="w-8 h-8"
+            >
+              <Filter className="h-4 w-4" />
+            </Button>
+          </div>
+        ) : (
+          <div className="p-4">
+            {/* Filter header with collapse */}
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold flex items-center gap-2">
+                <Filter className="h-5 w-5" />
+                Filters
+              </h3>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setSidebarCollapsed(true)}
+                className="h-8 w-8"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
 
-        <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
-          <Tabs value={tabValue} onValueChange={setTabValue}>
-            <TabsContent value="all">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Account Logs</CardTitle>
-                  <CardDescription>
-                    View user audit logs and activity history.
-                  </CardDescription>
-                </CardHeader>
+            {/* Toggle filters visibility */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setFiltersVisible(!filtersVisible)}
+              className="w-full justify-between mb-2"
+            >
+              {filtersVisible ? "Hide Filters" : "Show Filters"}
+              {filtersVisible ? (
+                <ChevronUp className="h-4 w-4" />
+              ) : (
+                <ChevronDown className="h-4 w-4" />
+              )}
+            </Button>
 
-                <CardContent>
-                  {logs.length === 0 ? (
-                    <div className="flex items-center justify-center py-4">
-                      <p className="text-gray-500">No data found</p>
-                    </div>
-                  ) : (
-                    <>
-                      <div className="rounded-md border overflow-x-auto">
-                        <Table>
-                          <TableHeader>
-                            <TableRow>
-                              <TableHead>Actor</TableHead>
-                              <TableHead>User ID</TableHead>
-                              <TableHead>Table</TableHead>
-                              <TableHead>Action</TableHead>
-                              <TableHead>Patient ID</TableHead>
-                              <TableHead>Entity ID</TableHead>
-                              <TableHead>Description</TableHead>
-                              <TableHead>Date Time</TableHead>
-                              <TableHead>Details</TableHead>
-                            </TableRow>
-                          </TableHeader>
+            {filtersVisible && (
+              <div className="space-y-4">
+                {/* Action Filter */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium flex items-center gap-1">
+                    <Activity className="h-4 w-4" />
+                    Action
+                  </label>
+                  <Select value={selectedAction} onValueChange={setSelectedAction}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select action" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {ACTION_OPTIONS.map((opt) => (
+                        <SelectItem key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
 
-                          <TableBody>
-                            {logs.map((log, index) => {
-                              const rowKey = `${log.timestamp}-${log.entity_id ?? index}-${index}`;
+                {/* Role Filter */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium flex items-center gap-1">
+                    <Shield className="h-4 w-4" />
+                    Role
+                  </label>
+                  <Select value={selectedRole} onValueChange={setSelectedRole}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select role" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {ROLE_OPTIONS.map((opt) => (
+                        <SelectItem key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
 
-                              return (
-                                <React.Fragment key={rowKey}>
-                                  <TableRow>
-                                    <TableCell>{log.user_full_name || "-"}</TableCell>
-                                    <TableCell>{log.user || "-"}</TableCell>
-                                    <TableCell>{log.table || "-"}</TableCell>
-                                    <TableCell>{formatMethod(log.method)}</TableCell>
-                                    <TableCell>{getPatientId(log)}</TableCell>
-                                    <TableCell>{log.entity_id ?? "-"}</TableCell>
-                                    <TableCell className="max-w-[320px] whitespace-normal break-words">
-                                      {buildDescription(log)}
-                                    </TableCell>
-                                    <TableCell>
-                                      {formatDateTime(log.timestamp)}
-                                    </TableCell>
-                                    <TableCell>
-                                      <Button
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() => toggleRow(rowKey)}
-                                      >
-                                        {expandedRows[rowKey] ? "Hide" : "View"} Details
-                                      </Button>
-                                    </TableCell>
-                                  </TableRow>
+                {/* User Name Filter */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium flex items-center gap-1">
+                    <User className="h-4 w-4" />
+                    User Name
+                  </label>
+                  <Input
+                    type="text"
+                    value={userName}
+                    onChange={(e) => setUserName(e.target.value)}
+                    placeholder="Search user name..."
+                  />
+                </div>
 
-                                  {expandedRows[rowKey] && (
-                                    <TableRow>
-                                      <TableCell colSpan={9}>
-                                        <div className="flex flex-col lg:flex-row gap-4 p-4 border-t bg-gray-50">
-                                          <div className="w-full lg:w-1/2 border rounded-md p-3 bg-white shadow-sm">
-                                            <h3 className="text-sm font-semibold mb-3">
-                                              Old State
-                                            </h3>
-                                            <Table>
-                                              <TableHeader>
-                                                <TableRow>
-                                                  <TableHead>Attribute</TableHead>
-                                                  <TableHead>Value</TableHead>
-                                                </TableRow>
-                                              </TableHeader>
-                                              <TableBody>
-                                                {log.original_data &&
-                                                Object.keys(log.original_data).length > 0 ? (
-                                                  Object.entries(log.original_data).map(
-                                                    ([key, value]) => {
-                                                      const isRowDeleted =
-                                                        log.updated_data &&
-                                                        Object.keys(log.updated_data)
-                                                          .length === 0;
+                {/* Date Range */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium flex items-center gap-1">
+                    <Calendar className="h-4 w-4" />
+                    Date Range
+                  </label>
+                  <Input
+                    type="date"
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                    placeholder="Start date"
+                  />
+                  <Input
+                    type="date"
+                    value={endDate}
+                    onChange={(e) => setEndDate(e.target.value)}
+                    placeholder="End date"
+                  />
+                </div>
 
-                                                      const newValue =
-                                                        log.updated_data?.[key];
-                                                      const isRowUpdated =
-                                                        !isRowDeleted &&
-                                                        stringifyValue(newValue) !==
-                                                          stringifyValue(value);
+                {/* Buttons */}
+                <div className="pt-2 space-y-2">
+                  <Button className="w-full" onClick={() => handleLogs(0)}>
+                    <Search className="h-4 w-4 mr-2" />
+                    Apply Filters
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="w-full"
+                    onClick={handleFilterReset}
+                  >
+                    Reset
+                  </Button>
+                </div>
 
-                                                      return (
-                                                        <TableRow key={`old-${key}`}>
-                                                          <TableCell
-                                                            className={`font-semibold ${
-                                                              isRowUpdated
-                                                                ? "text-yellow-600"
-                                                                : isRowDeleted
-                                                                  ? "text-red-500"
-                                                                  : "text-gray-500"
-                                                            }`}
-                                                          >
-                                                            {key}
-                                                          </TableCell>
-                                                          <TableCell
-                                                            className={`${
-                                                              isRowUpdated
-                                                                ? "bg-yellow-100"
-                                                                : isRowDeleted
-                                                                  ? "bg-red-100"
-                                                                  : ""
-                                                            }`}
-                                                          >
-                                                            {stringifyValue(value)}
-                                                          </TableCell>
-                                                        </TableRow>
-                                                      );
-                                                    }
-                                                  )
-                                                ) : (
-                                                  <TableRow>
-                                                    <TableCell
-                                                      colSpan={2}
-                                                      className="text-center text-gray-500"
-                                                    >
-                                                      No previous data
-                                                    </TableCell>
-                                                  </TableRow>
-                                                )}
-                                              </TableBody>
-                                            </Table>
-                                          </div>
+                {/* Export */}
+                <div className="pt-4 border-t space-y-2">
+                  <label className="text-sm font-medium">Export</label>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full"
+                    onClick={handleExport}
+                  >
+                    <Download className="h-4 w-4 mr-2" />
+                    Export CSV
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
 
-                                          <div className="w-full lg:w-1/2 border rounded-md p-3 bg-white shadow-sm">
-                                            <h3 className="text-sm font-semibold mb-3">
-                                              New State
-                                            </h3>
-                                            <Table>
-                                              <TableHeader>
-                                                <TableRow>
-                                                  <TableHead>Attribute</TableHead>
-                                                  <TableHead>Value</TableHead>
-                                                </TableRow>
-                                              </TableHeader>
-                                              <TableBody>
-                                                {log.updated_data &&
-                                                Object.keys(log.updated_data).length > 0 ? (
-                                                  Object.entries(log.updated_data).map(
-                                                    ([key, value]) => {
-                                                      const isRowCreated =
-                                                        log.original_data &&
-                                                        Object.keys(log.original_data)
-                                                          .length === 0;
-
-                                                      const oldValue =
-                                                        log.original_data?.[key];
-                                                      const isRowUpdated =
-                                                        !isRowCreated &&
-                                                        stringifyValue(oldValue) !==
-                                                          stringifyValue(value);
-
-                                                      return (
-                                                        <TableRow key={`new-${key}`}>
-                                                          <TableCell
-                                                            className={`font-semibold ${
-                                                              isRowUpdated
-                                                                ? "text-yellow-600"
-                                                                : isRowCreated
-                                                                  ? "text-green-600"
-                                                                  : "text-gray-500"
-                                                            }`}
-                                                          >
-                                                            {key}
-                                                          </TableCell>
-                                                          <TableCell
-                                                            className={`${
-                                                              isRowUpdated
-                                                                ? "bg-yellow-100"
-                                                                : isRowCreated
-                                                                  ? "bg-green-100"
-                                                                  : ""
-                                                            }`}
-                                                          >
-                                                            {stringifyValue(value)}
-                                                          </TableCell>
-                                                        </TableRow>
-                                                      );
-                                                    }
-                                                  )
-                                                ) : (
-                                                  <TableRow>
-                                                    <TableCell
-                                                      colSpan={2}
-                                                      className="text-center text-gray-500"
-                                                    >
-                                                      No updated data
-                                                    </TableCell>
-                                                  </TableRow>
-                                                )}
-                                              </TableBody>
-                                            </Table>
-                                          </div>
-                                        </div>
-                                      </TableCell>
-                                    </TableRow>
-                                  )}
-                                </React.Fragment>
-                              );
-                            })}
-                          </TableBody>
-                        </Table>
-                      </div>
-
-                      <div className="flex items-center justify-between py-4">
-                        <div className="flex items-center space-x-6">
-                          <div className="text-xs text-muted-foreground">
-                            Showing <strong>{startRecord}-{endRecord}</strong> of{" "}
-                            <strong>{total}</strong> records
-                          </div>
-
-                          <div className="flex items-center space-x-2">
-                            <p className="text-sm font-medium">Items per page</p>
-                            <select
-                              value={page_size >= total && total > 0 ? "All" : page_size}
-                              onChange={handlePageSizeChange}
-                              className="h-8 w-[80px] rounded-md border px-2 text-sm"
-                            >
-                              {PAGE_SIZE_OPTIONS.map((size) => (
-                                <option key={size.toString()} value={size.toString()}>
-                                  {size}
-                                </option>
-                              ))}
-                            </select>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center space-x-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handlePageChange(currentPage - 1)}
-                            disabled={currentPage === 1 || page_size >= total}
+      {/* ================= MAIN CONTENT ================= */}
+      <div className="flex-1 p-6 overflow-auto">
+        <Card className="w-full">
+          <CardHeader className="flex flex-row items-center justify-between">
+            <div className="flex items-center gap-2">
+              <LogIn className="h-6 w-6 text-primary" />
+              <CardTitle className="text-2xl">Authentication Logs</CardTitle>
+            </div>
+            <div className="text-sm text-muted-foreground">
+              Showing {filteredLogs.length} of {logsData.totalRecords} records
+            </div>
+          </CardHeader>
+          <CardContent>
+            {loading ? (
+              <div className="flex justify-center py-8">
+                <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" />
+              </div>
+            ) : (
+              <>
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="w-12">#</TableHead>
+                        <TableHead className="w-32">Date/Time</TableHead>
+                        <TableHead className="w-40">User</TableHead>
+                        <TableHead className="w-32">Role</TableHead>
+                        <TableHead className="w-28">Action</TableHead>
+                        <TableHead>Description</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredLogs.length === 0 ? (
+                        <TableRow>
+                          <TableCell
+                            colSpan={6}
+                            className="text-center py-8 text-muted-foreground"
                           >
-                            Previous
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handlePageChange(currentPage + 1)}
-                            disabled={currentPage === totalPages || page_size >= total}
-                          >
-                            Next
-                          </Button>
-                        </div>
-                      </div>
-                    </>
-                  )}
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
-        </main>
+                            No logs found
+                          </TableCell>
+                        </TableRow>
+                      ) : (
+                        filteredLogs.map((log, index) => (
+                          <TableRow key={index} className="hover:bg-muted/50">
+                            <TableCell className="font-mono text-xs">
+                              {index + 1 + logsData.pageNo * logsData.pageSize}
+                            </TableCell>
+                            <TableCell className="text-sm whitespace-nowrap">
+                              {format(new Date(log.timestamp), "dd/MM/yyyy HH:mm")}
+                            </TableCell>
+                            <TableCell>
+                              <div className="font-medium">
+                                {log.user_full_name || "-"}
+                              </div>
+                              <div className="text-xs text-muted-foreground">
+                                {log.user}
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              {log.role && (
+                                <Badge className={getRoleBadgeColor(log.role)}>
+                                  {log.role}
+                                </Badge>
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              <Badge className={getActionBadgeColor(log.method)}>
+                                {log.method}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="max-w-md truncate">
+                              {log.message}
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
+
+                {/* Pagination */}
+                {logsData.totalPages > 0 && (
+                  <div className="flex items-center justify-end gap-2 mt-4">
+                    <span className="text-sm text-muted-foreground">Page</span>
+                    <input
+                      type="number"
+                      className="w-16 text-center border rounded-md px-2 py-1 text-sm"
+                      min={1}
+                      max={logsData.totalPages}
+                      value={jumpPage}
+                      onChange={(e) => setJumpPage(Number(e.target.value))}
+                    />
+                    <span className="text-sm text-muted-foreground">
+                      of {logsData.totalPages}
+                    </span>
+                    <Button variant="outline" size="sm" onClick={handleJump}>
+                      Go
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={logsData.pageNo <= 0}
+                      onClick={() => goToPage(logsData.pageNo - 1)}
+                    >
+                      Prev
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={logsData.pageNo >= logsData.totalPages - 1}
+                      onClick={() => goToPage(logsData.pageNo + 1)}
+                    >
+                      Next
+                    </Button>
+                  </div>
+                )}
+              </>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
