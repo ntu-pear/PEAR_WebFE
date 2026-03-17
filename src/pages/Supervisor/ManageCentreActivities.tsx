@@ -113,7 +113,14 @@ export default function ManageCentreActivities() {
     deletedFilter !== "hidden" ||
     search !== "";
 
-  // Generic filter dropdown
+  const getFilterLabel = <T extends string>(
+    currentValue: T,
+    options: { key: string; value: T }[]
+  ): string => {
+    const found = options.find(o => o.value === currentValue);
+    return found ? found.key : "";
+  };
+
   const renderFilter = <T extends string>(
   title: string,
   value: T,
@@ -122,15 +129,21 @@ export default function ManageCentreActivities() {
 ) => (
   <DropdownMenu modal={false}>
     <DropdownMenuTrigger asChild>
-      <Button variant="outline" size="sm" className="h-8 gap-1">
+      <Button
+        variant="outline"
+        size="sm"
+        className={`h-8 gap-1 ${value !== "all" && value !== "hidden" ? "border-primary text-primary" : ""}`}
+      >
         <ListFilter className="h-4 w-4" />
-        <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">{title}</span>
+        <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+          {title}: {getFilterLabel(value, options)}
+        </span>
       </Button>
     </DropdownMenuTrigger>
     <DropdownMenuContent align="end">
       <DropdownMenuRadioGroup
         value={value}
-        onValueChange={(v: string) => setValue(v as T)} // 🔑 cast string to T
+        onValueChange={(v: string) => setValue(v as T)}
       >
         {options.map(({ key, value }) => (
           <DropdownMenuRadioItem key={value} value={value}>
@@ -156,15 +169,15 @@ export default function ManageCentreActivities() {
             />
           </div>
           <div className="flex space-x-2">
-            {renderFilter("Compulsory", compulsory, (v) => setCompulsory(v as typeof compulsory), booleanOptions)}
-            {renderFilter("Fixed", fixed, (v) => setFixed(v as typeof fixed), booleanOptions)}
-            {renderFilter("Group", group, (v) => setGroup(v as typeof group), booleanOptions)}
-            {renderFilter("Deleted", deletedFilter, (v) => setDeletedFilter(v as typeof deletedFilter), deletedOptions)}
             {hasActiveFilters && (
               <Button variant="outline" size="sm" className="h-8" onClick={clearAllFilters}>
                 Clear Filters
               </Button>
             )}
+            {renderFilter("Compulsory", compulsory, (v) => setCompulsory(v as typeof compulsory), booleanOptions)}
+            {renderFilter("Fixed", fixed, (v) => setFixed(v as typeof fixed), booleanOptions)}
+            {renderFilter("Group", group, (v) => setGroup(v as typeof group), booleanOptions)}
+            {renderFilter("Deleted", deletedFilter, (v) => setDeletedFilter(v as typeof deletedFilter), deletedOptions)}
           </div>
         </div>
 
