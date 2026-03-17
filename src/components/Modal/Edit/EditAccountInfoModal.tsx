@@ -1,27 +1,65 @@
 import { useModal } from "@/hooks/useModal";
 import { Button } from "../../ui/button";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { updateUser, User } from "@/api/admin/user";
 import { toast } from "sonner";
 import { fetchRoleNames } from "@/api/role/roles";
 import { AxiosError } from "axios";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../../ui/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "../../ui/tooltip";
 import { Info } from "lucide-react";
+import { useForm, SubmitHandler } from "react-hook-form";
+import Input from "@/components/Form/Input";
+import DateInput from "@/components/Form/DateInput";
+import Select from "@/components/Form/Select";
+import RadioGroup from "@/components/Form/RadioGroup";
+import { useState } from "react";
 
-// Accept accountInfo as a prop via modal props
+type Inputs = {
+  preferredName: string;
+  fullName: string;
+  nric: string;
+  address: string;
+  dateOfBirth: string;
+  gender: "M" | "F";
+  lockOutEnabled: "true" | "false";
+  lockOutReason: string;
+  role: string;
+  contactNo: string;
+  email: string;
+};
+
 const EditAccountInfoModal: React.FC = () => {
   const { modalRef, activeModal, closeModal } = useModal();
   const { accountInfo, refreshAccountData } = activeModal.props as {
-    accountInfo: User & { unmaskedNric: string };
+    accountInfo: User & { unmaskedNric?: string };
     refreshAccountData: (updatedUser: User) => Promise<void>;
   };
 
-  const [account, setAccount] = useState<User | null>(null);
-  const [originalAccount, setOriginalAccount] = useState<
-    (User & { unmaskedNric: string }) | null
-  >(null);
   const [roles, setRoles] = useState<{ roleName: string }[]>([]);
+  
 
+  const form = useForm<Inputs>({
+    defaultValues: {
+      preferredName: "",
+      fullName: "",
+      nric: "",
+      address: "",
+      dateOfBirth: "",
+      gender: "M",
+      lockOutEnabled: "false",
+      lockOutReason: "",
+      role: "",
+      contactNo: "",
+      email: "",
+    },
+    mode: "onSubmit",
+  });
+  const lockoutEnabled = form.watch("lockOutEnabled");
   useEffect(() => {
     const fetchRoles = async () => {
       try {
@@ -34,107 +72,180 @@ const EditAccountInfoModal: React.FC = () => {
     fetchRoles();
   }, []);
 
-  // Initialize account and originalAccount from props, only once
+  useEffect(() => {
+  if (lockoutEnabled === "false") {
+    form.clearErrors("lockOutReason");
+    form.setValue("lockOutReason", "");
+  }
+}, [lockoutEnabled, form]);
+
   useEffect(() => {
     if (accountInfo) {
-      setAccount(accountInfo);
-      setOriginalAccount(accountInfo);
-    }
-  }, [accountInfo]);
+      const unmaskedNric = accountInfo.unmaskedNric || accountInfo.nric || "";
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => {
-    const { name, value } = e.target;
-    if (!account) return;
-    
-    // Convert name fields to uppercase automatically and filter out invalid characters
-    let processedValue = value;
-    if (name === "preferredName" || name === "nric_FullName") {
-      // Only allow letters and spaces, remove numbers and special characters
-      const filteredValue = value.replace(/[^a-zA-Z\s]/g, '');
-      processedValue = filteredValue.toUpperCase();
+      form.reset({
+        preferredName: accountInfo.preferredName || "",
+        fullName: accountInfo.nric_FullName || "",
+        nric: unmaskedNric,
+        address: accountInfo.nric_Address || "",
+        dateOfBirth: accountInfo.nric_DateOfBirth || "",
+        gender: (accountInfo.nric_Gender as "M" | "F") || "M",
+        lockOutEnabled: accountInfo.lockOutEnabled ? "true" : "false",
+        lockOutReason: accountInfo.lockOutReason || "",
+        role: accountInfo.roleName || "",
+        contactNo: accountInfo.contactNo || "",
+        email: accountInfo.email || "",
+      });
+    }
+  }, [accountInfo, form]);
+
+  const handleSanitizedChange = (field: keyof Inputs, rawValue: string) => {
+    let processedValue = rawValue;
+
+    if (field === "preferredName" || field === "fullName") {
+      processedValue = rawValue.replace(/[^a-zA-Z\s]/g, "").toUpperCase();
+    } else if (field === "nric") {
+      processedValue = rawValue.replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
+    } else if (field === "contactNo") {
+      processedValue = rawValue.replace(/[^\d]/g, "");
+    } else if (field === "email") {
+      processedValue = rawValue.trim().toLowerCase();
+    } else if (field === "address" || field === "lockOutReason") {
+      processedValue = rawValue.replace(/\s+/g, " ").trimStart();
     }
 
-    else if (name === "nric") {
-      processedValue = value.replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
-    }
-    
-    setAccount({
-      ...account,
-      [name]: name === "lockOutEnabled" ? processedValue === "true" : processedValue,
+    form.setValue(field, processedValue, {
+      shouldDirty: true,
+      shouldTouch: true,
+      shouldValidate: false,
     });
+
+    form.clearErrors(field);
   };
 
-  const handleSave = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!account || !originalAccount) return;
+  const mapBackendDetailToFormErrors = (detail: unknown) => {
+    if (Array.isArray(detail)) {
+      detail.forEach((item: any) => {
+        const field = item?.loc?.[item.loc.length - 1];
+        const message = item?.msg;
 
-    // Validate that name fields only contain letters and spaces
-    const nameRegex = /^[A-Z\s]*$/;
-    
-    if (account.preferredName && !nameRegex.test(account.preferredName)) {
-      toast.error("Input Error: Preferred Name can only contain letters and spaces.");
-      return;
-    }
-    
-    if (account.nric_FullName && !nameRegex.test(account.nric_FullName)) {
-      toast.error("Input Error: Full Name can only contain letters and spaces.");
-      return;
+        if (!field || !message) return;
+
+        const fieldMap: Record<string, keyof Inputs> = {
+          preferredName: "preferredName",
+          nric_FullName: "fullName",
+          nric: "nric",
+          nric_Address: "address",
+          nric_DateOfBirth: "dateOfBirth",
+          nric_Gender: "gender",
+          lockOutReason: "lockOutReason",
+          lockOutEnabled: "lockOutEnabled",
+          roleName: "role",
+          contactNo: "contactNo",
+          email: "email",
+        };
+
+        const mappedField = fieldMap[field];
+        if (mappedField) {
+          form.setError(mappedField, {
+            type: "server",
+            message,
+          });
+        }
+      });
+
+      return true;
     }
 
-    // Validate that name fields are uppercase
-    if (account.preferredName && account.preferredName !== account.preferredName.toUpperCase()) {
-      toast.error("Input Error: Preferred Name must be in uppercase.");
-      return;
-    }
-    
-    if (account.nric_FullName && account.nric_FullName !== account.nric_FullName.toUpperCase()) {
-      toast.error("Input Error: Full Name must be in uppercase.");
-      return;
-    }
+    if (typeof detail === "string") {
+      const lowerDetail = detail.toLowerCase();
 
-    // Validate NRIC before checking for changes
-    if (account.nric !== originalAccount.nric) {
-      if (account.nric.includes("*")) {
-        toast.error("Input Error: NRIC cannot contain * character.");
-        return;
-      } else if (account.nric.length !== 9) {
-        toast.error("Input Error: NRIC must be 9 characters long.");
-        return;
-      } else if (account.nric === originalAccount.unmaskedNric) {
-        toast.error(
-          "Input Error: NRIC cannot be the same as unmasked NRIC."
-        );
-        return;
+      if (lowerDetail.includes("preferred name")) {
+        form.setError("preferredName", { type: "server", message: detail });
+        return true;
+      }
+      if (lowerDetail.includes("full name")) {
+        form.setError("fullName", { type: "server", message: detail });
+        return true;
+      }
+      if (lowerDetail.includes("nric")) {
+        form.setError("nric", { type: "server", message: detail });
+        return true;
+      }
+      if (lowerDetail.includes("address")) {
+        form.setError("address", { type: "server", message: detail });
+        return true;
+      }
+      if (lowerDetail.includes("date of birth")) {
+        form.setError("dateOfBirth", { type: "server", message: detail });
+        return true;
+      }
+      if (
+        lowerDetail.includes("contact number") ||
+        lowerDetail.includes("contact no")
+      ) {
+        form.setError("contactNo", { type: "server", message: detail });
+        return true;
+      }
+      if (lowerDetail.includes("email")) {
+        form.setError("email", { type: "server", message: detail });
+        return true;
+      }
+      if (lowerDetail.includes("role")) {
+        form.setError("role", { type: "server", message: detail });
+        return true;
+      }
+      if (lowerDetail.includes("lockout reason")) {
+        form.setError("lockOutReason", { type: "server", message: detail });
+        return true;
       }
     }
 
-    const fields = [
-      "preferredName",
-      "contactNo",
-      "email",
-      "nric",
-      "nric_FullName",
-      "nric_Address",
-      "nric_DateOfBirth",
-      "nric_Gender",
-      "lockOutReason",
-      "lockOutEnabled",
-      "lockOutEnd",
-      "roleName",
-    ];
+    return false;
+  };
+  console.log("current role field value:", form.watch("role"));
+console.log("accountInfo.roleName:", accountInfo?.roleName);
+console.log(
+  "role options:",
+  roles.map((r) => r.roleName)
+);
+  const onSubmit: SubmitHandler<Inputs> = async (data) => {
+    if (!accountInfo) return;
 
-    const changedFields = fields.reduce(
-      (acc, field) => {
-        if (
-          account[field as keyof User] !== originalAccount[field as keyof User]
-        ) {
-          acc[field] = account[field as keyof User];
-        }
-        return acc;
-      },
-      {} as Record<string, any>
+    form.clearErrors();
+
+    const payload = {
+      preferredName: data.preferredName.trim().toUpperCase(),
+      nric_FullName: data.fullName.trim().toUpperCase(),
+      nric: data.nric.trim().toUpperCase(),
+      nric_Address: data.address.trim(),
+      nric_DateOfBirth: data.dateOfBirth,
+      nric_Gender: data.gender,
+      lockOutEnabled: data.lockOutEnabled === "true",
+      lockOutReason: data.lockOutReason.trim(),
+      roleName: data.role,
+      contactNo: data.contactNo.trim(),
+      email: data.email.trim().toLowerCase(),
+    };
+
+    const original = {
+      preferredName: accountInfo.preferredName || "",
+      nric_FullName: accountInfo.nric_FullName || "",
+      nric: (accountInfo.unmaskedNric || accountInfo.nric || "").trim().toUpperCase(),
+      nric_Address: accountInfo.nric_Address || "",
+      nric_DateOfBirth: accountInfo.nric_DateOfBirth || "",
+      nric_Gender: accountInfo.nric_Gender || "",
+      lockOutEnabled: !!accountInfo.lockOutEnabled,
+      lockOutReason: accountInfo.lockOutReason || "",
+      roleName: accountInfo.roleName || "",
+      contactNo: accountInfo.contactNo || "",
+      email: (accountInfo.email || "").trim().toLowerCase(),
+    };
+
+    const changedFields = Object.fromEntries(
+      Object.entries(payload).filter(([key, value]) => {
+        return original[key as keyof typeof original] !== value;
+      })
     );
 
     if (Object.keys(changedFields).length === 0) {
@@ -143,18 +254,18 @@ const EditAccountInfoModal: React.FC = () => {
     }
 
     try {
-      const updatedUser = await updateUser(account.id, changedFields);
+      const updatedUser = await updateUser(accountInfo.id, changedFields);
       toast.success("Account information updated successfully.");
       closeModal();
       await refreshAccountData(updatedUser);
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (error instanceof AxiosError) {
-        if (error.response && error.response.data.detail) {
-          toast.error(
-            `Error ${error.response.status}: ${error.response.data.detail}.`
-          );
-        } else {
-          toast.error("Error: Failed to update account information.");
+        const detail = error.response?.data?.detail;
+        const mapped = mapBackendDetailToFormErrors(detail);
+
+        if (!mapped && typeof detail === "string" && detail.trim()) {
+          toast.error(`Error ${error.response?.status}: ${detail}.`);
+          return;
         }
       }
     }
@@ -167,206 +278,144 @@ const EditAccountInfoModal: React.FC = () => {
         className="bg-background p-8 rounded-md w-[600px] max-h-screen overflow-y-auto"
       >
         <h3 className="text-lg font-medium mb-5">Edit Account Information</h3>
-        <form onSubmit={handleSave}>
+
+        <form onSubmit={form.handleSubmit(onSubmit)}>
           <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium">
-                Preferred Name
-                <span className="text-xs text-gray-500 ml-1">(uppercase letters only)</span>
-              </label>
-              <input
-                type="text"
-                name="preferredName"
-                value={account?.preferredName || ""}
-                onChange={handleChange}
-                className="mt-1 block w-full p-2 border rounded-md text-gray-900"
-                placeholder="Enter preferred name"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium">
-                Full Name <span className="text-red-600">*</span>
-                <span className="text-xs text-gray-500 ml-1">(uppercase letters only)</span>
-              </label>
-              <input
-                type="text"
-                name="nric_FullName"
-                value={account?.nric_FullName || ""}
-                onChange={handleChange}
-                className="mt-1 block w-full p-2 border rounded-md text-gray-900"
-                placeholder="Enter full name"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium">
-                NRIC <span className="text-red-600">*</span>
-              </label>
-              <input
-                type="text"
-                name="nric"
-                value={account?.nric || ""}
-                onChange={handleChange}
-                className="mt-1 block w-full p-2 border rounded-md text-gray-900"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium">NRIC Address</label>
-              <input
-                type="text"
-                name="nric_Address"
-                value={account?.nric_Address || ""}
-                onChange={handleChange}
-                className="mt-1 block w-full p-2 border rounded-md text-gray-900"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium">Date of Birth</label>
-              <input
-                type="date"
-                name="nric_DateOfBirth"
-                value={account?.nric_DateOfBirth || ""}
-                onChange={handleChange}
-                className="mt-1 block w-full p-2 border rounded-md text-gray-900"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium">Gender</label>
-              <div className="flex flex-row mt-3 space-x-2">
-                <label className="flex items-center">
-                  <input
-                    type="radio"
-                    name="nric_Gender"
-                    value="M"
-                    checked={account?.nric_Gender === "M"}
-                    onChange={handleChange}
-                    className="mr-2"
-                  />
-                  Male
-                </label>
-                <label className="flex items-center">
-                  <input
-                    type="radio"
-                    name="nric_Gender"
-                    value="F"
-                    checked={account?.nric_Gender === "F"}
-                    onChange={handleChange}
-                    className="mr-2"
-                  />
-                  Female
-                </label>
-              </div>
-            </div>
+            <Input
+              label="Full Name"
+              name="fullName"
+              formReturn={form}
+              validation={{
+                onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
+                  handleSanitizedChange("fullName", e.target.value),
+              }}
+            />
+
+            <Input
+              label="Preferred Name"
+              name="preferredName"
+              formReturn={form}
+              validation={{
+                onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
+                  handleSanitizedChange("preferredName", e.target.value),
+              }}
+            />
+
+            <Input
+              label="NRIC"
+              name="nric"
+              formReturn={form}
+              validation={{
+                onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
+                  handleSanitizedChange("nric", e.target.value),
+              }}
+            />
+
+            <Input
+              label="NRIC Address"
+              name="address"
+              formReturn={form}
+              required={false}
+              validation={{
+                onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
+                  handleSanitizedChange("address", e.target.value),
+              }}
+            />
+
+            <DateInput
+              label="Date of Birth"
+              name="dateOfBirth"
+              form={form}
+              required={true}
+            />
+
+            <RadioGroup
+              label="Gender"
+              name="gender"
+              form={form}
+              options={[
+                { label: "Male", value: "M" },
+                { label: "Female", value: "F" },
+              ]}
+            />
+
             <div>
               <label className="block text-sm font-medium">
                 <div className="flex items-center gap-1">
                   <p>Lockout Enabled</p>
                   <TooltipProvider>
                     <Tooltip>
-                      <TooltipTrigger><Info className="h-4 w-4 text-blue-500"/></TooltipTrigger>
+                      <TooltipTrigger>
+                        <Info className="h-4 w-4 text-blue-500" />
+                      </TooltipTrigger>
                       <TooltipContent>
                         Indicates whether the account has been temporarily disabled.
                       </TooltipContent>
                     </Tooltip>
-                    </TooltipProvider> 
+                  </TooltipProvider>
                 </div>
               </label>
-              <div className="flex flex-row mt-3 space-x-2">
-                <label className="flex items-center">
-                  <input
-                    type="radio"
-                    name="lockOutEnabled"
-                    value="false"
-                    checked={account?.lockOutEnabled === false}
-                    onChange={handleChange}
-                    className="mr-2"
-                  />
-                  No
-                </label>
-                <label className="flex items-center">
-                  <input
-                    type="radio"
-                    name="lockOutEnabled"
-                    value="true"
-                    checked={account?.lockOutEnabled === true}
-                    onChange={handleChange}
-                    className="mr-2"
-                  />
-                  Yes
-                </label>
+
+              <div className="mt-2">
+                <RadioGroup
+                  label=""
+                  name="lockOutEnabled"
+                  form={form}
+                  options={[
+                    { label: "No", value: "false" },
+                    { label: "Yes", value: "true" },
+                  ]}
+                />
               </div>
             </div>
-            <div>
-              <label className="block text-sm font-medium">
-                <div className="flex items-center gap-1">
-                  <p>Lockout Reason</p>{account?.lockOutEnabled && <span className="text-red-600">*</span>}
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger><Info className="h-4 w-4 text-blue-500"/></TooltipTrigger>
-                      <TooltipContent>
-                        Reason for temporarily disabling the account.
-                      </TooltipContent>
-                    </Tooltip>
-                    </TooltipProvider> 
-                </div>
-              </label>
-              <input
-                type="text"
-                name="lockOutReason"
-                value={account?.lockOutReason || ""}
-                required={account?.lockOutEnabled}
-                onChange={handleChange}
-                className="mt-1 block w-full p-2 border rounded-md text-gray-900"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium">
-                Role <span className="text-red-600">*</span>
-              </label>
-              <select
-                name="roleName"
-                value={account?.roleName || ""}
-                onChange={handleChange}
-                className="mt-1 block w-full p-2 border rounded-md text-gray-900"
-                required
-              >
-                {roles.map((role) => (
-                  <option key={role.roleName} value={role.roleName}>
-                    {role.roleName}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium">
-                Contact Number
-              </label>
-              <input
-                type="tel"
-                name="contactNo"
-                value={account?.contactNo || ""}
-                onChange={handleChange}
-                className="mt-1 block w-full p-2 border rounded-md text-gray-900"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium">
-                Email <span className="text-red-600">*</span>
-              </label>
-              <input
-                type="email"
-                name="email"
-                value={account?.email || ""}
-                onChange={handleChange}
-                className="mt-1 block w-full p-2 border rounded-md text-gray-900"
-                required
-              />
-            </div>
-            {/* Optionally add lockOutEnd if you want to support editing it */}
+
+            <Input
+              label="Lockout Reason"
+              name="lockOutReason"
+              formReturn={form}
+              validation={{
+                required: lockoutEnabled === "true",                     
+                onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
+                  handleSanitizedChange("lockOutReason", e.target.value),
+              }}
+            />
+    
+            <Select
+              label="Role"
+              name="role"
+              form={form}
+              options={
+                roles.map(({ roleName }) => ({
+                  value: roleName,
+                  name: roleName,
+                })) || []
+              }
+            />
+
+            <Input
+              label="Contact Number"
+              name="contactNo"
+              formReturn={form}
+              required={false}
+              validation={{
+                onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
+                  handleSanitizedChange("contactNo", e.target.value),
+              }}
+            />
+
+            <Input
+              label="Email"
+              name="email"
+              formReturn={form}
+              validation={{
+                onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
+                  handleSanitizedChange("email", e.target.value),
+              }}
+            />
           </div>
+
           <div className="mt-6 flex justify-end space-x-2">
-            <Button variant="outline" onClick={closeModal}>
+            <Button type="button" variant="outline" onClick={closeModal}>
               Cancel
             </Button>
             <Button type="submit">Save</Button>

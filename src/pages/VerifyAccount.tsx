@@ -77,7 +77,7 @@ const VerifyAccount: React.FC = () => {
                         pattern: {
                           value: /^[STGM]\d{7}[A-Z]$/,
                           message:
-                            "NRIC must be 9 characters in length and starts with character S,T,G,M",
+                            "NRIC must be 9 characters long, starting with an uppercase letter (S, T, G, or M) and ending with an uppercase letter.",
                         },
                       }}
                     />

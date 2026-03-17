@@ -24,34 +24,44 @@ export default function Select<T extends FieldValues>({
 }: Props<T>) {
   const {
     register,
+    watch,
+    setValue,
     formState: { errors },
   } = form;
 
+  const selectedValue = watch(name) ?? "";
+
   return (
     <div className="pb-2 flex flex-col">
-      {/* This label appears on top of the select component */}
       <label className="mb-1 text-sm font-medium" htmlFor={name}>
         {label} {required && <span className="text-red-600">*</span>}
       </label>
-      {/* This is the select input registered as a React Hook Form input */}
+
       <select
-        {...register(name, { required, ...validation })}
         id={name}
         className="border border-gray-300 rounded-md p-2 bg-white dark:bg-slate-700"
+        {...register(name, { required, ...validation })}
+        value={selectedValue}
+        onChange={(e) =>
+          setValue(name, e.target.value as any, {
+            shouldDirty: true,
+            shouldTouch: true,
+            shouldValidate: true,
+          })
+        }
       >
-        {/* This is the placeholder when no role is selected */}
         <option value="">Please select an option</option>
-        {/* These are the options for the select input */}
         {options.map(({ value, name }) => (
           <option key={value} value={value}>
             {name}
           </option>
         ))}
       </select>
-      {/* This is the error message that appears under the select input if validation fails */}
+
       {errors[name] && (
         <p role="alert" className="text-red-600 text-sm">
-          The {label} field is required.
+          {(errors[name]?.message as string) ||
+            `The ${label} field is required.`}
         </p>
       )}
     </div>

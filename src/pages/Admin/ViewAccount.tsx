@@ -17,17 +17,21 @@ import AccountInfoTab from "@/components/Tab/AccountInfoTab";
 import ConfirmProfilePhotoModalAdmin from "@/components/Modal/ConfirmProfilePhotoModalAdmin";
 import DeleteProfilePhotoModalAdmin from "@/components/Modal/Delete/DeleteProfilePhotoModalAdmin";
 import { User } from "@/api/admin/user";
+import {toast} from "sonner";
 
 const ViewAccount: React.FC = () => {
   const {
     id,
     accountInfo,
-    nricData,
-    getNRIC,
+    // nricData,
+    getUnmaskedNRIC,
     setAccountInfo,
     refreshAccountData,
   } = useViewAccount();
   const { activeModal, openModal } = useModal();
+console.log("activeModal.props", activeModal.props);
+console.log("accountInfo", accountInfo);
+// console.log("account state", account);
 
   return (
     <>
@@ -99,20 +103,30 @@ const ViewAccount: React.FC = () => {
             <div className="!ml-auto space-x-2">
               <Button
                 variant="default"
-                onClick={() =>
-                  openModal("editAccountInfo", {
-                    accountInfo: {
-                      ...accountInfo,
-                      nric: getNRIC(),
-                      unmaskedNRIC: nricData.nric,
-                    },
-                    refreshAccountData: async (user: User) => {
-                      setAccountInfo(user);
-                      // Call the actual refreshAccountData to ensure all state is properly updated
-                      await refreshAccountData();
-                    },
-                  })
-                }
+                onClick={async () => {
+                  if (!accountInfo) {
+                    toast.error("Account information is not available.");
+                    return;
+                  }
+
+                  try {
+                    const unmaskedNric = await getUnmaskedNRIC();
+
+                    openModal("editAccountInfo", {
+                      accountInfo: {
+                        ...accountInfo,
+                        nric: unmaskedNric,
+                        unmaskedNric: unmaskedNric,
+                      },
+                      refreshAccountData: async (user: User) => {
+                        setAccountInfo(user);
+                        await refreshAccountData();
+                      },
+                    });
+                  } catch {
+                    toast.error("Failed to fetch account NRIC.");
+                  }
+                }}
               >
                 Edit Account
               </Button>
