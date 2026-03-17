@@ -47,7 +47,7 @@ export default function ManageCentreActivities() {
 
     //Show or hide deleted from list
     if (!includeDeleted) {
-      setIncludeDeleted(false);
+      //setIncludeDeleted(false);
       filtered = filtered.filter(ca => ca.is_deleted == false);
     }
     
@@ -150,6 +150,21 @@ export default function ManageCentreActivities() {
     { key: "No", value: "false" },
   ];
 
+  const clearAllFilters = () => {
+    setCompulsory("all");
+    setFixed("all");
+    setGroup("all");
+    setIncludeDeleted(false);
+    setSearch("");
+  };
+
+  const hasActiveFilters =
+    compulsory !== "all" ||
+    fixed !== "all" ||
+    group !== "all" ||
+    includeDeleted ||
+    search !== "";
+
   const renderFilter = (
     title: string,
     value: string,
@@ -174,6 +189,7 @@ export default function ManageCentreActivities() {
     </DropdownMenu>
   );
 
+
   return (
     <div className="flex min-h-screen w-full flex-col container mx-auto px-0 sm:px-4">
 
@@ -192,6 +208,16 @@ export default function ManageCentreActivities() {
             {renderFilter("Compulsory", compulsory, setCompulsory)}
             {renderFilter("Fixed", fixed, setFixed)}
             {renderFilter("Group", group, setGroup)}
+            {hasActiveFilters && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8"
+                onClick={clearAllFilters}
+              >
+                Clear Filters
+              </Button>
+            )}
             <Button
               type="button"
               variant="outline"
