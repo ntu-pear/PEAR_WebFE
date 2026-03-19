@@ -57,13 +57,12 @@ const HighlightTable: React.FC = () => {
   const flattenHighlights = (
     highlights: HighlightTableData[]
   ): HighlightTableData[] => {
-    return highlights.map((highlight, index) => {
+    return highlights.map((highlight) => {
       return {
         ...highlight,
         showPatientDetails: true,
         showCaregiverDetails: true,
-        showType:
-          index === 0 || highlight.type !== highlights[index - 1]?.type,
+        showType: true, 
       };
     });
   };
