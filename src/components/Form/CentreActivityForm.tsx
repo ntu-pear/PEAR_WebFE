@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -50,6 +50,12 @@ export default function CentreActivityForm({
   const indefiniteDate = dayjs(new Date(2999, 0, 1).toDateString()).format("YYYY-MM-DD");
   const [errors, setErrors] = useState<FormErrors>({ _summary: [] });
   const [activities, setActivities] = useState<Activity[]>([]);
+
+  const sortedActivities = useMemo(() => {
+    return [...activities].sort((a, b) =>
+      a.title.localeCompare(b.title, undefined, { sensitivity: "base" })
+    );
+  }, [activities]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -164,9 +170,9 @@ export default function CentreActivityForm({
           className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 appearance-none cursor-pointer"
         >
           <option value="" disabled>Select an activity</option>
-          {activities.map((a) => (
+          {sortedActivities.map((a) => (
             <option key={a.id} value={a.id.toString()}>
-              {a.title}
+              {a.title.toUpperCase()}
             </option>
           ))}
         </select>
