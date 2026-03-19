@@ -39,6 +39,12 @@ export default function ManageActivityAvailabilities() {
         setPage(1)
     }, [search, includeDeleted, centreActivityAvailabilities]);
     
+    useEffect(() => {
+        if (centreActivities.length > 0 && selectedCentreActivityID === "0") {
+            setselectedCentreActivityID(centreActivities[0].id.toString());
+        }
+    }, [centreActivities, selectedCentreActivityID]);
+
     const selectedCentreActivity = useMemo(() => {
         let filtered = centreActivities;
         if (selectedCentreActivityID != "") {
