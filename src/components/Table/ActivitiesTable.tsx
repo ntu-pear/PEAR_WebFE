@@ -76,8 +76,8 @@ export default function ActivitiesTable({
               <TableRow>
                 <TableHead>Title</TableHead>
                 <TableHead>Description</TableHead>
-                <TableHead className="w-40">Created Date</TableHead>
-                <TableHead className="w-40">Modified Date</TableHead>
+                <TableHead className="w-40 whitespace-nowrap">Created Date</TableHead>
+                <TableHead className="w-40 whitespace-nowrap">Modified Date</TableHead>
                 <TableHead className="w-28">Deleted?</TableHead>
                 <TableHead className="w-56">Actions</TableHead>
               </TableRow>
@@ -92,8 +92,13 @@ export default function ActivitiesTable({
                 <TableRow key={a.id} className={a.is_deleted ? "opacity-60" : ""}>
                   <TableCell className="font-medium">{a.title}</TableCell>
                   <TableCell className="max-w-[420px] truncate">{a.description}</TableCell>
-                  <TableCell>{dayjs(a.created_date).format("DD-MMM-YYYY")}</TableCell>
-                  <TableCell>{dayjs(a.modified_date).format("DD-MMM-YYYY")}</TableCell>
+                  <TableCell className="whitespace-nowrap">
+                    {dayjs(a.created_date).format("DD-MMM-YYYY")}
+                  </TableCell>
+
+                  <TableCell className="whitespace-nowrap">
+                    {dayjs(a.modified_date).format("DD-MMM-YYYY")}
+                  </TableCell>
                   <TableCell>{a.is_deleted ? "Yes" : "No"}</TableCell>
                   <TableCell className="space-x-2">
                     <Button size="sm" variant="secondary" onClick={() => onEdit(a)} disabled={a.is_deleted}>
