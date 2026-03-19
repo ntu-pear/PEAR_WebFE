@@ -565,6 +565,7 @@ const PatientActivityPreferenceCard: React.FC<
         <DataTableClient
           data={activityPreferences}
           columns={columns}
+          itemsPerPage={50} 
           viewMore={false}
           hideActionsHeader={true}
           renderActions={undefined}
