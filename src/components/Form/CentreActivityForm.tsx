@@ -44,13 +44,24 @@ export default function CentreActivityForm({
   const [is_group, setIs_Group] = useState(initial?.is_group ?? false);
   const [min_people_req, setMin_people_req] = useState(initial?.min_people_req ?? 1);
   const [fixed_time_slots, setFixed_time_slots] = useState(initial?.fixed_time_slots ?? "");
+  const [selectedDays, setSelectedDays] = useState<string[]>([]);
+  const [dayTimes, setDayTimes] = useState<Record<string, string>>({});
   const [is_deleted, setIsDeleted] = useState(initial?.is_deleted ?? false);
   const [deleted] = useState(initial?.is_deleted ?? false);
-
+  const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
+  const timeOptions = [
+    "09:00", "10:00", "11:00", "12:00",
+    "13:00", "14:00", "15:00", "16:00"
+  ];
+  const formattedTimeSlots = selectedDays
+  .sort()
+  .map(day => `${day} ${dayTimes[day]}`)
+  .join(",");
   const indefiniteDate = dayjs(new Date(2999, 0, 1).toDateString()).format("YYYY-MM-DD");
   const [errors, setErrors] = useState<FormErrors>({ _summary: [] });
   const [activities, setActivities] = useState<Activity[]>([]);
 
+  
   const sortedActivities = useMemo(() => {
     return [...activities].sort((a, b) =>
       a.title.localeCompare(b.title, undefined, { sensitivity: "base" })
@@ -74,6 +85,26 @@ export default function CentreActivityForm({
     fetchData();
   }, []);
 
+  useEffect(() => {
+    if (initial?.fixed_time_slots) {
+      const parts = initial.fixed_time_slots.split(",");
+
+      const days: string[] = [];
+      const times: Record<string, string> = {};
+
+      parts.forEach(p => {
+        const [day, time] = p.split(" ");
+        if (day && time) {
+          days.push(day);
+          times[day] = time;
+        }
+      });
+
+      setSelectedDays(days);
+      setDayTimes(times);
+    }
+  }, [initial]);
+
   const runSync = (v: CentreActivityFormValues) => {
     const e = validateLocal(v);
     setErrors(e);
@@ -95,7 +126,7 @@ export default function CentreActivityForm({
         min_duration: min_duration,
         max_duration: max_duration,
         min_people_req: min_people_req,
-        fixed_time_slots: fixed_time_slots,
+        fixed_time_slots: formattedTimeSlots,
         is_deleted: is_deleted
       };
 
@@ -237,15 +268,53 @@ export default function CentreActivityForm({
       
       {is_fixed && (
         <div className="space-y-2">
-          <Label htmlFor="fixed_time_slots">Please provide the fixed time slots</Label>
-          <Input
-            id="fixed_time_slots"
-            value={fixed_time_slots}
-            disabled={is_deleted ? true : false}
-            onChange={(e) => setFixed_time_slots(e.target.value)}
-          />
-          {errors.fixed_time_slots && <p className="text-sm text-red-600">{errors.fixed_time_slots}</p>}
+          <Label>Select Days</Label>
+          <div className="flex flex-wrap gap-2">
+            {days.map(day => (
+              <div key={day} className="flex items-center gap-2 border px-3 py-2 rounded">
+                <input
+                  type="checkbox"
+                  checked={selectedDays.includes(day)}
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      setSelectedDays([...selectedDays, day]);
+                    } else {
+                      setSelectedDays(selectedDays.filter(d => d !== day));
+
+                      // remove time if unchecked
+                      const newTimes = { ...dayTimes };
+                      delete newTimes[day];
+                      setDayTimes(newTimes);
+                    }
+                  }}
+                />
+
+                <span>{day}</span>
+
+                {selectedDays.includes(day) && (
+                  <select
+                    value={dayTimes[day] || "09:00"}
+                    onChange={(e) =>
+                      setDayTimes({
+                        ...dayTimes,
+                        [day]: e.target.value,
+                      })
+                    }
+                    className="border rounded px-2 py-1 ml-2"
+                  >
+                    {timeOptions.map(time => (
+                      <option key={time} value={time}>
+                        {time}
+                      </option>
+                    ))}
+                  </select>
+                )}
+              </div>
+            ))}
+          </div>
         </div>
+        
+        
       )}
 
       {/* Indefinite Checkbox */}
