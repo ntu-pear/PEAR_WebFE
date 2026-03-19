@@ -45,7 +45,7 @@ const HighlightTable: React.FC = () => {
   const [selectedCaregiver, setSelectedCaregiver] = useState<string>("All");
   const [searchItem, setSearchItem] = useState("");
   const [showMyPatientsOnly, setShowMyPatientsOnly] = useState(true);
-  
+  const [sortBy, setSortBy] = useState<"patient" | "caregiver" | "type">("patient");
   const debouncedSearch = useDebounce(searchItem, 300);
   const navigate = useNavigate();
 
@@ -79,6 +79,22 @@ const HighlightTable: React.FC = () => {
     filtered = filtered.filter(({ caregiverId }) =>
       selectedCaregiver === "All" || caregiverId.toString() === selectedCaregiver
     );
+
+    filtered = filtered.sort((a, b) => {
+      if (sortBy === "patient") {
+        return a.patientName.localeCompare(b.patientName);
+      }
+
+      if (sortBy === "caregiver") {
+        return a.caregiverName.localeCompare(b.caregiverName);
+      }
+
+      if (sortBy === "type") {
+        return (a.type ?? "").localeCompare(b.type ?? "");
+      }
+
+      return 0;
+    });
 
     return flattenHighlights(filtered);
   };
@@ -114,7 +130,15 @@ const HighlightTable: React.FC = () => {
   useEffect(() => {
     const data = showMyPatientsOnly ? myHighlights : allHighlights;
     setHighlights(applyFilters(data));
-  }, [showMyPatientsOnly, selectedTypes, selectedCaregiver, debouncedSearch, myHighlights, allHighlights]);
+  }, [
+    showMyPatientsOnly,
+    selectedTypes,
+    selectedCaregiver,
+    debouncedSearch,
+    sortBy, 
+    myHighlights,
+    allHighlights,
+  ]);
 
   // Format highlight type for display
   const formatHighlightType = (highlightType?: string | null) => {
@@ -357,7 +381,6 @@ const HighlightTable: React.FC = () => {
 
           <div className="flex items-center gap-2 ml-auto">
 
-
             {hasActiveFilters && (
               <Button
                 variant="outline"
@@ -368,6 +391,38 @@ const HighlightTable: React.FC = () => {
                 Clear Filters
               </Button>
             )}
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="h-8">
+                  Sort:{" "}
+                  {sortBy === "patient" && "Patient Name"}
+                  {sortBy === "caregiver" && "Caregiver Name"}
+                  {sortBy === "type" && "Highlight Type"}
+                </Button>
+              </DropdownMenuTrigger>
+
+              <DropdownMenuContent align="end">
+                <DropdownMenuRadioGroup
+                  value={sortBy}
+                  onValueChange={(value) =>
+                    setSortBy(value as "patient" | "caregiver" | "type")
+                  }
+                >
+                  <DropdownMenuRadioItem value="patient">
+                    Patient Name
+                  </DropdownMenuRadioItem>
+
+                  <DropdownMenuRadioItem value="caregiver">
+                    Caregiver Name
+                  </DropdownMenuRadioItem>
+
+                  <DropdownMenuRadioItem value="type">
+                    Highlight Type
+                  </DropdownMenuRadioItem>
+                </DropdownMenuRadioGroup>
+              </DropdownMenuContent>
+            </DropdownMenu>
 
             <Button
               variant="outline"
