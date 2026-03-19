@@ -1,5 +1,4 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { ListFilter } from "lucide-react";
 import { 
   Card,
   CardContent,
@@ -46,6 +45,7 @@ const HighlightTable: React.FC = () => {
   const [selectedCaregiver, setSelectedCaregiver] = useState<string>("All");
   const [searchItem, setSearchItem] = useState("");
   const [showMyPatientsOnly, setShowMyPatientsOnly] = useState(true);
+  
   const debouncedSearch = useDebounce(searchItem, 300);
   const navigate = useNavigate();
 
@@ -68,7 +68,6 @@ const HighlightTable: React.FC = () => {
     });
   };
 
-  // Filter highlights based on search, type, caregiver
   const applyFilters = (data: HighlightTableData[]) => {
     let filtered = data.filter(({ patientName }) =>
       patientName.toLowerCase().includes(searchItem.toLowerCase())
@@ -85,10 +84,8 @@ const HighlightTable: React.FC = () => {
     return flattenHighlights(filtered);
   };
 
-  // Fetch all highlights once and split into "all" and "my patients"
   const initializeHighlights = async () => {
     try {
-      // Fetch both all patients and my patients highlights at once
       const [all, my] = await Promise.all([
         fetchHighlights(true),  
         fetchHighlights(false), 
@@ -97,7 +94,6 @@ const HighlightTable: React.FC = () => {
       setAllHighlights(all);
       setMyHighlights(my);
 
-      // Show default table based on toggle
       setHighlights(showMyPatientsOnly ? applyFilters(my) : applyFilters(all));
     } catch (error) {
       console.error("Error fetching highlights:", error);
@@ -304,7 +300,6 @@ const HighlightTable: React.FC = () => {
 
         return (
           <div className="flex items-center gap-2">
-            {/* View Details popover button */}
             <Popover>
               <PopoverTrigger asChild>
                 <Button variant="outline" size="sm" className="h-8 px-2 text-sm font-medium">
@@ -314,13 +309,11 @@ const HighlightTable: React.FC = () => {
               <PopoverContent className="w-80 p-3">{detailsContent}</PopoverContent>
             </Popover>
 
-            {/* Arrow button to go to highlight source */}
             <Button
               variant="outline"
               size="sm"
               className="h-8 w-8 p-0"
               onClick={() => {
-                // Map highlight type to tab name
                 if (highlight.type === "New Medication") {
                   navigate(`/supervisor/manage-medication?`);
                   return;
@@ -330,7 +323,6 @@ const HighlightTable: React.FC = () => {
                   "New Allergy": "allergy",
                   "New Problem": "problem-log",
                   "New Prescription": "prescription",
-                  // add more if there are new types
                 };
 
               const tab = tabMap[highlight.type] || "information"; 
@@ -404,6 +396,7 @@ const HighlightTable: React.FC = () => {
               <DropdownMenuContent align="end">
                 <DropdownMenuCheckboxItem
                   checked={selectedTypes.length === highlightTypes.length}
+                  onSelect={(e) => e.preventDefault()}
                   onCheckedChange={(checked) => {
                     if (checked) {
                       setSelectedTypes(highlightTypes.map(t => t.TypeName));
@@ -419,7 +412,8 @@ const HighlightTable: React.FC = () => {
                   <DropdownMenuCheckboxItem
                     key={TypeName}
                     checked={selectedTypes.includes(TypeName)}
-                    onCheckedChange={(checked: boolean) => {
+                    onSelect={(e) => e.preventDefault()}
+                    onCheckedChange={(checked) => {
                       if (checked) {
                         setSelectedTypes(prev => [...prev, TypeName]);
                       } else {
@@ -432,6 +426,7 @@ const HighlightTable: React.FC = () => {
                     {formatHighlightType(TypeName)}
                   </DropdownMenuCheckboxItem>
                 ))}
+                
               </DropdownMenuContent>
             </DropdownMenu>
 
