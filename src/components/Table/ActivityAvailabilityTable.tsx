@@ -72,8 +72,6 @@ export default function AvailabilityTable({
                             <TableHead className="w-40">Start Time</TableHead>
                             <TableHead className="w-40">End Time</TableHead>
                             <TableHead className="w-40">Days</TableHead> 
-                            <TableHead className="w-40">Created Date</TableHead>
-                            <TableHead className="w-40">Modified Date</TableHead>
                             <TableHead className="w-96">Actions</TableHead>
                         </TableRow>
                     </TableHeader>
@@ -91,10 +89,6 @@ export default function AvailabilityTable({
                                 <TableCell>{a.start_time}</TableCell>
                                 <TableCell>{a.end_time}</TableCell>
                                 <TableCell>{formatDays(a.days_of_week)}</TableCell> {/* Render days */}
-                                <TableCell>{formatDate(a.created_date)}</TableCell>
-                                <TableCell>
-                                    {a.modified_date ? formatDate(a.modified_date) : "-"}
-                                </TableCell>
                                 <TableCell className="space-x-2">
                                     <Button size="sm" variant="secondary" onClick={() => onEdit(a)}>
                                         Edit
