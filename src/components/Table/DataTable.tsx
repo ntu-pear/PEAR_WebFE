@@ -1,5 +1,5 @@
 // src/components/Table/DataTable.tsx
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { ChevronUp, ChevronDown, ChevronsUpDown } from "lucide-react";
 import {
   Table,
@@ -100,12 +100,6 @@ export function DataTableClient<T extends TableRowData>({
     const newSize = Math.max(1, rowsInput || 1);
     setRowsPerPage(newSize);
     setJumpPage(1);
-  };
-
-  const handlePageChange = (newPage: number) => {
-    if (newPage < 1) setCurrentPage(1);
-    else if (newPage > totalPages) setCurrentPage(totalPages);
-    else setCurrentPage(newPage);
   };
 
   useEffect(() => {
