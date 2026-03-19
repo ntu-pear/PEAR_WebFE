@@ -85,7 +85,7 @@ export default function CentreActivityForm({
         is_compulsory: is_compulsory,
         is_group: is_group,
         start_date: start_date,
-        end_date: end_date,
+        end_date: end_date || indefiniteDate,
         min_duration: min_duration,
         max_duration: max_duration,
         min_people_req: min_people_req,
@@ -112,6 +112,8 @@ export default function CentreActivityForm({
     { value: 30, label: "30 mins"},
     { value: 60, label: "60 mins"}
   ];
+
+  const isIndefinite = end_date === indefiniteDate;
 
   return (
     <form 
@@ -242,7 +244,7 @@ export default function CentreActivityForm({
 
       {/* Indefinite Checkbox */}
       <div className="space-y-2 space-x-2">
-        <Label htmlFor="is_indefinite">Is this activity end date indefinite?</Label>
+        <Label htmlFor="is_indefinite">Does this activity have no fixed end date?</Label>
         <div className="space-x-2">
           {radioBtnOptions.map((choice) => (
             <Label className="space-x-1">
@@ -252,7 +254,8 @@ export default function CentreActivityForm({
                 name="is_indefinite"
                 value={choice.value.toString()}
                 disabled={is_deleted ? true : false}
-                checked={end_date.includes("999") ? true === choice.value : false === choice.value}
+                checked={isIndefinite === choice.value}
+                //checked={end_date.includes("999") ? true === choice.value : false === choice.value}
                 // checked={end_date === "" ? is_indefinite === choice.value : end_date.includes("999") ? is_indefinite === choice.value : false}
                 onChange={() =>{
                   if (choice.value) {
@@ -369,18 +372,19 @@ export default function CentreActivityForm({
         {errors.start_date && <p className="text-sm text-red-600">{errors.start_date}</p>}
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="end_date">End date of this activity</Label>
+      {end_date !== indefiniteDate && (
+        <div className="space-y-2">
+          <Label htmlFor="end_date">End date of this activity</Label>
           <Input
             id="end_date"
             type="date"
             value={end_date}
-            disabled={is_deleted ? true : indefiniteDate === end_date ? true : false}
-            // disabled = {indefiniteDate === end_date ? true : false}
+            disabled={is_deleted}
             onChange={(e) => setEnd_date(e.target.value)}
           />
-        {errors.end_date && <p className="text-sm text-red-600">{errors.end_date}</p>}
-      </div>
+          {errors.end_date && <p className="text-sm text-red-600">{errors.end_date}</p>}
+        </div>
+      )}
 
       <div className="flex justify-end gap-2">
         <Button type="submit" disabled={submitting} className="min-w-24">
