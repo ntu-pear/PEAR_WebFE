@@ -231,7 +231,7 @@ export default function ManageActivityAvailabilities() {
                                 <option value="0" disabled>Select an centre activity to schedule</option>
                                 {centreActivities.map((a) => (
                                     <option key={a.id} value={a.id.toString()}>
-                                        {a.id}. {a.activity_title}
+                                        {a.activity_title}
                                     </option>
                                 ))}
                             </select>
