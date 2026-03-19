@@ -122,38 +122,38 @@ export default function ManageCentreActivities() {
   };
 
   const renderFilter = <T extends string>(
-  title: string,
-  value: T,
-  setValue: (value: T) => void,
-  options: { key: string; value: T }[]
-) => (
-  <DropdownMenu modal={false}>
-    <DropdownMenuTrigger asChild>
-      <Button
-        variant="outline"
-        size="sm"
-        className={`h-8 gap-1 ${value !== "all" && value !== "hidden" ? "border-primary text-primary" : ""}`}
-      >
-        <ListFilter className="h-4 w-4" />
-        <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-          {title}: {getFilterLabel(value, options)}
-        </span>
-      </Button>
-    </DropdownMenuTrigger>
-    <DropdownMenuContent align="end">
-      <DropdownMenuRadioGroup
-        value={value}
-        onValueChange={(v: string) => setValue(v as T)}
-      >
-        {options.map(({ key, value }) => (
-          <DropdownMenuRadioItem key={value} value={value}>
-            {key}
-          </DropdownMenuRadioItem>
-        ))}
-      </DropdownMenuRadioGroup>
-    </DropdownMenuContent>
-  </DropdownMenu>
-);
+    title: string,
+    value: T,
+    setValue: (value: T) => void,
+    options: { key: string; value: T }[]
+  ) => (
+    <DropdownMenu modal={false}>
+      <DropdownMenuTrigger asChild>
+        <Button
+          variant="outline"
+          size="sm"
+          className={`h-8 gap-1 ${value !== "all" && value !== "hidden" ? "border-primary text-primary" : ""}`}
+        >
+          <ListFilter className="h-4 w-4" />
+          <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+            {title}: {getFilterLabel(value, options)}
+          </span>
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuRadioGroup
+          value={value}
+          onValueChange={(v: string) => setValue(v as T)}
+        >
+          {options.map(({ key, value }) => (
+            <DropdownMenuRadioItem key={value} value={value}>
+              {key}
+            </DropdownMenuRadioItem>
+          ))}
+        </DropdownMenuRadioGroup>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
 
   return (
     <div className="flex min-h-screen w-full flex-col container mx-auto px-0 sm:px-4">

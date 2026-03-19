@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { Filter, Plus } from "lucide-react";
+import { Filter, Plus, ListFilter } from "lucide-react";
 import {
   Card, CardContent, CardDescription, CardHeader, CardTitle,
 } from "@/components/ui/card";
@@ -11,6 +11,10 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import ActivityForm from "@/components/Form/ActivityForm";
 import ActivitiesTable from "@/components/Table/ActivitiesTable";
 import { useActivities, useActivityMutations, toRows, type ActivityRow } from "@/hooks/activities/useActivities";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuRadioGroup,
+  DropdownMenuRadioItem, DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+
 
 function confirmAction(message: string) {
   return window.confirm(message);
@@ -18,6 +22,8 @@ function confirmAction(message: string) {
 
 export default function ManageActivities() {
   const [includeDeleted, setIncludeDeleted] = useState(false);
+  const [deletedFilter, setDeletedFilter] = useState<"hidden" | "all" | "only">("hidden");
+  const hasActiveFilters = deletedFilter !== "hidden";
   const [search, setSearch] = useState("");
   const [creatingOpen, setCreatingOpen] = useState(false);
   const [editing, setEditing] = useState<ActivityRow | null>(null);
@@ -31,26 +37,77 @@ export default function ManageActivities() {
   }, [isError, error]);
 
   // reset to first page whenever list or search/toggle changes
-  useEffect(() => setPage(1), [search, includeDeleted, data]);
-
-  //const rows = useMemo(() => toRows(data ?? []), [data]);
+  useEffect(() => setPage(1), [search, deletedFilter, data]);
 
   const rows = useMemo(() => {
-    const mapped = toRows(data ?? []);
+    let mapped = toRows(data ?? []);
 
-    const sorted = [...mapped].sort((a, b) => {
-      if (includeDeleted && a.is_deleted !== b.is_deleted) {
-        return a.is_deleted ? -1 : 1;
-      }
-      return a.title.localeCompare(b.title);
-    });
+    // Deleted filter
+    if (deletedFilter === "hidden") mapped = mapped.filter(r => !r.is_deleted);
+    else if (deletedFilter === "only") mapped = mapped.filter(r => r.is_deleted);
+
+    // Sort
+    if (deletedFilter === "all") {
+      mapped.sort((a, b) => (a.is_deleted === b.is_deleted ? 0 : a.is_deleted ? -1 : 1));
+    }
+
+    // Sort by title + uppercase
+    const sorted = [...mapped].sort((a, b) => a.title.localeCompare(b.title));
 
     return sorted.map((row) => ({
       ...row,
       title: row.title.toUpperCase(),
     }));
-  }, [data, includeDeleted]);
+  }, [data, deletedFilter]);
 
+  const deletedOptions = [
+    { key: "Hidden", value: "hidden" },
+    { key: "All", value: "all" },
+    { key: "Only Deleted", value: "only" },
+  ];
+
+  const getFilterLabel = <T extends string>(
+    currentValue: T,
+    options: { key: string; value: T }[]
+  ): string => {
+    const found = options.find(o => o.value === currentValue);
+    return found ? found.key : "";
+  };
+
+  const renderFilter = <T extends string>(
+    title: string,
+    value: T,
+    setValue: (value: T) => void,
+    options: { key: string; value: T }[]
+  ) => (
+    <DropdownMenu modal={false}>
+      <DropdownMenuTrigger asChild>
+        <Button
+          variant="outline"
+          size="sm"
+          className={`h-8 gap-1 ${value !== "all" && value !== "hidden" ? "border-primary text-primary" : ""}`}
+        >
+          <ListFilter className="h-4 w-4" />
+          <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+            {title}: {getFilterLabel(value, options)}
+          </span>
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuRadioGroup
+          value={value}
+          onValueChange={(v: string) => setValue(v as T)}
+        >
+          {options.map(({ key, value }) => (
+            <DropdownMenuRadioItem key={value} value={value}>
+              {key}
+            </DropdownMenuRadioItem>
+          ))}
+        </DropdownMenuRadioGroup>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+  
   return (
     <div className="flex min-h-screen w-full flex-col container mx-auto px-0 sm:px-4">
       <div className="flex flex-col sm:gap-4 sm:py-4 sm:pl-14">
@@ -66,15 +123,20 @@ export default function ManageActivities() {
             />
           </div>
           <div className="flex items-center gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              className={`h-9 ${includeDeleted ? "border-primary" : ""}`}
-              onClick={() => setIncludeDeleted(v => !v)}
-            >
-              <Filter className="mr-2 h-4 w-4" />
-              {includeDeleted ? "Showing All including Deleted" : "Deleted Hidden"}
-            </Button>
+
+            {hasActiveFilters && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8"
+                onClick={() => setDeletedFilter("hidden")}
+              >
+                Clear Filters
+              </Button>
+            )}
+
+            {renderFilter("Deleted", deletedFilter, (v) => setDeletedFilter(v as typeof deletedFilter), deletedOptions)}
+
           </div>
         </div>
 
