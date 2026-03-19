@@ -182,7 +182,7 @@ const HighlightTable: React.FC = () => {
               </AvatarFallback>
             </Avatar>
             <div>
-              <div className="font-medium">{value}</div>
+              <div className="font-medium uppercase">{value}</div>
             </div>
           </div>
         ) : (
