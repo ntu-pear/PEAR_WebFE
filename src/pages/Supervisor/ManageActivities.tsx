@@ -25,6 +25,10 @@ export default function ManageActivities() {
   const [deletedFilter, setDeletedFilter] = useState<"hidden" | "all" | "only">("hidden");
   const hasActiveFilters = deletedFilter !== "hidden";
   const [search, setSearch] = useState("");
+  const [searchFields, setSearchFields] = useState({
+    title: true,
+    description: false,
+  });
   const [creatingOpen, setCreatingOpen] = useState(false);
   const [editing, setEditing] = useState<ActivityRow | null>(null);
   const [page, setPage] = useState(1);
@@ -37,7 +41,7 @@ export default function ManageActivities() {
   }, [isError, error]);
 
   // reset to first page whenever list or search/toggle changes
-  useEffect(() => setPage(1), [search, deletedFilter, data]);
+  useEffect(() => setPage(1), [search, deletedFilter, data, searchFields]);
 
   const rows = useMemo(() => {
     let mapped = toRows(data ?? []);
@@ -46,19 +50,34 @@ export default function ManageActivities() {
     if (deletedFilter === "hidden") mapped = mapped.filter(r => !r.is_deleted);
     else if (deletedFilter === "only") mapped = mapped.filter(r => r.is_deleted);
 
+    const q = search.trim().toLowerCase();
+
+    if (q) {
+      mapped = mapped.filter((r) => {
+        const matchTitle =
+          searchFields.title &&
+          r.title.toLowerCase().includes(q);
+
+        const matchDesc =
+          searchFields.description &&
+          (r.description ?? "").toLowerCase().includes(q);
+
+        return matchTitle || matchDesc;
+      });
+    }
+
     // Sort
     if (deletedFilter === "all") {
       mapped.sort((a, b) => (a.is_deleted === b.is_deleted ? 0 : a.is_deleted ? -1 : 1));
     }
 
-    // Sort by title + uppercase
     const sorted = [...mapped].sort((a, b) => a.title.localeCompare(b.title));
 
     return sorted.map((row) => ({
       ...row,
       title: row.title.toUpperCase(),
     }));
-  }, [data, deletedFilter]);
+  }, [data, deletedFilter, search, searchFields]);
 
   const deletedOptions = [
     { key: "Hidden", value: "hidden" },
@@ -113,7 +132,8 @@ export default function ManageActivities() {
       <div className="flex flex-col sm:gap-4 sm:py-4 sm:pl-14">
 
         {/* Toolbar */}
-        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <div className="flex items-center gap-3 w-full">
+          {/* Search bar */}
           <div className="w-full md:max-w-md">
             <Input
               placeholder="Search..."
@@ -122,8 +142,39 @@ export default function ManageActivities() {
               className="h-11"
             />
           </div>
-          <div className="flex items-center gap-2">
 
+          {/* Search field buttons */}
+          <div className="flex items-center gap-2">
+            <Button
+              size="sm"
+              variant={searchFields.title ? "default" : "outline"}
+              className={`h-8 ${
+                searchFields.title ? "bg-primary text-white shadow-md" : ""
+              }`}
+              onClick={() =>
+                setSearchFields((prev) => ({ ...prev, title: !prev.title }))
+              }
+            >
+              Title
+            </Button>
+
+            <Button
+              size="sm"
+              variant={searchFields.description ? "default" : "outline"}
+              className="h-8"
+              onClick={() =>
+                setSearchFields((prev) => ({
+                  ...prev,
+                  description: !prev.description,
+                }))
+              }
+            >
+              Description
+            </Button>
+          </div>
+
+          {/* Your existing filters */}
+          <div className="flex items-center gap-2 ml-auto">
             {hasActiveFilters && (
               <Button
                 variant="outline"
@@ -135,8 +186,12 @@ export default function ManageActivities() {
               </Button>
             )}
 
-            {renderFilter("Deleted", deletedFilter, (v) => setDeletedFilter(v as typeof deletedFilter), deletedOptions)}
-
+            {renderFilter(
+              "Deleted",
+              deletedFilter,
+              (v) => setDeletedFilter(v as typeof deletedFilter),
+              deletedOptions
+            )}
           </div>
         </div>
 
