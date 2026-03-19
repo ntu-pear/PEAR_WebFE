@@ -68,6 +68,26 @@ export default function CentreActivitiesTable({
     setJumpPage(page);
   }, [page]);
 
+  const groupTimeSlots = (slots: string, duration: number) => {
+    if (!slots) return [];
+
+    const grouped: Record<string, string[]> = {};
+
+    slots.split(",").forEach((slot) => {
+      const [day, time] = slot.trim().split(" ");
+
+      const start = dayjs(`2000-01-01 ${time}`);
+      const end = start.add(duration, "minute");
+
+      const formatted = `${start.format("HH:mm")} - ${end.format("HH:mm")}`;
+
+      if (!grouped[day]) grouped[day] = [];
+      grouped[day].push(formatted);
+    });
+
+    return Object.entries(grouped);
+  };
+
   return (
     <>
       <div className="rounded-2xl border">
@@ -106,7 +126,22 @@ export default function CentreActivitiesTable({
                   <TableCell>{a.max_duration} mins</TableCell>
                   <TableCell>{dayjs(a.start_date).format("YYYY-MM-DD")}</TableCell>
                   <TableCell>{dayjs(a.end_date).format("YYYY-MM-DD")}</TableCell>
-                  <TableCell>{a.fixed_time_slots ? a.fixed_time_slots : "-"}</TableCell>
+                  <TableCell>
+                    {a.fixed_time_slots ? (
+                      <div className="flex flex-col gap-1 text-sm">
+                        {groupTimeSlots(a.fixed_time_slots, a.max_duration).map(([day, times]) => (
+                          <div key={day} className="flex gap-2 whitespace-nowrap">
+                            <span className="font-medium w-17">{day}</span>
+                            <span className="text-muted-foreground">
+                              {times.join(" ")}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      "-"
+                    )}
+                  </TableCell>
                   <TableCell>{dayjs(a.created_date).format("YYYY-MM-DD")}</TableCell>
                   <TableCell>{a.modified_date ? dayjs(a.modified_date).format("YYYY-MM-DD") : "-"}</TableCell>
                   <TableCell>{a.is_deleted ? "Yes" : "No"}</TableCell>
