@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 import dayjs from "dayjs";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -33,13 +33,39 @@ export default function ActivitiesTable({
     );
   }, [data, query]);
 
+  const [rowsInput, setRowsInput] = useState(pageSize);
+  const [rowsPerPage, setRowsPerPage] = useState(pageSize);
+  const [jumpPage, setJumpPage] = useState(page);
+
   const total = filtered.length;
-  const pageCount = Math.max(1, Math.ceil(total / pageSize));
+  const pageCount = Math.max(1, Math.ceil(total / rowsPerPage));
   const current = Math.min(page, pageCount);
-  const startIndex = (current - 1) * pageSize;
-  const items = filtered.slice(startIndex, startIndex + pageSize);
+  const startIndex = (current - 1) * rowsPerPage;
+  const items = filtered.slice(startIndex, startIndex + rowsPerPage);
   const showingFrom = total === 0 ? 0 : startIndex + 1;
   const showingTo = Math.min(startIndex + items.length, total);
+
+  const goToPage = (p: number) => {
+    if (p >= 1 && p <= pageCount) {
+      setPage(p);
+      setJumpPage(p);
+    }
+  };
+
+  const handleJump = () => {
+    const p = Math.max(1, Math.min(jumpPage, pageCount));
+    goToPage(p);
+  };
+
+  const handleRowsChange = () => {
+    const newSize = Math.max(1, rowsInput || 1);
+    setRowsPerPage(newSize);
+    setPage(1);
+  };
+
+  useEffect(() => {
+    setJumpPage(page);
+  }, [page]);
 
   return (
     <>
@@ -85,27 +111,76 @@ export default function ActivitiesTable({
 
         {/* footer */}
         <div className="flex items-center justify-between px-6 py-3 text-sm text-muted-foreground">
+
           <div>
-            {total === 0 ? "Showing 0 of 0 records" : `Showing ${showingFrom}-${showingTo} of ${total} records`}
+            {total === 0
+              ? "Showing 0 of 0 records"
+              : `Showing ${showingFrom}-${showingTo} of ${total} records`}
           </div>
-          <div className="space-x-2">
+
+          <div className="flex items-center gap-2">
+
+            {/* rows per page */}
+            <span>Rows</span>
+
+            <input
+              type="number"
+              min={1}
+              value={rowsInput}
+              onChange={(e) => setRowsInput(Number(e.target.value))}
+              className="w-16 text-center border rounded-md px-2 py-1 text-sm"
+            />
+
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={handleRowsChange}
+            >
+              Change
+            </Button>
+
+            {/* page jump */}
+            <span>Page</span>
+
+            <input
+              type="number"
+              min={1}
+              max={pageCount}
+              value={jumpPage}
+              onChange={(e) => setJumpPage(Number(e.target.value))}
+              className="w-16 text-center border rounded-md px-2 py-1 text-sm"
+            />
+
+            <span>of {pageCount}</span>
+
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={handleJump}
+            >
+              Go
+            </Button>
+
             <Button
               size="sm"
               variant="outline"
               disabled={current <= 1}
-              onClick={() => setPage(Math.max(1, current - 1))}
+              onClick={() => goToPage(current - 1)}
             >
-              Previous
+              Prev
             </Button>
+
             <Button
               size="sm"
               variant="outline"
               disabled={current >= pageCount}
-              onClick={() => setPage(Math.min(pageCount, current + 1))}
+              onClick={() => goToPage(current + 1)}
             >
               Next
             </Button>
+
           </div>
+
         </div>
       </div>
     </>
