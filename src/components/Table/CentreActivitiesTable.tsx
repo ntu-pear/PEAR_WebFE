@@ -76,7 +76,7 @@ export default function CentreActivitiesTable({
     slots.split(",").forEach((slot) => {
       const [day, time] = slot.trim().split(" ");
 
-      const start = dayjs(`2000-01-01 ${time}`);
+      const start = dayjs(`01-01-2001 ${time}`);
       const end = start.add(duration, "minute");
 
       const formatted = `${start.format("HH:mm")} - ${end.format("HH:mm")}`;
@@ -104,8 +104,6 @@ export default function CentreActivitiesTable({
                 <TableHead>Start Date</TableHead>
                 <TableHead>End Date</TableHead>
                 <TableHead>Fixed Time Slots</TableHead>
-                <TableHead className="w-40">Created Date</TableHead>
-                <TableHead className="w-40">Modified Date</TableHead>
                 <TableHead className="w-28">Deleted?</TableHead>
                 <TableHead className="w-96">Actions</TableHead>
               </TableRow>
@@ -113,7 +111,7 @@ export default function CentreActivitiesTable({
             <TableBody>
               {items.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={6}>No centre activities found.</TableCell>
+                  <TableCell colSpan={11}>No centre activities found.</TableCell>
                 </TableRow>
               )}
               {items.map((a) => (
@@ -124,8 +122,8 @@ export default function CentreActivitiesTable({
                   <TableCell>{a.min_people_req ? a.min_people_req : "-"}</TableCell>
                   <TableCell>{a.min_duration} mins</TableCell>
                   <TableCell>{a.max_duration} mins</TableCell>
-                  <TableCell>{dayjs(a.start_date).format("YYYY-MM-DD")}</TableCell>
-                  <TableCell>{dayjs(a.end_date).format("YYYY-MM-DD")}</TableCell>
+                  <TableCell>{dayjs(a.start_date).format("DD-MMM-YYYY")}</TableCell>
+                  <TableCell>{dayjs(a.end_date).format("DD-MMM-YYYY")}</TableCell>
                   <TableCell>
                     {a.fixed_time_slots ? (
                       <div className="flex flex-col gap-1 text-sm">
@@ -142,8 +140,6 @@ export default function CentreActivitiesTable({
                       "-"
                     )}
                   </TableCell>
-                  <TableCell>{dayjs(a.created_date).format("YYYY-MM-DD")}</TableCell>
-                  <TableCell>{a.modified_date ? dayjs(a.modified_date).format("YYYY-MM-DD") : "-"}</TableCell>
                   <TableCell>{a.is_deleted ? "Yes" : "No"}</TableCell>
                   <TableCell className="space-x-2">
                     <Button size="sm" variant="secondary" onClick={() => onEdit(a)}>

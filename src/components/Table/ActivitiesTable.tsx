@@ -92,8 +92,8 @@ export default function ActivitiesTable({
                 <TableRow key={a.id} className={a.is_deleted ? "opacity-60" : ""}>
                   <TableCell className="font-medium">{a.title}</TableCell>
                   <TableCell className="max-w-[420px] truncate">{a.description}</TableCell>
-                  <TableCell>{dayjs(a.created_date).format("YYYY-MM-DD")}</TableCell>
-                  <TableCell>{dayjs(a.modified_date).format("YYYY-MM-DD")}</TableCell>
+                  <TableCell>{dayjs(a.created_date).format("DD-MMM-YYYY")}</TableCell>
+                  <TableCell>{dayjs(a.modified_date).format("DD-MMM-YYYY")}</TableCell>
                   <TableCell>{a.is_deleted ? "Yes" : "No"}</TableCell>
                   <TableCell className="space-x-2">
                     <Button size="sm" variant="secondary" onClick={() => onEdit(a)} disabled={a.is_deleted}>
