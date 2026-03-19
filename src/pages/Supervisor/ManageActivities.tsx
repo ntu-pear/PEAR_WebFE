@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { Filter, Plus, ListFilter } from "lucide-react";
+import { Plus, ListFilter } from "lucide-react";
 import {
   Card, CardContent, CardDescription, CardHeader, CardTitle,
 } from "@/components/ui/card";
@@ -21,7 +21,7 @@ function confirmAction(message: string) {
 }
 
 export default function ManageActivities() {
-  const [includeDeleted, setIncludeDeleted] = useState(false);
+  const [includeDeleted] = useState(false);
   const [deletedFilter, setDeletedFilter] = useState<"hidden" | "all" | "only">("hidden");
   const hasActiveFilters = deletedFilter !== "hidden";
   const [search, setSearch] = useState("");
