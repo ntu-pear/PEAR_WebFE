@@ -25,7 +25,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import Searchbar from "@/components/Searchbar";
 import { DataTableClient } from "@/components/Table/DataTable";
-
+import dayjs from "dayjs"
 import useDebounce from "@/hooks/useDebounce";
 import {
   fetchHighlights,
@@ -34,7 +34,6 @@ import {
   HighlightType,
 } from "@/api/patients/highlight";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { formatDateWithWeekday } from "@/utils/formatDate";
 import { mockCaregiverNameList } from "@/mocks/mockHighlightTableData";
 import { useNavigate } from "react-router";
 
@@ -133,6 +132,16 @@ const HighlightTable: React.FC = () => {
       .join(" ");
   };
 
+  const hasActiveFilters =
+    selectedCaregiver !== "All" ||
+    selectedTypes.length !== highlightTypes.length ||
+    searchItem.trim() !== "";
+
+  const clearFilters = () => {
+    setSelectedTypes(highlightTypes.map(({ TypeName }) => TypeName));
+    setSelectedCaregiver("All");
+    setSearchItem("");
+  };
   const tableColumns = [
     {
       key: "patientName",
@@ -195,10 +204,14 @@ const HighlightTable: React.FC = () => {
       render: (_: string, highlight: HighlightTableData) => {
         if (!highlight.highlightCreatedDate) return <div>-</div>;
 
-        // Use your existing helper
-        const formattedDate = formatDateWithWeekday(highlight.highlightCreatedDate);
+        const formattedDate = dayjs(highlight.highlightCreatedDate)
+          .format("ddd, DD MMM YYYY");
 
-        return <div className="font-medium">{formattedDate}</div>;
+        return (
+          <div className="font-medium whitespace-nowrap">
+            {formattedDate}
+          </div>
+        );
       },
     },
     {
@@ -344,9 +357,27 @@ const HighlightTable: React.FC = () => {
   return (
     <div className="flex min-h-screen w-full flex-col container mx-auto px-0 sm:px-4">
       <div className="flex flex-col sm:gap-4 sm:py-6">
-        <div className="flex">
-          <Searchbar searchItem={searchItem} onSearchChange={handleInputChange} />
+        <div className="flex items-center w-full">
+  
+          <div className="flex items-center gap-2">
+            <Searchbar searchItem={searchItem} onSearchChange={handleInputChange} />
+
+          </div>
+
           <div className="flex items-center gap-2 ml-auto">
+
+
+            {hasActiveFilters && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={clearFilters}
+                className="h-8"
+              >
+                Clear Filters
+              </Button>
+            )}
+
             <Button
               variant="outline"
               size="sm"
@@ -354,25 +385,48 @@ const HighlightTable: React.FC = () => {
               onClick={() => setShowMyPatientsOnly(prev => !prev)}
             >
               {showMyPatientsOnly ? "My Patients" : "All Patients"}
-              <ChevronDown className="w-4 h-4 transition-transform duration-200"
-                          style={{ transform: showMyPatientsOnly ? "rotate(0deg)" : "rotate(180deg)" }} />
+              <ChevronDown
+                className="w-4 h-4 transition-transform duration-200"
+                style={{ transform: showMyPatientsOnly ? "rotate(0deg)" : "rotate(180deg)" }}
+              />
             </Button>
 
             <DropdownMenu modal={false}>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="sm" className="h-8 gap-1">
-                  <ListFilter className="h-4 w-4" />
-                  <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">Category</span>
+                  Category:{" "}
+                  {selectedTypes.length === highlightTypes.length
+                    ? "All"
+                    : selectedTypes.length}
                 </Button>
               </DropdownMenuTrigger>
+
               <DropdownMenuContent align="end">
+                <DropdownMenuCheckboxItem
+                  checked={selectedTypes.length === highlightTypes.length}
+                  onCheckedChange={(checked) => {
+                    if (checked) {
+                      setSelectedTypes(highlightTypes.map(t => t.TypeName));
+                    } else {
+                      setSelectedTypes([]);
+                    }
+                  }}
+                >
+                  All
+                </DropdownMenuCheckboxItem>
+
                 {highlightTypes.map(({ TypeName }) => (
                   <DropdownMenuCheckboxItem
                     key={TypeName}
                     checked={selectedTypes.includes(TypeName)}
                     onCheckedChange={(checked: boolean) => {
-                      if (checked) setSelectedTypes((prev) => [...prev, TypeName]);
-                      else setSelectedTypes((prev) => prev.filter((item) => item !== TypeName));
+                      if (checked) {
+                        setSelectedTypes(prev => [...prev, TypeName]);
+                      } else {
+                        setSelectedTypes(prev =>
+                          prev.filter(item => item !== TypeName)
+                        );
+                      }
                     }}
                   >
                     {formatHighlightType(TypeName)}
@@ -384,22 +438,31 @@ const HighlightTable: React.FC = () => {
             <DropdownMenu modal={false}>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="sm" className="h-8 gap-1">
-                  <ListFilter className="h-4 w-4" />
-                  <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">Caregiver</span>
+                  Caregiver:{" "}
+                  {selectedCaregiver === "All"
+                    ? "All"
+                    : mockCaregiverNameList.find(c => c.id.toString() === selectedCaregiver)?.name}
                 </Button>
               </DropdownMenuTrigger>
+
               <DropdownMenuContent align="end">
                 <DropdownMenuRadioGroup
                   value={selectedCaregiver}
                   onValueChange={setSelectedCaregiver}
                 >
-                  <DropdownMenuRadioItem value="All">All</DropdownMenuRadioItem>
+                  <DropdownMenuRadioItem value="All">
+                    All
+                  </DropdownMenuRadioItem>
+
                   {mockCaregiverNameList.map(({ id, name }) => (
-                    <DropdownMenuRadioItem key={id} value={id.toString()}>{name}</DropdownMenuRadioItem>
+                    <DropdownMenuRadioItem key={id} value={id.toString()}>
+                      {name}
+                    </DropdownMenuRadioItem>
                   ))}
                 </DropdownMenuRadioGroup>
               </DropdownMenuContent>
             </DropdownMenu>
+
           </div>
         </div>
 
