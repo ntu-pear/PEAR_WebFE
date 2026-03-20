@@ -58,7 +58,7 @@ export const getTimeDiffFromServer = (serverDateTime: string) => {
 export const formatDateTime = (date: string | null) => {
   if (!date) return "-";
   return dayjs(date)
-    .format("DD/MMM/YYYY hh:mm A");
+    .format("DD MMM YYYY hh:mm A");
 };
 
 export const formatTimeForInput12h = () => {
