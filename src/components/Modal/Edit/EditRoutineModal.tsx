@@ -8,16 +8,25 @@ import { editPatientRoutine, EditRoutine, RoutinesTD } from "@/api/activity/rout
 import { useViewPatient } from "@/hooks/patient/useViewPatient";
 import { toast } from "sonner";
 
+const DAYS_OF_WEEK = [
+    { label: "Monday", bit: 1 },
+    { label: "Tuesday", bit: 2 },
+    { label: "Wednesday", bit: 4 },
+    { label: "Thursday", bit: 8 },
+    { label: "Friday", bit: 16 },
+    { label: "Saturday", bit: 32 },
+    { label: "Sunday", bit: 64 },
+];
+
+const parseDaysToBits = (dayString: string): number[] => {
+    if (!dayString) return [];
+    return dayString
+        .split(", ")
+        .map(label => DAYS_OF_WEEK.find(d => d.label === label)?.bit ?? 0)
+        .filter(bit => bit !== 0);
+};
+
 const EditRoutineModal: React.FC = () => {
-    const dayLabelMap: Record<string, number> = {
-        "Monday": 1,
-        "Tuesday": 2,
-        "Wednesday": 3,
-        "Thursday": 4,
-        "Friday": 5,
-        "Saturday": 6,
-        "Sunday": 7,
-    };
     const { modalRef, closeModal, activeModal } = useModal();
     const { id } = useViewPatient();
     const { routine, refreshRoutineData } = activeModal.props as {
@@ -38,6 +47,18 @@ const EditRoutineModal: React.FC = () => {
     const [startDate, setStartDate] = useState(dayjs(routine.start_date).format("YYYY-MM-DD"))
     const [endDate, setEndDate] = useState(dayjs(routine.end_date).format("YYYY-MM-DD"))
     const [dateError, setDateError] = useState("")
+
+    const [selectedDays, setSelectedDays] = useState<number[]>(() =>
+        parseDaysToBits(routine.day_of_week)
+    );
+    const [daysError, setDaysError] = useState("");
+
+    const handleDayToggle = (bit: number) => {
+        setSelectedDays(prev =>
+            prev.includes(bit) ? prev.filter(d => d !== bit) : [...prev, bit]
+        );
+        setDaysError("");
+    };
 
     const fetchActivities = async () => {
         const response = await listActivities({ include_deleted: true })
@@ -113,11 +134,18 @@ const EditRoutineModal: React.FC = () => {
         if (formDataObj.start_time >= formDataObj.end_time) return
         if (formDataObj.start_date >= formDataObj.end_date) return
 
+        if (selectedDays.length === 0) {
+            setDaysError("Please select at least one day.");
+            return;
+        }
+
+        const dayBitmask = selectedDays.reduce((acc, bit) => acc | bit, 0);
+
         const routine: EditRoutine = {
             name: rowData.name,
             activity_id: Number(rowData.activityId),
             patient_id: Number(id),
-            day_of_week: dayLabelMap[formDataObj.day_of_week as string],
+            day_of_week: dayBitmask,
             start_time: formDataObj.start_time as string,
             end_time: formDataObj.end_time as string,
             start_date: formDataObj.start_date as string,
@@ -165,22 +193,23 @@ const EditRoutineModal: React.FC = () => {
                         <label className="block text-sm font-medium">
                             Day of the Week <span className="text-red-600">*</span>
                         </label>
-                        <select
-                            name="day_of_week"
-                            className="mt-1 block w-full p-2 border rounded-md text-gray-900"
-                            required
-                            value={rowData.day_of_week}
-                            onChange={handleChange}
-                        >
-                            <option value="">Please select a day</option>
-                            <option value="Monday">Monday</option>
-                            <option value="Tuesday">Tuesday</option>
-                            <option value="Wednesday">Wednesday</option>
-                            <option value="Thursday">Thursday</option>
-                            <option value="Friday">Friday</option>
-                            <option value="Saturday">Saturday</option>
-                            <option value="Sunday">Sunday</option>
-                        </select>
+                        <div className="mt-2 grid grid-cols-2 gap-y-1">
+                            {DAYS_OF_WEEK.map((day) => (
+                                <label
+                                    key={day.bit}
+                                    className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer"
+                                >
+                                    <input
+                                        type="checkbox"
+                                        checked={selectedDays.includes(day.bit)}
+                                        onChange={() => handleDayToggle(day.bit)}
+                                        className="accent-blue-600 w-4 h-4"
+                                    />
+                                    {day.label}
+                                </label>
+                            ))}
+                        </div>
+                        {daysError && <p className="text-red-600 text-sm mt-1">{daysError}</p>}
                     </div>
 
                     <div className="col-span-2">

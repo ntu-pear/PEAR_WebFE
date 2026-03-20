@@ -8,6 +8,16 @@ import { useViewPatient } from "@/hooks/patient/useViewPatient";
 import { toast } from "sonner";
 import { ChevronDown, Plus, X } from "lucide-react";
 
+const DAYS_OF_WEEK = [
+  { label: "Monday", value: 1 },
+  { label: "Tuesday", value: 2 },
+  { label: "Wednesday", value: 4 },
+  { label: "Thursday", value: 8 },
+  { label: "Friday", value: 16 },
+  { label: "Saturday", value: 32 },
+  { label: "Sunday", value: 64 },
+];
+
 const AddRoutineModal: React.FC = () => {
   const { modalRef, closeModal, activeModal } = useModal();
   const { id } = useViewPatient();
@@ -37,6 +47,9 @@ const AddRoutineModal: React.FC = () => {
     description: string;
   } | null>(null);
 
+  const [selectedDays, setSelectedDays] = useState<number[]>([]);
+  const [daysError, setDaysError] = useState("");
+
   const fetchActivities = async () => {
     const response = await listActivities();
     setRoutineActivities(response);
@@ -45,6 +58,13 @@ const AddRoutineModal: React.FC = () => {
   useEffect(() => {
     fetchActivities();
   }, []);
+
+  const handleDayToggle = (day: number) => {
+    setSelectedDays((prev) =>
+      prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]
+    );
+    setDaysError("");
+  };
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -139,11 +159,14 @@ const AddRoutineModal: React.FC = () => {
 
   const handleAddRoutine = async (event: React.FormEvent) => {
     event.preventDefault();
-    const formData = new FormData(event.target as HTMLFormElement);
-    const formDataObj = Object.fromEntries(formData.entries());
 
     if (startTime >= endTime) return;
     if (startDate >= endDate) return;
+
+    if (selectedDays.length === 0) {
+      setDaysError("Please select at least one day.");
+      return;
+    }
 
     // Must have either an existing selection or a pending new activity
     if (!selectedActivity && !pendingNewActivity) {
@@ -168,11 +191,13 @@ const AddRoutineModal: React.FC = () => {
         activityName = selectedActivity!.title;
       }
 
+      const dayBitmask = selectedDays.reduce((acc, day) => acc | day, 0);
+
       const routine: AddRoutine = {
         name: activityName,
         activity_id: activityId,
         patient_id: Number(id),
-        day_of_week: Number(formDataObj.day_of_week as string),
+        day_of_week: dayBitmask,
         start_time: startTime,
         end_time: endTime,
         start_date: startDate,
@@ -320,7 +345,7 @@ const AddRoutineModal: React.FC = () => {
             )}
           </div>
 
-          <div className="col-span-2">
+          {/* <div className="col-span-2">
             <label className="block text-sm font-medium">
               Day of the Week <span className="text-red-600">*</span>
             </label>
@@ -338,6 +363,29 @@ const AddRoutineModal: React.FC = () => {
               <option value="6">Saturday</option>
               <option value="7">Sunday</option>
             </select>
+          </div> */}
+
+          <div className="col-span-2">
+            <label className="block text-sm font-medium">
+              Day of the Week <span className="text-red-600">*</span>
+            </label>
+            <div className="mt-2 grid grid-cols-2 gap-y-1">
+              {DAYS_OF_WEEK.map((day) => (
+                <label
+                  key={day.value}
+                  className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer"
+                >
+                  <input
+                    type="checkbox"
+                    checked={selectedDays.includes(day.value)}
+                    onChange={() => handleDayToggle(day.value)}
+                    className="accent-blue-600 w-4 h-4"
+                  />
+                  {day.label}
+                </label>
+              ))}
+            </div>
+            {daysError && <p className="text-red-600 text-sm mt-1">{daysError}</p>}
           </div>
 
           <div className="col-span-2">
