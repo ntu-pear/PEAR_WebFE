@@ -14,7 +14,6 @@ import {
   DropdownMenuRadioItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { DataTableServer } from "@/components/Table/DataTable";
 import AvatarModalWrapper from "@/components/AvatarModalWrapper";
@@ -41,7 +40,6 @@ const ManageMedication: React.FC = () => {
 
   // Filters
   const [search, setSearch] = useState<string>("");
-  const [tab, setTab] = useState<string>("activePatients");
   const [role, setRole] = useState<string>("allPatients");
 
   // Dropdown selected patient
@@ -50,7 +48,6 @@ const ManageMedication: React.FC = () => {
   );
 
   const debouncedSearch = useDebounce(search, 300);
-  const debouncedTab = useDebounce(tab, 300);
   const debouncedRole = useDebounce(role, 300);
 
   // Patients
@@ -70,7 +67,7 @@ const ManageMedication: React.FC = () => {
       const fetchedPatientTDServer: PatientTableDataServer =
         await fetchAllPatientTD(
           debouncedSearch,
-          debouncedTab === "activePatients" ? "1" : "0",
+          "1", 
           pageNo
         );
 
@@ -92,7 +89,7 @@ const ManageMedication: React.FC = () => {
 
   useEffect(() => {
     handleFilter(patientTDServer.pagination.pageNo || 0);
-  }, [debouncedSearch, debouncedTab, debouncedRole]);
+  }, [debouncedSearch, debouncedRole]);
 
   // Patient Medication
   const [expandedPatientIds, setExpandedPatientIds] = useState<number[]>([]);
@@ -141,15 +138,7 @@ const ManageMedication: React.FC = () => {
       className: "hidden md:table-cell",
     },
     { key: "endDate", header: "End Date", className: "hidden md:table-cell" },
-    ...(debouncedTab === "inactivePatients"
-      ? [
-          {
-            key: "inactiveDate",
-            header: "Inactive Date",
-            className: "hidden md:table-cell",
-          },
-        ]
-      : []),
+    
   ];
 
   const renderExpandedContent = (patient: PatientTableData) => (
@@ -164,117 +153,81 @@ const ManageMedication: React.FC = () => {
           onSearchChange={(e) => setSearch(e.target.value)}
         />
         <main className="flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
-          <Tabs value={tab} onValueChange={setTab}>
-            <div className="flex items-center">
-              <TabsList>
-                <TabsTrigger value="activePatients">Active Patients</TabsTrigger>
-                <TabsTrigger value="inactivePatients">
-                  Inactive Patients
-                </TabsTrigger>
-              </TabsList>
+          <div className="flex items-center">
 
-              <div className="ml-auto flex items-center gap-2">
-                {/* Role Filter */}
-                <DropdownMenu modal={false}>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="sm" className="h-8 gap-1">
-                      <ListFilter className="h-4 w-4" />
-                      <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                        Role
-                      </span>
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuRadioGroup
-                      value={role}
-                      onValueChange={setRole}
-                    >
-                      <DropdownMenuRadioItem value="allPatients">
-                        All Patients
-                      </DropdownMenuRadioItem>
-                      <DropdownMenuRadioItem value="myPatients">
-                        My Patients
-                      </DropdownMenuRadioItem>
-                    </DropdownMenuRadioGroup>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+  <div className="ml-auto flex items-center gap-2">
+    {/* Role Filter */}
+    <DropdownMenu modal={false}>
+      <DropdownMenuTrigger asChild>
+        <Button variant="outline" size="sm" className="h-8 gap-1">
+          <ListFilter className="h-4 w-4" />
+          Role
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuRadioGroup
+          value={role}
+          onValueChange={setRole}
+        >
+          <DropdownMenuRadioItem value="allPatients">
+            All Patients
+          </DropdownMenuRadioItem>
+          <DropdownMenuRadioItem value="myPatients">
+            My Patients
+          </DropdownMenuRadioItem>
+        </DropdownMenuRadioGroup>
+      </DropdownMenuContent>
+    </DropdownMenu>
 
-                {/* Patient Dropdown */}
-                <DropdownMenu modal={false}>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="sm" className="h-8 gap-1">
-                      <ListFilter className="h-4 w-4" />
-                      <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                        Patient
-                      </span>
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuRadioGroup
-                      value={selectedPatientId || "all"}
-                      onValueChange={setSelectedPatientId}
-                    >
-                      <DropdownMenuRadioItem value="all">All Patients</DropdownMenuRadioItem>
-                      {patientTDServer.patients.map((p) => (
-                        <DropdownMenuRadioItem key={p.id} value={p.id.toString()}>
-                          {p.name}
-                        </DropdownMenuRadioItem>
-                      ))}
-                    </DropdownMenuRadioGroup>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-            </div>
+    {/* Patient Dropdown */}
+    <DropdownMenu modal={false}>
+      <DropdownMenuTrigger asChild>
+        <Button variant="outline" size="sm" className="h-8 gap-1">
+          <ListFilter className="h-4 w-4" />
+          Patient
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuRadioGroup
+          value={selectedPatientId || "all"}
+          onValueChange={setSelectedPatientId}
+        >
+          <DropdownMenuRadioItem value="all">
+            All Patients
+          </DropdownMenuRadioItem>
+          {patientTDServer.patients.map((p) => (
+            <DropdownMenuRadioItem key={p.id} value={p.id.toString()}>
+              {p.name}
+            </DropdownMenuRadioItem>
+          ))}
+        </DropdownMenuRadioGroup>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  </div>
+</div>
 
-            <TabsContent value="activePatients">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Manage Patient Medication</CardTitle>
-                  <CardDescription>Manage medications for patients</CardDescription>
-                </CardHeader>
-                <CardContent className="overflow-x-auto">
-                  <DataTableServer
-                    data={patientTDServer.patients}
-                    pagination={patientTDServer.pagination}
-                    columns={columns}
-                    viewMore={true}
-                    viewMoreBaseLink={"/supervisor/view-patient"}
-                    activeTab={"information"}
-                    fetchData={handleFilter}
-                    expandable={true}
-                    renderExpandedContent={renderExpandedContent}
-                    onExpand={handleExpandPatient}
-                  />
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="inactivePatients">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Manage Patient Medication</CardTitle>
-                  <CardDescription>Manage medications for patients</CardDescription>
-                </CardHeader>
-                <CardContent className="overflow-x-auto">
-                  <DataTableServer
-                    data={patientTDServer.patients}
-                    pagination={patientTDServer.pagination}
-                    columns={columns}
-                    viewMore={true}
-                    viewMoreBaseLink={"/supervisor/view-patient"}
-                    activeTab={"information"}
-                    fetchData={handleFilter}
-                    expandable={true}
-                    renderExpandedContent={renderExpandedContent}
-                    onExpand={handleExpandPatient}
-              
-                  />
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
+<Card>
+  <CardHeader>
+    <CardTitle>Manage Patient Medication</CardTitle>
+    <CardDescription>Manage medications for patients</CardDescription>
+  </CardHeader>
+  <CardContent className="overflow-x-auto">
+    <DataTableServer
+      data={patientTDServer.patients}
+      pagination={patientTDServer.pagination}
+      columns={columns}
+      viewMore={true}
+      viewMoreBaseLink={"/supervisor/view-patient"}
+      activeTab={"information"}
+      fetchData={handleFilter}
+      expandable={true}
+      renderExpandedContent={renderExpandedContent}
+      onExpand={handleExpandPatient}
+    />
+  </CardContent>
+</Card>
         </main>
-      </div>
+      </div>S
 
       {activeModal.name === "addMedication" && <AddMedicationModal />}
       {activeModal.name === "deleteMedication" && <DeleteMedicationModal />}
