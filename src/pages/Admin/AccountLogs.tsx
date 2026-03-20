@@ -161,7 +161,7 @@ const AccountLogs: React.FC = () => {
     fetchUserLogs(
       "auth",
       urlAction === "all" ? null : urlAction,
-      null,
+      urlRole === "all" ? null : urlRole,
       urlUserName || null,
       urlStartDate || null,
       urlEndDate || null,
@@ -186,7 +186,7 @@ const AccountLogs: React.FC = () => {
     return () => {
       cancelled = true;
     };
-  }, [urlAction, urlUserName, urlStartDate, urlEndDate, page, pageSize]);
+  }, [urlAction, urlRole, urlUserName, urlStartDate, urlEndDate, page, pageSize]);
 
   const handleApplyFilters = () => {
     updateQuery({
@@ -254,12 +254,7 @@ const AccountLogs: React.FC = () => {
     }
   };
 
-  const filteredLogs =
-    urlRole === "all"
-      ? logsData.data
-      : logsData.data.filter(
-          (log) => log.role?.toUpperCase() === urlRole.toUpperCase()
-        );
+  const filteredLogs = logsData.data;
 
   const handleExport = () => {
     const headers = ["Date/Time", "User", "Role", "Action", "Description"];
