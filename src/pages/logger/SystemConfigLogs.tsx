@@ -1,19 +1,10 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useMemo, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { format } from "date-fns";
 import {
-  ChevronDown,
-  ChevronUp,
   FileText,
   User,
   Calendar,
@@ -28,6 +19,7 @@ import TextFilterField from "@/components/Filters/TextFilterField";
 import SelectFilterField from "@/components/Filters/SelectFilterField";
 import DateRangeFilterField from "@/components/Filters/DateRangeFilterField";
 import FilterActionButtons from "@/components/Filters/FilterActionButtons";
+import { DataTableServer } from "@/components/Table/DataTable";
 
 const TABLE_OPTIONS = [
   { value: "all", label: "All Tables" },
@@ -65,65 +57,163 @@ const ACTION_OPTIONS = [
   { value: "delete", label: "Delete" },
 ];
 
-const SystemConfigLogs: React.FC = () => {
-  const [expandedRows, setExpandedRows] = useState<{ [key: number]: boolean }>(
-    {}
-  );
+const DEFAULT_PAGE_SIZE = 10;
+const VALID_PAGE_SIZES = [5, 10, 50, 100];
 
-  const [adminName, setAdminName] = useState("");
-  const [selectedTable, setSelectedTable] = useState("all");
-  const [selectedAction, setSelectedAction] = useState("all");
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
+function parsePage(raw: string | null): number {
+  const n = Number(raw ?? "0");
+  return Number.isNaN(n) || n < 0 ? 0 : n;
+}
+
+function parsePageSize(raw: string | null): number {
+  const n = Number(raw ?? String(DEFAULT_PAGE_SIZE));
+  return VALID_PAGE_SIZES.includes(n) ? n : DEFAULT_PAGE_SIZE;
+}
+
+type SystemLogRow = {
+  id: string | number;
+  indexLabel: string;
+  timestamp: string;
+  adminDisplay: string;
+  method: string;
+  table: string;
+  message: string;
+  raw: any;
+};
+
+const SystemConfigLogs: React.FC = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const [loading, setLoading] = useState(false);
 
   const [logsData, setLogsData] = useState<SystemLogsList>({
     data: [],
     pageNo: 0,
-    pageSize: 100,
+    pageSize: DEFAULT_PAGE_SIZE,
     totalRecords: 0,
     totalPages: 0,
   });
 
-  const [jumpPage, setJumpPage] = useState(1);
-  const [loading, setLoading] = useState(false);
-
-  const handleLogs = useCallback(
-    async (page: number = 0) => {
-      setLoading(true);
-      setExpandedRows({});
-      try {
-        const response = await fetchSystemLogs(
-          selectedAction === "all" ? null : selectedAction,
-          null,
-          adminName || null,
-          selectedTable === "all" ? null : selectedTable,
-          null,
-          startDate || null,
-          endDate || null,
-          "desc",
-          page,
-          100
-        );
-        setLogsData(response);
-        setJumpPage(response.pageNo + 1);
-      } catch (error) {
-        console.error("Error fetching system logs", error);
-      } finally {
-        setLoading(false);
-      }
-    },
-    [selectedAction, adminName, selectedTable, startDate, endDate]
+  const queryParams = useMemo(
+    () => new URLSearchParams(location.search),
+    [location.search]
   );
 
-  useEffect(() => {
-    handleLogs(0);
-  }, [handleLogs]);
+  const urlAdminName = queryParams.get("adminName") ?? "";
+  const urlTable = queryParams.get("table") ?? "all";
+  const urlAction = queryParams.get("action") ?? "all";
+  const urlStartDate = queryParams.get("startDate") ?? "";
+  const urlEndDate = queryParams.get("endDate") ?? "";
+  const page = parsePage(queryParams.get("page"));
+  const pageSize = parsePageSize(queryParams.get("pageSize"));
 
-  const toggleRow = (index: number) => {
-    setExpandedRows((prev) => ({
-      ...prev,
-      [index]: !prev[index],
-    }));
+  const [adminName, setAdminName] = useState(urlAdminName);
+  const [selectedTable, setSelectedTable] = useState(urlTable);
+  const [selectedAction, setSelectedAction] = useState(urlAction);
+  const [startDate, setStartDate] = useState(urlStartDate);
+  const [endDate, setEndDate] = useState(urlEndDate);
+
+  const updateQuery = (updates: {
+    adminName?: string;
+    table?: string;
+    action?: string;
+    startDate?: string;
+    endDate?: string;
+    page?: number;
+    pageSize?: number;
+  }) => {
+    const next = new URLSearchParams(location.search);
+
+    const nextAdminName = updates.adminName ?? (next.get("adminName") ?? "");
+    const nextTable = updates.table ?? (next.get("table") ?? "all");
+    const nextAction = updates.action ?? (next.get("action") ?? "all");
+    const nextStartDate = updates.startDate ?? (next.get("startDate") ?? "");
+    const nextEndDate = updates.endDate ?? (next.get("endDate") ?? "");
+    const nextPage = updates.page ?? parsePage(next.get("page"));
+    const nextPageSize = updates.pageSize ?? parsePageSize(next.get("pageSize"));
+
+    nextAdminName.trim()
+      ? next.set("adminName", nextAdminName.trim())
+      : next.delete("adminName");
+    nextTable !== "all" ? next.set("table", nextTable) : next.delete("table");
+    nextAction !== "all" ? next.set("action", nextAction) : next.delete("action");
+    nextStartDate ? next.set("startDate", nextStartDate) : next.delete("startDate");
+    nextEndDate ? next.set("endDate", nextEndDate) : next.delete("endDate");
+    nextPage > 0 ? next.set("page", String(nextPage)) : next.delete("page");
+    nextPageSize !== DEFAULT_PAGE_SIZE
+      ? next.set("pageSize", String(nextPageSize))
+      : next.delete("pageSize");
+
+    const nextSearch = next.toString();
+    const currentSearch = location.search.startsWith("?")
+      ? location.search.slice(1)
+      : location.search;
+
+    if (nextSearch !== currentSearch) {
+      navigate(
+        {
+          pathname: location.pathname,
+          search: nextSearch ? `?${nextSearch}` : "",
+        },
+        { replace: true }
+      );
+    }
+  };
+
+  useEffect(() => {
+    setAdminName(urlAdminName);
+    setSelectedTable(urlTable);
+    setSelectedAction(urlAction);
+    setStartDate(urlStartDate);
+    setEndDate(urlEndDate);
+  }, [urlAdminName, urlTable, urlAction, urlStartDate, urlEndDate]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    setLoading(true);
+
+    fetchSystemLogs(
+      urlAction === "all" ? null : urlAction,
+      null,
+      urlAdminName || null,
+      urlTable === "all" ? null : urlTable,
+      null,
+      urlStartDate || null,
+      urlEndDate || null,
+      "desc",
+      page,
+      pageSize
+    )
+      .then((response) => {
+        if (!cancelled) {
+          setLogsData(response);
+        }
+      })
+      .catch((error) => {
+        if (!cancelled) {
+          console.error("Error fetching system logs", error);
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [urlAction, urlAdminName, urlTable, urlStartDate, urlEndDate, page, pageSize]);
+
+  const handleApplyFilters = () => {
+    updateQuery({
+      adminName,
+      table: selectedTable,
+      action: selectedAction,
+      startDate,
+      endDate,
+      page: 0,
+    });
   };
 
   const handleFilterReset = () => {
@@ -132,17 +222,24 @@ const SystemConfigLogs: React.FC = () => {
     setSelectedAction("all");
     setStartDate("");
     setEndDate("");
+
+    navigate(
+      {
+        pathname: location.pathname,
+        search: "",
+      },
+      { replace: true }
+    );
   };
 
-  const goToPage = (page: number) => {
-    if (page >= 0 && page < logsData.totalPages) {
-      handleLogs(page);
-    }
-  };
-
-  const handleJump = () => {
-    const page = Math.max(1, Math.min(jumpPage, logsData.totalPages));
-    goToPage(page - 1);
+  const handleTableFetch = async (
+    pageNo: number,
+    nextPageSize: number
+  ) => {
+    updateQuery({
+      page: pageNo,
+      pageSize: nextPageSize,
+    });
   };
 
   const computeDiff = (original: any, updated: any) => {
@@ -174,6 +271,134 @@ const SystemConfigLogs: React.FC = () => {
       default:
         return "bg-gray-100 text-gray-800 hover:bg-gray-100";
     }
+  };
+
+  const tableRows: SystemLogRow[] = logsData.data.map((log, index) => ({
+    id: `${logsData.pageNo}-${index}-${log.timestamp}-${log.entity_id ?? "row"}`,
+    indexLabel: String(index + 1 + logsData.pageNo * logsData.pageSize),
+    timestamp: log.timestamp,
+    adminDisplay: log.user_full_name || "-",
+    method: log.method,
+    table: log.table || "-",
+    message: log.message,
+    raw: log,
+  }));
+
+  const columns = [
+    {
+      key: "indexLabel" as keyof SystemLogRow,
+      header: "#",
+      render: (value: string) => (
+        <span className="font-mono text-xs">{value}</span>
+      ),
+    },
+    {
+      key: "timestamp" as keyof SystemLogRow,
+      header: "Date/Time",
+      render: (value: string) => (
+        <span className="text-sm whitespace-nowrap">
+          {format(new Date(value), "dd/MM/yyyy HH:mm")}
+        </span>
+      ),
+    },
+    {
+      key: "adminDisplay" as keyof SystemLogRow,
+      header: "System Admin",
+      render: (_: string, item: SystemLogRow) => (
+        <div>
+          <div className="font-medium">{item.raw.user_full_name || "-"}</div>
+          <div className="text-xs text-muted-foreground">{item.raw.user}</div>
+        </div>
+      ),
+    },
+    {
+      key: "method" as keyof SystemLogRow,
+      header: "Action",
+      render: (value: string) => (
+        <Badge className={getActionBadgeColor(value)}>{value}</Badge>
+      ),
+    },
+    {
+      key: "table" as keyof SystemLogRow,
+      header: "Table",
+      render: (value: string) => <Badge variant="outline">{value}</Badge>,
+    },
+    {
+      key: "message" as keyof SystemLogRow,
+      header: "Description",
+      render: (value: string) => <div className="max-w-md truncate">{value}</div>,
+    },
+  ];
+
+  const renderExpandedContent = (item: SystemLogRow) => {
+    const log = item.raw;
+    const diff = computeDiff(log.original_data, log.updated_data);
+
+    return (
+      <div className="bg-muted/30 p-4">
+        <div className="mb-4">
+          <h4 className="font-semibold mb-2">Change Details</h4>
+          <div className="grid grid-cols-2 gap-4 text-sm">
+            <div>
+              <span className="text-muted-foreground">Entity ID:</span>{" "}
+              {log.entity_id || "-"}
+            </div>
+            {log.entity_name && (
+              <div>
+                <span className="text-muted-foreground">Entity Name:</span>{" "}
+                {log.entity_name}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {(log.original_data || log.updated_data) && (
+          <div className="mt-4">
+            <h5 className="text-sm font-medium mb-2">Field Changes</h5>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Field</TableHead>
+                  <TableHead>Old Value</TableHead>
+                  <TableHead>New Value</TableHead>
+                  <TableHead>Change</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {diff.length > 0 ? (
+                  diff.map((change, idx) => (
+                    <TableRow key={idx}>
+                      <TableCell className="font-medium">{change.field}</TableCell>
+                      <TableCell className="text-red-600 bg-red-50/50">
+                        {change.old === undefined ? "-" : String(change.old)}
+                      </TableCell>
+                      <TableCell className="text-green-600 bg-green-50/50">
+                        {change.new === undefined ? "-" : String(change.new)}
+                      </TableCell>
+                      <TableCell>
+                        {!change.old && change.new ? (
+                          <Badge className="bg-green-100 text-green-800">Added</Badge>
+                        ) : change.old && !change.new ? (
+                          <Badge className="bg-red-100 text-red-800">Removed</Badge>
+                        ) : (
+                          <Badge className="bg-blue-100 text-blue-800">Modified</Badge>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={4} className="text-center text-muted-foreground">
+                      No changes detected
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        )}
+      </div>
+    );
   };
 
   return (
@@ -216,9 +441,11 @@ const SystemConfigLogs: React.FC = () => {
 
         <FilterActionButtons
           applyIcon={Search}
-          onApply={() => handleLogs(0)}
+          onApply={handleApplyFilters}
           onReset={handleFilterReset}
         />
+
+        
       </FilterSidebar>
 
       <div className="flex-1 p-6 overflow-auto">
@@ -232,227 +459,30 @@ const SystemConfigLogs: React.FC = () => {
               <Badge variant="outline" className="text-muted-foreground">
                 Read Only
               </Badge>
-              <div className="text-sm text-muted-foreground">
-                Showing {logsData.data.length} of {logsData.totalRecords} records
-              </div>
             </div>
           </CardHeader>
 
           <CardContent>
-            {loading ? (
-              <div className="flex justify-center py-8">
-                <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" />
-              </div>
-            ) : (
-              <>
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="w-12">#</TableHead>
-                        <TableHead className="w-32">Date/Time</TableHead>
-                        <TableHead className="w-40">System Admin</TableHead>
-                        <TableHead className="w-24">Action</TableHead>
-                        <TableHead className="w-40">Table</TableHead>
-                        <TableHead>Description</TableHead>
-                        <TableHead className="w-24">Details</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {logsData.data.length === 0 ? (
-                        <TableRow>
-                          <TableCell
-                            colSpan={7}
-                            className="text-center py-8 text-muted-foreground"
-                          >
-                            No logs found
-                          </TableCell>
-                        </TableRow>
-                      ) : (
-                        logsData.data.map((log, index) => (
-                          <React.Fragment key={index}>
-                            <TableRow className="hover:bg-muted/50">
-                              <TableCell className="font-mono text-xs">
-                                {index + 1 + logsData.pageNo * logsData.pageSize}
-                              </TableCell>
-                              <TableCell className="text-sm whitespace-nowrap">
-                                {format(new Date(log.timestamp), "dd/MM/yyyy HH:mm")}
-                              </TableCell>
-                              <TableCell>
-                                <div className="font-medium">
-                                  {log.user_full_name || "-"}
-                                </div>
-                                <div className="text-xs text-muted-foreground">
-                                  {log.user}
-                                </div>
-                              </TableCell>
-                              <TableCell>
-                                <Badge className={getActionBadgeColor(log.method)}>
-                                  {log.method}
-                                </Badge>
-                              </TableCell>
-                              <TableCell>
-                                <Badge variant="outline">{log.table || "-"}</Badge>
-                              </TableCell>
-                              <TableCell className="max-w-md truncate">
-                                {log.message}
-                              </TableCell>
-                              <TableCell>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => toggleRow(index)}
-                                >
-                                  {expandedRows[index] ? (
-                                    <ChevronUp className="h-4 w-4" />
-                                  ) : (
-                                    <ChevronDown className="h-4 w-4" />
-                                  )}
-                                </Button>
-                              </TableCell>
-                            </TableRow>
-
-                            {expandedRows[index] && (
-                              <TableRow>
-                                <TableCell colSpan={7} className="p-0">
-                                  <div className="bg-muted/30 p-4">
-                                    <div className="mb-4">
-                                      <h4 className="font-semibold mb-2">
-                                        Change Details
-                                      </h4>
-                                      <div className="grid grid-cols-2 gap-4 text-sm">
-                                        <div>
-                                          <span className="text-muted-foreground">
-                                            Entity ID:
-                                          </span>{" "}
-                                          {log.entity_id || "-"}
-                                        </div>
-                                        {log.entity_name && (
-                                          <div>
-                                            <span className="text-muted-foreground">
-                                              Entity Name:
-                                            </span>{" "}
-                                            {log.entity_name}
-                                          </div>
-                                        )}
-                                      </div>
-                                    </div>
-
-                                    {(log.original_data || log.updated_data) && (
-                                      <div className="mt-4">
-                                        <h5 className="text-sm font-medium mb-2">
-                                          Field Changes
-                                        </h5>
-                                        <Table>
-                                          <TableHeader>
-                                            <TableRow>
-                                              <TableHead>Field</TableHead>
-                                              <TableHead>Old Value</TableHead>
-                                              <TableHead>New Value</TableHead>
-                                              <TableHead>Change</TableHead>
-                                            </TableRow>
-                                          </TableHeader>
-                                          <TableBody>
-                                            {computeDiff(
-                                              log.original_data,
-                                              log.updated_data
-                                            ).map((change, idx) => (
-                                              <TableRow key={idx}>
-                                                <TableCell className="font-medium">
-                                                  {change.field}
-                                                </TableCell>
-                                                <TableCell className="text-red-600 bg-red-50/50">
-                                                  {change.old === undefined
-                                                    ? "-"
-                                                    : String(change.old)}
-                                                </TableCell>
-                                                <TableCell className="text-green-600 bg-green-50/50">
-                                                  {change.new === undefined
-                                                    ? "-"
-                                                    : String(change.new)}
-                                                </TableCell>
-                                                <TableCell>
-                                                  {!change.old && change.new ? (
-                                                    <Badge className="bg-green-100 text-green-800">
-                                                      Added
-                                                    </Badge>
-                                                  ) : change.old && !change.new ? (
-                                                    <Badge className="bg-red-100 text-red-800">
-                                                      Removed
-                                                    </Badge>
-                                                  ) : (
-                                                    <Badge className="bg-blue-100 text-blue-800">
-                                                      Modified
-                                                    </Badge>
-                                                  )}
-                                                </TableCell>
-                                              </TableRow>
-                                            ))}
-                                            {computeDiff(
-                                              log.original_data,
-                                              log.updated_data
-                                            ).length === 0 && (
-                                              <TableRow>
-                                                <TableCell
-                                                  colSpan={4}
-                                                  className="text-center text-muted-foreground"
-                                                >
-                                                  No changes detected
-                                                </TableCell>
-                                              </TableRow>
-                                            )}
-                                          </TableBody>
-                                        </Table>
-                                      </div>
-                                    )}
-                                  </div>
-                                </TableCell>
-                              </TableRow>
-                            )}
-                          </React.Fragment>
-                        ))
-                      )}
-                    </TableBody>
-                  </Table>
-                </div>
-
-                {logsData.totalPages > 0 && (
-                  <div className="flex items-center justify-end gap-2 mt-4">
-                    <span className="text-sm text-muted-foreground">Page</span>
-                    <input
-                      type="number"
-                      className="w-16 text-center border rounded-md px-2 py-1 text-sm"
-                      min={1}
-                      max={logsData.totalPages}
-                      value={jumpPage}
-                      onChange={(e) => setJumpPage(Number(e.target.value))}
-                    />
-                    <span className="text-sm text-muted-foreground">
-                      of {logsData.totalPages}
-                    </span>
-                    <Button variant="outline" size="sm" onClick={handleJump}>
-                      Go
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      disabled={logsData.pageNo <= 0}
-                      onClick={() => goToPage(logsData.pageNo - 1)}
-                    >
-                      Prev
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      disabled={logsData.pageNo >= logsData.totalPages - 1}
-                      onClick={() => goToPage(logsData.pageNo + 1)}
-                    >
-                      Next
-                    </Button>
-                  </div>
-                )}
-              </>
-            )}
+            <DataTableServer
+  data={tableRows}
+  pagination={{
+    pageNo: logsData.pageNo,
+    pageSize: logsData.pageSize,
+    totalRecords: logsData.totalRecords,
+    totalPages: logsData.totalPages,
+  }}
+  columns={columns}
+  viewMore={false}
+  hideActionsHeader={false}
+  fetchData={handleTableFetch}
+  pageSizeOptions={[5, 10, 50, 100]}
+  expandable={true}
+  expandTogglePlacement="actions"
+  renderExpandedContent={renderExpandedContent}
+  loading={loading}
+  showPageSizeSelector={true}
+  showPaginationControls={true}
+/>
           </CardContent>
         </Card>
       </div>
