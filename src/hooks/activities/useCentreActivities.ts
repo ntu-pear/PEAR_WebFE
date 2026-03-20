@@ -39,13 +39,14 @@ export const useCentreActivities = (includeDeleted: boolean) => {
         centreActivitiesData
         .map(ca => ({
           ...ca,
-          activity_title: activityMap.get(ca.activity_id)?.title || 'Unknown Activity'
+          activity_title:
+            (activityMap.get(ca.activity_id)?.title || 'Unknown Activity').toUpperCase()
         }))
-        .sort((a, b) => (a.activity_title || '')
-        .localeCompare(b.activity_title || ''))
-        .sort((a,b) => a.id - b.id);
+        .sort((a, b) =>
+          a.activity_title.localeCompare(b.activity_title, undefined, { sensitivity: "base" })
+        );
       
-      setCentreActivities(centreActivitiesWithTitle.sort((a,b) => a.id - b.id));
+      setCentreActivities(centreActivitiesWithTitle);
     }
     catch(error) {
       console.error("Error fetching centre activities:", error);

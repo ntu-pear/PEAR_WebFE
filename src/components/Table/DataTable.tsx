@@ -1,5 +1,5 @@
 // src/components/Table/DataTable.tsx
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { ChevronUp, ChevronDown, ChevronsUpDown } from "lucide-react";
 import {
   Table,
@@ -70,17 +70,36 @@ export function DataTableClient<T extends TableRowData>({
 }: DataTableClientProps<T>) {
   const [currentPage, setCurrentPage] = useState(1);
   const totalPages = Math.ceil(data.length / itemsPerPage);
+  const [rowsInput, setRowsInput] = useState(itemsPerPage);
+  const [rowsPerPage, setRowsPerPage] = useState(itemsPerPage);
+  const [jumpPage, setJumpPage] = useState(1);
 
-  const paginatedData = useMemo(() => {
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    return data.slice(startIndex, endIndex);
-  }, [data, currentPage, itemsPerPage]);
+  const total = data.length;
+  const pageCount = Math.max(1, Math.ceil(total / rowsPerPage));
 
-  const handlePageChange = (newPage: number) => {
-    if (newPage < 1) setCurrentPage(1);
-    else if (newPage > totalPages) setCurrentPage(totalPages);
-    else setCurrentPage(newPage);
+  const current = Math.min(jumpPage, pageCount);
+
+  const startIndex = (current - 1) * rowsPerPage;
+  const paginatedData = data.slice(startIndex, startIndex + rowsPerPage);
+
+  const showingFrom = total === 0 ? 0 : startIndex + 1;
+  const showingTo = Math.min(startIndex + paginatedData.length, total);
+
+  const goToPage = (p: number) => {
+    if (p >= 1 && p <= pageCount) {
+      setJumpPage(p);
+    }
+  };
+
+  const handleJump = () => {
+    const p = Math.max(1, Math.min(jumpPage, pageCount));
+    goToPage(p);
+  };
+
+  const handleRowsChange = () => {
+    const newSize = Math.max(1, rowsInput || 1);
+    setRowsPerPage(newSize);
+    setJumpPage(1);
   };
 
   useEffect(() => {
@@ -162,36 +181,66 @@ export function DataTableClient<T extends TableRowData>({
         </Table>
       </div>
 
-      {data.length > 0 && (
-        <div className="flex items-center justify-between py-4">
-          <div className="text-xs text-muted-foreground">
-            Showing{" "}
-            <strong>
-              {(currentPage - 1) * itemsPerPage + 1}- 
-              {Math.min(currentPage * itemsPerPage, data.length)}
-            </strong>{" "}
-            of <strong>{data.length}</strong> records
-          </div>
-          <div className="flex items-center space-x-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handlePageChange(currentPage - 1)}
-              disabled={currentPage === 1}
-            >
-              Previous
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handlePageChange(currentPage + 1)}
-              disabled={currentPage === totalPages}
-            >
-              Next
-            </Button>
-          </div>
+      <div className="flex items-center justify-between px-6 py-3 text-sm text-muted-foreground">
+  
+        <div>
+          {total === 0
+            ? "Showing 0 of 0 records"
+            : `Showing ${showingFrom}-${showingTo} of ${total} records`}
         </div>
-      )}
+
+        <div className="flex items-center gap-2">
+
+          {/* Rows per page */}
+          <span>Rows</span>
+          <input
+            type="number"
+            min={1}
+            value={rowsInput}
+            onChange={(e) => setRowsInput(Number(e.target.value))}
+            className="w-16 text-center border rounded-md px-2 py-1 text-sm"
+          />
+          <Button size="sm" variant="outline" onClick={handleRowsChange}>
+            Change
+          </Button>
+
+          {/* Jump page */}
+          <span>Page</span>
+          <input
+            type="number"
+            min={1}
+            max={pageCount}
+            value={jumpPage}
+            onChange={(e) => setJumpPage(Number(e.target.value))}
+            className="w-16 text-center border rounded-md px-2 py-1 text-sm"
+          />
+          <span>of {pageCount}</span>
+
+          <Button size="sm" variant="outline" onClick={handleJump}>
+            Go
+          </Button>
+
+          {/* Prev / Next */}
+          <Button
+            size="sm"
+            variant="outline"
+            disabled={current <= 1}
+            onClick={() => goToPage(current - 1)}
+          >
+            Prev
+          </Button>
+
+          <Button
+            size="sm"
+            variant="outline"
+            disabled={current >= pageCount}
+            onClick={() => goToPage(current + 1)}
+          >
+            Next
+          </Button>
+
+        </div>
+      </div>
     </div>
   );
 }

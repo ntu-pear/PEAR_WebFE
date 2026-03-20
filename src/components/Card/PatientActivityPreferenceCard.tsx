@@ -264,7 +264,9 @@ const PatientActivityPreferenceCard: React.FC<
         className: "min-w-[200px]",
         render: (value) => (
           <div className="relative group cursor-help">
-            <span className="text-sm text-gray-900">{value}</span>
+            <span className="text-sm text-gray-900 uppercase">
+              {value}
+            </span>
           </div>
         ),
       },
@@ -565,6 +567,7 @@ const PatientActivityPreferenceCard: React.FC<
         <DataTableClient
           data={activityPreferences}
           columns={columns}
+          itemsPerPage={50} 
           viewMore={false}
           hideActionsHeader={true}
           renderActions={undefined}

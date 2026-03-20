@@ -1,5 +1,4 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { ListFilter } from "lucide-react";
 import { 
   Card,
   CardContent,
@@ -25,7 +24,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import Searchbar from "@/components/Searchbar";
 import { DataTableClient } from "@/components/Table/DataTable";
-
+import dayjs from "dayjs"
 import useDebounce from "@/hooks/useDebounce";
 import {
   fetchHighlights,
@@ -34,7 +33,6 @@ import {
   HighlightType,
 } from "@/api/patients/highlight";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { formatDateWithWeekday } from "@/utils/formatDate";
 import { mockCaregiverNameList } from "@/mocks/mockHighlightTableData";
 import { useNavigate } from "react-router";
 
@@ -47,6 +45,7 @@ const HighlightTable: React.FC = () => {
   const [selectedCaregiver, setSelectedCaregiver] = useState<string>("All");
   const [searchItem, setSearchItem] = useState("");
   const [showMyPatientsOnly, setShowMyPatientsOnly] = useState(true);
+  const [sortBy, setSortBy] = useState<"patient" | "caregiver" | "type">("patient");
   const debouncedSearch = useDebounce(searchItem, 300);
   const navigate = useNavigate();
 
@@ -58,18 +57,16 @@ const HighlightTable: React.FC = () => {
   const flattenHighlights = (
     highlights: HighlightTableData[]
   ): HighlightTableData[] => {
-    return highlights.map((highlight, index) => {
+    return highlights.map((highlight) => {
       return {
         ...highlight,
         showPatientDetails: true,
         showCaregiverDetails: true,
-        showType:
-          index === 0 || highlight.type !== highlights[index - 1]?.type,
+        showType: true, 
       };
     });
   };
 
-  // Filter highlights based on search, type, caregiver
   const applyFilters = (data: HighlightTableData[]) => {
     let filtered = data.filter(({ patientName }) =>
       patientName.toLowerCase().includes(searchItem.toLowerCase())
@@ -83,13 +80,27 @@ const HighlightTable: React.FC = () => {
       selectedCaregiver === "All" || caregiverId.toString() === selectedCaregiver
     );
 
+    filtered = filtered.sort((a, b) => {
+      if (sortBy === "patient") {
+        return a.patientName.localeCompare(b.patientName);
+      }
+
+      if (sortBy === "caregiver") {
+        return a.caregiverName.localeCompare(b.caregiverName);
+      }
+
+      if (sortBy === "type") {
+        return (a.type ?? "").localeCompare(b.type ?? "");
+      }
+
+      return 0;
+    });
+
     return flattenHighlights(filtered);
   };
 
-  // Fetch all highlights once and split into "all" and "my patients"
   const initializeHighlights = async () => {
     try {
-      // Fetch both all patients and my patients highlights at once
       const [all, my] = await Promise.all([
         fetchHighlights(true),  
         fetchHighlights(false), 
@@ -98,7 +109,6 @@ const HighlightTable: React.FC = () => {
       setAllHighlights(all);
       setMyHighlights(my);
 
-      // Show default table based on toggle
       setHighlights(showMyPatientsOnly ? applyFilters(my) : applyFilters(all));
     } catch (error) {
       console.error("Error fetching highlights:", error);
@@ -120,7 +130,15 @@ const HighlightTable: React.FC = () => {
   useEffect(() => {
     const data = showMyPatientsOnly ? myHighlights : allHighlights;
     setHighlights(applyFilters(data));
-  }, [showMyPatientsOnly, selectedTypes, selectedCaregiver, debouncedSearch, myHighlights, allHighlights]);
+  }, [
+    showMyPatientsOnly,
+    selectedTypes,
+    selectedCaregiver,
+    debouncedSearch,
+    sortBy, 
+    myHighlights,
+    allHighlights,
+  ]);
 
   // Format highlight type for display
   const formatHighlightType = (highlightType?: string | null) => {
@@ -133,6 +151,16 @@ const HighlightTable: React.FC = () => {
       .join(" ");
   };
 
+  const hasActiveFilters =
+    selectedCaregiver !== "All" ||
+    selectedTypes.length !== highlightTypes.length ||
+    searchItem.trim() !== "";
+
+  const clearFilters = () => {
+    setSelectedTypes(highlightTypes.map(({ TypeName }) => TypeName));
+    setSelectedCaregiver("All");
+    setSearchItem("");
+  };
   const tableColumns = [
     {
       key: "patientName",
@@ -182,7 +210,7 @@ const HighlightTable: React.FC = () => {
               </AvatarFallback>
             </Avatar>
             <div>
-              <div className="font-medium">{value}</div>
+              <div className="font-medium uppercase">{value}</div>
             </div>
           </div>
         ) : (
@@ -195,10 +223,14 @@ const HighlightTable: React.FC = () => {
       render: (_: string, highlight: HighlightTableData) => {
         if (!highlight.highlightCreatedDate) return <div>-</div>;
 
-        // Use your existing helper
-        const formattedDate = formatDateWithWeekday(highlight.highlightCreatedDate);
+        const formattedDate = dayjs(highlight.highlightCreatedDate)
+          .format("ddd, DD MMM YYYY");
 
-        return <div className="font-medium">{formattedDate}</div>;
+        return (
+          <div className="font-medium whitespace-nowrap">
+            {formattedDate}
+          </div>
+        );
       },
     },
     {
@@ -291,7 +323,6 @@ const HighlightTable: React.FC = () => {
 
         return (
           <div className="flex items-center gap-2">
-            {/* View Details popover button */}
             <Popover>
               <PopoverTrigger asChild>
                 <Button variant="outline" size="sm" className="h-8 px-2 text-sm font-medium">
@@ -301,13 +332,11 @@ const HighlightTable: React.FC = () => {
               <PopoverContent className="w-80 p-3">{detailsContent}</PopoverContent>
             </Popover>
 
-            {/* Arrow button to go to highlight source */}
             <Button
               variant="outline"
               size="sm"
               className="h-8 w-8 p-0"
               onClick={() => {
-                // Map highlight type to tab name
                 if (highlight.type === "New Medication") {
                   navigate(`/supervisor/manage-medication?`);
                   return;
@@ -317,7 +346,6 @@ const HighlightTable: React.FC = () => {
                   "New Allergy": "allergy",
                   "New Problem": "problem-log",
                   "New Prescription": "prescription",
-                  // add more if there are new types
                 };
 
               const tab = tabMap[highlight.type] || "information"; 
@@ -344,9 +372,58 @@ const HighlightTable: React.FC = () => {
   return (
     <div className="flex min-h-screen w-full flex-col container mx-auto px-0 sm:px-4">
       <div className="flex flex-col sm:gap-4 sm:py-6">
-        <div className="flex">
-          <Searchbar searchItem={searchItem} onSearchChange={handleInputChange} />
+        <div className="flex items-center w-full">
+  
+          <div className="flex items-center gap-2">
+            <Searchbar searchItem={searchItem} onSearchChange={handleInputChange} />
+
+          </div>
+
           <div className="flex items-center gap-2 ml-auto">
+
+            {hasActiveFilters && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={clearFilters}
+                className="h-8"
+              >
+                Clear Filters
+              </Button>
+            )}
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="h-8">
+                  Sort:{" "}
+                  {sortBy === "patient" && "Patient Name"}
+                  {sortBy === "caregiver" && "Caregiver Name"}
+                  {sortBy === "type" && "Highlight Type"}
+                </Button>
+              </DropdownMenuTrigger>
+
+              <DropdownMenuContent align="end">
+                <DropdownMenuRadioGroup
+                  value={sortBy}
+                  onValueChange={(value) =>
+                    setSortBy(value as "patient" | "caregiver" | "type")
+                  }
+                >
+                  <DropdownMenuRadioItem value="patient">
+                    Patient Name
+                  </DropdownMenuRadioItem>
+
+                  <DropdownMenuRadioItem value="caregiver">
+                    Caregiver Name
+                  </DropdownMenuRadioItem>
+
+                  <DropdownMenuRadioItem value="type">
+                    Highlight Type
+                  </DropdownMenuRadioItem>
+                </DropdownMenuRadioGroup>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
             <Button
               variant="outline"
               size="sm"
@@ -354,52 +431,87 @@ const HighlightTable: React.FC = () => {
               onClick={() => setShowMyPatientsOnly(prev => !prev)}
             >
               {showMyPatientsOnly ? "My Patients" : "All Patients"}
-              <ChevronDown className="w-4 h-4 transition-transform duration-200"
-                          style={{ transform: showMyPatientsOnly ? "rotate(0deg)" : "rotate(180deg)" }} />
+              <ChevronDown
+                className="w-4 h-4 transition-transform duration-200"
+                style={{ transform: showMyPatientsOnly ? "rotate(0deg)" : "rotate(180deg)" }}
+              />
             </Button>
 
             <DropdownMenu modal={false}>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="sm" className="h-8 gap-1">
-                  <ListFilter className="h-4 w-4" />
-                  <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">Category</span>
+                  Category:{" "}
+                  {selectedTypes.length === highlightTypes.length
+                    ? "All"
+                    : selectedTypes.length}
                 </Button>
               </DropdownMenuTrigger>
+
               <DropdownMenuContent align="end">
+                <DropdownMenuCheckboxItem
+                  checked={selectedTypes.length === highlightTypes.length}
+                  onSelect={(e) => e.preventDefault()}
+                  onCheckedChange={(checked) => {
+                    if (checked) {
+                      setSelectedTypes(highlightTypes.map(t => t.TypeName));
+                    } else {
+                      setSelectedTypes([]);
+                    }
+                  }}
+                >
+                  All
+                </DropdownMenuCheckboxItem>
+
                 {highlightTypes.map(({ TypeName }) => (
                   <DropdownMenuCheckboxItem
                     key={TypeName}
                     checked={selectedTypes.includes(TypeName)}
-                    onCheckedChange={(checked: boolean) => {
-                      if (checked) setSelectedTypes((prev) => [...prev, TypeName]);
-                      else setSelectedTypes((prev) => prev.filter((item) => item !== TypeName));
+                    onSelect={(e) => e.preventDefault()}
+                    onCheckedChange={(checked) => {
+                      if (checked) {
+                        setSelectedTypes(prev => [...prev, TypeName]);
+                      } else {
+                        setSelectedTypes(prev =>
+                          prev.filter(item => item !== TypeName)
+                        );
+                      }
                     }}
                   >
                     {formatHighlightType(TypeName)}
                   </DropdownMenuCheckboxItem>
                 ))}
+                
               </DropdownMenuContent>
             </DropdownMenu>
 
             <DropdownMenu modal={false}>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="sm" className="h-8 gap-1">
-                  <ListFilter className="h-4 w-4" />
-                  <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">Caregiver</span>
+                  Caregiver:{" "}
+                  {selectedCaregiver === "All"
+                    ? "All"
+                    : mockCaregiverNameList.find(c => c.id.toString() === selectedCaregiver)?.name}
                 </Button>
               </DropdownMenuTrigger>
+
               <DropdownMenuContent align="end">
                 <DropdownMenuRadioGroup
                   value={selectedCaregiver}
                   onValueChange={setSelectedCaregiver}
                 >
-                  <DropdownMenuRadioItem value="All">All</DropdownMenuRadioItem>
+                  <DropdownMenuRadioItem value="All">
+                    All
+                  </DropdownMenuRadioItem>
+
                   {mockCaregiverNameList.map(({ id, name }) => (
-                    <DropdownMenuRadioItem key={id} value={id.toString()}>{name}</DropdownMenuRadioItem>
+                    <DropdownMenuRadioItem key={id} value={id.toString()}>
+                      {name}
+                    </DropdownMenuRadioItem>
                   ))}
                 </DropdownMenuRadioGroup>
               </DropdownMenuContent>
             </DropdownMenu>
+
           </div>
         </div>
 

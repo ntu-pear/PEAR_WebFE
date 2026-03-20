@@ -23,9 +23,21 @@ export default function ActivityForm({ initial, onSubmit, submitting }: Props) {
 
   const runSync = (v: { title: string; description: string }) => {
     const e = validateLocal(v);
+
+    if (!v.title.trim()) {
+      e.title = "Title is required";
+      e._summary = [...(e._summary ?? []), "Title is required"];
+    }
+
     setErrors(e);
     return e;
   };
+
+  const canSubmit =
+    !submitting &&
+    title.trim().length > 0 &&
+    !errors.title &&
+    !(errors._summary && errors._summary.length > 0);
 
   return (
     <form
@@ -35,7 +47,18 @@ export default function ActivityForm({ initial, onSubmit, submitting }: Props) {
         setErrors({ _summary: [] });
 
         const local = runSync({ title, description });
+
         if (local._summary && local._summary.length) return;
+
+        const unique = await isActivityTitleUnique(title.trim(), initial?.id);
+        if (!unique) {
+          setErrors(prev => ({
+            ...prev,
+            title: ERRORS.DUPLICATE_NAME,
+            _summary: [ERRORS.DUPLICATE_NAME],
+          }));
+          return;
+        }
 
         await onSubmit({ title, description }, setErrors, () => {});
       }}
@@ -49,7 +72,9 @@ export default function ActivityForm({ initial, onSubmit, submitting }: Props) {
       )}
 
       <div className="space-y-2">
-        <Label htmlFor="title">Activity Title</Label>
+        <Label htmlFor="title">
+          Activity Title <span className="text-red-500">*</span>
+        </Label>
         <Input
           id="title"
           value={title}
@@ -91,7 +116,11 @@ export default function ActivityForm({ initial, onSubmit, submitting }: Props) {
       </div>
 
       <div className="flex justify-end gap-2">
-        <Button type="submit" disabled={submitting} className="min-w-24">
+        <Button
+          type="submit"
+          disabled={!canSubmit}
+          className="min-w-24"
+        >
           {submitting ? "Saving…" : "Save"}
         </Button>
       </div>
