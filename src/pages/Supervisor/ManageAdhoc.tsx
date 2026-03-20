@@ -52,6 +52,8 @@ const ManageAdhoc: React.FC = () => {
         startDate: formatDateTime(a.startDate ?? null),
         endDate: formatDateTime(a.endDate ?? null),
         lastUpdated: formatDateTime(a.lastUpdated ?? null),
+        oldActivityTitle: a.oldActivityTitle?.toUpperCase(),
+        newActivityTitle: a.newActivityTitle?.toUpperCase(),
       }));
       setAdhocActivities(formatted);
     } catch (err) {
