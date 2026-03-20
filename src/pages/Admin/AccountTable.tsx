@@ -42,7 +42,6 @@ const DEFAULT_SORT_BY = "nric_FullName";
 const DEFAULT_SORT_DIR: "asc" | "desc" = "asc";
 
 const VALID_PAGE_SIZES = [5, 10, 50, 100];
-const ALL_RECORDS_SENTINEL = -1;
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -63,8 +62,7 @@ function buildFilterPayload(name: string, status: string): Record<string, string
 
 function parsePageSize(raw: string | null): number {
   const n = Number(raw ?? DEFAULT_PAGE_SIZE);
-  if (n === ALL_RECORDS_SENTINEL) return ALL_RECORDS_SENTINEL;
-  return VALID_PAGE_SIZES.includes(n) ? n : DEFAULT_PAGE_SIZE;
+  return Number.isNaN(n) || n <= 0 ? DEFAULT_PAGE_SIZE : n;
 }
 
 const AccountTable: React.FC = () => {
@@ -139,14 +137,11 @@ const AccountTable: React.FC = () => {
         : next.delete("sortDir");
       nextPage > 0 ? next.set("page", String(nextPage)) : next.delete("page");
 
-      if (nextPageSize === ALL_RECORDS_SENTINEL) {
-        next.set("pageSize", String(ALL_RECORDS_SENTINEL));
-      } else if (nextPageSize !== DEFAULT_PAGE_SIZE) {
+      if (nextPageSize !== DEFAULT_PAGE_SIZE) {
         next.set("pageSize", String(nextPageSize));
       } else {
         next.delete("pageSize");
       }
-
       const nextSearch = next.toString();
       const currentSearch = location.search.startsWith("?")
         ? location.search.slice(1)
@@ -343,15 +338,28 @@ const AccountTable: React.FC = () => {
     { key: "roleName", header: "Role", sortable: true },
   ];
 
-  const pageSizeOptions: (number | string)[] =
+  const pageSizeOptions =
     accountTDServer.total > 0
-      ? [...VALID_PAGE_SIZES, "All"]
-      : VALID_PAGE_SIZES;
+      ? [
+          ...VALID_PAGE_SIZES.map((size) => ({
+            label: String(size),
+            value: size,
+          })),
+          ...(!VALID_PAGE_SIZES.includes(accountTDServer.total)
+            ? [
+                {
+                  label: "All",
+                  value: accountTDServer.total,
+                },
+              ]
+            : []),
+        ]
+      : VALID_PAGE_SIZES.map((size) => ({
+          label: String(size),
+          value: size,
+        }));
 
-  const effectivePageSize =
-    accountTDServer.page_size === ALL_RECORDS_SENTINEL
-      ? Math.max(accountTDServer.total, 1)
-      : accountTDServer.page_size;
+  const effectivePageSize = Math.max(accountTDServer.page_size, 1);
 
   const effectiveTotalPages =
     accountTDServer.total === 0

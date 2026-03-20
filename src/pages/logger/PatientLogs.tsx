@@ -19,11 +19,11 @@ import {
 
 import { fetchAllLogs, LogsTableDataServer, LogType } from "@/api/logger/logs";
 import FilterSidebar from "@/components/Filters/FilterSidebar";
-import TextFilterField from "@/components/filters/TextFilterField";
-import SelectFilterField from "@/components/filters/SelectFilterField";
-import DateRangeFilterField from "@/components/filters/DateRangeFilterField";
-import FilterActionButtons from "@/components/filters/FilterActionButtons";
-import FilterExportButtons from "@/components/filters/FilterExportButtons";
+import TextFilterField from "@/components/Filters/TextFilterField";
+import SelectFilterField from "@/components/Filters/SelectFilterField";
+import DateRangeFilterField from "@/components/Filters/DateRangeFilterField";
+import FilterActionButtons from "@/components/Filters/FilterActionButtons";
+import FilterExportButtons from "@/components/Filters/FilterExportButtons";
 import { User, FileText, Activity, Calendar } from "lucide-react";
 
 const LOG_TYPE_OPTIONS = [
@@ -218,13 +218,6 @@ const PatientLogs: React.FC = () => {
   return (
     <div className="flex min-h-screen w-full">
       <FilterSidebar
-        title="Filters"
-        footer={
-          <FilterExportButtons
-            onInternalExport={() => handleExport("internal")}
-            onExternalExport={() => handleExport("external")}
-          />
-        }
       >
         <TextFilterField
           label="Patient Name"
@@ -274,6 +267,10 @@ const PatientLogs: React.FC = () => {
           onApply={() => handleLogs(0)}
           onReset={handleFilterReset}
         />
+        <FilterExportButtons
+            onInternalExport={() => handleExport("internal")}
+            onExternalExport={() => handleExport("external")}
+          />
       </FilterSidebar>
 
       <div className="flex-1 p-6 overflow-auto">

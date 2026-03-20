@@ -2,7 +2,14 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { format } from "date-fns";
 import {
   FileText,
@@ -67,7 +74,7 @@ function parsePage(raw: string | null): number {
 
 function parsePageSize(raw: string | null): number {
   const n = Number(raw ?? String(DEFAULT_PAGE_SIZE));
-  return VALID_PAGE_SIZES.includes(n) ? n : DEFAULT_PAGE_SIZE;
+  return Number.isNaN(n) || n <= 0 ? DEFAULT_PAGE_SIZE : n;
 }
 
 type SystemLogRow = {
@@ -141,9 +148,12 @@ const SystemConfigLogs: React.FC = () => {
     nextStartDate ? next.set("startDate", nextStartDate) : next.delete("startDate");
     nextEndDate ? next.set("endDate", nextEndDate) : next.delete("endDate");
     nextPage > 0 ? next.set("page", String(nextPage)) : next.delete("page");
-    nextPageSize !== DEFAULT_PAGE_SIZE
-      ? next.set("pageSize", String(nextPageSize))
-      : next.delete("pageSize");
+
+    if (nextPageSize !== DEFAULT_PAGE_SIZE) {
+      next.set("pageSize", String(nextPageSize));
+    } else {
+      next.delete("pageSize");
+    }
 
     const nextSearch = next.toString();
     const currentSearch = location.search.startsWith("?")
@@ -232,10 +242,7 @@ const SystemConfigLogs: React.FC = () => {
     );
   };
 
-  const handleTableFetch = async (
-    pageNo: number,
-    nextPageSize: number
-  ) => {
+  const handleTableFetch = async (pageNo: number, nextPageSize: number) => {
     updateQuery({
       page: pageNo,
       pageSize: nextPageSize,
@@ -337,7 +344,7 @@ const SystemConfigLogs: React.FC = () => {
     return (
       <div className="bg-muted/30 p-4">
         <div className="mb-4">
-          <h4 className="font-semibold mb-2">Change Details</h4>
+          <h4 className="mb-2 font-semibold">Change Details</h4>
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div>
               <span className="text-muted-foreground">Entity ID:</span>{" "}
@@ -354,7 +361,7 @@ const SystemConfigLogs: React.FC = () => {
 
         {(log.original_data || log.updated_data) && (
           <div className="mt-4">
-            <h5 className="text-sm font-medium mb-2">Field Changes</h5>
+            <h5 className="mb-2 text-sm font-medium">Field Changes</h5>
             <Table>
               <TableHeader>
                 <TableRow>
@@ -369,10 +376,10 @@ const SystemConfigLogs: React.FC = () => {
                   diff.map((change, idx) => (
                     <TableRow key={idx}>
                       <TableCell className="font-medium">{change.field}</TableCell>
-                      <TableCell className="text-red-600 bg-red-50/50">
+                      <TableCell className="bg-red-50/50 text-red-600">
                         {change.old === undefined ? "-" : String(change.old)}
                       </TableCell>
-                      <TableCell className="text-green-600 bg-green-50/50">
+                      <TableCell className="bg-green-50/50 text-green-600">
                         {change.new === undefined ? "-" : String(change.new)}
                       </TableCell>
                       <TableCell>
@@ -400,6 +407,34 @@ const SystemConfigLogs: React.FC = () => {
       </div>
     );
   };
+
+  const pageSizeOptions =
+    logsData.totalRecords > 0
+      ? [
+          ...VALID_PAGE_SIZES.map((size) => ({
+            label: String(size),
+            value: size,
+          })),
+          ...(!VALID_PAGE_SIZES.includes(logsData.totalRecords)
+            ? [
+                {
+                  label: "All",
+                  value: logsData.totalRecords,
+                },
+              ]
+            : []),
+        ]
+      : VALID_PAGE_SIZES.map((size) => ({
+          label: String(size),
+          value: size,
+        }));
+
+  const effectivePageSize = Math.max(logsData.pageSize, 1);
+
+  const effectiveTotalPages =
+    logsData.totalRecords === 0
+      ? 0
+      : Math.ceil(logsData.totalRecords / effectivePageSize);
 
   return (
     <div className="flex min-h-screen w-full">
@@ -444,11 +479,9 @@ const SystemConfigLogs: React.FC = () => {
           onApply={handleApplyFilters}
           onReset={handleFilterReset}
         />
-
-        
       </FilterSidebar>
 
-      <div className="flex-1 p-6 overflow-auto">
+      <div className="flex-1 overflow-auto p-6">
         <Card className="w-full">
           <CardHeader className="flex flex-row items-center justify-between">
             <div className="flex items-center gap-2">
@@ -464,25 +497,25 @@ const SystemConfigLogs: React.FC = () => {
 
           <CardContent>
             <DataTableServer
-  data={tableRows}
-  pagination={{
-    pageNo: logsData.pageNo,
-    pageSize: logsData.pageSize,
-    totalRecords: logsData.totalRecords,
-    totalPages: logsData.totalPages,
-  }}
-  columns={columns}
-  viewMore={false}
-  hideActionsHeader={false}
-  fetchData={handleTableFetch}
-  pageSizeOptions={[5, 10, 50, 100]}
-  expandable={true}
-  expandTogglePlacement="actions"
-  renderExpandedContent={renderExpandedContent}
-  loading={loading}
-  showPageSizeSelector={true}
-  showPaginationControls={true}
-/>
+              data={tableRows}
+              pagination={{
+                pageNo: logsData.pageNo,
+                pageSize: logsData.pageSize,
+                totalRecords: logsData.totalRecords,
+                totalPages: effectiveTotalPages,
+              }}
+              columns={columns}
+              viewMore={false}
+              hideActionsHeader={false}
+              fetchData={handleTableFetch}
+              pageSizeOptions={pageSizeOptions}
+              expandable={true}
+              expandTogglePlacement="actions"
+              renderExpandedContent={renderExpandedContent}
+              loading={loading}
+              showPageSizeSelector={true}
+              showPaginationControls={true}
+            />
           </CardContent>
         </Card>
       </div>

@@ -260,7 +260,7 @@ export function DataTableClient<T extends TableRowData>({
   // Single source of truth for the current page (1-based).
   const [page, setPage] = useState(1);
   // Single source of truth for rows per page; initialised from the prop.
-  const [rowsPerPage, setRowsPerPage] = useState(itemsPerPage);
+  const [rowsPerPage] = useState(itemsPerPage);
 
   const total = data.length;
   const pageCount = Math.max(1, Math.ceil(total / rowsPerPage));
@@ -428,6 +428,11 @@ export interface ServerPagination {
   totalPages: number;
 }
 
+type PageSizeOption = {
+  label: string;
+  value: number;
+};
+
 interface DataTableServerProps<T extends TableRowData> {
   data: T[];
   columns: DataTableColumns<T>;
@@ -446,9 +451,7 @@ interface DataTableServerProps<T extends TableRowData> {
   ) => void | Promise<void>;
   sortBy?: string | null;
   sortDir?: "asc" | "desc";
-  // FIX: type is now number[] only — callers use ALL_RECORDS_SENTINEL (-1)
-  // instead of the string "All". The label "All" is rendered internally.
-  pageSizeOptions?: number[];
+  pageSizeOptions?: PageSizeOption[];
   expandable?: boolean;
   renderExpandedContent?: (item: T) => React.ReactNode;
   onExpand?: (item: T) => void;
@@ -472,8 +475,13 @@ export function DataTableServer<T extends TableRowData>({
   fetchData,
   sortBy,
   sortDir = "asc",
-  // FIX: default uses ALL_RECORDS_SENTINEL instead of the string "All"
-  pageSizeOptions = [5, 10, 20, 50, 100, ALL_RECORDS_SENTINEL],
+  pageSizeOptions = [
+    { label: "5", value: 5 },
+    { label: "10", value: 10 },
+    { label: "20", value: 20 },
+    { label: "50", value: 50 },
+    { label: "100", value: 100 },
+  ],
   expandable = false,
   renderExpandedContent,
   onExpand,
@@ -497,25 +505,10 @@ export function DataTableServer<T extends TableRowData>({
     await fetchData(0, pageSize, column, newSortDir);
   };
 
-  // FIX: sentinel-based "All" handling — no more string comparison
   const handlePageSizeChange = async (value: string) => {
-    const numeric = Number(value);
-    const nextPageSize =
-      numeric === ALL_RECORDS_SENTINEL
-        ? totalRecords || pageSize
-        : numeric;
+    const nextPageSize = Number(value);
     await fetchData(0, nextPageSize, sortBy ?? undefined, sortDir);
   };
-
-  // FIX: Select value uses the sentinel string, not the ad-hoc "All" string
-  const pageSizeValue =
-    totalRecords > 0 && pageSize >= totalRecords
-      ? String(ALL_RECORDS_SENTINEL)
-      : String(pageSize);
-
-  // FIX: label helper keeps "All" display text in one place
-  const pageSizeLabel = (option: number) =>
-    option === ALL_RECORDS_SENTINEL ? "All" : String(option);
 
   const showActionsColumn =
     !hideActionsHeader &&
@@ -539,7 +532,6 @@ export function DataTableServer<T extends TableRowData>({
     );
   }
 
-  // FIX: guard against "1-0" display when data is briefly empty mid-fetch
   const showingFrom = totalRecords === 0 ? 0 : pageNo * pageSize + 1;
   const showingTo = pageNo * pageSize + data.length;
 
@@ -609,7 +601,6 @@ export function DataTableServer<T extends TableRowData>({
       </div>
 
       <div className="flex items-center justify-between py-4">
-        {/* FIX: uses guarded showingFrom/showingTo instead of raw arithmetic */}
         <div className="text-xs text-muted-foreground">
           Showing{" "}
           <strong>
@@ -622,15 +613,17 @@ export function DataTableServer<T extends TableRowData>({
           {showPageSizeSelector && (
             <div className="flex items-center gap-2 text-sm">
               <span className="font-semibold">Rows per page</span>
-              <Select value={pageSizeValue} onValueChange={handlePageSizeChange}>
+              <Select value={String(pageSize)} onValueChange={handlePageSizeChange}>
                 <SelectTrigger className="h-8 w-[90px] text-xs">
                   <SelectValue placeholder="10" />
                 </SelectTrigger>
                 <SelectContent>
-                  {/* FIX: options are number[]; label rendered via pageSizeLabel() */}
                   {pageSizeOptions.map((option) => (
-                    <SelectItem key={option} value={String(option)}>
-                      {pageSizeLabel(option)}
+                    <SelectItem
+                      key={option.value}
+                      value={String(option.value)}
+                    >
+                      {option.label}
                     </SelectItem>
                   ))}
                 </SelectContent>

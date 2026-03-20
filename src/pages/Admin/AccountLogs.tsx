@@ -2,10 +2,8 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import {
-  Download,
   User,
   Calendar,
   Activity,
@@ -50,7 +48,7 @@ function parsePage(raw: string | null): number {
 
 function parsePageSize(raw: string | null): number {
   const n = Number(raw ?? String(DEFAULT_PAGE_SIZE));
-  return VALID_PAGE_SIZES.includes(n) ? n : DEFAULT_PAGE_SIZE;
+  return Number.isNaN(n) || n <= 0 ? DEFAULT_PAGE_SIZE : n;
 }
 
 type AccountLogRow = {
@@ -91,7 +89,6 @@ const AccountLogs: React.FC = () => {
   const page = parsePage(queryParams.get("page"));
   const pageSize = parsePageSize(queryParams.get("pageSize"));
 
-  // Draft sidebar state
   const [selectedAction, setSelectedAction] = useState(urlAction);
   const [selectedRole, setSelectedRole] = useState(urlRole);
   const [userName, setUserName] = useState(urlUserName);
@@ -125,9 +122,12 @@ const AccountLogs: React.FC = () => {
     nextStartDate ? next.set("startDate", nextStartDate) : next.delete("startDate");
     nextEndDate ? next.set("endDate", nextEndDate) : next.delete("endDate");
     nextPage > 0 ? next.set("page", String(nextPage)) : next.delete("page");
-    nextPageSize !== DEFAULT_PAGE_SIZE
-      ? next.set("pageSize", String(nextPageSize))
-      : next.delete("pageSize");
+
+    if (nextPageSize !== DEFAULT_PAGE_SIZE) {
+      next.set("pageSize", String(nextPageSize));
+    } else {
+      next.delete("pageSize");
+    }
 
     const nextSearch = next.toString();
     const currentSearch = location.search.startsWith("?")
@@ -215,10 +215,7 @@ const AccountLogs: React.FC = () => {
     );
   };
 
-  const handleTableFetch = async (
-    pageNo: number,
-    nextPageSize: number
-  ) => {
+  const handleTableFetch = async (pageNo: number, nextPageSize: number) => {
     updateQuery({
       page: pageNo,
       pageSize: nextPageSize,
@@ -257,7 +254,6 @@ const AccountLogs: React.FC = () => {
     }
   };
 
-  // Still client-side until backend supports role filter
   const filteredLogs =
     urlRole === "all"
       ? logsData.data
@@ -345,10 +341,37 @@ const AccountLogs: React.FC = () => {
     },
   ];
 
+  const pageSizeOptions =
+    logsData.totalRecords > 0
+      ? [
+          ...VALID_PAGE_SIZES.map((size) => ({
+            label: String(size),
+            value: size,
+          })),
+          ...(!VALID_PAGE_SIZES.includes(logsData.totalRecords)
+            ? [
+                {
+                  label: "All",
+                  value: logsData.totalRecords,
+                },
+              ]
+            : []),
+        ]
+      : VALID_PAGE_SIZES.map((size) => ({
+          label: String(size),
+          value: size,
+        }));
+
+  const effectivePageSize = Math.max(logsData.pageSize, 1);
+
+  const effectiveTotalPages =
+    logsData.totalRecords === 0
+      ? 0
+      : Math.ceil(logsData.totalRecords / effectivePageSize);
+
   return (
     <div className="flex min-h-screen w-full">
-      <FilterSidebar
-      >
+      <FilterSidebar>
         <SelectFilterField
           label="Action"
           icon={Activity}
@@ -389,13 +412,14 @@ const AccountLogs: React.FC = () => {
           onApply={handleApplyFilters}
           onReset={handleFilterReset}
         />
+
         <FilterExportButtons
-  onInternalExport={handleExport}
-  internalLabel="Export CSV"
-/>
+          onInternalExport={handleExport}
+          internalLabel="Export CSV"
+        />
       </FilterSidebar>
 
-      <div className="flex-1 p-6 overflow-auto">
+      <div className="flex-1 overflow-auto p-6">
         <Card className="w-full">
           <CardHeader className="flex flex-row items-center justify-between">
             <div className="flex items-center gap-2">
@@ -410,13 +434,13 @@ const AccountLogs: React.FC = () => {
                 pageNo: logsData.pageNo,
                 pageSize: logsData.pageSize,
                 totalRecords: logsData.totalRecords,
-                totalPages: logsData.totalPages,
+                totalPages: effectiveTotalPages,
               }}
               columns={columns}
               viewMore={false}
               hideActionsHeader={true}
               fetchData={handleTableFetch}
-              pageSizeOptions={[5, 10, 50, 100]}
+              pageSizeOptions={pageSizeOptions}
               expandable={false}
               loading={loading}
               showPageSizeSelector={true}
