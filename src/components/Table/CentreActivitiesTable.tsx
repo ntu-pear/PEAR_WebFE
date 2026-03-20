@@ -122,8 +122,8 @@ export default function CentreActivitiesTable({
                   <TableCell>{a.min_people_req ? a.min_people_req : "-"}</TableCell>
                   <TableCell>{a.min_duration} mins</TableCell>
                   <TableCell>{a.max_duration} mins</TableCell>
-                  <TableCell>{dayjs(a.start_date).format("DD-MMM-YYYY")}</TableCell>
-                  <TableCell>{dayjs(a.end_date).format("DD-MMM-YYYY")}</TableCell>
+                  <TableCell>{dayjs(a.start_date).format("DD MMM YYYY")}</TableCell>
+                  <TableCell>{dayjs(a.end_date).format("DD MMM YYYY")}</TableCell>
                   <TableCell>
                     {a.fixed_time_slots ? (
                       <div className="flex flex-col gap-1 text-sm">
