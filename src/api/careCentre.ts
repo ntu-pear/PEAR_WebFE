@@ -41,7 +41,7 @@ export async function listCareCentres(params?: {
   return res.data;
 }
 
-export async function getCareCentreById(id: number): Promise<CareCentreResponse> {
+export async function getCareCentreById(id: number=1): Promise<CareCentreResponse> {
   const res = await careCentreAPI.get<CareCentreResponse>(`/${id}`, { headers: authHeader() });
   return res.data;
 }
