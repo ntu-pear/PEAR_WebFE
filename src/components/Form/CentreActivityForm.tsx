@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -44,12 +44,31 @@ export default function CentreActivityForm({
   const [is_group, setIs_Group] = useState(initial?.is_group ?? false);
   const [min_people_req, setMin_people_req] = useState(initial?.min_people_req ?? 1);
   const [fixed_time_slots, setFixed_time_slots] = useState(initial?.fixed_time_slots ?? "");
+  const [selectedDays, setSelectedDays] = useState<string[]>([]);
+  const [dayTimes, setDayTimes] = useState<Record<string, string>>({});
   const [is_deleted, setIsDeleted] = useState(initial?.is_deleted ?? false);
   const [deleted] = useState(initial?.is_deleted ?? false);
-
+  const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
+  const timeOptions = [
+    "09:00", "09:30", "10:00", "10:30",
+    "11:00", "11:30", "12:00", "12:30",
+    "13:00", "13:30", "14:00", "14:30",
+    "15:00", "15:30", "16:00", "16:30"
+  ];
+  const formattedTimeSlots = selectedDays
+  .sort()
+  .map(day => `${day} ${dayTimes[day]}`)
+  .join(",");
   const indefiniteDate = dayjs(new Date(2999, 0, 1).toDateString()).format("YYYY-MM-DD");
   const [errors, setErrors] = useState<FormErrors>({ _summary: [] });
   const [activities, setActivities] = useState<Activity[]>([]);
+
+  
+  const sortedActivities = useMemo(() => {
+    return [...activities].sort((a, b) =>
+      a.title.localeCompare(b.title, undefined, { sensitivity: "base" })
+    );
+  }, [activities]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -68,6 +87,26 @@ export default function CentreActivityForm({
     fetchData();
   }, []);
 
+  useEffect(() => {
+    if (initial?.fixed_time_slots) {
+      const parts = initial.fixed_time_slots.split(",");
+
+      const days: string[] = [];
+      const times: Record<string, string> = {};
+
+      parts.forEach(p => {
+        const [day, time] = p.split(" ");
+        if (day && time) {
+          days.push(day);
+          times[day] = time;
+        }
+      });
+
+      setSelectedDays(days);
+      setDayTimes(times);
+    }
+  }, [initial]);
+
   const runSync = (v: CentreActivityFormValues) => {
     const e = validateLocal(v);
     setErrors(e);
@@ -85,11 +124,11 @@ export default function CentreActivityForm({
         is_compulsory: is_compulsory,
         is_group: is_group,
         start_date: start_date,
-        end_date: end_date,
+        end_date: end_date || indefiniteDate,
         min_duration: min_duration,
         max_duration: max_duration,
         min_people_req: min_people_req,
-        fixed_time_slots: fixed_time_slots,
+        fixed_time_slots: formattedTimeSlots,
         is_deleted: is_deleted
       };
 
@@ -112,6 +151,8 @@ export default function CentreActivityForm({
     { value: 30, label: "30 mins"},
     { value: 60, label: "60 mins"}
   ];
+
+  const isIndefinite = end_date === indefiniteDate;
 
   return (
     <form 
@@ -162,9 +203,9 @@ export default function CentreActivityForm({
           className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 appearance-none cursor-pointer"
         >
           <option value="" disabled>Select an activity</option>
-          {activities.map((a) => (
+          {sortedActivities.map((a) => (
             <option key={a.id} value={a.id.toString()}>
-              {a.title}
+              {a.title.toUpperCase()}
             </option>
           ))}
         </select>
@@ -229,20 +270,58 @@ export default function CentreActivityForm({
       
       {is_fixed && (
         <div className="space-y-2">
-          <Label htmlFor="fixed_time_slots">Please provide the fixed time slots</Label>
-          <Input
-            id="fixed_time_slots"
-            value={fixed_time_slots}
-            disabled={is_deleted ? true : false}
-            onChange={(e) => setFixed_time_slots(e.target.value)}
-          />
-          {errors.fixed_time_slots && <p className="text-sm text-red-600">{errors.fixed_time_slots}</p>}
+          <Label>Select Days</Label>
+          <div className="flex flex-wrap gap-2">
+            {days.map(day => (
+              <div key={day} className="flex items-center gap-2 border px-3 py-2 rounded">
+                <input
+                  type="checkbox"
+                  checked={selectedDays.includes(day)}
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      setSelectedDays([...selectedDays, day]);
+                    } else {
+                      setSelectedDays(selectedDays.filter(d => d !== day));
+
+                      // remove time if unchecked
+                      const newTimes = { ...dayTimes };
+                      delete newTimes[day];
+                      setDayTimes(newTimes);
+                    }
+                  }}
+                />
+
+                <span>{day}</span>
+
+                {selectedDays.includes(day) && (
+                  <select
+                    value={dayTimes[day] || "09:00"}
+                    onChange={(e) =>
+                      setDayTimes({
+                        ...dayTimes,
+                        [day]: e.target.value,
+                      })
+                    }
+                    className="border rounded px-2 py-1 ml-2"
+                  >
+                    {timeOptions.map(time => (
+                      <option key={time} value={time}>
+                        {time}
+                      </option>
+                    ))}
+                  </select>
+                )}
+              </div>
+            ))}
+          </div>
         </div>
+        
+        
       )}
 
       {/* Indefinite Checkbox */}
       <div className="space-y-2 space-x-2">
-        <Label htmlFor="is_indefinite">Is this activity end date indefinite?</Label>
+        <Label htmlFor="is_indefinite">Does this activity have no fixed end date?</Label>
         <div className="space-x-2">
           {radioBtnOptions.map((choice) => (
             <Label className="space-x-1">
@@ -252,7 +331,8 @@ export default function CentreActivityForm({
                 name="is_indefinite"
                 value={choice.value.toString()}
                 disabled={is_deleted ? true : false}
-                checked={end_date.includes("999") ? true === choice.value : false === choice.value}
+                checked={isIndefinite === choice.value}
+                //checked={end_date.includes("999") ? true === choice.value : false === choice.value}
                 // checked={end_date === "" ? is_indefinite === choice.value : end_date.includes("999") ? is_indefinite === choice.value : false}
                 onChange={() =>{
                   if (choice.value) {
@@ -369,18 +449,19 @@ export default function CentreActivityForm({
         {errors.start_date && <p className="text-sm text-red-600">{errors.start_date}</p>}
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="end_date">End date of this activity</Label>
+      {end_date !== indefiniteDate && (
+        <div className="space-y-2">
+          <Label htmlFor="end_date">End date of this activity</Label>
           <Input
             id="end_date"
             type="date"
             value={end_date}
-            disabled={is_deleted ? true : indefiniteDate === end_date ? true : false}
-            // disabled = {indefiniteDate === end_date ? true : false}
+            disabled={is_deleted}
             onChange={(e) => setEnd_date(e.target.value)}
           />
-        {errors.end_date && <p className="text-sm text-red-600">{errors.end_date}</p>}
-      </div>
+          {errors.end_date && <p className="text-sm text-red-600">{errors.end_date}</p>}
+        </div>
+      )}
 
       <div className="flex justify-end gap-2">
         <Button type="submit" disabled={submitting} className="min-w-24">

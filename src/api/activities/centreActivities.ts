@@ -1,4 +1,4 @@
-import { activitiesAPI, 
+import { activitiesAPI,  
         centreActivitiesAPI,
         getCurrentUserAPI
 } from "@/api/apiConfig";

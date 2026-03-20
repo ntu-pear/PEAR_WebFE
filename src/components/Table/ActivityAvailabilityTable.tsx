@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 import type { CentreActivityAvailabilityRow } from "@/hooks/activities/useCentreActivityAvailabilities";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -44,11 +44,15 @@ export default function AvailabilityTable({
         );
     }, [data, query]);
 
+    const [rowsInput, setRowsInput] = useState(pageSize);
+    const [rowsPerPage, setRowsPerPage] = useState(pageSize);
+    const [jumpPage, setJumpPage] = useState(page);
+
     const total = filtered.length;
-    const pageCount = Math.max(1, Math.ceil(total / pageSize));
+    const pageCount = Math.max(1, Math.ceil(total / rowsPerPage));
     const current = Math.min(page, pageCount);
-    const startIndex = (current - 1) * pageSize;
-    const items = filtered.slice(startIndex, startIndex + pageSize);
+    const startIndex = (current - 1) * rowsPerPage;
+    const items = filtered.slice(startIndex, startIndex + rowsPerPage);
     const showingFrom = total === 0 ? 0 : startIndex + 1;
     const showingTo = Math.min(startIndex + items.length, total);
 
@@ -59,6 +63,28 @@ export default function AvailabilityTable({
                      .map(d => d.label)
                      .join(", ");
     };
+
+    const goToPage = (p: number) => {
+        if (p >= 1 && p <= pageCount) {
+            setPage(p);
+            setJumpPage(p);
+        }
+    };
+
+        const handleJump = () => {
+        const p = Math.max(1, Math.min(jumpPage, pageCount));
+        goToPage(p);
+    };
+
+        const handleRowsChange = () => {
+        const newSize = Math.max(1, rowsInput);
+        setRowsPerPage(newSize);
+        setPage(1);
+    };
+
+    useEffect(() => {
+        setJumpPage(page);
+    }, [page]);
 
     return(
         <div className="rounded-2xl border">
@@ -72,15 +98,13 @@ export default function AvailabilityTable({
                             <TableHead className="w-40">Start Time</TableHead>
                             <TableHead className="w-40">End Time</TableHead>
                             <TableHead className="w-40">Days</TableHead> 
-                            <TableHead className="w-40">Created Date</TableHead>
-                            <TableHead className="w-40">Modified Date</TableHead>
                             <TableHead className="w-96">Actions</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
                         {items.length === 0 && (
                             <TableRow>
-                                <TableCell colSpan={10}>No availabilities scheduled.</TableCell>
+                                <TableCell colSpan={7}>No availabilities scheduled.</TableCell>
                             </TableRow>
                         )}
                         {items.map((a) => (
@@ -91,10 +115,6 @@ export default function AvailabilityTable({
                                 <TableCell>{a.start_time}</TableCell>
                                 <TableCell>{a.end_time}</TableCell>
                                 <TableCell>{formatDays(a.days_of_week)}</TableCell> {/* Render days */}
-                                <TableCell>{formatDate(a.created_date)}</TableCell>
-                                <TableCell>
-                                    {a.modified_date ? formatDate(a.modified_date) : "-"}
-                                </TableCell>
                                 <TableCell className="space-x-2">
                                     <Button size="sm" variant="secondary" onClick={() => onEdit(a)}>
                                         Edit
@@ -110,27 +130,76 @@ export default function AvailabilityTable({
             </div>
 
             <div className="flex items-center justify-between px-6 py-3 text-sm text-muted-foreground">
+
                 <div>
-                    {total === 0 ? "Showing 0 of 0 records" : `Showing ${showingFrom}-${showingTo} of ${total} records`}
+                    {total === 0
+                    ? "Showing 0 of 0 records"
+                    : `Showing ${showingFrom}-${showingTo} of ${total} records`}
                 </div>
-                <div className="space-x-2">
+
+                <div className="flex items-center gap-2">
+
+                    {/* rows per page */}
+                    <span>Rows</span>
+
+                    <input
+                    type="number"
+                    min={1}
+                    value={rowsInput}
+                    onChange={(e) => setRowsInput(Number(e.target.value))}
+                    className="w-16 text-center border rounded-md px-2 py-1 text-sm"
+                    />
+
                     <Button
-                        size="sm"
-                        variant="outline"
-                        disabled={current <= 1}
-                        onClick={() => setPage(Math.max(1, current - 1))}
+                    size="sm"
+                    variant="outline"
+                    onClick={handleRowsChange}
                     >
-                        Previous
+                    Change
                     </Button>
+
+                    {/* page jump */}
+                    <span>Page</span>
+
+                    <input
+                    type="number"
+                    min={1}
+                    max={pageCount}
+                    value={jumpPage}
+                    onChange={(e) => setJumpPage(Number(e.target.value))}
+                    className="w-16 text-center border rounded-md px-2 py-1 text-sm"
+                    />
+
+                    <span>of {pageCount}</span>
+
                     <Button
-                        size="sm"
-                        variant="outline"
-                        disabled={current >= pageCount}
-                        onClick={() => setPage(Math.min(pageCount, current + 1))}
+                    size="sm"
+                    variant="outline"
+                    onClick={handleJump}
                     >
-                        Next
+                    Go
                     </Button>
+
+                    <Button
+                    size="sm"
+                    variant="outline"
+                    disabled={current <= 1}
+                    onClick={() => goToPage(current - 1)}
+                    >
+                    Prev
+                    </Button>
+
+                    <Button
+                    size="sm"
+                    variant="outline"
+                    disabled={current >= pageCount}
+                    onClick={() => goToPage(current + 1)}
+                    >
+                    Next
+                    </Button>
+
                 </div>
+
             </div>
         </div>
     );

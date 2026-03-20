@@ -243,17 +243,36 @@ export function DataTableClient<T extends TableRowData>({
 }: DataTableClientProps<T>) {
   const [currentPage, setCurrentPage] = useState(1);
   const totalPages = Math.ceil(data.length / itemsPerPage);
+  const [rowsInput, setRowsInput] = useState(itemsPerPage);
+  const [rowsPerPage, setRowsPerPage] = useState(itemsPerPage);
+  const [jumpPage, setJumpPage] = useState(1);
 
-  const paginatedData = useMemo(() => {
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    return data.slice(startIndex, endIndex);
-  }, [data, currentPage, itemsPerPage]);
+  const total = data.length;
+  const pageCount = Math.max(1, Math.ceil(total / rowsPerPage));
 
-  const handlePageChange = (newPage: number) => {
-    if (newPage < 1) setCurrentPage(1);
-    else if (newPage > totalPages) setCurrentPage(totalPages);
-    else setCurrentPage(newPage);
+  const current = Math.min(jumpPage, pageCount);
+
+  const startIndex = (current - 1) * rowsPerPage;
+  const paginatedData = data.slice(startIndex, startIndex + rowsPerPage);
+
+  const showingFrom = total === 0 ? 0 : startIndex + 1;
+  const showingTo = Math.min(startIndex + paginatedData.length, total);
+
+  const goToPage = (p: number) => {
+    if (p >= 1 && p <= pageCount) {
+      setJumpPage(p);
+    }
+  };
+
+  const handleJump = () => {
+    const p = Math.max(1, Math.min(jumpPage, pageCount));
+    goToPage(p);
+  };
+
+  const handleRowsChange = () => {
+    const newSize = Math.max(1, rowsInput || 1);
+    setRowsPerPage(newSize);
+    setJumpPage(1);
   };
 
   useEffect(() => {
@@ -382,7 +401,7 @@ export function DataTableClient<T extends TableRowData>({
             </Button>
           </div>
         </div>
-      )}
+      </div>
     </div>
   );
 }

@@ -45,6 +45,7 @@ const BIT_TO_DAY: Record<number, keyof WorkingHours> = {
   64: "sunday",
 };
 
+
 export default function ActivityAvailabilityForm({ 
   initial, 
   submitting,
@@ -57,9 +58,34 @@ export default function ActivityAvailabilityForm({
     const [start_date, setStartDate] = useState(initial?.start_date ?? "");
     const [end_date, setEndDate] = useState(initial?.end_date ?? "");
 
-    // EDIT: Time-only inputs for start_time and end_time
-    const [start_time, setStartTime] = useState(initial?.start_time ?? "");
-    const [end_time, setEndTime] = useState(initial?.end_time ?? "");
+    const hourOptions = Array.from({ length: 9 }, (_, i) => (i + 9).toString().padStart(2, "0"));
+
+    const minuteOptions = Array.from({ length: 12 }, (_, i) =>
+        (i * 5).toString().padStart(2, "0")
+    );
+
+    const [startHour, setStartHour] = useState("09");
+    const [startMinute, setStartMinute] = useState("00");
+
+    const [endHour, setEndHour] = useState("10");
+    const [endMinute, setEndMinute] = useState("00");
+
+    useEffect(() => {
+        if (initial?.start_time) {
+            const [h, m] = initial.start_time.split(":");
+            setStartHour(h);
+            setStartMinute(m);
+        }
+
+        if (initial?.end_time) {
+            const [h, m] = initial.end_time.split(":");
+            setEndHour(h);
+            setEndMinute(m);
+        }
+    }, [initial]);
+
+    const formattedStart = `${startHour}:${startMinute}`;
+    const formattedEnd = `${endHour}:${endMinute}`;
 
     const [is_everyday, setIsEveryday] = useState(false);
     const [deleted] = useState(initial?.is_deleted ?? false);
@@ -74,9 +100,6 @@ export default function ActivityAvailabilityForm({
             setCentreActivityID(initial.centre_activity_id.toString());
         }
         }, [initial]);
-
-    const [dayOpenTime] = useState<string>("09:00");
-    const [dayCloseTime] = useState<string>("17:00");
 
     // Prefill selectedDays if editing
     useEffect(() => {
@@ -111,6 +134,13 @@ export default function ActivityAvailabilityForm({
             return;
             }
 
+            if (formattedEnd <= formattedStart) {
+                setErrors({
+                    _summary: ["End time must be later than start time"],
+                });
+                return;
+            }
+
         try {
             const daysOfWeekBitmask = is_everyday && selectedDays.length > 0
             ? selectedDays.reduce((acc, day) => acc | day, 0)
@@ -119,8 +149,8 @@ export default function ActivityAvailabilityForm({
             centre_activity_id: parseInt(centre_activity_id),
             start_date: start_date,
             end_date: end_date,
-            start_time: start_time,
-            end_time: end_time,
+            start_time: formattedStart,
+            end_time: formattedEnd,
             is_deleted: is_deleted,
             is_everyday: is_everyday,
             days_of_week: daysOfWeekBitmask,        
@@ -190,7 +220,7 @@ export default function ActivityAvailabilityForm({
                     <option value="" disabled>Select an centre activity</option>
                     {centreActivities.map((a) => (
                         <option key={a.id} value={a.id.toString()}>
-                            {a.id}. {a.activity_title}
+                            {a.activity_title}
                         </option>
                     ))}
                 </select>
@@ -309,31 +339,57 @@ export default function ActivityAvailabilityForm({
 
 
             <div className="space-y-2">
-                <Label htmlFor="start_time">Start time of this activity</Label>
-                <Input
-                    id="start_time"
-                    type="time"
-                    value={start_time}
-                    disabled={is_deleted ? true : false}
-                    min={dayOpenTime}
-                    max={dayCloseTime}
-                    onChange={(e) => setStartTime(e.target.value)}
-                />
-                {errors.start_time && <p className="text-sm text-red-600">{errors.start_time}</p>}
+                <Label>Start Time</Label>
+                <div className="flex gap-2">
+                    <select
+                    value={startHour}
+                    onChange={(e) => setStartHour(e.target.value)}
+                    className="border rounded px-2 py-1"
+                    >
+                    {hourOptions.map(h => (
+                        <option key={h} value={h}>{h}</option>
+                    ))}
+                    </select>
+
+                    <span>:</span>
+
+                    <select
+                    value={startMinute}
+                    onChange={(e) => setStartMinute(e.target.value)}
+                    className="border rounded px-2 py-1"
+                    >
+                    {minuteOptions.map(m => (
+                        <option key={m} value={m}>{m}</option>
+                    ))}
+                    </select>
+                </div>
             </div>
 
             <div className="space-y-2">
-                <Label htmlFor="end_time">End time of this activity</Label>
-                <Input
-                    id="end_time"
-                    type="time"
-                    value={end_time}
-                    disabled={is_deleted ? true : false}
-                    min={dayOpenTime}
-                    max={dayCloseTime}
-                    onChange={(e) => setEndTime(e.target.value)}
-                />
-                {errors.end_time && <p className="text-sm text-red-600">{errors.end_time}</p>}
+                <Label>End Time</Label>
+                <div className="flex gap-2">
+                    <select
+                    value={endHour}
+                    onChange={(e) => setEndHour(e.target.value)}
+                    className="border rounded px-2 py-1"
+                    >
+                    {hourOptions.map(h => (
+                        <option key={h} value={h}>{h}</option>
+                    ))}
+                    </select>
+
+                    <span>:</span>
+
+                    <select
+                    value={endMinute}
+                    onChange={(e) => setEndMinute(e.target.value)}
+                    className="border rounded px-2 py-1"
+                    >
+                    {minuteOptions.map(m => (
+                        <option key={m} value={m}>{m}</option>
+                    ))}
+                    </select>
+                </div>
             </div>
 
             <div className="flex justify-end gap-2">
