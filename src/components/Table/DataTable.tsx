@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   ChevronUp,
@@ -25,6 +25,10 @@ import {
 } from "@/components/ui/select";
 import TruncatedCell from "./TruncatedCell";
 
+// ---------------------------------------------------------------------------
+// Shared types
+// ---------------------------------------------------------------------------
+
 export interface TableRowData {
   id: string | number;
   [key: string]: any;
@@ -45,9 +49,21 @@ export type DataTableColumns<T extends Record<string, any>> = Array<
 
 type ExpandTogglePlacement = "leading" | "actions";
 
-const getNestedValue = (obj: any, path: string): any => {
-  return path.split(".").reduce((acc, key) => acc && acc[key], obj);
-};
+// Sentinel used to represent "All records" without mixing strings into a
+// number array. Consumers that pass pageSizeOptions should use this value;
+// DataTableServer maps it to the label "All" internally.
+export const ALL_RECORDS_SENTINEL = -1;
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+const getNestedValue = (obj: any, path: string): any =>
+  path.split(".").reduce((acc, key) => acc && acc[key], obj);
+
+// ---------------------------------------------------------------------------
+// InternalDataTableRow
+// ---------------------------------------------------------------------------
 
 interface InternalDataTableRowProps<T extends TableRowData> {
   item: T;
@@ -241,49 +257,36 @@ export function DataTableClient<T extends TableRowData>({
   expandTogglePlacement = "leading",
   actionsHeaderLabel = "Actions",
 }: DataTableClientProps<T>) {
-  const [currentPage, setCurrentPage] = useState(1);
-  const totalPages = Math.ceil(data.length / itemsPerPage);
-  const [rowsInput, setRowsInput] = useState(itemsPerPage);
+  // Single source of truth for the current page (1-based).
+  const [page, setPage] = useState(1);
+  // Single source of truth for rows per page; initialised from the prop.
   const [rowsPerPage, setRowsPerPage] = useState(itemsPerPage);
-  const [jumpPage, setJumpPage] = useState(1);
 
   const total = data.length;
   const pageCount = Math.max(1, Math.ceil(total / rowsPerPage));
 
-  const current = Math.min(jumpPage, pageCount);
+  // Clamp the current page whenever data length or rowsPerPage changes so we
+  // never sit on a page that no longer exists (e.g. after filtering).
+  useEffect(() => {
+    setPage((p) => Math.min(p, Math.max(1, Math.ceil(total / rowsPerPage))));
+  }, [total, rowsPerPage]);
 
-  const startIndex = (current - 1) * rowsPerPage;
+  const startIndex = (page - 1) * rowsPerPage;
   const paginatedData = data.slice(startIndex, startIndex + rowsPerPage);
 
+  // "Showing" range derived entirely from the single page / rowsPerPage state.
   const showingFrom = total === 0 ? 0 : startIndex + 1;
   const showingTo = Math.min(startIndex + paginatedData.length, total);
 
   const goToPage = (p: number) => {
-    if (p >= 1 && p <= pageCount) {
-      setJumpPage(p);
-    }
+    if (p >= 1 && p <= pageCount) setPage(p);
   };
 
-  const handleJump = () => {
-    const p = Math.max(1, Math.min(jumpPage, pageCount));
-    goToPage(p);
-  };
-
-  const handleRowsChange = () => {
-    const newSize = Math.max(1, rowsInput || 1);
-    setRowsPerPage(newSize);
-    setJumpPage(1);
-  };
-
-  useEffect(() => {
-    if (data.length !== 0 && totalPages < currentPage) {
-      setCurrentPage(totalPages);
-    }
-  }, [data.length, totalPages, currentPage]);
-
-  const showActionsColumn = !hideActionsHeader && (
-    viewMore || !!renderActions || (expandable && expandTogglePlacement === "actions")
-  );
+  const showActionsColumn =
+    !hideActionsHeader &&
+    (viewMore ||
+      !!renderActions ||
+      (expandable && expandTogglePlacement === "actions"));
 
   if (loading) {
     return (
@@ -311,7 +314,9 @@ export function DataTableClient<T extends TableRowData>({
                 <TableHeadCell className="w-12 flex items-center justify-center">
                   <input
                     type="checkbox"
-                    checked={selectedItems.length === data.length && data.length > 0}
+                    checked={
+                      selectedItems.length === data.length && data.length > 0
+                    }
                     onChange={() =>
                       onSelectChange(
                         selectedItems.length === data.length ? [] : data
@@ -350,7 +355,9 @@ export function DataTableClient<T extends TableRowData>({
                 item={item}
                 columns={columns}
                 viewMore={viewMore}
-                viewMoreLink={`${viewMoreBaseLink}/${item.id}${activeTab ? `?tab=${activeTab}` : ""}`}
+                viewMoreLink={`${viewMoreBaseLink}/${item.id}${
+                  activeTab ? `?tab=${activeTab}` : ""
+                }`}
                 renderActions={renderActions}
                 expandable={expandable}
                 renderExpandedContent={renderExpandedContent}
@@ -371,37 +378,41 @@ export function DataTableClient<T extends TableRowData>({
         </Table>
       </div>
 
+      {/* FIX: was a mismatched </div> closing tag here — corrected to match
+          the opening conditional wrapper */}
       {data.length > 0 && (
         <div className="flex items-center justify-between py-4">
+          {/* FIX: was using orphaned currentPage/itemsPerPage state;
+              now uses showingFrom/showingTo derived from single page state */}
           <div className="text-xs text-muted-foreground">
             Showing{" "}
             <strong>
-              {(currentPage - 1) * itemsPerPage + 1}-
-              {Math.min(currentPage * itemsPerPage, data.length)}
+              {showingFrom}–{showingTo}
             </strong>{" "}
-            of <strong>{data.length}</strong> records
+            of <strong>{total}</strong> records
           </div>
 
           <div className="flex items-center space-x-2">
+            {/* FIX: was calling undefined handlePageChange; now calls goToPage */}
             <Button
               variant="outline"
               size="sm"
-              onClick={() => handlePageChange(currentPage - 1)}
-              disabled={currentPage === 1}
+              onClick={() => goToPage(page - 1)}
+              disabled={page === 1}
             >
               Previous
             </Button>
             <Button
               variant="outline"
               size="sm"
-              onClick={() => handlePageChange(currentPage + 1)}
-              disabled={currentPage === totalPages}
+              onClick={() => goToPage(page + 1)}
+              disabled={page === pageCount}
             >
               Next
             </Button>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
@@ -435,7 +446,9 @@ interface DataTableServerProps<T extends TableRowData> {
   ) => void | Promise<void>;
   sortBy?: string | null;
   sortDir?: "asc" | "desc";
-  pageSizeOptions?: (number | string)[];
+  // FIX: type is now number[] only — callers use ALL_RECORDS_SENTINEL (-1)
+  // instead of the string "All". The label "All" is rendered internally.
+  pageSizeOptions?: number[];
   expandable?: boolean;
   renderExpandedContent?: (item: T) => React.ReactNode;
   onExpand?: (item: T) => void;
@@ -459,7 +472,8 @@ export function DataTableServer<T extends TableRowData>({
   fetchData,
   sortBy,
   sortDir = "asc",
-  pageSizeOptions = [5, 10, 20, 50, 100, "All"],
+  // FIX: default uses ALL_RECORDS_SENTINEL instead of the string "All"
+  pageSizeOptions = [5, 10, 20, 50, 100, ALL_RECORDS_SENTINEL],
   expandable = false,
   renderExpandedContent,
   onExpand,
@@ -480,23 +494,34 @@ export function DataTableServer<T extends TableRowData>({
   const handleSort = async (column: string) => {
     const newSortDir: "asc" | "desc" =
       sortBy === column && sortDir === "asc" ? "desc" : "asc";
-
     await fetchData(0, pageSize, column, newSortDir);
   };
 
+  // FIX: sentinel-based "All" handling — no more string comparison
   const handlePageSizeChange = async (value: string) => {
+    const numeric = Number(value);
     const nextPageSize =
-      value === "All" ? totalRecords || pageSize : Number(value);
-
+      numeric === ALL_RECORDS_SENTINEL
+        ? totalRecords || pageSize
+        : numeric;
     await fetchData(0, nextPageSize, sortBy ?? undefined, sortDir);
   };
 
+  // FIX: Select value uses the sentinel string, not the ad-hoc "All" string
   const pageSizeValue =
-    totalRecords > 0 && pageSize >= totalRecords ? "All" : String(pageSize);
+    totalRecords > 0 && pageSize >= totalRecords
+      ? String(ALL_RECORDS_SENTINEL)
+      : String(pageSize);
 
-  const showActionsColumn = !hideActionsHeader && (
-    viewMore || !!renderActions || (expandable && expandTogglePlacement === "actions")
-  );
+  // FIX: label helper keeps "All" display text in one place
+  const pageSizeLabel = (option: number) =>
+    option === ALL_RECORDS_SENTINEL ? "All" : String(option);
+
+  const showActionsColumn =
+    !hideActionsHeader &&
+    (viewMore ||
+      !!renderActions ||
+      (expandable && expandTogglePlacement === "actions"));
 
   if (loading) {
     return (
@@ -513,6 +538,10 @@ export function DataTableServer<T extends TableRowData>({
       </div>
     );
   }
+
+  // FIX: guard against "1-0" display when data is briefly empty mid-fetch
+  const showingFrom = totalRecords === 0 ? 0 : pageNo * pageSize + 1;
+  const showingTo = pageNo * pageSize + data.length;
 
   return (
     <div>
@@ -580,10 +609,11 @@ export function DataTableServer<T extends TableRowData>({
       </div>
 
       <div className="flex items-center justify-between py-4">
+        {/* FIX: uses guarded showingFrom/showingTo instead of raw arithmetic */}
         <div className="text-xs text-muted-foreground">
           Showing{" "}
           <strong>
-            {pageNo * pageSize + 1}-{pageNo * pageSize + data.length}
+            {showingFrom}–{showingTo}
           </strong>{" "}
           of <strong>{totalRecords}</strong> records
         </div>
@@ -597,9 +627,10 @@ export function DataTableServer<T extends TableRowData>({
                   <SelectValue placeholder="10" />
                 </SelectTrigger>
                 <SelectContent>
+                  {/* FIX: options are number[]; label rendered via pageSizeLabel() */}
                   {pageSizeOptions.map((option) => (
-                    <SelectItem key={String(option)} value={String(option)}>
-                      {String(option)}
+                    <SelectItem key={option} value={String(option)}>
+                      {pageSizeLabel(option)}
                     </SelectItem>
                   ))}
                 </SelectContent>
