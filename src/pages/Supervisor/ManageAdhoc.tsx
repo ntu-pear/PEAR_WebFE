@@ -270,7 +270,7 @@ const EditAdhocModal: React.FC<EditAdhocModalProps> = ({ activity, open, onClose
               <option value={-1}>Keep Current</option>
               {activityList.map((a) => (
                 <option key={a.id} value={a.id}>
-                  {a.title}
+                  {a.title?.toUpperCase()}
                 </option>
               ))}
             </select>
