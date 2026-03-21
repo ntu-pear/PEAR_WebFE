@@ -32,8 +32,7 @@ test('Guardian - Manage Patient Page', async ({ page }) => {
 
     // Wait for navigation to complete and page to be fully loaded else menu button might not work
     await page.waitForURL(/\/(?!login)/); // Wait for URL to change from login page
-    await page.waitForLoadState('networkidle'); // Wait for network requests to finish
-    await page.waitForURL(/guardian\/manage-patients/);
+    await page.waitForLoadState('domcontentloaded'); await page.waitForURL(/guardian\/manage-patients/);
 
     const patientTabs = await page.getByRole('tab')
     await patientTabs.first().waitFor({ state: 'visible' });
@@ -67,7 +66,7 @@ test('Supervisor - Manage Patient Page', async ({ page }) => {
 
     // Wait for navigation to complete and page to be fully loaded else menu button might not work
     await page.waitForURL(/\/(?!login)/); // Wait for URL to change from login page
-    // await page.waitForLoadState('networkidle'); // Wait for network requests to finish
+    await page.waitForLoadState('domcontentloaded');
     await page.waitForURL(/supervisor\/manage-patients/);
 
     const myPatientsTab = page.getByRole('tab', { name: 'My Patients' })
@@ -150,7 +149,7 @@ test('Doctor - Manage Patient Page', async ({ page }) => {
 
     // Wait for navigation to complete and page to be fully loaded else menu button might not work
     await page.waitForURL(/\/(?!login)/); // Wait for URL to change from login page
-    // await page.waitForLoadState('networkidle'); // Wait for network requests to finish
+    await page.waitForLoadState('domcontentloaded');
     await page.waitForURL(/doctor\/manage-patients/);
 
     const myPatientsTab = page.getByRole('tab', { name: 'My Patients' })
