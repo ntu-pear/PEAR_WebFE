@@ -15,7 +15,7 @@ const useEditUsersInRole = () => {
     mutationFn: (variables: Variables) =>
       updateUsersRole(variables.roleName, variables.userIds),
     onSuccess: () => {
-      navigate(-1);
+      // navigate(-1);
       toast.success("Users role updated");
       queryClient.invalidateQueries({ queryKey: ["users"] });
     },
