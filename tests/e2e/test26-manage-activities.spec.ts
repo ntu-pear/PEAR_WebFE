@@ -87,18 +87,12 @@ test("Supervisor: Manage Activities (NEW UI)", async ({ page }) => {
     const row = page.locator("tbody tr").filter({ hasText: name });
 
     await expect(row).toBeVisible();
-
-    //const titleCell = page.locator("tbody tr").first().locator("td").first();
-
-    //await expect(titleCell).toContainText(name, { ignoreCase: true });
-
-    //expect(firstRowText).toContain(name);
   });
 
   // ================= EDIT =================
   await test.step("Edit activity", async () => {
 
-    // 🔥 SEARCH FIRST
+    //SEARCH FIRST
     await page.getByPlaceholder("Search...").fill(name);
     await page.waitForTimeout(1000);
 
@@ -127,7 +121,7 @@ test("Supervisor: Manage Activities (NEW UI)", async ({ page }) => {
   // ================= DELETE =================
   await test.step("Delete activity", async () => {
 
-    // 🔥 SEARCH FIRST AGAIN (VERY IMPORTANT)
+    //SEARCH FIRST AGAIN (VERY IMPORTANT)
     await page.getByPlaceholder("Search...").fill(name);
     await page.waitForTimeout(1000);
 
