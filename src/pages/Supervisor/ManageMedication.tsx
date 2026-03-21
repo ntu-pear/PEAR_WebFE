@@ -15,7 +15,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { DataTableServer } from "@/components/Table/DataTable";
 import AvatarModalWrapper from "@/components/AvatarModalWrapper";
 import Searchbar from "@/components/Searchbar";
