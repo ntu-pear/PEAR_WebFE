@@ -364,7 +364,7 @@ const App: React.FC = () => {
                       </Route>
                     </Route>
 
-                    {/* Routes for Dynamically Created Role*/}
+                    {/* Routes for Dynamically Created Role*/}{/*
                     <Route
                       path=":role/*"
                       element={<CustomRoleProtectedRoute />}
@@ -383,11 +383,12 @@ const App: React.FC = () => {
                         ))}
                       </Route>
                     </Route>
-
+*/}
                     <Route path="/unauthorized" element={<Unauthorized />} />
-                    <Route path="/not-found" element={<NotFound />} />
                     <Route path="/test-geocode" element={<TestGeocode />} />
                     <Route path="/" element={<Navigate to="/login" />} />
+                    <Route path="/not-found" element={<NotFound />} />
+                    <Route path="*" element={<Navigate to="/not-found" replace />} />
                   </Routes>
                 </main>
                 <Toaster richColors />
