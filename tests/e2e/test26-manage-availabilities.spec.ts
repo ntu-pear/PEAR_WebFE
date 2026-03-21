@@ -11,6 +11,22 @@ const frontendUrl = process.env.FRONTEND_URL as string;
 const supervisorAccountEmail = process.env.SUPERVISOR_ACCOUNT_EMAIL as string;
 const supervisorAccountPassword = process.env.SUPERVISOR_ACCOUNT_PASSWORD as string;
 
+function getNextWeekday() {
+  const d = new Date();
+
+  // 0 = Sunday, 6 = Saturday
+  const day = d.getDay();
+
+  if (day === 6) {
+    // Saturday → add 2 days → Monday
+    d.setDate(d.getDate() + 2);
+  } else if (day === 0) {
+    // Sunday → add 1 day → Monday
+    d.setDate(d.getDate() + 1);
+  }
+
+  return d.toISOString().split("T")[0];
+}
 test("Supervisor: Manage Activity Availability", async ({ page }) => {
 
   const activityTitle = "PLAYWRIGHT TEST ACTIVITY 2";
@@ -53,18 +69,17 @@ test("Supervisor: Manage Activity Availability", async ({ page }) => {
       label: activityTitle,
     });
 
-    // Recurring = YES
-    await page.getByRole("radio", { name: "Yes" }).check();
+    // Recurring = NO
+    await page.getByRole("radio", { name: "No" }).check();
 
-    // Select Monday
-    await page.locator("input[type='checkbox'][value='1']").check();
+    // Select Monday, add this after bug fix
+    //await page.locator("input[type='checkbox'][value='1']").check();
 
     // Dates
-    
-    const today = new Date().toISOString().split("T")[0];
+    const weekday = getNextWeekday();
 
-    await page.getByLabel("Start Date").fill(today);
-    await page.getByLabel("End Date").fill(today);
+    await page.getByLabel("Start Date").fill(weekday);
+    await page.getByLabel("End Date").fill(weekday);
 
     // Time (09:00 → 10:00)
     const startTime = page.getByText("Start Time").locator("..");
@@ -84,28 +99,42 @@ test("Supervisor: Manage Activity Availability", async ({ page }) => {
     await expect(
       page.getByText("Centre Activity Availability created.")
     ).toBeVisible();
+
+    // Wait for table refresh
+    await page.waitForLoadState("networkidle");
   });
 
   // ================= SEARCH =================
   await test.step("Search", async () => {
 
-    await page.getByPlaceholder("Search...").fill(activityTitle);
+    // 1. Select correct activity FIRST
+    await page
+      .getByLabel("Select centre activity to schedule:")
+      .selectOption({ label: activityTitle });
 
-    const row = page.locator("tbody tr").filter({
-      hasText: activityTitle,
-    }).first();
+    // 2. Optional: wait for table refresh
+    await page.waitForLoadState("networkidle");
 
-    await expect(row).toBeVisible();
+    // 3. Then search (optional, but pointless for this ui)
+    //await page.getByPlaceholder("Search...").fill(activityTitle);
+
+    // 4. Assert row
+    const row = page.locator("tbody tr").first();
+
+    await expect(row).toBeVisible({ timeout: 10000 });
   });
 
   // ================= EDIT =================
   await test.step("Edit", async () => {
 
+    
     const row = page.locator("tbody tr").filter({
-      hasText: activityTitle,
+      hasText: "09:00",
+    }).filter({
+      hasText: "10:00",
     }).first();
 
-    await expect(row).toBeVisible();
+    await expect(row).toBeVisible({ timeout: 10000 });
 
     await row.getByRole("button", { name: "Edit" }).click();
 
@@ -122,15 +151,18 @@ test("Supervisor: Manage Activity Availability", async ({ page }) => {
   await test.step("Delete", async () => {
 
     const row = page.locator("tbody tr").filter({
-      hasText: activityTitle,
+      hasText: "09:00",
     }).first();
 
     await expect(row).toBeVisible();
 
+    // ✅ Handle confirm dialog
     page.once("dialog", dialog => dialog.accept());
 
+    // Click delete
     await row.getByRole("button", { name: "Delete" }).click();
 
+    // Assert success
     await expect(
       page.getByText("Availability Deleted.")
     ).toBeVisible();

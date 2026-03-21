@@ -142,9 +142,13 @@ export default function ActivityAvailabilityForm({
             }
 
         try {
-            const daysOfWeekBitmask = is_everyday && selectedDays.length > 0
-            ? selectedDays.reduce((acc, day) => acc | day, 0)
-            : 0;
+            const daysOfWeekBitmask =
+                is_everyday && selectedDays.length > 0
+                    ? selectedDays.reduce((acc, day) => {
+                        if (!DAYS_MAP.some(d => d.value === day)) return acc; // ignore invalid
+                        return acc | day;
+                    }, 0)
+                    : 0;
             const formValues: CentreActivityAvailabilityFormValues = {
             centre_activity_id: parseInt(centre_activity_id),
             start_date: start_date,
@@ -242,7 +246,7 @@ export default function ActivityAvailabilityForm({
                         setIsEveryday(choice.value);
                         
                         if (choice.value) {
-                        setSelectedDays(DAYS_MAP.map(d => d.value));
+                        setSelectedDays([]); // let user choose manually
                         } else {
                         setSelectedDays([]);
                         }
@@ -271,8 +275,11 @@ export default function ActivityAvailabilityForm({
                                 checked={selectedDays.includes(day.value)}
                                 onChange={e => {
                                 const val = day.value;
-                                if (e.target.checked) setSelectedDays([...selectedDays, val]);
-                                else setSelectedDays(selectedDays.filter(v => v !== val));
+                                if (e.target.checked) {
+                                    setSelectedDays(prev => [...new Set([...prev, val])]);
+                                } else {
+                                    setSelectedDays(prev => prev.filter(v => v !== val));
+                                }
                                 }}
                             />
                             <span>{day.label}</span>
