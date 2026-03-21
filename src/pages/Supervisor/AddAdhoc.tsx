@@ -5,8 +5,10 @@ import React, { useEffect, useState } from "react";
 import { fetchAllPatientTD } from "@/api/patients/patients";
 import { createAdhocActivity } from "@/api/activities/adhoc"; 
 import { listCentreActivities, CentreActivity, getActivities } from "@/api/activities/centreActivities";
+import { useNavigate } from "react-router-dom";
 
 const AddAdhoc: React.FC = () => {
+  const navigate = useNavigate();
   const [activities, setActivities] = useState<CentreActivity[]>([]);
   const [loadingActivities, setLoadingActivities] = useState(true);
 
@@ -17,6 +19,13 @@ const AddAdhoc: React.FC = () => {
 
 
   const [form] = Form.useForm();
+  const dateTimeFormat = "YYYY-MM-DD hh:mm:ss A";
+  const [durationMinutes, setDurationMinutes] = useState(30);
+  const pickerPopupClassName = "adhoc-datetime-picker-popup";
+  const timePickerProps = {
+    format: "hh:mm:ss A",
+    use12Hours: true,
+  };
 
   const onFinish = async (values: any) => {
     try {
@@ -33,6 +42,7 @@ const AddAdhoc: React.FC = () => {
 
       message.success("Adhoc activity added successfully!");
       form.resetFields();
+      navigate("/supervisor/manage-adhoc");
     } catch (error) {
       console.error("Failed to add adhoc:", error);
       message.error("Failed to add adhoc activity");
@@ -59,6 +69,30 @@ const AddAdhoc: React.FC = () => {
       );
     }
     return Promise.resolve();
+  };
+
+  const handleStartDateChange = (value: Dayjs | null) => {
+    if (!value) {
+      form.setFieldsValue({ start_date: null, end_date: null });
+      return;
+    }
+
+    form.setFieldsValue({
+      start_date: value,
+      end_date: value.add(durationMinutes, "minute"),
+    });
+  };
+
+  const handleEndDateChange = (value: Dayjs | null) => {
+    const startDate = form.getFieldValue("start_date") as Dayjs | null;
+
+    form.setFieldsValue({
+      end_date: value,
+    });
+
+    if (value && startDate && value.isAfter(startDate)) {
+      setDurationMinutes(value.diff(startDate, "minute"));
+    }
   };
 
   useEffect(() => {
@@ -118,6 +152,13 @@ const AddAdhoc: React.FC = () => {
         });
 
         setActivityMap(map);
+
+        if (centreRes.length > 0) {
+          form.setFieldsValue({
+            old_centre_activity_id: centreRes[0].id,
+            new_centre_activity_id: centreRes[0].id,
+          });
+        }
 
       } catch (error) {
         console.error("Failed to fetch activities", error);
@@ -205,7 +246,6 @@ const AddAdhoc: React.FC = () => {
                     </label>
                   }
                   name="old_centre_activity_id"
-
                   rules={[
                     {
                       required: true,
@@ -238,7 +278,6 @@ const AddAdhoc: React.FC = () => {
                     </label>
                   }
                   name="new_centre_activity_id"
-
                   rules={[
                     {
                       required: true,
@@ -275,9 +314,13 @@ const AddAdhoc: React.FC = () => {
                   className="sm:col-span-3"
                 >
                   <DatePicker
-                    showTime={{ format: "HH:mm:ss" }}
-                    format="YYYY-MM-DD HH:mm:ss"
+                    showTime={timePickerProps}
+                    format={dateTimeFormat}
                     className="w-full"
+                    use12Hours
+                    onChange={handleStartDateChange}
+                    allowClear={false}
+                    popupClassName={pickerPopupClassName}
                   />
                 </Form.Item>
 
@@ -295,9 +338,13 @@ const AddAdhoc: React.FC = () => {
                   className="sm:col-span-3"
                 >
                   <DatePicker
-                    showTime={{ format: "HH:mm:ss" }}
-                    format="YYYY-MM-DD HH:mm:ss"
+                    showTime={timePickerProps}
+                    format={dateTimeFormat}
                     className="w-full"
+                    use12Hours
+                    onChange={handleEndDateChange}
+                    allowClear={false}
+                    popupClassName={pickerPopupClassName}
                   />
                 </Form.Item>
 
@@ -310,6 +357,7 @@ const AddAdhoc: React.FC = () => {
               <button
                 type="button"
                 className="text-sm font-semibold leading-6 text-primary"
+                onClick={() => navigate("/supervisor/manage-adhoc")}
               >
                 Cancel
               </button>

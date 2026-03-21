@@ -180,3 +180,50 @@ input[type=number]::-webkit-inner-spin-button,
 input[type=number]::-webkit-outer-spin-button {
    opacity: 1;
 }
+
+.adhoc-datetime-picker-popup .ant-picker-time-panel {
+  position: relative;
+}
+
+.adhoc-datetime-picker-popup .ant-picker-time-panel-column {
+  position: relative;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.adhoc-datetime-picker-popup .ant-picker-time-panel-column > ul {
+  padding-top: 24px;
+  box-sizing: border-box;
+}
+
+.adhoc-datetime-picker-popup .ant-picker-time-panel-column::before {
+  position: sticky;
+  top: 0;
+  display: block;
+  line-height: 20px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 600;
+  color: hsl(var(--muted-foreground));
+  background: hsl(var(--popover));
+  z-index: 2;
+  pointer-events: none;
+}
+
+.adhoc-datetime-picker-popup .ant-picker-time-panel-column:nth-child(1)::before {
+  content: "HH";
+}
+
+.adhoc-datetime-picker-popup .ant-picker-time-panel-column:nth-child(2)::before {
+  content: "MM";
+}
+
+.adhoc-datetime-picker-popup .ant-picker-time-panel-column:nth-child(3)::before {
+  content: "SS";
+}
+
+.adhoc-datetime-picker-popup .ant-picker-time-panel-column:nth-child(4)::before {
+  content: "AM/PM";
+}
