@@ -314,9 +314,9 @@ export default function ActivityAvailabilityForm({
 
             {/* Dates and times */}
             <div className="space-y-2">
-                <Label htmlFor="date_of_activity">Start Date</Label>
+                <Label htmlFor="start_date">Start Date</Label>
                 <Input
-                    id="date_of_activity"
+                    id="start_date"
                     type="date"
                     value={start_date}
                     disabled={is_deleted ? true : false}
@@ -326,9 +326,9 @@ export default function ActivityAvailabilityForm({
             </div>
 
             <div className="space-y-2">
-                <Label htmlFor="date_of_activity">End Date</Label>
+                <Label htmlFor="end_date">End Date</Label>
                 <Input
-                    id="date_of_activity"
+                    id="end_date"
                     type="date"
                     value={end_date}
                     disabled={is_deleted ? true : false}
