@@ -357,6 +357,7 @@ const EditAdhocModal: React.FC<EditAdhocModalProps> = ({ activity, open, onClose
               onChange={handleStartDateChange}
               allowClear={false}
               popupClassName={pickerPopupClassName}
+              getPopupContainer={(trigger) => trigger.parentElement ?? document.body}
             />
           </div>
 
@@ -371,6 +372,7 @@ const EditAdhocModal: React.FC<EditAdhocModalProps> = ({ activity, open, onClose
               onChange={handleEndDateChange}
               allowClear={false}
               popupClassName={pickerPopupClassName}
+              getPopupContainer={(trigger) => trigger.parentElement ?? document.body}
             />
           </div>
         </div>
