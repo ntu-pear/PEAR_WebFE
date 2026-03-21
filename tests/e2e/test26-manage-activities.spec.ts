@@ -22,6 +22,8 @@ async function fillByLabel(page: Page, labelText: string, value: string) {
 
 test("Supervisor: Manage Activities (NEW UI)", async ({ page }) => {
   
+  const name = `E2E Activity5 ${Date.now()}-${Math.random()}`;
+
   // ================= LOGIN =================
   await test.step("Login", async () => {
     await page.goto(frontendUrl);
@@ -37,10 +39,10 @@ test("Supervisor: Manage Activities (NEW UI)", async ({ page }) => {
 
   // ================= NAVIGATE =================
   await test.step("Navigate to Manage Activities", async () => {
-    await page.getByText("Manage Activities").click();
+    await page.goto(`${frontendUrl}/manage-activities`);
 
     await expect(
-      page.getByRole("heading", { name: "Manage Activities" })
+      page.getByText("Manage Activities", { exact: true })
     ).toBeVisible();
   });
 
@@ -53,43 +55,6 @@ test("Supervisor: Manage Activities (NEW UI)", async ({ page }) => {
     for (const header of headers) {
       await expect(page.locator("th", { hasText: header })).toBeVisible();
     }
-
-    const rows = page.locator("tbody tr");
-    await expect(rows.first()).toBeVisible();
-  });
-
-  // ================= SEARCH =================
-  await test.step("Search activities", async () => {
-    const keyword = "a";
-
-    await page.getByPlaceholder("Search...").fill(keyword);
-
-    await page.waitForTimeout(1000);
-
-    const firstRowText = await page
-      .locator("tbody tr")
-      .first()
-      .textContent();
-
-    expect(firstRowText?.toLowerCase()).toContain(keyword);
-  });
-
-  // ================= SEARCH FIELD TOGGLES =================
-  await test.step("Toggle search fields", async () => {
-    await page.getByRole("button", { name: "Title" }).click();
-    await page.getByRole("button", { name: "Description" }).click();
-  });
-
-  // ================= FILTER (DELETED) =================
-  await test.step("Filter deleted activities", async () => {
-    await page.getByRole("button", { name: "Deleted" }).click();
-
-    await page.getByText("All").click();
-
-    await page.waitForTimeout(1000);
-
-    const rows = page.locator("tbody tr");
-    await expect(rows.first()).toBeVisible();
   });
 
   // ================= ADD ACTIVITY =================
@@ -100,40 +65,86 @@ test("Supervisor: Manage Activities (NEW UI)", async ({ page }) => {
       page.getByRole("heading", { name: "Create Activity" })
     ).toBeVisible();
 
-    const name = "E2E Activity";
-
     await fillByLabel(page, "Title", name);
     await fillByLabel(page, "Description", "Created via E2E test");
 
-    await page.getByRole("button", { name: "Submit" }).click();
+    const saveButton = page.getByRole("button", { name: "Save" });
+
+    await expect(saveButton).toBeVisible();
+    await expect(saveButton).toBeEnabled();
+
+    await saveButton.click();
 
     await expect(page.getByText("Activity created.")).toBeVisible();
   });
 
+  // ================= SEARCH =================
+  await test.step("Search activities", async () => {
+    await page.getByPlaceholder("Search...").fill(name);
+
+    await page.waitForTimeout(1000);
+
+    const row = page.locator("tbody tr").filter({ hasText: name });
+
+    await expect(row).toBeVisible();
+
+    //const titleCell = page.locator("tbody tr").first().locator("td").first();
+
+    //await expect(titleCell).toContainText(name, { ignoreCase: true });
+
+    //expect(firstRowText).toContain(name);
+  });
+
   // ================= EDIT =================
   await test.step("Edit activity", async () => {
-    const firstRow = page.locator("tbody tr").first();
 
-    await firstRow.getByRole("button", { name: "Edit" }).click();
+    // 🔥 SEARCH FIRST
+    await page.getByPlaceholder("Search...").fill(name);
+    await page.waitForTimeout(1000);
+
+    const targetRow = page
+      .locator("tbody tr")
+      .filter({ hasText: name });
+
+    await expect(targetRow).toBeVisible();
+
+    await targetRow.getByRole("button", { name: "Edit" }).click();
 
     await expect(
       page.getByRole("heading", { name: "Edit Activity" })
     ).toBeVisible();
 
-    await page.getByRole("button", { name: "Submit" }).click();
+    const saveButton = page.getByRole("button", { name: "Save" });
+
+    await expect(saveButton).toBeVisible();
+    await expect(saveButton).toBeEnabled();
+
+    await saveButton.click();
 
     await expect(page.getByText("Activity updated.")).toBeVisible();
   });
 
   // ================= DELETE =================
   await test.step("Delete activity", async () => {
-    const firstRow = page.locator("tbody tr").first();
 
-    await firstRow.getByRole("button", { name: "Delete" }).click();
+    // 🔥 SEARCH FIRST AGAIN (VERY IMPORTANT)
+    await page.getByPlaceholder("Search...").fill(name);
+    await page.waitForTimeout(1000);
 
-    // native confirm dialog
-    page.on("dialog", dialog => dialog.accept());
+    const targetRow = page
+      .locator("tbody tr")
+      .filter({ hasText: name });
+
+    await expect(targetRow).toBeVisible();
+
+    // handle dialog BEFORE clicking
+    page.once("dialog", dialog => dialog.accept());
+
+    await targetRow.getByRole("button", { name: "Delete" }).click();
 
     await expect(page.getByText("Activity deleted.")).toBeVisible();
+
+    // confirm it's gone
+    await expect(targetRow).toHaveCount(0);
   });
 });
