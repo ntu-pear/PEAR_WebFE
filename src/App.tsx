@@ -65,7 +65,7 @@ import ViewAccount from "./pages/Admin/ViewAccount";
 import { ViewAccountProvider } from "./hooks/admin/useViewAccount";
 import ManageSocialHistory from "./pages/Admin/ManageSocialHistory";
 import ManageCentre from "./pages/Admin/ManageCentre";
-import CustomRoleProtectedRoute from "./components/CustomRoleProtectedRoute";
+//import CustomRoleProtectedRoute from "./components/CustomRoleProtectedRoute";
 import PatientScheduleView from "./pages/Supervisor/PatientScheduleView";
 import SchedulerSystemTest from "./pages/Supervisor/SchedulerSystemTest";
 import FeatureFlagSettings from "./pages/FeatureFlagSettings";
