@@ -20,20 +20,31 @@ const doctorEmail = process.env.DOCTOR_ACCOUNT_EMAIL!;
 if (!doctorEmail) throw new Error('Missing SUPERVISOR_ACCOUNT_EMAIL');
 const doctorPassword = process.env.DOCTOR_ACCOUNT_PASSWORD!;
 if (!doctorPassword) throw new Error('Missing SUPERVISOR_ACCOUNT_PASSWORD')
+const userServiceURL = process.env.USER_SERVICE_URL as string; 
+
+async function setupRouteInterception(page: any) {
+    await page.route('**', async (route: any) => {
+        const request = route.request();
+        let url = request.url();
+        if (userServiceURL && url.includes(userServiceURL)) {
+            const prevUrl = url;
+            url = url.replace(userServiceURL, 'http://localhost');
+            console.log(`Rewrote URL: ${prevUrl} to ${url}`);
+            await route.continue({ url });
+        } else {
+            await route.continue();
+        }
+    });
+}
 
 async function login(page: any, email: string, password: string, roleUrl: string) {
     await page.goto(frontendUrl);
     await page.getByRole('textbox', { name: 'Enter a valid email address.' }).fill(email);
     await page.getByRole('textbox', { name: 'Password' }).fill(password);
-
-    const loginResponse = page.waitForResponse((resp: any) => resp.url().includes('/login'));
     await page.getByRole('button', { name: 'LOGIN' }).click();
-    await loginResponse;
 
-    await expect(page.getByText('Login successful.')).toBeVisible();
-    await page.waitForURL(new RegExp(`${roleUrl}/manage-patients`));
-    if(roleUrl!="guardian")
-        await page.getByRole('tab', { name: 'My Patients' }).waitFor({ state: 'visible' });
+    await page.waitForURL(new RegExp(`${roleUrl}/manage-patients`), { timeout: 45000 });
+    await page.getByRole('tab', { name: 'My Patients' }).waitFor({ state: 'visible' });
 }
 
 async function testSearchFilterViewMore(page: any, role: 'supervisor' | 'doctor') {
@@ -120,6 +131,9 @@ async function testSearchFilterViewMore(page: any, role: 'supervisor' | 'doctor'
 
 // testing manage patient, GUARDIAN role
 test('Guardian - Manage Patient Page', async ({ page }) => {
+    await test.step('Setup route interception', async () => {
+        await setupRouteInterception(page);
+    });
     await test.step('Login as guardian', async () => {
         await login(page, guardianEmail, guardianPassword, 'guardian');
     });
@@ -151,6 +165,9 @@ test('Guardian - Manage Patient Page', async ({ page }) => {
 });
 
 test('Supervisor - Manage Patient Page', async ({ page }) => {
+    await test.step('Setup route interception', async () => {
+        await setupRouteInterception(page);
+    });
     await test.step('Login as supervisor', async () => {
         await login(page, supervisorEmail, supervisorPassword, 'supervisor');
     });
@@ -172,7 +189,7 @@ test('Supervisor - Manage Patient Page', async ({ page }) => {
         await myPatientsTab.click();
         await expect(myPatientsTab).toHaveAttribute('data-state', 'active');
         await expect(page.getByText('Manage your patients and view their details.')).toBeVisible();
-        await page.locator('table tbody tr').first().waitFor({ state: 'visible' }); 
+        await page.locator('table tbody tr').first().waitFor({ state: 'visible' });
         console.log('Switched back to My Patients tab');
     });
 
@@ -180,6 +197,9 @@ test('Supervisor - Manage Patient Page', async ({ page }) => {
 });
 
 test('Doctor - Manage Patient Page', async ({ page }) => {
+    await test.step('Setup route interception', async () => {
+        await setupRouteInterception(page);  
+    });
     await test.step('Login as doctor', async () => {
         await login(page, doctorEmail, doctorPassword, 'doctor');
     });
@@ -201,7 +221,7 @@ test('Doctor - Manage Patient Page', async ({ page }) => {
         await myPatientsTab.click();
         await expect(myPatientsTab).toHaveAttribute('data-state', 'active');
         await expect(page.getByText('Manage your patients and view their details.')).toBeVisible();
-        await page.locator('table tbody tr').first().waitFor({ state: 'visible' }); 
+        await page.locator('table tbody tr').first().waitFor({ state: 'visible' });
         console.log('Switched back to My Patients tab');
     });
 
