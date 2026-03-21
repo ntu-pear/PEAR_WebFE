@@ -57,15 +57,18 @@ const ManageMedication: React.FC = () => {
       const fetchedPatientTDServer: PatientTableDataServer =
         await fetchAllPatientTD(debouncedSearch, "1", pageNo);
 
-      const filteredPatientTDList = fetchedPatientTDServer.patients.filter(
-        (ptd: PatientTableData) =>
-          debouncedRole === "myPatients" && mockCaregiverID !== null
-            ? (ptd.caregiverId ?? 0) === mockCaregiverID
-            : true
-      );
+      // ONLY filter role if backend doesn't support it
+      let patients = fetchedPatientTDServer.patients;
+
+      if (debouncedRole === "myPatients" && mockCaregiverID !== null) {
+        patients = patients.filter(
+          (ptd: PatientTableData) =>
+            (ptd.caregiverId ?? 0) === mockCaregiverID
+        );
+      }
 
       setPatientTDServer({
-        patients: filteredPatientTDList,
+        patients,
         pagination: fetchedPatientTDServer.pagination,
       });
     } catch (error) {
@@ -150,7 +153,20 @@ const ManageMedication: React.FC = () => {
           <div className="w-full md:max-w-md">
             <Searchbar
               searchItem={search}
-              onSearchChange={(e) => setSearch(e.target.value)}
+              onSearchChange={(e) => {
+                const value = e.target.value;
+
+                setSearch(value);
+
+                //Reset to page 0 when searching
+                setPatientTDServer((prev) => ({
+                  ...prev,
+                  pagination: {
+                    ...prev.pagination,
+                    pageNo: 0,
+                  },
+                }));
+              }}
             />
           </div>
 
