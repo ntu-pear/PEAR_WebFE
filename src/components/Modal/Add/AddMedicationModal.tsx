@@ -38,6 +38,7 @@ const AddMedicationModal: React.FC = () => {
   });
 
   const { modalRef, activeModal, closeModal } = useModal();
+
   const { patientId, submitterId, refreshMedicationData } =
     activeModal.props as {
       patientId: string;
@@ -52,40 +53,48 @@ const AddMedicationModal: React.FC = () => {
 
   const handleFetchPrescriptionList = async () => {
     try {
-      const prescriptionList: PrescriptionListView =
-        await fetchPrescriptionList();
-      setPrescriptionList(prescriptionList.data);
-    } catch (error) {
+      const res: PrescriptionListView = await fetchPrescriptionList();
+      setPrescriptionList(res.data);
+    } catch {
       toast.error("Failed to fetch Prescription List");
     }
   };
 
-  // -------------------------------
-  // CLOSE WITH CONFIRMATION
-  // -------------------------------
+  // CLOSE CONFIRM
   const handleClose = () => {
     if (isDirty) {
       const confirmLeave = window.confirm(
         "You have unsaved changes. Are you sure you want to leave?"
       );
-
       if (!confirmLeave) return;
     }
-
     closeModal();
   };
 
-  // -------------------------------
   // SUBMIT
-  // -------------------------------
   const handleAddMedication: SubmitHandler<TAddMedicationForm> = async ({
     AdministerTime,
     ...data
   }) => {
+    const time = dayjs(AdministerTime).format("HHmm");
+
+    const hour = parseInt(time.slice(0, 2), 10);
+    const minute = time.slice(2);
+
+    if (hour < 9 || hour > 17) {
+      toast.error("Only 09:00–17:00 allowed");
+      return;
+    }
+
+    if (hour === 17 && minute !== "00") {
+      toast.error("Only 17:00 is allowed");
+      return;
+    }
+
     const payload: IMedicationFormData = {
       IsDeleted: "0",
       PatientId: parseInt(patientId as string, 10),
-      AdministerTime: dayjs(AdministerTime).format("HHmm"),
+      AdministerTime: time,
       ...data,
       CreatedDateTime: getDateTimeNowInUTC() as string,
       UpdatedDateTime: getDateTimeNowInUTC() as string,
@@ -95,10 +104,8 @@ const AddMedicationModal: React.FC = () => {
 
     try {
       await addPatientMedication(payload);
-
       toast.success("Patient medication added successfully.");
       refreshMedicationData();
-
       closeModal();
     } catch (error: any) {
       toast.error(error?.message || "Failed to add medication");
@@ -109,9 +116,6 @@ const AddMedicationModal: React.FC = () => {
     handleFetchPrescriptionList();
   }, []);
 
-  // -------------------------------
-  // PREVENT CLICK OUTSIDE CLOSE
-  // -------------------------------
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (modalRef.current && !modalRef.current.contains(e.target as Node)) {
@@ -126,11 +130,15 @@ const AddMedicationModal: React.FC = () => {
     };
 
     document.addEventListener("mousedown", handleClickOutside);
-
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [isDirty]);
+
+  const getTextColor = (length: number) => {
+    if (length >= 255) return "text-red-600 font-semibold";
+    if (length >= 240) return "text-red-500 font-medium";
+    if (length >= 200) return "text-orange-500";
+    return "text-muted-foreground";
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
@@ -158,8 +166,8 @@ const AddMedicationModal: React.FC = () => {
             label="Administer Time"
             name="AdministerTime"
             form={form}
-            minuteStep={30}
-            required
+            minHour={9}
+            maxHour={16}
           />
 
           <Input
@@ -177,6 +185,14 @@ const AddMedicationModal: React.FC = () => {
               maxLength={MAX_LENGTH}
               required
             />
+
+            <div
+              className={`flex justify-end text-sm mt-1 ${getTextColor(
+                form.watch("Instruction")?.length || 0
+              )}`}
+            >
+              {form.watch("Instruction")?.length || 0}/{MAX_LENGTH}
+            </div>
           </div>
 
           <DateInput
@@ -204,7 +220,11 @@ const AddMedicationModal: React.FC = () => {
               required
             />
 
-            <div className="flex justify-end text-sm text-muted-foreground mt-1">
+            <div
+              className={`flex justify-end text-sm mt-1 ${getTextColor(
+                form.watch("PrescriptionRemarks")?.length || 0
+              )}`}
+            >
               {form.watch("PrescriptionRemarks")?.length || 0}/{MAX_LENGTH}
             </div>
           </div>
