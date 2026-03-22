@@ -4,9 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { useNavigate } from "react-router-dom";
 import { 
-  ArrowLeft, 
   Settings2, 
   Save, 
   Clock, 
@@ -18,7 +16,6 @@ import {
 import { getMiscSettings, updateMiscSettings, type MiscSettings } from "@/api/admin/config";
 
 const ManageMiscellaneous: React.FC = () => {
-  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
 
