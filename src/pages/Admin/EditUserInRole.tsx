@@ -68,7 +68,7 @@ const EditUserInRole: React.FC = () => {
   // IMPORTANT:
   // This assumes your useUsers hook supports sortBy + sortDir.
   // If it currently only accepts (page, search), update that hook/API call too.
-  const { data, isLoading } = useUsers(page, debouncedSearch, sortBy, sortDir);
+  const { data, isLoading } = useUsers(page, debouncedSearch);
   const availableUsers = data?.users || [];
   const total = data?.total || 0;
 
@@ -245,6 +245,7 @@ const EditUserInRole: React.FC = () => {
                   sortBy={sortBy}
                   sortDir={sortDir}
                   loading={isLoading}
+                  viewMore={false}
                 />
               </CardContent>
             </Card>
@@ -326,7 +327,7 @@ const EditUserInRole: React.FC = () => {
       </div>
 
       <Dialog open={!!orphanUser}>
-        <DialogContent className="rounded-2xl">
+        <DialogContent className="rounded-2xl [&>button]:hidden">
           <DialogTitle className="text-xl font-semibold">Assign role</DialogTitle>
           <DialogDescription className="text-sm text-muted-foreground">
             {orphanUser?.name} needs a new role.
