@@ -167,79 +167,79 @@ const EditRoles: React.FC = () => {
   ];
 
   const accessLevelColumns = [
-    {
-      key: "levelName",
-      header: "Name",
-      render: (val: string, lvl: AccessLevel) => (
-        <div>
-          <div className="text-sm font-medium text-foreground">{val}</div>
-          <div className="text-sm text-muted-foreground">
-            {lvl.description || "(no description)"}
-          </div>
+  {
+    key: "levelName",
+    header: "Name",
+    render: (val: string, lvl: AccessLevel) => (
+      <div>
+        <div className="text-sm font-medium text-foreground">{val}</div>
+        <div className="text-sm text-muted-foreground">
+          {lvl.description || "(no description)"}
         </div>
-      ),
-    },
-    {
-      key: "id",
-      header: "ID",
-      render: (val: string) => (
-        <span className="font-mono text-sm text-foreground">{val}</span>
-      ),
-    },
-    {
-      key: "levelRank",
-      header: "Rank",
-      render: (val: number) => (
-        <span className="font-mono text-sm text-foreground">{val}</span>
-      ),
-    },
-    {
-      key: "code",
-      header: "Code",
-      render: (val: string) => (
-        <span className="font-mono text-sm text-foreground">{val}</span>
-      ),
-    },
-    {
-      key: "actions",
-      header: "",
-      className: "font-sans w-[120px] px-4",
-      render: (_: any, lvl: AccessLevel) => (
-        <div className="flex gap-2">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="text-muted-foreground hover:text-primary hover:bg-accent"
-            onClick={() =>
-              openModal("editAccessLevel", {
-                level: lvl,
-                onSuccess: loadData,
-              })
-            }
-          >
-            <Edit2 className="h-4 w-4 mr-1" />
-            Edit
-          </Button>
+      </div>
+    ),
+  },
+  {
+    key: "id",
+    header: "ID",
+    render: (val: string) => (
+      <span className="font-mono text-sm text-foreground">{val}</span>
+    ),
+  },
+  {
+    key: "levelRank",
+    header: "Rank",
+    render: (val: number) => (
+      <span className="font-mono text-sm text-foreground">{val}</span>
+    ),
+  },
+  {
+    key: "code",
+    header: "Code",
+    render: (val: string) => (
+      <span className="font-mono text-sm text-foreground">{val}</span>
+    ),
+  },
+  {
+    key: "actions",
+    header: "",
+    className: "font-sans w-[120px] px-4",
+    render: (_: any, lvl: AccessLevel) => (
+      <div className="flex gap-2">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="text-muted-foreground hover:text-primary hover:bg-accent"
+          onClick={() =>
+            openModal("editAccessLevel", {
+              level: lvl,
+              onSuccess: loadData,
+            })
+          }
+        >
+          <Edit2 className="h-4 w-4 mr-1" />
+          Edit
+        </Button>
 
-          <Button
-            variant="ghost"
-            size="sm"
-            className="text-muted-foreground hover:text-primary hover:bg-accent"
-            disabled={lvl.isSystem}
-            onClick={() =>
-              openModal("deleteAccessLevel", {
-                level: lvl,
-                onSuccess: loadData,
-              })
-            }
-          >
-            <Trash2 className="h-4 w-4 mr-1" />
-            Delete
-          </Button>
-        </div>
-      ),
-    },
-  ];
+        <Button
+          variant="ghost"
+          size="sm"
+          className="text-muted-foreground hover:text-primary hover:bg-accent"
+          disabled={lvl.isSystem}
+          onClick={() =>
+            openModal("deleteAccessLevel", {
+              level: lvl,
+              onSuccess: loadData,
+            })
+          }
+        >
+          <Trash2 className="h-4 w-4 mr-1" />
+          Delete
+        </Button>
+      </div>
+    ),
+  },
+];
 
   return (
     <div className="flex min-h-screen w-full font-sans">
@@ -277,13 +277,11 @@ const EditRoles: React.FC = () => {
 
               <TabsContent value="roles" className="mt-6">
                 <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 px-2 mb-0">
-                  <div className="-ml-8">
                   <Searchbar
                     searchItem={nameInput}
                     onSearchChange={(e) => setNameInput(e.target.value)}
                     placeholder="Filter by role title..."
                   />
-                  </div>
                   <div className="flex items-center gap-5">
                     <Button
                       onClick={() => navigate("/admin/create-role")}
@@ -297,9 +295,9 @@ const EditRoles: React.FC = () => {
 
                 <Card className="border border-border shadow-sm bg-card overflow-hidden rounded-2xl mt-6">
                   <CardHeader>
-                    <CardTitle>Edit Roles</CardTitle>
+                    <CardTitle>Access Control</CardTitle>
                     <CardDescription>
-                      Edit Role Information and Manage User Assignments. Click on a role to see details and manage user assignments.
+                      Configure institutional roles and responsibility scopes.
                     </CardDescription>
                   </CardHeader>
 
@@ -326,14 +324,7 @@ const EditRoles: React.FC = () => {
 
               <TabsContent value="levels" className="mt-6">
                 <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 px-2 mb-0">
-                 <div className="-ml-8">
-                  <Searchbar
-                    searchItem={nameInput}
-                    onSearchChange={(e) => setNameInput(e.target.value)}
-                    placeholder="Filter by access level name..."
-                  />
-                  </div>
-                  
+                  <div />
                   <div className="flex items-center gap-5">
                     <Button
                       size="sm"
@@ -360,12 +351,12 @@ const EditRoles: React.FC = () => {
 
                   <CardContent className="pt-0">
                     <div className="overflow-x-auto">
-                      <DataTableClient
+                      <DataTableClient<AccessLevel>
                         data={accessLevels}
                         columns={accessLevelColumns}
-                        pageSize={PAGE_SIZE}
                         loading={loading}
                         className="min-w-full"
+                        viewMore={false}
                       />
                     </div>
                   </CardContent>
