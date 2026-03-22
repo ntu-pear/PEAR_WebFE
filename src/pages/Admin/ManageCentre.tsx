@@ -3,7 +3,7 @@ import { Building2, Plus, Pencil, Trash2, RefreshCcw, AlertTriangle } from "luci
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Card } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useForm, Controller } from "react-hook-form";
 import { toast } from "sonner";
@@ -67,7 +67,7 @@ function formatWorkingHours(wh: WorkingHours) {
     { key: "sunday",    label: "Sun" },
   ];
   return (
-    <div className="space-y-1 text-xs leading-5">
+    <div className="font-sans space-y-1 text-xs leading-5">
       {DAYS.map(({ key, label }) => {
         const v = wh[key];
         const display = !isDayClosed(v) && v?.open && v?.close
@@ -249,51 +249,19 @@ export default function ManageCentre() {
   // ── columns ───────────────────────────────────────────────────────────────
 
   const cols = useMemo(() => [
-    {
-      key: "name",
-      header: "CENTRE",
-      className: "font-bold text-foreground tracking-tight px-4",
-    },
+    { key: "name", header: "Centre" },
     {
       key: "country_code",
-      header: "COUNTRY",
-      className: "w-[100px] px-4",
-      render: (v: string) => (
-        <Badge variant="outline" className="border-primary/10 bg-secondary text-primary uppercase text-[9px] font-bold tracking-widest px-2 py-0">
-          {v}
-        </Badge>
-      ),
+      header: "Country",
+      render: (v: string) => <Badge variant="secondary">{v}</Badge>,
     },
-    {
-      key: "address",
-      header: "ADDRESS",
-      className: "px-4",
-      render: (v: string) => (
-        <span className="text-[13px] text-muted-foreground font-medium whitespace-pre-wrap break-words max-w-[280px] block">{v}</span>
-      ),
-    },
-    {
-      key: "postal_code",
-      header: "POSTAL",
-      className: "w-[100px] px-4",
-      render: (v: string) => <span className="font-mono text-[11px] tabular-nums">{v}</span>,
-    },
-    {
-      key: "contact_no",
-      header: "CONTACT",
-      className: "w-[130px] px-4",
-      render: (v: string) => <span className="font-mono text-[12px] tabular-nums">{v}</span>,
-    },
-    {
-      key: "no_of_devices_avail",
-      header: "DEVICES",
-      className: "w-[90px] px-4",
-      render: (v: number) => <span className="tabular-nums font-bold text-foreground">{v}</span>,
-    },
+    { key: "address", header: "Address" },
+    { key: "postal_code", header: "Postal" },
+    { key: "contact_no", header: "Contact" },
+    { key: "no_of_devices_avail", header: "Devices" },
     {
       key: "working_hours",
-      header: "HOURS",
-      className: "px-4",
+      header: "Hours",
       render: (wh: WorkingHours) => formatWorkingHours(wh),
     },
   ], []);
@@ -306,67 +274,55 @@ export default function ManageCentre() {
     <div className="min-h-screen bg-background p-6 md:p-12 font-sans">
       <div className="max-w-7xl mx-auto space-y-8">
 
-        {/* Page header */}
-        <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 px-2">
-          <div className="flex items-center gap-5">
-            <div className="p-3 bg-primary text-primary-foreground rounded-2xl shadow-xl shadow-primary/10">
-              <Building2 className="h-7 w-7" />
-            </div>
-            <div>
-              <h1 className="text-3xl font-bold text-foreground tracking-tight">Care Centres</h1>
-              <p className="text-muted-foreground text-sm font-medium tracking-wide">
-                Manage facility locations, contact details, and operating hours.
-              </p>
-            </div>
-          </div>
-          <Button onClick={startCreate} className="gap-2 shrink-0">
-            <Plus className="h-4 w-4" />
-            New Centre
-          </Button>
-        </header>
-
-        {/* Table card */}
         <Card className="border border-border shadow-sm bg-card overflow-hidden rounded-2xl">
-          <div className="p-5 border-b border-border bg-muted/30 flex items-center gap-4">
-            <div className="flex-1" />
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => window.location.reload()}
-              className="shrink-0 bg-background border-border text-muted-foreground hover:text-foreground"
-            >
-              <RefreshCcw className={`h-4 w-4 ${isFetching ? "animate-spin" : ""}`} />
+          {/* Added justify-between to push the button to the far right */}
+          <div className="flex flex-row items-center justify-between p-6"> 
+            <CardHeader className="p-0"> {/* Remove default padding to handle it via the parent div */}
+              <CardTitle>Care Centres</CardTitle>
+              <CardDescription>
+                Manage facility locations, contact details, and operating hours.
+              </CardDescription>
+            </CardHeader>
+            
+            <Button onClick={startCreate} className="gap-2 shrink-0">
+              <Plus className="h-4 w-4" />
+              New Centre
             </Button>
           </div>
+          
+          <CardContent className="pt-0"> {/* Ensure content padding aligns correctly */}
 
-          <div className="overflow-x-auto">
-            <DataTableClient<CareCentreResponse>
-              data={data}
-              columns={cols as any}
-              viewMore={false}
-              hideActionsHeader={false}
-              renderActions={(row) => (
-                <div className="flex gap-1.5 justify-end">
-                  <Button
-                    variant="ghost" size="sm"
-                    className="text-muted-foreground hover:text-primary hover:bg-accent"
-                    onClick={() => startEdit(row)}
-                  >
-                    <Pencil className="h-3.5 w-3.5 mr-1" />
-                    Edit
-                  </Button>
-                  <Button
-                    variant="ghost" size="sm"
-                    className="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-                    onClick={() => remove(row)}
-                  >
-                    <Trash2 className="h-3.5 w-3.5 mr-1" />
-                    Delete
-                  </Button>
-                </div>
-              )}
-            />
-          </div>
+      
+
+            <div className="overflow-x-auto">
+              <DataTableClient<CareCentreResponse>
+                data={data}
+                columns={cols as any}
+                viewMore={false}
+                hideActionsHeader={false}
+                renderActions={(row) => (
+                  <div className="flex gap-1.5 justify-end">
+                    <Button
+                      variant="ghost" size="sm"
+                      className="text-muted-foreground hover:text-primary hover:bg-accent"
+                      onClick={() => startEdit(row)}
+                    >
+                      <Pencil className="h-3.5 w-3.5 mr-1" />
+                      Edit
+                    </Button>
+                    <Button
+                      variant="ghost" size="sm"
+                      className="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                      onClick={() => remove(row)}
+                    >
+                      <Trash2 className="h-3.5 w-3.5 mr-1" />
+                      Delete
+                    </Button>
+                  </div>
+                )}
+              />
+            </div>
+          </CardContent>
         </Card>
 
         {/* Footer notice */}
