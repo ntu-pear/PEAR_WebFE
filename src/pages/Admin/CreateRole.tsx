@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom";
 import useCreateRole from "@/hooks/role/useCreateRole";
 import Input from "@/components/Form/Input";
 import Select from "@/components/Form/Select";
-import { fetchAccessLevels, AccessLevel } from "@/api/access_level/access_level.ts";
+import { fetchAccessLevels, AccessLevel } from "@/api/access_level/access_level";
 import { 
   ArrowLeft, 
   ShieldPlus, 

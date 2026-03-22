@@ -2,20 +2,20 @@ import { toast } from "sonner";
 import { roleAPI, roleNameAPI } from "../apiConfig";
 import { retrieveAccessTokenFromCookie } from "../users/auth";
 
-// export interface AccessLevel {
-//   id: string;
-//   code: string;
-//   levelRank: number;
-//   levelName: string;
-//   description: string;
-//   isSystem: boolean;
-//   isEditable?: boolean;
-//   isDeletable?: boolean;
-//   createdById: string;
-//   createdDate: string;
-//   modifiedById: string;
-//   modifiedDate: string;
-// }
+export interface AccessLevel {
+  id: string;
+  code: string;
+  levelRank: number;
+  levelName: string;
+  description: string;
+  isSystem: boolean;
+  isEditable?: boolean;
+  isDeletable?: boolean;
+  createdById: string;
+  createdDate: string;
+  modifiedById: string;
+  modifiedDate: string;
+}
 
 export interface Role {
   id: string;

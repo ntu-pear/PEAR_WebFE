@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { toast } from "sonner";
 import { DataTableServer } from "@/components/Table/DataTable";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -178,6 +177,7 @@ const ManageRoles: React.FC = () => {
               loading={loading}
               // Applying your .table-fixed class
               className="table-fixed min-w-[1000px]" 
+              viewMore={false}
             />
           </div>
         </Card>

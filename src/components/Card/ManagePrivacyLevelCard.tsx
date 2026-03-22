@@ -30,14 +30,14 @@ const ManageAccessLevelCard = () => {
         label: role.roleName,
         id: role.id,
         // Match this exactly with the form data
-        privacyLevel: role.accessLevel.code as AccessLevelCode 
+        privacyLevel: role.accessLevel?.code as AccessLevelCode 
       })), [data]
   );
 
   // 2. Map formValues to use the string code (e.g., 'LOW')
   const formValues = useMemo(() =>
     data?.reduce((acc, role) => {
-      acc[role.roleName] = role.accessLevel.code as AccessLevelCode;
+      acc[role.roleName] = role.accessLevel?.code as AccessLevelCode;
       return acc;
     }, {} as AccessLevelForm), [data]
   );
