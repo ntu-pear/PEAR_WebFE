@@ -30,6 +30,7 @@ import {
   CheckCircle2,
   Loader2,
   Lock,
+  ShieldAlert
 } from "lucide-react";
 
 // Hooks & API
@@ -341,7 +342,6 @@ const EditUserInRole: React.FC = () => {
                 variant="outline"
               >
                 <span>{r.roleName}</span>
-                <ChevronRight className="h-4 w-4" />
               </Button>
             ))}
           </div>

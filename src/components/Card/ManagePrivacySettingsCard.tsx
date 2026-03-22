@@ -239,6 +239,7 @@ const ManagePrivacySettingsCard = () => {
               sortBy={sortBy === "socialHistory" ? "label" : "privacy"}
               sortDir={sortDir}
               className="min-w-full"
+              viewMore={false}
             />
           </div>
 

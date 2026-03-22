@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Building2, Plus, Pencil, Trash2, RefreshCcw, AlertTriangle } from "lucide-react";
+import { Plus, Pencil, Trash2, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -16,8 +16,7 @@ import {
 } from "@/hooks/admin/useCareCentre";
 import {
   CareCentreResponse,
-  CreateCareCentre,
-  UpdateCareCentre,
+  CreateCareCentre
 } from "@/types/careCentre";
 import WorkingHoursInput, {
   WorkingHours,

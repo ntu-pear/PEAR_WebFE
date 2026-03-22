@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ShieldAlert } from "lucide-react";
 
 import ManagePrivacySettingsCard from "@/components/Card/ManagePrivacySettingsCard";
 import ManageAccessLevelCard from "@/components/Card/ManagePrivacyLevelCard";
