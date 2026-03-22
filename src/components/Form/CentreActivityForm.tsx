@@ -5,7 +5,6 @@ import { Label } from "@/components/ui/label";
 import {Activity} from "@/api/activities/activities";
 import dayjs from "dayjs";
 import { toast } from "sonner";
-import { getAllActivities } from "@/api/activity/activityPreference";
 import { listActivities } from "@/api/activities/activities";
 import { type FormErrors, type CentreActivityFormValues, validateLocal } from "@/lib/validation/centreActivity";
 
@@ -38,8 +37,13 @@ export default function CentreActivityForm({
   const [activity_id, setActivityID] = useState<string>(initial?.activity_id?.toString() ?? "");
   const [is_fixed, setIs_Fixed] = useState(initial?.is_fixed ?? false);
   const [is_compulsory, setIs_Compulsory] = useState(initial?.is_compulsory ?? false);
-  const [start_date, setStart_date] = useState(initial?.start_date ?? "");
-  const [end_date, setEnd_date] = useState(initial?.end_date ?? "");
+  const today = dayjs().format("YYYY-MM-DD");
+  const [start_date, setStart_date] = useState(
+    initial?.start_date ?? today
+  );
+  const [end_date, setEnd_date] = useState(
+    initial?.end_date ?? today
+  );
   const [min_duration, setMin_duration] = useState<number>(initial?.min_duration ?? 60);
   const [max_duration, setMax_duration] = useState<number>(initial?.max_duration ?? 60);
   const [is_group, setIs_Group] = useState(initial?.is_group ?? false);
