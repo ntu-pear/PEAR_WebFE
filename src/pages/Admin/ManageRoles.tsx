@@ -146,6 +146,8 @@ const ManageRoles: React.FC = () => {
                   sortDir={urlSortDir}
                   loading={loading}
                   className="min-w-full"
+
+                  viewMore={false}
                 />
               </div>
             </CardContent>

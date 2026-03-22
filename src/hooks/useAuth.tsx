@@ -38,7 +38,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   children,
 }) => {
   const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
   const expiryTimeout = useRef<NodeJS.Timeout | null>(null);
   
@@ -139,7 +139,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     } catch (error) {
       console.error("Failed to fetch user on refresh:", error);
       setCurrentUser(null);
-      navigate("/login", { replace: true });
+      //navigate("/login", { replace: true });
     } finally {
       setIsLoading(false);
     }
@@ -289,6 +289,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     };
   }, [currentUser]);
 
+  /*
   useEffect(() => {
     const token = retrieveAccessTokenFromCookie();
     if (token && !currentUser) {
@@ -297,6 +298,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       // If user is authenticated, start checking for access token expiry
       checkAccessTokenExpiry();
     }
+
 
     // Cleanup timeout when currentUser changes or on unmount
     return () => {
@@ -308,7 +310,41 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       }
     };
   }, [currentUser]);
+*/
 
+  // 1. Init auth on first load
+useEffect(() => {
+  const initAuth = async () => {
+    const token = retrieveAccessTokenFromCookie();
+
+    if (token) {
+      await fetchUser();
+    } else {
+      setIsLoading(false);
+    }
+  };
+
+  initAuth();
+}, []);
+
+// 2. Run expiry check when user exists
+useEffect(() => {
+  if (currentUser) {
+    checkAccessTokenExpiry();
+  }
+}, [currentUser]);
+
+// 3. Cleanup timers properly
+useEffect(() => {
+  return () => {
+    if (expiryTimeout.current !== null) {
+      clearTimeout(expiryTimeout.current);
+    }
+    if (activityIntervalRef.current !== null) {
+      clearInterval(activityIntervalRef.current);
+    }
+  };
+}, []);
   return (
     <AuthContext.Provider
       value={{ currentUser, login, login2FA, logout, isLoading }}

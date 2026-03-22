@@ -224,7 +224,7 @@ const HighlightTable: React.FC = () => {
         if (!highlight.highlightCreatedDate) return <div>-</div>;
 
         const formattedDate = dayjs(highlight.highlightCreatedDate)
-          .format("ddd, DD MMM YYYY");
+          .format("ddd, DD-MMM-YYYY");
 
         return (
           <div className="font-medium whitespace-nowrap">

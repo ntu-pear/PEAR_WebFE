@@ -24,7 +24,7 @@ import dayjs, { Dayjs } from "dayjs";
 
 type TEditMedicationForm = {
   PrescriptionListId: number;
-  AdministerTime: Dayjs;
+  AdministerTime: Dayjs | null;
   Dosage: string;
   Instruction: string;
   StartDate: string;
@@ -32,9 +32,15 @@ type TEditMedicationForm = {
   PrescriptionRemarks: string;
 };
 
+const MAX_LENGTH = 255;
+
 const EditMedicationModal: React.FC = () => {
-  const editMedicationForm = useForm<TEditMedicationForm>();
+  const form = useForm<TEditMedicationForm>({
+    mode: "onChange",
+  });
+
   const { modalRef, activeModal, closeModal } = useModal();
+
   const { medicationId, submitterId, refreshMedicationData } =
     activeModal.props as {
       medicationId: string;
@@ -42,45 +48,56 @@ const EditMedicationModal: React.FC = () => {
       refreshMedicationData: () => void;
     };
 
+  const { isDirty } = form.formState;
+
   const [startDate, setStartDate] = useState("");
   const [medication, setMedication] = useState<IMedication | null>(null);
-  const [prescriptionList, setPrescriptionList] = useState<PrescriptionList[]>(
-    []
-  );
+  const [prescriptionList, setPrescriptionList] = useState<PrescriptionList[]>([]);
 
+  // -------------------------------
+  // FETCH PRESCRIPTION LIST
+  // -------------------------------
   const handleFetchPrescriptionList = async () => {
     try {
-      const prescriptionList: PrescriptionListView =
-        await fetchPrescriptionList();
-      setPrescriptionList(prescriptionList.data);
-    } catch (error) {
-      console.error(error);
+      const res: PrescriptionListView = await fetchPrescriptionList();
+      setPrescriptionList(res.data);
+    } catch {
       toast.error("Failed to fetch Prescription List");
     }
   };
 
+  // -------------------------------
+  // FETCH MEDICATION
+  // -------------------------------
   const handleFetchMedicationById = async () => {
     if (!medicationId || isNaN(Number(medicationId))) return;
-    try {
-      const response = await fetchMedicationById(Number(medicationId));
-      setMedication(response.data);
-      setStartDate(response.data.StartDate);
 
-      editMedicationForm.reset({
-        PrescriptionListId: response.data.PrescriptionListId,
-        AdministerTime: dayjs(response.data.AdministerTime, "HHmm"),
-        Dosage: response.data.Dosage,
-        Instruction: response.data.Instruction,
-        StartDate: response.data.StartDate.substring(0, 10),
-        EndDate: response.data.EndDate.substring(0, 10),
-        PrescriptionRemarks: response.data.PrescriptionRemarks,
+    try {
+      const res = await fetchMedicationById(Number(medicationId));
+      const data: IMedication = res.data;
+
+      setMedication(data);
+      setStartDate(data.StartDate);
+
+      form.reset({
+        PrescriptionListId: data.PrescriptionListId,
+        AdministerTime: data.AdministerTime
+          ? dayjs(data.AdministerTime, "HHmm")
+          : null,
+        Dosage: data.Dosage,
+        Instruction: data.Instruction,
+        StartDate: data.StartDate.substring(0, 10),
+        EndDate: data.EndDate.substring(0, 10),
+        PrescriptionRemarks: data.PrescriptionRemarks,
       });
-    } catch (error) {
-      console.error(error);
+    } catch {
       toast.error("Failed to fetch medication details");
     }
   };
 
+  // -------------------------------
+  // SUBMIT (API LOGIC KEPT)
+  // -------------------------------
   const handleUpdateMedication: SubmitHandler<TEditMedicationForm> = async ({
     AdministerTime,
     ...data
@@ -93,7 +110,9 @@ const EditMedicationModal: React.FC = () => {
     const editMedicationFormData: IMedicationFormData = {
       IsDeleted: medication.IsDeleted,
       PatientId: medication.PatientId,
-      AdministerTime: dayjs(AdministerTime).format("HHmm"),
+      AdministerTime: AdministerTime
+        ? dayjs(AdministerTime).format("HHmm")
+        : "",
       ...data,
       CreatedDateTime: getDateTimeNowInUTC() as string,
       UpdatedDateTime: getDateTimeNowInUTC() as string,
@@ -106,89 +125,170 @@ const EditMedicationModal: React.FC = () => {
         Number(medicationId),
         editMedicationFormData
       );
+
       toast.success("Medication updated successfully.");
-      closeModal();
       refreshMedicationData();
-    } catch (error) {
+      closeModal();
+    } catch {
       toast.error("Failed to update prescription.");
     }
   };
 
+  // -------------------------------
+  // CANCEL CONFIRM
+  // -------------------------------
+  const handleClose = () => {
+    if (isDirty) {
+      const confirmLeave = window.confirm(
+        "You have unsaved changes. Are you sure you want to leave?"
+      );
+      if (!confirmLeave) return;
+    }
+
+    closeModal();
+  };
+
+  // -------------------------------
+  // OUTSIDE CLICK CONFIRM
+  // -------------------------------
+  const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (e.target === e.currentTarget) {
+      if (isDirty) {
+        const confirmLeave = window.confirm(
+          "You have unsaved changes. Close without saving?"
+        );
+        if (!confirmLeave) return;
+      }
+
+      closeModal();
+    }
+  };
+
+  // -------------------------------
+  // FETCH ON OPEN
+  // -------------------------------
   useEffect(() => {
-    handleFetchPrescriptionList().then(() => handleFetchMedicationById());
+    handleFetchPrescriptionList().then(() =>
+      handleFetchMedicationById()
+    );
   }, [medicationId]);
 
+  // -------------------------------
+  // COLOR WARNING
+  // -------------------------------
+  const getTextColor = (length: number) => {
+    if (length >= 240) return "text-red-600 font-semibold";
+    if (length >= 200) return "text-orange-500";
+    return "text-muted-foreground";
+  };
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-      <div ref={modalRef} className="bg-background p-8 rounded-md w-[600px]">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
+      onClick={handleOverlayClick}
+    >
+      <div
+        ref={modalRef}
+        className="bg-background p-8 rounded-md w-[600px]"
+        onClick={(e) => e.stopPropagation()}
+      >
         <h3 className="text-lg font-medium mb-5">Edit Medication</h3>
+
         <form
-          onSubmit={editMedicationForm.handleSubmit(handleUpdateMedication)}
+          onSubmit={form.handleSubmit(handleUpdateMedication)}
           className="grid grid-cols-2 gap-4"
         >
           <div className="col-span-2">
             <Select
               label="Prescription"
               name="PrescriptionListId"
-              form={editMedicationForm}
+              form={form}
               options={prescriptionList.map(({ Id, Value }) => ({
                 value: String(Id),
                 name: Value,
               }))}
-              required={true}
+              required
             />
           </div>
+
           <TimeInput
             label="Administer Time"
             name="AdministerTime"
-            form={editMedicationForm}
-            minuteStep={30}
-            required={true}
+            form={form}
+            minuteStep={5}
+            minHour={9}
+            maxHour={16}
+            required
           />
+
           <Input
             label="Dosage"
             name="Dosage"
-            formReturn={editMedicationForm}
-            required={true}
+            formReturn={form}
+            required
           />
+
+          {/* INSTRUCTION */}
           <div className="col-span-2">
             <Textarea
               label="Instruction"
               name="Instruction"
-              form={editMedicationForm}
-              maxLength={255}
-              required={true}
+              form={form}
+              maxLength={MAX_LENGTH}
+              required
             />
+
+            <div
+              className={`flex justify-end text-sm mt-1 ${getTextColor(
+                form.watch("Instruction")?.length || 0
+              )}`}
+            >
+              {form.watch("Instruction")?.length || 0}/{MAX_LENGTH}
+            </div>
           </div>
+
           <DateInput
             label="Start Date"
             name="StartDate"
-            form={editMedicationForm}
+            form={form}
             onChange={(e) => setStartDate(e.target.value)}
-            required={true}
+            required
           />
+
           <DateInput
             label="End Date"
             name="EndDate"
-            form={editMedicationForm}
+            form={form}
             min={startDate}
-            required={true}
+            required
           />
+
+          {/* REMARK */}
           <div className="col-span-2">
             <Textarea
               label="Remark"
               name="PrescriptionRemarks"
-              form={editMedicationForm}
-              maxLength={255}
-              required={true}
+              form={form}
+              maxLength={MAX_LENGTH}
+              required
             />
+
+            <div
+              className={`flex justify-end text-sm mt-1 ${getTextColor(
+                form.watch("PrescriptionRemarks")?.length || 0
+              )}`}
+            >
+              {form.watch("PrescriptionRemarks")?.length || 0}/{MAX_LENGTH}
+            </div>
           </div>
 
           <div className="col-span-2 mt-6 flex justify-end space-x-2">
-            <Button variant="outline" onClick={closeModal}>
+            <Button variant="outline" onClick={handleClose} type="button">
               Cancel
             </Button>
-            <Button type="submit">Save Changes</Button>
+            <Button type="submit" disabled={!isDirty}>
+              Save Changes
+            </Button>
           </div>
         </form>
       </div>

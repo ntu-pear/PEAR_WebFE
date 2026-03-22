@@ -29,8 +29,6 @@ import {
   Search,
   CheckCircle2,
   Loader2,
-  ShieldAlert,
-  ChevronRight,
   Lock,
 } from "lucide-react";
 

@@ -317,6 +317,7 @@ const EditRoles: React.FC = () => {
                         fetchData={(p) => updateQuery({ page: p })}
                         loading={loading}
                         className="min-w-full"
+                        viewMore={false}
                       />
                     </div>
                   </CardContent>

@@ -52,6 +52,8 @@ const ManageAdhoc: React.FC = () => {
         startDate: formatDateTime(a.startDate ?? null),
         endDate: formatDateTime(a.endDate ?? null),
         lastUpdated: formatDateTime(a.lastUpdated ?? null),
+        oldActivityTitle: a.oldActivityTitle?.toUpperCase(),
+        newActivityTitle: a.newActivityTitle?.toUpperCase(),
       }));
       setAdhocActivities(formatted);
     } catch (err) {
@@ -268,7 +270,7 @@ const EditAdhocModal: React.FC<EditAdhocModalProps> = ({ activity, open, onClose
               <option value={-1}>Keep Current</option>
               {activityList.map((a) => (
                 <option key={a.id} value={a.id}>
-                  {a.title}
+                  {a.title?.toUpperCase()}
                 </option>
               ))}
             </select>

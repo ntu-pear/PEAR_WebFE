@@ -1,4 +1,4 @@
-import dayjs from "dayjs";
+import dayjs from "dayjs"; 
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
 
@@ -10,7 +10,7 @@ export const formatDate = (date: string) => {
   return dayjs
     .utc(date) // Parse the date in UTC
     .tz("Asia/Singapore") // Convert to Singapore timezone
-    .format("DD MMM YYYY"); // Format as "21 Jan 2025"
+    .format("DD-MMM-YYYY"); // Format as "21 Jan 2025"
 };
 
 export const formatDateString = (date: string) => {

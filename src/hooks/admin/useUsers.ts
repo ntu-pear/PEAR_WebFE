@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, keepPreviousData } from "@tanstack/react-query"; // 1. Import helper
 import { fetchUsersByFields } from "@/api/admin/user";
 
 export const useUsers = (page: number, search: string) => {
@@ -8,6 +8,7 @@ export const useUsers = (page: number, search: string) => {
       fetchUsersByFields(page, 10, {
         nric_FullName: search,
       }),
-    keepPreviousData: true,
+    // 2. Replace keepPreviousData: true with this:
+    placeholderData: keepPreviousData, 
   });
 };
