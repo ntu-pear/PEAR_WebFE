@@ -23,8 +23,6 @@ jobs:
     - name: Install Playwright Browsers
       run: npx playwright install chromium
 
-    - name: Start Frontend
-      run: npm run dev &
     - name: Wait for Frontend
       run: npx wait-on http://localhost:5173
 
