@@ -93,11 +93,11 @@ export default function ActivitiesTable({
                   <TableCell className="font-medium">{a.title}</TableCell>
                   <TableCell className="max-w-[420px] truncate">{a.description}</TableCell>
                   <TableCell className="whitespace-nowrap">
-                    {dayjs(a.created_date).format("DD MMM YYYY")}
+                    {dayjs(a.created_date).format("DD-MMM-YYYY")}
                   </TableCell>
 
                   <TableCell className="whitespace-nowrap">
-                    {dayjs(a.modified_date).format("DD MMM YYYY")}
+                    {dayjs(a.modified_date).format("DD-MMM-YYYY")}
                   </TableCell>
                   <TableCell>{a.is_deleted ? "Yes" : "No"}</TableCell>
                   <TableCell className="space-x-2">
