@@ -24,8 +24,6 @@ import {
   Search,
   CheckCircle2,
   Loader2,
-  ShieldAlert,
-  ChevronRight,
   Lock,
 } from "lucide-react";
 
@@ -65,7 +63,7 @@ const EditUserInRole: React.FC = () => {
   const total = data?.total || 0;
 
   // Existing hook
-  const { data: currentRoster, refetch: refetchRoster } =
+  const { data: currentRoster} =
     useGetUsersFromRole(role.roleName);
 
   // ✅ Optimized lookup
@@ -208,6 +206,7 @@ const handleRescueUser = (targetRoleName: string) => {
                 }}
                 fetchData={(p) => setPage(p)}
                 loading={isLoading}
+                viewMore={false}
               />
             </CardContent>
           </Card>

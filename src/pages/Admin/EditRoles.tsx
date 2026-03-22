@@ -22,7 +22,6 @@ import {
   Trash2,
   Edit,
   AlertCircle,
-  ArrowLeft,
   ShieldAlert,
   Lock,
 } from "lucide-react";
@@ -250,6 +249,7 @@ const EditRoles: React.FC = () => {
                   fetchData={(p) => updateQuery({ page: p })}
                   loading={loading}
                   className="table-fixed min-w-full"
+                  viewMore={false}
                 />
               </div>
             </Card>
