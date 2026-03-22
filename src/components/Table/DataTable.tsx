@@ -257,24 +257,67 @@ export function DataTableClient<T extends TableRowData>({
   expandTogglePlacement = "leading",
   actionsHeaderLabel = "Actions",
 }: DataTableClientProps<T>) {
-  // Single source of truth for the current page (1-based).
   const [page, setPage] = useState(1);
-  // Single source of truth for rows per page; initialised from the prop.
   const [rowsPerPage] = useState(itemsPerPage);
 
-  const total = data.length;
+  const [sortBy, setSortBy] = useState<string | null>(null);
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
+
+  const handleSort = (columnKey: string) => {
+    if (sortBy === columnKey) {
+      setSortDir((prev) => (prev === "asc" ? "desc" : "asc"));
+    } else {
+      setSortBy(columnKey);
+      setSortDir("asc");
+    }
+    setPage(1);
+  };
+
+  const sortedData = React.useMemo(() => {
+    if (!sortBy) return data;
+
+    const sorted = [...data].sort((a, b) => {
+      const aValue = getNestedValue(a, sortBy);
+      const bValue = getNestedValue(b, sortBy);
+
+      if (aValue == null && bValue == null) return 0;
+      if (aValue == null) return 1;
+      if (bValue == null) return -1;
+
+      if (typeof aValue === "number" && typeof bValue === "number") {
+        return sortDir === "asc" ? aValue - bValue : bValue - aValue;
+      }
+
+      if (typeof aValue === "boolean" && typeof bValue === "boolean") {
+        const aNum = aValue ? 1 : 0;
+        const bNum = bValue ? 1 : 0;
+        return sortDir === "asc" ? aNum - bNum : bNum - aNum;
+      }
+
+      return sortDir === "asc"
+        ? String(aValue).localeCompare(String(bValue), undefined, {
+            numeric: true,
+            sensitivity: "base",
+          })
+        : String(bValue).localeCompare(String(aValue), undefined, {
+            numeric: true,
+            sensitivity: "base",
+          });
+    });
+
+    return sorted;
+  }, [data, sortBy, sortDir]);
+
+  const total = sortedData.length;
   const pageCount = Math.max(1, Math.ceil(total / rowsPerPage));
 
-  // Clamp the current page whenever data length or rowsPerPage changes so we
-  // never sit on a page that no longer exists (e.g. after filtering).
   useEffect(() => {
     setPage((p) => Math.min(p, Math.max(1, Math.ceil(total / rowsPerPage))));
   }, [total, rowsPerPage]);
 
   const startIndex = (page - 1) * rowsPerPage;
-  const paginatedData = data.slice(startIndex, startIndex + rowsPerPage);
+  const paginatedData = sortedData.slice(startIndex, startIndex + rowsPerPage);
 
-  // "Showing" range derived entirely from the single page / rowsPerPage state.
   const showingFrom = total === 0 ? 0 : startIndex + 1;
   const showingTo = Math.min(startIndex + paginatedData.length, total);
 
@@ -334,9 +377,26 @@ export function DataTableClient<T extends TableRowData>({
               {columns.map((column) => (
                 <TableHeadCell
                   key={column.key.toString()}
-                  className={column.className || ""}
+                  className={`${column.className || ""} ${
+                    column.sortable ? "cursor-pointer select-none" : ""
+                  }`}
+                  onClick={() =>
+                    column.sortable && handleSort(column.key.toString())
+                  }
                 >
-                  {column.header}
+                  <div className="flex items-center space-x-1">
+                    <span>{column.header}</span>
+                    {column.sortable &&
+                      (sortBy === column.key.toString() ? (
+                        sortDir === "asc" ? (
+                          <ChevronUp className="h-4 w-4" />
+                        ) : (
+                          <ChevronDown className="h-4 w-4" />
+                        )
+                      ) : (
+                        <ChevronsUpDown className="h-4 w-4 text-gray-400" />
+                      ))}
+                  </div>
                 </TableHeadCell>
               ))}
 
@@ -378,12 +438,8 @@ export function DataTableClient<T extends TableRowData>({
         </Table>
       </div>
 
-      {/* FIX: was a mismatched </div> closing tag here — corrected to match
-          the opening conditional wrapper */}
       {data.length > 0 && (
         <div className="flex items-center justify-between py-4">
-          {/* FIX: was using orphaned currentPage/itemsPerPage state;
-              now uses showingFrom/showingTo derived from single page state */}
           <div className="text-xs text-muted-foreground">
             Showing{" "}
             <strong>
@@ -393,7 +449,6 @@ export function DataTableClient<T extends TableRowData>({
           </div>
 
           <div className="flex items-center space-x-2">
-            {/* FIX: was calling undefined handlePageChange; now calls goToPage */}
             <Button
               variant="outline"
               size="sm"
