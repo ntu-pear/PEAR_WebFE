@@ -26,6 +26,17 @@ jobs:
     - name: Wait for Frontend
       run: npx wait-on http://localhost:5173
 
+    - name: Debug network connectivity
+      run: |
+        echo "Checking patient service on localhost"
+        curl -s -o /dev/null -w "%{http_code}" http://localhost/api/v1/patients/ || echo "localhost not reachable"
+        
+        echo "Checking patient service on 10.96.188.180"
+        curl -s -o /dev/null -w "%{http_code}" http://10.96.188.180/api/v1/patients/ || echo "10.96.188.180 not reachable"
+        
+        echo "=== Services listening on ports ==="
+        sudo ss -tlnp | grep LISTEN
+
     - name: Write test.env file
       run: echo "${{ secrets.TEST_ENV_FILE }}" > ./tests/e2e/test.env
 
