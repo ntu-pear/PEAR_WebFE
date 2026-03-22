@@ -59,7 +59,7 @@ const AddAccessLevelModal: React.FC = () => {
       >
         <div className="flex items-center justify-between border-b border-border px-6 py-4">
           <div>
-            <h2 className="text-lg font-bold text-foreground">Create Access Level</h2>
+            <h2 className="text-lg font-medium text-foreground">Create Access Level</h2>
             <p className="mt-1 text-sm text-muted-foreground">
               Create a new custom access level. Code and rank must be unique.
             </p>

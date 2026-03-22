@@ -1,5 +1,4 @@
 import React, { useMemo, useState } from "react";
-import { ListFilter } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -7,9 +6,9 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import useDebounce from "@/hooks/useDebounce";
 import { DataTableClient } from "@/components/Table/DataTable";
-import { Button } from "@/components/ui/button";
 import {
   ACTION_OPTIONS,
   LIST_TYPES,
@@ -17,13 +16,10 @@ import {
   ListsLogRow,
   ListAction,
 } from "@/mocks/mockListsLog";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import FilterSidebar from "@/components/Filters/FilterSidebar";
+import SelectFilterField from "@/components/Filters/SelectFilterField";
+import FilterActionButtons from "@/components/Filters/FilterActionButtons";
+import { ListFilter } from "lucide-react";
 
 const fmtEU = (iso: string) => {
   const d = new Date(iso);
@@ -59,8 +55,23 @@ const ListsLog: React.FC = () => {
   const [listType, setListType] = useState("all");
   const [action, setAction] = useState("all");
 
+  const [draftListType, setDraftListType] = useState("all");
+  const [draftAction, setDraftAction] = useState("all");
+
   const debouncedListType = useDebounce(listType, 300);
   const debouncedAction = useDebounce(action, 300);
+
+  const handleApplyFilters = () => {
+    setListType(draftListType);
+    setAction(draftAction);
+  };
+
+  const handleResetFilters = () => {
+    setDraftListType("all");
+    setDraftAction("all");
+    setListType("all");
+    setAction("all");
+  };
 
   const data = useMemo(() => {
     return MOCK_LISTS_LOG.filter((r) =>
@@ -76,8 +87,16 @@ const ListsLog: React.FC = () => {
       );
   }, [debouncedListType, debouncedAction]);
 
+  const activeListLabel = listType === "all" ? "All Lists" : listType;
+
   const columns = [
-    { key: "listType" as const, header: "List Type" },
+    {
+      key: "listType" as const,
+      header: "List Type",
+      render: (value: string) => (
+        <span className="text-sm font-medium text-foreground">{value}</span>
+      ),
+    },
     { key: "actionType" as const, header: "Action" },
     {
       key: "value",
@@ -93,65 +112,73 @@ const ListsLog: React.FC = () => {
     { key: "userName" as const, header: "Action by" },
   ];
 
-  const FilterBtn: React.FC<{
-    label: string;
-    value: string;
-    options: { value: string; label: string }[];
-    onChange: (v: string) => void;
-  }> = ({ label, value, options, onChange }) => (
-    <DropdownMenu modal={false}>
-      <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="sm" className="h-8 gap-1">
-          <ListFilter className="h-4 w-4" />
-          <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-            {label}
-          </span>
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <DropdownMenuRadioGroup value={value} onValueChange={onChange}>
-          {options.map((o) => (
-            <DropdownMenuRadioItem key={o.value} value={o.value}>
-              {o.label}
-            </DropdownMenuRadioItem>
-          ))}
-        </DropdownMenuRadioGroup>
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
-
   return (
-    <div className="flex min-h-screen w-full flex-col container mx-auto px-0 sm:px-4">
-      <div className="flex flex-col sm:gap-4 sm:py-4 sm:pl-14">
-        <main className="flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0">
-          <div className="flex items-center gap-2 justify-end mb-4">
-            <FilterBtn
-              label="List Type"
-              value={listType}
-              onChange={setListType}
-              options={[
-                { value: "all", label: "All" },
-                ...LIST_TYPES.map((t) => ({ value: t, label: t })),
-              ]}
-            />
-            <FilterBtn
-              label="Action"
-              value={action}
-              onChange={setAction}
-              options={[
-                { value: "all", label: "All" },
-                ...ACTION_OPTIONS.map((a) => ({ value: a, label: a })),
-              ]}
-            />
-          </div>
-          <Card className="ml-4 sm:ml-6">
+    <div className="flex min-h-screen w-full">
+      <FilterSidebar title="Filters">
+        <SelectFilterField
+          label="List Type"
+          icon={ListFilter}
+          value={draftListType}
+          onChange={setDraftListType}
+          options={[
+            { value: "all", label: "All Lists" },
+            ...LIST_TYPES.map((t) => ({ value: t, label: t })),
+          ]}
+          placeholder="Select list type"
+        />
+
+        <SelectFilterField
+          label="Action"
+          icon={ListFilter}
+          value={draftAction}
+          onChange={setDraftAction}
+          options={[
+            { value: "all", label: "All Actions" },
+            ...ACTION_OPTIONS.map((a) => ({ value: a, label: a })),
+          ]}
+          placeholder="Select action"
+        />
+
+        <FilterActionButtons
+          onApply={handleApplyFilters}
+          onReset={handleResetFilters}
+        />
+      </FilterSidebar>
+
+      <div className="flex-1 overflow-auto p-6">
+        <div className="max-w-7xl mx-auto space-y-6">
+
+          <Card className="border border-border shadow-sm bg-card overflow-hidden rounded-2xl">
             <CardHeader>
-              <CardTitle>Lists Log</CardTitle>
-              <CardDescription>
-                View list changes with before/after values at a glance.
-              </CardDescription>
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <CardTitle>Lists Log</CardTitle>
+                    <Badge
+                      variant="secondary"
+                      className="h-8 px-4 !text-base font-semibold leading-none rounded-md"
+                    >
+                      {activeListLabel}
+                    </Badge>
+                  </div>
+
+                  <div className="space-y-1">
+                    <p className="text-lg font-semibold tracking-tight">
+                      {activeListLabel} Log Entries
+                    </p>
+                    <CardDescription>
+                      {listType === "all"
+                        ? "Viewing all list changes across the system. Filter by list type or action to narrow the log."
+                        : `Viewing change history for the ${listType} list. Review add, update, and delete actions below.`}
+                    </CardDescription>
+                  </div>
+                </div>
+              </div>
             </CardHeader>
+
             <CardContent>
+
+
               <DataTableClient<ListsLogRow>
                 data={data}
                 columns={columns}
@@ -160,7 +187,7 @@ const ListsLog: React.FC = () => {
               />
             </CardContent>
           </Card>
-        </main>
+        </div>
       </div>
     </div>
   );

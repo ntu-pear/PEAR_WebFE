@@ -1,7 +1,9 @@
-import {  useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Plus, Pencil, Trash2, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useForm, Controller } from "react-hook-form";
 import { toast } from "sonner";
@@ -14,14 +16,31 @@ import {
 } from "@/hooks/admin/useCareCentre";
 import {
   CareCentreResponse,
-  CreateCareCentre,
-  UpdateCareCentre,
-  WorkingHours,
+  CreateCareCentre
 } from "@/types/careCentre";
-import WorkingHoursInput, { defaultWorkingHours } from "@/components/Form/WorkingHoursInput";
+import WorkingHoursInput, {
+  WorkingHours,
+  WorkingHourDay,
+  defaultWorkingHours,
+} from "@/components/Form/WorkingHoursInput";
 import { normalizeWorkingHours, validateWorkingHours } from "@/lib/validation/time";
+import { fetchAddress } from "@/api/geocode";
 
 type FormValues = CreateCareCentre;
+
+// ── helpers ───────────────────────────────────────────────────────────────────
+
+const capitalize        = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+const norm              = (s?: string | null) => (s ?? "").trim().toLowerCase();
+const digitsOnly        = (s?: string | null) => (s ?? "").replace(/\D/g, "");
+const toAlphaNumAddress = (s?: string | null) =>
+  (s ?? "").toUpperCase().replace(/[^A-Z0-9\s/#,-]/g, "").replace(/\s+/g, " ").trimStart();
+const toAlphaNum        = (s?: string | null) =>
+  (s ?? "").toUpperCase().replace(/[^A-Z0-9\s]/g, "").replace(/\s+/g, " ").trimStart();
+
+// null open/close = closed day (matches lib normalizeWorkingHours output).
+const isDayClosed = (d?: WorkingHourDay | null): boolean =>
+  d?.open == null && d?.close == null;
 
 const emptyForm = (): FormValues => ({
   name: "",
@@ -34,24 +53,29 @@ const emptyForm = (): FormValues => ({
   working_hours: defaultWorkingHours(),
 });
 
-function formatWorkingHours(wh: WorkingHours) {
-  const days: (keyof WorkingHours)[] = [
-    "monday","tuesday","wednesday","thursday","friday","saturday","sunday",
-  ];
-  const label: Record<string, string> = {
-    monday: "Mon", tuesday: "Tue", wednesday: "Wed",
-    thursday: "Thu", friday: "Fri", saturday: "Sat", sunday: "Sun",
-  };
+// ── table display ─────────────────────────────────────────────────────────────
 
+function formatWorkingHours(wh: WorkingHours) {
+  const DAYS: { key: keyof WorkingHours; label: string }[] = [
+    { key: "monday",    label: "Mon" },
+    { key: "tuesday",   label: "Tue" },
+    { key: "wednesday", label: "Wed" },
+    { key: "thursday",  label: "Thu" },
+    { key: "friday",    label: "Fri" },
+    { key: "saturday",  label: "Sat" },
+    { key: "sunday",    label: "Sun" },
+  ];
   return (
-    <div className="space-y-1 text-xs leading-5">
-      {days.map((d) => {
-        const v = wh[d];
-        const range = v?.open && v?.close ? `${v.open}–${v.close}` : "—";
+    <div className="font-sans space-y-1 text-xs leading-5">
+      {DAYS.map(({ key, label }) => {
+        const v = wh[key];
+        const display = !isDayClosed(v) && v?.open && v?.close
+          ? `${v.open}–${v.close}`
+          : "Closed";
         return (
-          <div key={d} className="flex gap-2">
-            <span className="w-8 shrink-0 font-medium text-foreground">{label[d]}:</span>
-            <span className="font-medium text-foreground">{range}</span>
+          <div key={key} className="flex gap-2">
+            <span className="w-8 shrink-0 font-medium text-foreground">{label}:</span>
+            <span className="text-foreground">{display}</span>
           </div>
         );
       })}
@@ -59,105 +83,110 @@ function formatWorkingHours(wh: WorkingHours) {
   );
 }
 
+// ── component ─────────────────────────────────────────────────────────────────
+
 export default function ManageCentre() {
   const { data = [], isFetching } = useCareCentres();
   const createMut = useCreateCareCentre();
   const updateMut = useUpdateCareCentre();
   const deleteMut = useDeleteCareCentre();
 
-  const [open, setOpen] = useState(false);
-  const [editing, setEditing] = useState<CareCentreResponse | null>(null);
-  const [formErrors, setFormErrors] = useState<string[]>([]);
+  const [open,         setOpen]         = useState(false);
+  const [editing,      setEditing]      = useState<CareCentreResponse | null>(null);
+  const [whSubmitted,  setWhSubmitted]  = useState(false);
+  const [isFetchingAddress, setIsFetchingAddress] = useState(false);
+
+  const lastFetchedPostalRef   = useRef<string>("");
+  const postalLookupTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const {
-    control,
-    handleSubmit,
-    reset,
-    watch,
-    setValue,
-    setFocus,
-  } = useForm<FormValues>({
-    defaultValues: emptyForm(),
-  });
-  const wh = watch("working_hours");
+    control, handleSubmit, reset, watch,
+    setValue, setFocus, getValues, setError, clearErrors,
+  } = useForm<FormValues>({ defaultValues: emptyForm() });
 
-const norm = (s?: string | null) => (s ?? "").trim().toLowerCase();
+  const wh         = watch("working_hours");
+  const postalCode = watch("postal_code");
 
-// for numeric-only fields you may want to normalize by removing spaces etc.
-const digitsOnly = (s?: string | null) => (s ?? "").replace(/\D/g, "");
+  // ── uniqueness ────────────────────────────────────────────────────────────
 
-const isUniqueField = (field: "name" | "address" | "postal_code" | "email" | "contact_no", value: string) => {
-  const v =
-    field === "postal_code" ? digitsOnly(value) :
-    field === "contact_no" ? digitsOnly(value) :
-    norm(value);
-
-  if (!v) return true;
-
-  return !data.some((c) => {
-    if (editing?.id != null && c.id === editing.id) return false; // ignore self
-
-    const cv =
-      field === "postal_code" ? digitsOnly(c.postal_code) :
-      field === "contact_no" ? digitsOnly(c.contact_no) :
-      norm((c as any)[field]);
-
-    return cv === v;
-  });
-}
-
-  const validateAndGetWH = () => {
-    const toMinutes = (hhmm?: string | null) => {
-      if (!hhmm) return null;
-      const m = /^([01]\d|2[0-3]):([0-5]\d)$/.exec(hhmm);
-      if (!m) return null;
-      const hh = Number(m[1]);
-      const mm = Number(m[2]);
-      return hh * 60 + mm;
-    };
-
-    const MIN_OPEN = 9 * 60;  // 09:00
-    const MAX_CLOSE = 17 * 60; // 17:00
-
-    const normalized = normalizeWorkingHours(wh as any);
-    const workingHours: import("@/types/careCentre").WorkingHours = {
-      monday: normalized.monday,
-      tuesday: normalized.tuesday,
-      wednesday: normalized.wednesday,
-      thursday: normalized.thursday,
-      friday: normalized.friday,
-      saturday: normalized.saturday,
-      sunday: normalized.sunday,
-    };
-
-    const { byDay, anyError } = validateWorkingHours(workingHours);
-
-    const summary: string[] = [];
-    Object.entries(byDay).forEach(([day, msgs]) => {
-      msgs.forEach((m) => summary.push(`${capitalize(day)}: ${m}`));
+  const isUniqueField = (
+    field: "name" | "address" | "postal_code" | "email" | "contact_no",
+    value: string
+  ): boolean => {
+    const candidate =
+      field === "postal_code" || field === "contact_no" ? digitsOnly(value) : norm(value);
+    if (!candidate) return true;
+    return !data.some((c) => {
+      if (editing?.id != null && c.id === editing.id) return false;
+      const existing =
+        field === "postal_code" || field === "contact_no"
+          ? digitsOnly((c as any)[field])
+          : norm((c as any)[field]);
+      return existing === candidate;
     });
-    (Object.keys(workingHours) as (keyof WorkingHours)[]).forEach((day) => {
-      const v = workingHours[day];
-      const openM = toMinutes(v?.open);
-      const closeM = toMinutes(v?.close);
+  };
 
-      // Only validate bounds if user has set hours for that day
-      if (openM != null && openM < MIN_OPEN) {
-        summary.push(`${capitalize(day)}: Opening time cannot be before 09:00`);
-      }
-      if (closeM != null && closeM > MAX_CLOSE) {
-        summary.push(`${capitalize(day)}: Closing time cannot be after 17:00`);
-      }
-    });
+  // ── postal lookup ─────────────────────────────────────────────────────────
 
-    if (summary.length === 0 && !anyError) {
-      setFormErrors([]);
-      return workingHours;
+  const lookupAddressByPostalCode = async (rawPostalCode?: string) => {
+    const cleaned = digitsOnly(rawPostalCode ?? getValues("postal_code"));
+    if (!/^\d{6}$/.test(cleaned)) return;
+    if (lastFetchedPostalRef.current === cleaned) return;
+    try {
+      setIsFetchingAddress(true);
+      clearErrors("postal_code");
+      const result = await fetchAddress(Number(cleaned));
+      setValue("postal_code", cleaned, { shouldDirty: true, shouldValidate: true });
+      setValue(
+        "address",
+        toAlphaNumAddress(result.fullAddress || result.streetAddress || ""),
+        { shouldDirty: true, shouldValidate: true }
+      );
+      lastFetchedPostalRef.current = cleaned;
+    } catch (error: any) {
+      setError("postal_code", { type: "manual", message: "Unable to fetch address for this postal code" });
+      toast.error(error?.response?.data?.detail ?? "Unable to fetch address for this postal code");
+    } finally {
+      setIsFetchingAddress(false);
     }
+  };
 
-    setFormErrors(summary);
+  useEffect(() => {
+    const cleaned = digitsOnly(postalCode);
+    if (postalLookupTimeoutRef.current) clearTimeout(postalLookupTimeoutRef.current);
+    if (!/^\d{6}$/.test(cleaned)) {
+      if (lastFetchedPostalRef.current !== "") lastFetchedPostalRef.current = "";
+      return;
+    }
+    postalLookupTimeoutRef.current = setTimeout(() => {
+      if (digitsOnly(getValues("postal_code")) === cleaned) void lookupAddressByPostalCode(cleaned);
+    }, 500);
+    return () => { if (postalLookupTimeoutRef.current) clearTimeout(postalLookupTimeoutRef.current); };
+  }, [postalCode]);
+
+  // ── working-hours validation ──────────────────────────────────────────────
+  // Uses the project lib: normalizeWorkingHours converts blank strings to null,
+  // then validateWorkingHours checks presence, grid, range, and order.
+
+  const validateAndGetWH = (): WorkingHours | null => {
+    setWhSubmitted(true);
+
+    // normalizeWorkingHours converts "" -> null, keeping real times intact.
+    const normalized = normalizeWorkingHours(wh as any) as WorkingHours;
+
+    const { byDay, anyError } = validateWorkingHours(normalized);
+
+    if (!anyError) return normalized;
+
+    // Surface per-day errors as toasts (inline errors handle the rest).
+    Object.entries(byDay).forEach(([day, msgs]) => {
+      msgs.forEach((m) => toast.error(`${capitalize(day)}: ${m}`));
+    });
+
     return null;
   };
+
+  // ── CRUD ──────────────────────────────────────────────────────────────────
 
   const onCreate = async (values: FormValues) => {
     const validWH = validateAndGetWH();
@@ -167,6 +196,7 @@ const isUniqueField = (field: "name" | "address" | "postal_code" | "email" | "co
       toast.success("Care centre created");
       setOpen(false);
       reset(emptyForm());
+      lastFetchedPostalRef.current = "";
     } catch (e: any) {
       toast.error(e?.response?.data?.detail ?? "Failed to create care centre");
     }
@@ -176,13 +206,13 @@ const isUniqueField = (field: "name" | "address" | "postal_code" | "email" | "co
     if (!editing) return;
     const validWH = validateAndGetWH();
     if (!validWH) return;
-    const payload: UpdateCareCentre = { id: editing.id, ...values, working_hours: validWH };
     try {
-      await updateMut.mutateAsync(payload);
+      await updateMut.mutateAsync({ id: editing.id, ...values, working_hours: validWH });
       toast.success("Care centre updated");
       setOpen(false);
       setEditing(null);
       reset(emptyForm());
+      lastFetchedPostalRef.current = "";
     } catch (e: any) {
       toast.error(e?.response?.data?.detail ?? "Failed to update care centre");
     }
@@ -191,88 +221,124 @@ const isUniqueField = (field: "name" | "address" | "postal_code" | "email" | "co
   const startCreate = () => {
     reset(emptyForm());
     setEditing(null);
-    setFormErrors([]);
+    setWhSubmitted(false);
+    lastFetchedPostalRef.current = "";
     setOpen(true);
   };
 
   const startEdit = (row: CareCentreResponse) => {
     reset({ ...row });
     setEditing(row);
-    setFormErrors([]);
+    setWhSubmitted(false);
+    lastFetchedPostalRef.current = digitsOnly(row.postal_code);
     setOpen(true);
   };
 
-const remove = async (row: CareCentreResponse) => {
-  if ((data?.length ?? 0) <= 1) {
-    toast.error("You must have at least 1 care centre.");
-    return;
-  }
-  if (!confirm(`Delete care centre "${row.name}"?`)) return;
+  const remove = async (row: CareCentreResponse) => {
+    if ((data?.length ?? 0) <= 1) { toast.error("You must have at least 1 care centre."); return; }
+    if (!confirm(`Delete care centre "${row.name}"?`)) return;
+    try {
+      await deleteMut.mutateAsync(row.id);
+      toast.success("Care centre deleted");
+    } catch (e: any) {
+      toast.error(e?.response?.data?.detail ?? "Failed to delete care centre");
+    }
+  };
 
-  try {
-    await deleteMut.mutateAsync(row.id);
-    toast.success("Care centre deleted");
-  } catch (e: any) {
-    toast.error(e?.response?.data?.detail ?? "Failed to delete care centre");
-  }
-};
+  // ── columns ───────────────────────────────────────────────────────────────
 
-  const cols = useMemo(
-    () => [
-      { key: "name", header: "Name" },
-      { key: "country_code", header: "Country" },
-      { key: "address", header: "Address", render: (v: string) => <span className="whitespace-pre-wrap break-words">{v}</span> },
-      { key: "postal_code", header: "Postal", render: (v: string) => <span className="tabular-nums">{v}</span> },
-      { key: "contact_no", header: "Contact" },
-      { key: "email", header: "Email" },
-      {
-        key: "no_of_devices_avail",
-        header: "Devices",
-        render: (v: number) => <span className="tabular-nums">{v}</span>,
-      },
-      {
-        key: "working_hours",
-        header: "Operating Hours",
-        render: (wh: WorkingHours) => formatWorkingHours(wh),
-      },
-    ],
-    []
-  );
+  const cols = useMemo(() => [
+    { key: "name", header: "Centre" },
+    {
+      key: "country_code",
+      header: "Country",
+      render: (v: string) => <Badge variant="secondary">{v}</Badge>,
+    },
+    { key: "address", header: "Address" },
+    { key: "postal_code", header: "Postal" },
+    { key: "contact_no", header: "Contact" },
+    { key: "no_of_devices_avail", header: "Devices" },
+    {
+      key: "working_hours",
+      header: "Hours",
+      render: (wh: WorkingHours) => formatWorkingHours(wh),
+    },
+  ], []);
+
+  const isBusy = isFetching || isFetchingAddress || createMut.isPending || updateMut.isPending;
+
+  // ── render ────────────────────────────────────────────────────────────────
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6">
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Care Centres</CardTitle>
-          <Button onClick={startCreate}>Create</Button>
-        </CardHeader>
-        <CardContent>
-          <DataTableClient<CareCentreResponse>
-            data={data}
-            columns={cols as any}
-            viewMore={false}
-            hideActionsHeader={false}
-            renderActions={(row) => (
-              <div className="flex gap-2 justify-end">
-                <Button size="sm" variant="outline" onClick={() => startEdit(row)}>
-                  Edit
-                </Button>
-                <Button size="sm" variant="destructive" onClick={() => remove(row)}>
-                  Delete
-                </Button>
-              </div>
-            )}
-          />
-        </CardContent>
-      </Card>
+    <div className="min-h-screen bg-background p-6 md:p-12 font-sans">
+      <div className="max-w-7xl mx-auto space-y-8">
 
+        <Card className="border border-border shadow-sm bg-card overflow-hidden rounded-2xl">
+          {/* Added justify-between to push the button to the far right */}
+          <div className="flex flex-row items-center justify-between p-6"> 
+            <CardHeader className="p-0"> {/* Remove default padding to handle it via the parent div */}
+              <CardTitle>Care Centres</CardTitle>
+              <CardDescription>
+                Manage facility locations, contact details, and operating hours.
+              </CardDescription>
+            </CardHeader>
+            
+            <Button onClick={startCreate} className="gap-2 shrink-0">
+              <Plus className="h-4 w-4" />
+              New Centre
+            </Button>
+          </div>
+          
+          <CardContent className="pt-0"> {/* Ensure content padding aligns correctly */}
+
+      
+
+            <div className="overflow-x-auto">
+              <DataTableClient<CareCentreResponse>
+                data={data}
+                columns={cols as any}
+                viewMore={false}
+                hideActionsHeader={false}
+                renderActions={(row) => (
+                  <div className="flex gap-1.5 justify-end">
+                    <Button
+                      variant="ghost" size="sm"
+                      className="text-muted-foreground hover:text-primary hover:bg-accent"
+                      onClick={() => startEdit(row)}
+                    >
+                      <Pencil className="h-3.5 w-3.5 mr-1" />
+                      Edit
+                    </Button>
+                    <Button
+                      variant="ghost" size="sm"
+                      className="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                      onClick={() => remove(row)}
+                    >
+                      <Trash2 className="h-3.5 w-3.5 mr-1" />
+                      Delete
+                    </Button>
+                  </div>
+                )}
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Footer notice */}
+        <footer className="flex items-center gap-3 px-5 py-4 bg-muted/40 rounded-2xl border border-border">
+          <AlertTriangle className="h-4 w-4 text-muted-foreground shrink-0" />
+          <p className="text-[11px] text-muted-foreground font-semibold uppercase tracking-widest">
+            Changes to care centres affect scheduling and device availability across the system.
+          </p>
+        </footer>
+
+      </div>
+
+      {/* Dialog */}
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent
-          className="w-[92vw] max-w-2xl max-h-[85vh] overflow-y-auto"
-          onOpenAutoFocus={(e) => {
-            e.preventDefault();
-            setTimeout(() => setFocus("name"), 0);
-          }}
+          className="w-[92vw] max-w-2xl max-h-[85vh] overflow-y-auto rounded-2xl"
+          onOpenAutoFocus={(e) => { e.preventDefault(); setTimeout(() => setFocus("name"), 0); }}
         >
           <DialogHeader>
             <DialogTitle>
@@ -280,70 +346,59 @@ const remove = async (row: CareCentreResponse) => {
             </DialogTitle>
           </DialogHeader>
 
-          {formErrors.length > 0 && (
-            <div className="rounded-md border border-destructive bg-destructive/10 text-destructive px-4 py-3 text-sm mb-3">
-              <div className="font-medium mb-1">Please fix the following:</div>
-              <ul className="list-disc pl-5 space-y-1">
-                {formErrors.map((m, i) => <li key={i}>{m}</li>)}
-              </ul>
-            </div>
-          )}
-
           <form className="space-y-5" onSubmit={handleSubmit(editing ? onUpdate : onCreate)}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm font-medium">Name</label>
+
+              {/* Name */}
+              <div className="space-y-1">
+                <label className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">Name</label>
                 <Controller
-                  name="name"
-                  control={control}
-                  rules={{
-                    required: "Name is required",
-                    validate: (v) => isUniqueField("name", v) || "Name already exists",
-                  }}
+                  name="name" control={control}
+                  rules={{ required: "Name is required", validate: (v) => isUniqueField("name", v) || "Name already exists" }}
                   render={({ field, fieldState }) => (
-                    <div className="space-y-1">
-                      <Input {...field} autoFocus />
-                      {fieldState.error && (
-                        <p className="text-xs text-destructive">{fieldState.error.message}</p>
-                      )}
-                    </div>
+                    <>
+                      <Input {...field} autoFocus value={field.value ?? ""}
+                        onChange={(e) => field.onChange(toAlphaNum(e.target.value))} />
+                      {fieldState.error && <p className="text-xs text-destructive">{fieldState.error.message}</p>}
+                    </>
                   )}
                 />
               </div>
 
-              <div>
-                <label className="text-sm font-medium">Country Code (ISO3)</label>
+              {/* Country code */}
+              <div className="space-y-1">
+                <label className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">Country Code (ISO3)</label>
                 <Controller
-                  name="country_code"
-                  control={control}
+                  name="country_code" control={control}
                   rules={{ required: true, validate: (v) => v?.length === 3 || "Use ISO3 code" }}
-                  render={({ field }) => <Input maxLength={3} {...field} />}
+                  render={({ field }) => (
+                    <Input {...field} maxLength={3} value={field.value ?? ""}
+                      onChange={(e) => field.onChange((e.target.value ?? "").toUpperCase().replace(/[^A-Z]/g, ""))} />
+                  )}
                 />
               </div>
 
-              <div className="md:col-span-2">
-                <label className="text-sm font-medium">Address</label>
+              {/* Address */}
+              <div className="md:col-span-2 space-y-1">
+                <label className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">Address</label>
                 <Controller
-                    name="address"
-                    control={control}
-                    rules={{
-                      required: "Address is required",
-                      validate: (v) => isUniqueField("address", v) || "Address already exists",
-                    }}
-                    render={({ field, fieldState }) => (
-                      <div className="space-y-1">
-                        <Input {...field} />
-                        {fieldState.error && <p className="text-xs text-destructive">{fieldState.error.message}</p>}
-                      </div>
-                    )}
-                  />
+                  name="address" control={control}
+                  rules={{ required: "Address is required", validate: (v) => isUniqueField("address", v) || "Address already exists" }}
+                  render={({ field, fieldState }) => (
+                    <>
+                      <Input {...field} value={field.value ?? ""}
+                        onChange={(e) => field.onChange(toAlphaNumAddress(e.target.value))} />
+                      {fieldState.error && <p className="text-xs text-destructive">{fieldState.error.message}</p>}
+                    </>
+                  )}
+                />
               </div>
 
-              <div>
-                <label className="text-sm font-medium">Postal Code</label>
+              {/* Postal code */}
+              <div className="space-y-1">
+                <label className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">Postal Code</label>
                 <Controller
-                  name="postal_code"
-                  control={control}
+                  name="postal_code" control={control}
                   rules={{
                     required: "Postal code is required",
                     validate: (v) => {
@@ -353,94 +408,94 @@ const remove = async (row: CareCentreResponse) => {
                     },
                   }}
                   render={({ field, fieldState }) => (
-                    <div className="space-y-1">
-                      <Input {...field} inputMode="numeric" />
-                      {fieldState.error && <p className="text-xs text-destructive">{fieldState.error.message}</p>}
-                    </div>
+                    <>
+                      <Input {...field} inputMode="numeric" value={field.value ?? ""}
+                        onChange={(e) => {
+                          const cleaned = digitsOnly(e.target.value).slice(0, 6);
+                          field.onChange(cleaned);
+                          if (cleaned !== lastFetchedPostalRef.current) clearErrors("postal_code");
+                        }}
+                        onBlur={() => void lookupAddressByPostalCode(field.value)}
+                      />
+                      {isFetchingAddress && <p className="text-xs text-muted-foreground">Fetching address…</p>}
+                      {fieldState.error  && <p className="text-xs text-destructive">{fieldState.error.message}</p>}
+                    </>
                   )}
                 />
-
               </div>
 
-              <div>
-                <label className="text-sm font-medium">Contact No</label>
+              {/* Contact */}
+              <div className="space-y-1">
+                <label className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">Contact No</label>
                 <Controller
-                  name="contact_no"
-                  control={control}
+                  name="contact_no" control={control}
                   rules={{
                     required: "Contact number is required",
                     validate: (v) => {
                       const d = digitsOnly(v);
-                      if (digitsOnly(v).length !== 8) return "Contact number must be exactly 8 digits";
+                      if (d.length !== 8) return "Contact number must be exactly 8 digits";
                       return isUniqueField("contact_no", d) || "Contact number already exists";
                     },
                   }}
                   render={({ field, fieldState }) => (
-                    <div className="space-y-1">
+                    <>
                       <Input {...field} inputMode="numeric" />
                       {fieldState.error && <p className="text-xs text-destructive">{fieldState.error.message}</p>}
-                    </div>
+                    </>
                   )}
                 />
-
               </div>
 
-              <div>
-                <label className="text-sm font-medium">Email</label>
-                  <Controller
-                    name="email"
-                    control={control}
-                    rules={{
-                      required: "Email is required",
-                      pattern: { value: /^\S+@\S+\.\S+$/, message: "Invalid email format" },
-                      validate: (v) => isUniqueField("email", v) || "Email already exists",
-                    }}
-                    render={({ field, fieldState }) => (
-                      <div className="space-y-1">
-                        <Input type="email" {...field} />
-                        {fieldState.error && <p className="text-xs text-destructive">{fieldState.error.message}</p>}
-                      </div>
-                    )}
-                  />
-
-              </div>
-
-              <div>
-                <label className="text-sm font-medium">Devices Available</label>
+              {/* Email */}
+              <div className="space-y-1">
+                <label className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">Email</label>
                 <Controller
-                  name="no_of_devices_avail"
-                  control={control}
+                  name="email" control={control}
+                  rules={{
+                    required: "Email is required",
+                    pattern: { value: /^\S+@\S+\.\S+$/, message: "Invalid email format" },
+                    validate: (v) => isUniqueField("email", v) || "Email already exists",
+                  }}
+                  render={({ field, fieldState }) => (
+                    <>
+                      <Input type="email" {...field} />
+                      {fieldState.error && <p className="text-xs text-destructive">{fieldState.error.message}</p>}
+                    </>
+                  )}
+                />
+              </div>
+
+              {/* Devices */}
+              <div className="space-y-1">
+                <label className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">Devices Available</label>
+                <Controller
+                  name="no_of_devices_avail" control={control}
                   render={({ field }) => (
-                    <Input
-                      type="number"
-                      min={0}
+                    <Input type="number" min={0}
                       value={Number.isFinite(field.value as any) ? field.value : 0}
-                      onChange={(e) => {
-                        const n = e.currentTarget.valueAsNumber;
-                        field.onChange(Number.isNaN(n) ? 0 : n);
-                      }}
+                      onChange={(e) => { const n = e.currentTarget.valueAsNumber; field.onChange(Number.isNaN(n) ? 0 : n); }}
                     />
                   )}
                 />
               </div>
+
             </div>
 
+            {/* Working hours */}
             <div className="space-y-2">
-              <div className="text-sm font-semibold">Operating Days &amp; Hours</div>
+              <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+                Operating Days &amp; Hours
+              </p>
               <WorkingHoursInput
                 value={wh}
                 onChange={(next) => setValue("working_hours", next, { shouldDirty: true })}
+                showErrors={whSubmitted}
               />
             </div>
 
             <div className="flex justify-end gap-2 pt-2">
-              <Button type="button" variant="outline" onClick={() => setOpen(false)}>
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                disabled={isFetching || createMut.isPending || updateMut.isPending}
-              >
+              <Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+              <Button type="submit" disabled={isBusy}>
                 {editing ? "Save changes" : "Create"}
               </Button>
             </div>
@@ -449,8 +504,4 @@ const remove = async (row: CareCentreResponse) => {
       </Dialog>
     </div>
   );
-}
-
-function capitalize(s: string) {
-  return s.charAt(0).toUpperCase() + s.slice(1);
 }

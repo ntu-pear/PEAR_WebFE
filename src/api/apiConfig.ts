@@ -444,7 +444,7 @@ export const supervisorAPI = axios.create({
 });
 
 export const accessLevelAPI = axios.create({
-  baseURL: `${VITE_USER_SERVICE_URL}/access-levels`,
+  baseURL: `${VITE_USER_SERVICE_URL}/access_levels`,
 });
 
 export const getDoctorNameAPI = (roleName: string) =>
