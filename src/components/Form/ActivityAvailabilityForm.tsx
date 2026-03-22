@@ -217,7 +217,7 @@ export default function ActivityAvailabilityForm({
                 <select
                     id="centre_activity_id"
                     value={centre_activity_id}
-                    disabled={is_deleted ? true : false}
+                    disabled={is_deleted || initial?.editing}
                     onChange={(e) => {
                         setCentreActivityID(e.target.value)
                     }}
