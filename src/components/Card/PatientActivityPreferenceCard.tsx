@@ -4,6 +4,13 @@ import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import { Checkbox } from "../ui/checkbox";
 import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "../ui/sheet";
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -17,18 +24,25 @@ import {
   ThumbsDown,
   Users,
   X,
+  Edit,
+  Trash2
 } from "lucide-react";
 import { DataTableClient, DataTableColumns } from "../Table/DataTable";
 import {
   usePatientActivityPreferences,
   PatientActivityPreferenceWithRecommendation,
 } from "@/hooks/activity/usePatientActivityPreferences";
-import { useCentreActivityExclusions } from "@/hooks/activity/useActivityExclusions"; // NEW
+import { useCentreActivityExclusions } from "@/hooks/activity/useActivityExclusions"; 
+import {
+  useCentreActivityExclusionMutations,
+} from "@/hooks/activity/useActivityExclusionMutations";
 import { useAuth } from "@/hooks/useAuth";
 import {
   updateActivityPreference,
   createActivityPreference,
 } from "@/api/activity/activityPreference";
+import BulkActivityExclusionForm from "../Form/BulkActivityExclusionForm";
+import CentreActivityExclusionForm from "../Form/ActivityExclusionForm";
 import { toast } from "sonner";
 
 interface PatientActivityPreferenceCardProps {
@@ -44,13 +58,22 @@ const PatientActivityPreferenceCard: React.FC<
     error,
     refreshPatientActivityPreferences,
   } = usePatientActivityPreferences(patientId);
-  const { centreActivityExclusions } = useCentreActivityExclusions(); // NEW
+  const { 
+    centreActivityExclusions,
+    refreshCentreActivityExclusions,
+  } = useCentreActivityExclusions();
   const { currentUser } = useAuth();
 
   // Bulk selection state
   const [selectedItems, setSelectedItems] = useState<Set<number>>(new Set());
   const [bulkPreference, setBulkPreference] = useState<string>("");
   const [isBulkUpdating, setIsBulkUpdating] = useState(false);
+
+  const { create, update, remove, isUpdating } =
+    useCentreActivityExclusionMutations();
+
+  const [isAddExclusionOpen, setIsAddExclusionOpen] = useState(false);
+  const [editingExclusion, setEditingExclusion] = useState<any>(null);
 
   // Bulk selection handlers
   const handleSelectItem = (itemId: number, checked: boolean) => {
@@ -69,6 +92,52 @@ const PatientActivityPreferenceCard: React.FC<
     } else {
       setSelectedItems(new Set());
     }
+  };
+
+  const handleDeleteExclusion = async (exclusion: any) => {
+    if (!confirm("Delete this exclusion?")) return;
+
+    await remove(exclusion.id);
+
+    toast.success("Exclusion deleted");
+
+    
+    refreshCentreActivityExclusions();
+  };
+
+  const handleCreateExclusion = async (values: any) => {
+    await Promise.all(
+      values.centre_activity_ids.map((id: number) =>
+        create({
+          centre_activity_id: id,
+          patient_id: values.patient_id,
+          exclusion_remarks: values.exclusion_remarks,
+          start_date: values.start_date,
+          end_date: values.end_date,
+        })
+      )
+    );
+
+    toast.success("Exclusion(s) created");
+    setIsAddExclusionOpen(false);
+
+    refreshCentreActivityExclusions();
+  };
+
+  const handleUpdateExclusion = async (values: any) => {
+    await update({
+      id: editingExclusion.id,
+      centre_activity_id: values.centre_activity_id,
+      patient_id: editingExclusion.patientId,
+      exclusion_remarks: values.exclusion_remarks,
+      start_date: values.start_date,
+      end_date: values.end_date,
+    });
+
+    toast.success("Exclusion updated");
+    setEditingExclusion(null);
+
+    refreshCentreActivityExclusions();
   };
 
   const handleBulkUpdate = async () => {
@@ -214,7 +283,7 @@ const PatientActivityPreferenceCard: React.FC<
     );
   };
 
-  const getExclusionStatus = (activityId: number) => {
+  const renderExclusion = (activityId: number) => {
     const exclusion = centreActivityExclusions.find(
       (e) => e.centreActivityId === activityId
     );
@@ -226,14 +295,116 @@ const PatientActivityPreferenceCard: React.FC<
       new Date(exclusion.startDate) <= now &&
       (!exclusion.endDate || new Date(exclusion.endDate) >= now);
 
+    if (!exclusion) {
+      return (
+        <Badge className="bg-gray-300 text-gray-700 text-xs">No</Badge>
+      );
+    }
+
     return (
-      <Badge
-        className={`px-2 py-1 text-xs min-h-[28px] ${
-          isActive ? "bg-red-500 text-white" : "bg-gray-300 text-gray-700"
-        }`}
-      >
-        {isActive ? "Yes" : "No"}
-      </Badge>
+      <div className="flex items-center justify-center gap-2 group relative">
+        {/* STATUS */}
+        <Badge
+          className={`text-xs ${
+            isActive ? "bg-red-500 text-white" : "bg-gray-400 text-white"
+          }`}
+        >
+          {isActive ? "Yes" : "Inactive"}
+        </Badge>
+
+        {/* EDIT */}
+        <Button
+          size="icon"
+          variant="ghost"
+          className="h-6 w-6 opacity-0 group-hover:opacity-100"
+          onClick={() => setEditingExclusion(exclusion)}
+        >
+          <Edit className="h-3 w-3" />
+        </Button>
+
+        {/* DELETE */}
+        <Button
+          size="icon"
+          variant="ghost"
+          className="h-6 w-6 text-destructive opacity-0 group-hover:opacity-100"
+          onClick={() => handleDeleteExclusion(exclusion)}
+        >
+          <Trash2 className="h-3 w-3" />
+        </Button>
+
+        {/* TOOLTIP */}
+        <div className="absolute invisible group-hover:visible z-50 bg-black text-white text-xs p-2 rounded w-56 -top-2 left-1/2 -translate-x-1/2 -translate-y-full">
+          <div><b>Start:</b> {exclusion.startDate}</div>
+          <div><b>End:</b> {exclusion.endDate || "Indefinite"}</div>
+          <div><b>Remarks:</b> {exclusion.exclusionRemarks || "-"}</div>
+        </div>
+      </div>
+    );
+  };
+
+  const renderExclusionStatus = (activityId: number) => {
+    const exclusion = centreActivityExclusions.find(
+      (e) => e.centreActivityId === activityId
+    );
+
+    if (!exclusion) {
+      return <Badge className="bg-gray-300 text-gray-700 text-xs">No</Badge>;
+    }
+
+    const now = new Date();
+
+    const isActive =
+      new Date(exclusion.startDate) <= now &&
+      (!exclusion.endDate || new Date(exclusion.endDate) >= now);
+
+    return (
+      <div className="relative group inline-flex justify-center">
+        {/* STATUS BADGE */}
+        <Badge
+          className={`text-xs cursor-help ${
+            isActive ? "bg-red-500 text-white" : "bg-gray-400 text-white"
+          }`}
+        >
+          {isActive ? "Yes" : "Inactive"}
+        </Badge>
+
+        {/* TOOLTIP */}
+        <div className="absolute invisible group-hover:visible z-50 bg-black text-white text-xs p-2 rounded w-56 -top-2 left-1/2 -translate-x-1/2 -translate-y-full pointer-events-none">
+          <div><b>Start:</b> {exclusion.startDate}</div>
+          <div><b>End:</b> {exclusion.endDate || "Indefinite"}</div>
+          <div><b>Remarks:</b> {exclusion.exclusionRemarks || "-"}</div>
+        </div>
+      </div>
+    );
+  };
+
+  const renderExclusionActions = (activityId: number) => {
+    const exclusion = centreActivityExclusions.find(
+      (e) => e.centreActivityId === activityId
+    );
+
+    if (!exclusion) return null;
+
+    return (
+      <div className="flex items-center justify-center gap-2">
+        <Button
+          size="icon"
+          variant="ghost"
+          className="h-6 w-6"
+          onClick={() => setEditingExclusion(exclusion)}
+        >
+          <Edit className="h-3 w-3" />
+        </Button>
+
+        <Button
+          size="icon"
+          variant="ghost"
+          className="h-6 w-6 text-destructive"
+          onClick={() => handleDeleteExclusion(exclusion)}
+        >
+          <Trash2 className="h-3 w-3" />
+        </Button>
+      </div>
     );
   };
 
@@ -299,7 +470,13 @@ const PatientActivityPreferenceCard: React.FC<
         key: "exclusionStatus" as keyof (typeof activityPreferences)[0],
         header: "Exclusion",
         className: "w-[150px] text-center",
-        render: (_unused: any, item) => getExclusionStatus(item.centreActivityId),
+        render: (_unused: any, item) => renderExclusionStatus(item.centreActivityId),
+      },
+      {
+        key: "exclusionActions" as keyof (typeof activityPreferences)[0],
+        header: "",
+        className: "w-[80px] text-center",
+        render: (_: any, item) => renderExclusionActions(item.centreActivityId),
       },
       {
         key: "doctorRecommendation" as keyof (typeof activityPreferences)[0],
@@ -449,6 +626,10 @@ const PatientActivityPreferenceCard: React.FC<
       <Card>
         <CardHeader>
           <CardTitle>Activity Preferences</CardTitle>
+          <div className="flex justify-between items-center">
+            <CardTitle>Activity Preferences</CardTitle>
+          </div>
+          
         </CardHeader>
         <CardContent>
           <div className="flex justify-center items-center h-32">
@@ -475,12 +656,44 @@ const PatientActivityPreferenceCard: React.FC<
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Activity Preferences</CardTitle>
-        <p className="text-sm text-muted-foreground">
-          View and manage activity preferences and doctor recommendations for
-          this patient. This shows all available centre activities with their
-          current preference settings.
-        </p>
+        <div className="flex justify-between items-center">
+          <div>
+            <CardTitle>Activity Preferences</CardTitle>
+            <p className="text-sm text-muted-foreground">
+              View and manage activity preferences and doctor recommendations for
+                this patient. This shows all available centre activities with their
+                current preference settings.
+            </p>
+          </div>
+
+          <Sheet open={isAddExclusionOpen} onOpenChange={setIsAddExclusionOpen}>
+            <SheetTrigger asChild>
+              <Button>Add Activity Exclusion</Button>
+            </SheetTrigger>
+
+            <SheetContent>
+              <SheetHeader>
+                <SheetTitle>Add Exclusions</SheetTitle>
+              </SheetHeader>
+
+              <BulkActivityExclusionForm
+                initial={{
+                  patient_id: parseInt(patientId),
+                  exclusion_remarks: "",
+                  start_date: new Date().toISOString().split("T")[0],
+                  end_date: null,
+                }}
+                onSubmit={handleCreateExclusion}
+                onCancel={() => setIsAddExclusionOpen(false)}
+                excludedActivityIds={
+                  new Set(
+                    centreActivityExclusions.map((e) => e.centreActivityId)
+                  )
+                }
+              />
+            </SheetContent>
+          </Sheet>
+        </div>
       </CardHeader>
       <CardContent>
         {/* Bulk Selection Controls */}
@@ -573,6 +786,35 @@ const PatientActivityPreferenceCard: React.FC<
           renderActions={undefined}
         />
       </CardContent>
+      <Sheet
+        open={!!editingExclusion}
+        onOpenChange={(open) => {
+          if (!open) setEditingExclusion(null);
+        }}
+      >
+        <SheetContent>
+          <SheetHeader>
+            <SheetTitle>Edit Exclusion</SheetTitle>
+          </SheetHeader>
+
+          {editingExclusion && (
+            <CentreActivityExclusionForm
+              initial={{
+                id: editingExclusion?.id,
+                centre_activity_id: editingExclusion?.centreActivityId,
+                patient_id: editingExclusion?.patientId,
+                exclusion_remarks: editingExclusion?.exclusionRemarks || "",
+                start_date: editingExclusion?.startDate,
+                end_date: editingExclusion?.endDate || null,
+              }}
+              isEditing
+              onSubmit={handleUpdateExclusion}
+              onCancel={() => setEditingExclusion(null)}
+              submitting={isUpdating}
+            />
+          )}
+        </SheetContent>
+      </Sheet>
     </Card>
   );
 };
