@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect } from "react"; 
 import { toast } from "sonner";
 import { ListFilter, Plus } from "lucide-react";
 import {
@@ -41,6 +41,7 @@ export default function ManageCentreActivities() {
   // Reset to first page whenever list or filters change
   useEffect(() => setPage(1), [search, deletedFilter, fixed, compulsory, group, centreActivities]);
 
+  
   const filteredData = useMemo(() => {
     let filtered = centreActivities ?? [];
 

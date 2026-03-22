@@ -282,8 +282,9 @@ export const getAllActivities = async (): Promise<Activity[]> => {
   try {
     const token = retrieveAccessTokenFromCookie();
     if (!token) {
-      console.warn("No authentication token found, using mock data");
-      return mockActivities;
+      //console.warn("No authentication token found, using mock data");
+      //return mockActivities;
+      throw new Error("Not authenticated");
     }
 
     const response = await activityAPI.get("/activities", {
@@ -294,8 +295,12 @@ export const getAllActivities = async (): Promise<Activity[]> => {
     console.log("Successfully fetched activities:", response.data);
     return response.data;
   } catch (error) {
-    console.error("Error fetching activities, using mock data:", error);
-    return mockActivities;
+    //console.error("Error fetching activities, using mock data:", error);
+    //return mockActivities;
+    
+    console.error("Error fetching activities:", error);
+    throw error;
+
   }
 };
 

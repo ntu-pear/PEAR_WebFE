@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo } from "react"; 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -6,6 +6,7 @@ import {Activity} from "@/api/activities/activities";
 import dayjs from "dayjs";
 import { toast } from "sonner";
 import { getAllActivities } from "@/api/activity/activityPreference";
+import { listActivities } from "@/api/activities/activities";
 import { type FormErrors, type CentreActivityFormValues, validateLocal } from "@/lib/validation/centreActivity";
 
 type Props = {
@@ -74,7 +75,8 @@ export default function CentreActivityForm({
     const fetchData = async () => {
       try {
         const[activitiesData] = await Promise.all([
-          getAllActivities()
+          //getAllActivities()
+          listActivities({ include_deleted: false })
         ]);
         setActivities(activitiesData);
       }
@@ -86,6 +88,12 @@ export default function CentreActivityForm({
   
     fetchData();
   }, []);
+
+  useEffect(() => {
+    if (!initial?.activity_id && activities.length > 0 && activity_id === "") {
+      setActivityID(activities[0].id.toString());
+    }
+  }, [activities, initial, activity_id]);
 
   useEffect(() => {
     if (initial?.fixed_time_slots) {
@@ -202,7 +210,11 @@ export default function CentreActivityForm({
           }}
           className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 appearance-none cursor-pointer"
         >
-          <option value="" disabled>Select an activity</option>
+          
+          <option value="" disabled>
+              Select an activity
+            </option>
+
           {sortedActivities.map((a) => (
             <option key={a.id} value={a.id.toString()}>
               {a.title.toUpperCase()}
