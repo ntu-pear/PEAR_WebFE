@@ -26,7 +26,7 @@ export default function ActivityForm({ initial, onSubmit, submitting }: Props) {
 
     if (!v.title.trim()) {
       e.title = "Title is required";
-      e._summary = [...(e._summary ?? []), "Title is required"];
+      //e._summary = [...(e._summary ?? []), "Title is required"]; (this causes duplicate prompts)
     }
 
     setErrors(e);
