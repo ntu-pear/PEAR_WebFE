@@ -141,6 +141,7 @@ export const getCentreActivityPreferences = async (
 };
 
 // Mock data for development/fallback
+/*
 const mockActivities: Activity[] = [
   {
     id: 1,
@@ -183,7 +184,7 @@ const mockActivities: Activity[] = [
     modified_date: "2024-01-01T00:00:00Z",
   },
 ];
-
+*/
 const mockCentreActivities: CentreActivity[] = [
   {
     id: 1,
