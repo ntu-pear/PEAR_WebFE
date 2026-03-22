@@ -24,7 +24,7 @@ import { AddPatientPrivacyLevel } from "@/api/patients/privacyLevel";
 import { addPatientGuardian, IGuardianFormData } from "@/api/patients/guardian";
 import { createGuardianAllocation } from "@/api/patients/patientAllocation";
 import { validateNRIC } from "@/utils/validateNRIC";
-import { useNavigate } from "react-router";
+import { useNavigate } from "react-router-dom";
 
 const patientInfoSchema = z
   .object({
@@ -285,8 +285,9 @@ const AddPatient: React.FC = () => {
   const handleAddPatient: SubmitHandler<FormInputs> = async (data, event) => {
     event?.preventDefault();
     console.log("handleSubmit add patient", data);
-
+    console.log("currentUser:", currentUser);
     if (!currentUser || !currentUser.userId) {
+      toast.error("User not authenticated");
       return;
     }
     try {

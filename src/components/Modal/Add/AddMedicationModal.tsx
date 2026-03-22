@@ -1,4 +1,4 @@
-import { useModal } from "@/hooks/useModal";
+import { useModal } from "@/hooks/useModal"; 
 import { Button } from "../../ui/button";
 import { getDateTimeNowInUTC } from "@/utils/formatDate";
 import { toast } from "sonner";
@@ -30,9 +30,15 @@ type TAddMedicationForm = {
   PrescriptionRemarks: string;
 };
 
+const MAX_LENGTH = 255;
+
 const AddMedicationModal: React.FC = () => {
-  const addMedicationForm = useForm<TAddMedicationForm>();
+  const form = useForm<TAddMedicationForm>({
+    mode: "onChange",
+  });
+
   const { modalRef, activeModal, closeModal } = useModal();
+
   const { patientId, submitterId, refreshMedicationData } =
     activeModal.props as {
       patientId: string;
@@ -40,30 +46,55 @@ const AddMedicationModal: React.FC = () => {
       refreshMedicationData: () => void;
     };
 
-  const [prescriptionList, setPrescriptionList] = useState<PrescriptionList[]>(
-    []
-  );
+  const { isDirty } = form.formState;
+
+  const [prescriptionList, setPrescriptionList] = useState<PrescriptionList[]>([]);
   const [startDate, setStartDate] = useState("");
 
   const handleFetchPrescriptionList = async () => {
     try {
-      const prescriptionList: PrescriptionListView =
-        await fetchPrescriptionList();
-      setPrescriptionList(prescriptionList.data);
-    } catch (error) {
-      console.error(error);
+      const res: PrescriptionListView = await fetchPrescriptionList();
+      setPrescriptionList(res.data);
+    } catch {
       toast.error("Failed to fetch Prescription List");
     }
   };
 
+  // CLOSE CONFIRM
+  const handleClose = () => {
+    if (isDirty) {
+      const confirmLeave = window.confirm(
+        "You have unsaved changes. Are you sure you want to leave?"
+      );
+      if (!confirmLeave) return;
+    }
+    closeModal();
+  };
+
+  // SUBMIT
   const handleAddMedication: SubmitHandler<TAddMedicationForm> = async ({
     AdministerTime,
     ...data
-  }: TAddMedicationForm) => {
-    const addMedicationFormData: IMedicationFormData = {
+  }) => {
+    const time = dayjs(AdministerTime).format("HHmm");
+
+    const hour = parseInt(time.slice(0, 2), 10);
+    const minute = time.slice(2);
+
+    if (hour < 9 || hour > 17) {
+      toast.error("Only 09:00–17:00 allowed");
+      return;
+    }
+
+    if (hour === 17 && minute !== "00") {
+      toast.error("Only 17:00 is allowed");
+      return;
+    }
+
+    const payload: IMedicationFormData = {
       IsDeleted: "0",
       PatientId: parseInt(patientId as string, 10),
-      AdministerTime: dayjs(AdministerTime).format("HHmm"),
+      AdministerTime: time,
       ...data,
       CreatedDateTime: getDateTimeNowInUTC() as string,
       UpdatedDateTime: getDateTimeNowInUTC() as string,
@@ -72,19 +103,12 @@ const AddMedicationModal: React.FC = () => {
     };
 
     try {
-      await addPatientMedication(addMedicationFormData);
-      closeModal();
+      await addPatientMedication(payload);
       toast.success("Patient medication added successfully.");
       refreshMedicationData();
-    } catch (error) {
-      if (error instanceof Error) {
-        toast.error(`Failed to add patient medication. ${error.message}`);
-      } else {
-        // Fallback error handling for unknown error types
-        toast.error(
-          "Failed to add patient medication. An unknown error occurred."
-        );
-      }
+      closeModal();
+    } catch (error: any) {
+      toast.error(error?.message || "Failed to add medication");
     }
   };
 
@@ -92,77 +116,126 @@ const AddMedicationModal: React.FC = () => {
     handleFetchPrescriptionList();
   }, []);
 
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (modalRef.current && !modalRef.current.contains(e.target as Node)) {
+        if (isDirty) {
+          const confirmLeave = window.confirm(
+            "You have unsaved changes. Close anyway?"
+          );
+          if (!confirmLeave) return;
+        }
+        closeModal();
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [isDirty]);
+
+  const getTextColor = (length: number) => {
+    if (length >= 255) return "text-red-600 font-semibold";
+    if (length >= 240) return "text-red-500 font-medium";
+    if (length >= 200) return "text-orange-500";
+    return "text-muted-foreground";
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
       <div ref={modalRef} className="bg-background p-8 rounded-md w-[600px]">
         <h3 className="text-lg font-medium mb-5">Add Medication</h3>
+
         <form
-          onSubmit={addMedicationForm.handleSubmit(handleAddMedication)}
+          onSubmit={form.handleSubmit(handleAddMedication)}
           className="grid grid-cols-2 gap-4"
         >
           <div className="col-span-2">
             <Select
               label="Prescription"
               name="PrescriptionListId"
-              form={addMedicationForm}
+              form={form}
               options={prescriptionList.map(({ Id, Value }) => ({
                 value: String(Id),
                 name: Value,
               }))}
-              required={true}
+              required
             />
           </div>
+
           <TimeInput
             label="Administer Time"
             name="AdministerTime"
-            form={addMedicationForm}
-            minuteStep={30}
-            required={true}
+            form={form}
+            minHour={9}
+            maxHour={16}
           />
+
           <Input
             label="Dosage"
             name="Dosage"
-            formReturn={addMedicationForm}
+            formReturn={form}
             validation={{ required: true }}
           />
+
           <div className="col-span-2">
             <Textarea
               label="Instruction"
               name="Instruction"
-              form={addMedicationForm}
-              maxLength={255}
-              required={true}
+              form={form}
+              maxLength={MAX_LENGTH}
+              required
             />
+
+            <div
+              className={`flex justify-end text-sm mt-1 ${getTextColor(
+                form.watch("Instruction")?.length || 0
+              )}`}
+            >
+              {form.watch("Instruction")?.length || 0}/{MAX_LENGTH}
+            </div>
           </div>
+
           <DateInput
             label="Start Date"
             name="StartDate"
-            form={addMedicationForm}
+            form={form}
             onChange={(e) => setStartDate(e.target.value)}
-            required={true}
+            required
           />
+
           <DateInput
             label="End Date"
             name="EndDate"
-            form={addMedicationForm}
+            form={form}
             min={startDate}
-            required={true}
+            required
           />
+
           <div className="col-span-2">
             <Textarea
               label="Remark"
               name="PrescriptionRemarks"
-              form={addMedicationForm}
-              maxLength={255}
-              required={true}
+              form={form}
+              maxLength={MAX_LENGTH}
+              required
             />
+
+            <div
+              className={`flex justify-end text-sm mt-1 ${getTextColor(
+                form.watch("PrescriptionRemarks")?.length || 0
+              )}`}
+            >
+              {form.watch("PrescriptionRemarks")?.length || 0}/{MAX_LENGTH}
+            </div>
           </div>
 
           <div className="col-span-2 mt-6 flex justify-end space-x-2">
-            <Button variant="outline" onClick={closeModal}>
+            <Button variant="outline" onClick={handleClose} type="button">
               Cancel
             </Button>
-            <Button type="submit">Add</Button>
+            <Button type="submit" disabled={!isDirty}>
+              Add
+            </Button>
           </div>
         </form>
       </div>
