@@ -206,7 +206,7 @@ export default function CentreActivityForm({
         <select
           id="activity_id"
           value={activity_id}
-          disabled={is_deleted ? true : false}      
+          disabled={is_deleted || !!initial?.activity_id}     
           onChange={(e) => {
             setActivityID(e.target.value)
           }}
