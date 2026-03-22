@@ -1,23 +1,9 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useMemo, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import {
-  ChevronDown,
-  ChevronUp,
-  Download,
-  Filter,
-  X,
   User,
   Calendar,
   Activity,
@@ -25,15 +11,15 @@ import {
   Shield,
   LogIn,
 } from "lucide-react";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
 import { fetchUserLogs, UserLogsList } from "@/api/logger/userLogs";
+import FilterSidebar from "@/components/Filters/FilterSidebar";
+import TextFilterField from "@/components/Filters/TextFilterField";
+import SelectFilterField from "@/components/Filters/SelectFilterField";
+import DateRangeFilterField from "@/components/Filters/DateRangeFilterField";
+import FilterActionButtons from "@/components/Filters/FilterActionButtons";
+import FilterExportButtons from "@/components/Filters/FilterExportButtons";
+import { DataTableServer } from "@/components/Table/DataTable";
 
 const ACTION_OPTIONS = [
   { value: "all", label: "All Actions" },
@@ -52,61 +38,166 @@ const ROLE_OPTIONS = [
   { value: "GAME_THERAPIST", label: "Game Therapist" },
 ];
 
+const DEFAULT_PAGE_SIZE = 10;
+const VALID_PAGE_SIZES = [5, 10, 50, 100];
+
+function parsePage(raw: string | null): number {
+  const n = Number(raw ?? "0");
+  return Number.isNaN(n) || n < 0 ? 0 : n;
+}
+
+function parsePageSize(raw: string | null): number {
+  const n = Number(raw ?? String(DEFAULT_PAGE_SIZE));
+  return Number.isNaN(n) || n <= 0 ? DEFAULT_PAGE_SIZE : n;
+}
+
+type AccountLogRow = {
+  id: string | number;
+  indexLabel: string;
+  timestamp: string;
+  userDisplay: string;
+  role: string;
+  method: string;
+  message: string;
+  raw: any;
+};
+
 const AccountLogs: React.FC = () => {
-  const [setExpandedRows] = useState<{ [key: number]: boolean }>({});
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [filtersVisible, setFiltersVisible] = useState(true);
+  const location = useLocation();
+  const navigate = useNavigate();
 
-  // Filter states
-  const [selectedAction, setSelectedAction] = useState<string>("all");
-  const [selectedRole, setSelectedRole] = useState<string>("all");
-  const [userName, setUserName] = useState<string>("");
-  const [startDate, setStartDate] = useState<string>("");
-  const [endDate, setEndDate] = useState<string>("");
+  const [loading, setLoading] = useState(false);
 
-  // Logs data
   const [logsData, setLogsData] = useState<UserLogsList>({
     data: [],
     pageNo: 0,
-    pageSize: 100,
+    pageSize: DEFAULT_PAGE_SIZE,
     totalRecords: 0,
     totalPages: 0,
   });
 
-  const [jumpPage, setJumpPage] = useState(1);
-  const [loading, setLoading] = useState(false);
-
-  const handleLogs = useCallback(
-    async (page: number = 0) => {
-      setLoading(true);
-      setExpandedRows;
-      try {
-        const response = await fetchUserLogs(
-          "auth",
-          selectedAction === "all" ? null : selectedAction,
-          null,
-          userName || null,
-          startDate || null,
-          endDate || null,
-          "desc",
-          page,
-          100
-        );
-        setLogsData(response);
-        setJumpPage(response.pageNo + 1);
-      } catch (error) {
-        console.error("Error fetching user logs", error);
-      } finally {
-        setLoading(false);
-      }
-    },
-    [selectedAction, userName, startDate, endDate]
+  const queryParams = useMemo(
+    () => new URLSearchParams(location.search),
+    [location.search]
   );
 
-  useEffect(() => {
-    handleLogs(0);
-  }, [handleLogs]);
+  const urlAction = queryParams.get("action") ?? "all";
+  const urlRole = queryParams.get("role") ?? "all";
+  const urlUserName = queryParams.get("userName") ?? "";
+  const urlStartDate = queryParams.get("startDate") ?? "";
+  const urlEndDate = queryParams.get("endDate") ?? "";
+  const page = parsePage(queryParams.get("page"));
+  const pageSize = parsePageSize(queryParams.get("pageSize"));
 
+  const [selectedAction, setSelectedAction] = useState(urlAction);
+  const [selectedRole, setSelectedRole] = useState(urlRole);
+  const [userName, setUserName] = useState(urlUserName);
+  const [startDate, setStartDate] = useState(urlStartDate);
+  const [endDate, setEndDate] = useState(urlEndDate);
+
+  const updateQuery = (updates: {
+    action?: string;
+    role?: string;
+    userName?: string;
+    startDate?: string;
+    endDate?: string;
+    page?: number;
+    pageSize?: number;
+  }) => {
+    const next = new URLSearchParams(location.search);
+
+    const nextAction = updates.action ?? (next.get("action") ?? "all");
+    const nextRole = updates.role ?? (next.get("role") ?? "all");
+    const nextUserName = updates.userName ?? (next.get("userName") ?? "");
+    const nextStartDate = updates.startDate ?? (next.get("startDate") ?? "");
+    const nextEndDate = updates.endDate ?? (next.get("endDate") ?? "");
+    const nextPage = updates.page ?? parsePage(next.get("page"));
+    const nextPageSize = updates.pageSize ?? parsePageSize(next.get("pageSize"));
+
+    nextAction !== "all" ? next.set("action", nextAction) : next.delete("action");
+    nextRole !== "all" ? next.set("role", nextRole) : next.delete("role");
+    nextUserName.trim()
+      ? next.set("userName", nextUserName.trim())
+      : next.delete("userName");
+    nextStartDate ? next.set("startDate", nextStartDate) : next.delete("startDate");
+    nextEndDate ? next.set("endDate", nextEndDate) : next.delete("endDate");
+    nextPage > 0 ? next.set("page", String(nextPage)) : next.delete("page");
+
+    if (nextPageSize !== DEFAULT_PAGE_SIZE) {
+      next.set("pageSize", String(nextPageSize));
+    } else {
+      next.delete("pageSize");
+    }
+
+    const nextSearch = next.toString();
+    const currentSearch = location.search.startsWith("?")
+      ? location.search.slice(1)
+      : location.search;
+
+    if (nextSearch !== currentSearch) {
+      navigate(
+        {
+          pathname: location.pathname,
+          search: nextSearch ? `?${nextSearch}` : "",
+        },
+        { replace: true }
+      );
+    }
+  };
+
+  useEffect(() => {
+    setSelectedAction(urlAction);
+    setSelectedRole(urlRole);
+    setUserName(urlUserName);
+    setStartDate(urlStartDate);
+    setEndDate(urlEndDate);
+  }, [urlAction, urlRole, urlUserName, urlStartDate, urlEndDate]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    setLoading(true);
+
+    fetchUserLogs(
+      "auth",
+      urlAction === "all" ? null : urlAction,
+      urlRole === "all" ? null : urlRole,
+      urlUserName || null,
+      urlStartDate || null,
+      urlEndDate || null,
+      "desc",
+      page,
+      pageSize
+    )
+      .then((response) => {
+        if (!cancelled) {
+          setLogsData(response);
+        }
+      })
+      .catch((error) => {
+        if (!cancelled) {
+          console.error("Error fetching user logs", error);
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [urlAction, urlRole, urlUserName, urlStartDate, urlEndDate, page, pageSize]);
+
+  const handleApplyFilters = () => {
+    updateQuery({
+      action: selectedAction,
+      role: selectedRole,
+      userName,
+      startDate,
+      endDate,
+      page: 0,
+    });
+  };
 
   const handleFilterReset = () => {
     setSelectedAction("all");
@@ -114,38 +205,21 @@ const AccountLogs: React.FC = () => {
     setUserName("");
     setStartDate("");
     setEndDate("");
+
+    navigate(
+      {
+        pathname: location.pathname,
+        search: "",
+      },
+      { replace: true }
+    );
   };
 
-  const goToPage = (page: number) => {
-    if (page >= 0 && page < logsData.totalPages) {
-      handleLogs(page);
-    }
-  };
-
-  const handleJump = () => {
-    const page = Math.max(1, Math.min(jumpPage, logsData.totalPages));
-    goToPage(page - 1);
-  };
-
-  const handleExport = () => {
-    const logs = logsData.data;
-    const headers = ["Date/Time", "User", "Role", "Action", "Description"];
-
-    const rows = logs.map((log) => [
-      format(new Date(log.timestamp), "yyyy-MM-dd HH:mm:ss"),
-      log.user_full_name || log.user,
-      log.role || "-",
-      log.method,
-      log.message,
-    ]);
-
-    const csvContent = [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
-
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = `auth-logs-${format(new Date(), "yyyy-MM-dd")}.csv`;
-    link.click();
+  const handleTableFetch = async (pageNo: number, nextPageSize: number) => {
+    updateQuery({
+      page: pageNo,
+      pageSize: nextPageSize,
+    });
   };
 
   const getActionBadgeColor = (method: string) => {
@@ -180,292 +254,193 @@ const AccountLogs: React.FC = () => {
     }
   };
 
-  // Filter logs by role on client side
-  const filteredLogs =
-    selectedRole === "all"
-      ? logsData.data
-      : logsData.data.filter((log) => log.role?.toUpperCase() === selectedRole.toUpperCase());
+  const filteredLogs = logsData.data;
+
+  const handleExport = () => {
+    const headers = ["Date/Time", "User", "Role", "Action", "Description"];
+
+    const rows = filteredLogs.map((log) => [
+      format(new Date(log.timestamp), "yyyy-MM-dd HH:mm:ss"),
+      log.user_full_name || log.user,
+      log.role || "-",
+      log.method,
+      `"${String(log.message).replace(/"/g, '""')}"`,
+    ]);
+
+    const csvContent = [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `auth-logs-${format(new Date(), "yyyy-MM-dd")}.csv`;
+    link.click();
+  };
+
+  const tableRows: AccountLogRow[] = filteredLogs.map((log, index) => ({
+    id: `${logsData.pageNo}-${index}-${log.timestamp}-${log.user ?? "user"}`,
+    indexLabel: String(index + 1 + logsData.pageNo * logsData.pageSize),
+    timestamp: log.timestamp,
+    userDisplay: log.user_full_name || "-",
+    role: log.role || "-",
+    method: log.method,
+    message: log.message,
+    raw: log,
+  }));
+
+  const columns = [
+    {
+      key: "indexLabel" as keyof AccountLogRow,
+      header: "#",
+      render: (value: string) => (
+        <span className="font-mono text-xs">{value}</span>
+      ),
+    },
+    {
+      key: "timestamp" as keyof AccountLogRow,
+      header: "Date/Time",
+      render: (value: string) => (
+        <span className="text-sm whitespace-nowrap">
+          {format(new Date(value), "dd/MM/yyyy HH:mm")}
+        </span>
+      ),
+    },
+    {
+      key: "userDisplay" as keyof AccountLogRow,
+      header: "User",
+      render: (_: string, item: AccountLogRow) => (
+        <div>
+          <div className="font-medium">{item.raw.user_full_name || "-"}</div>
+          <div className="text-xs text-muted-foreground">{item.raw.user}</div>
+        </div>
+      ),
+    },
+    {
+      key: "role" as keyof AccountLogRow,
+      header: "Role",
+      render: (value: string) =>
+        value && value !== "-" ? (
+          <Badge className={getRoleBadgeColor(value)}>{value}</Badge>
+        ) : null,
+    },
+    {
+      key: "method" as keyof AccountLogRow,
+      header: "Action",
+      render: (value: string) => (
+        <Badge className={getActionBadgeColor(value)}>{value}</Badge>
+      ),
+    },
+    {
+      key: "message" as keyof AccountLogRow,
+      header: "Description",
+      render: (value: string) => <div className="max-w-md truncate">{value}</div>,
+    },
+  ];
+
+  const pageSizeOptions =
+    logsData.totalRecords > 0
+      ? [
+          ...VALID_PAGE_SIZES.map((size) => ({
+            label: String(size),
+            value: size,
+          })),
+          ...(!VALID_PAGE_SIZES.includes(logsData.totalRecords)
+            ? [
+                {
+                  label: "All",
+                  value: logsData.totalRecords,
+                },
+              ]
+            : []),
+        ]
+      : VALID_PAGE_SIZES.map((size) => ({
+          label: String(size),
+          value: size,
+        }));
+
+  const effectivePageSize = Math.max(logsData.pageSize, 1);
+
+  const effectiveTotalPages =
+    logsData.totalRecords === 0
+      ? 0
+      : Math.ceil(logsData.totalRecords / effectivePageSize);
 
   return (
     <div className="flex min-h-screen w-full">
-      {/* ================= FILTER SIDEBAR ================= */}
-      <div
-        className={`${
-          sidebarCollapsed ? "w-12" : "w-64"
-        } flex-shrink-0 border-r bg-white transition-all duration-300`}
-      >
-        {sidebarCollapsed ? (
-          <div className="p-2">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setSidebarCollapsed(false)}
-              className="w-8 h-8"
-            >
-              <Filter className="h-4 w-4" />
-            </Button>
-          </div>
-        ) : (
-          <div className="p-4">
-            {/* Filter header with collapse */}
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold flex items-center gap-2">
-                <Filter className="h-5 w-5" />
-                Filters
-              </h3>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setSidebarCollapsed(true)}
-                className="h-8 w-8"
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
+      <FilterSidebar>
+        <SelectFilterField
+          label="Action"
+          icon={Activity}
+          value={selectedAction}
+          onChange={setSelectedAction}
+          options={ACTION_OPTIONS}
+          placeholder="Select action"
+        />
 
-            {/* Toggle filters visibility */}
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setFiltersVisible(!filtersVisible)}
-              className="w-full justify-between mb-2"
-            >
-              {filtersVisible ? "Hide Filters" : "Show Filters"}
-              {filtersVisible ? (
-                <ChevronUp className="h-4 w-4" />
-              ) : (
-                <ChevronDown className="h-4 w-4" />
-              )}
-            </Button>
+        <SelectFilterField
+          label="Role"
+          icon={Shield}
+          value={selectedRole}
+          onChange={setSelectedRole}
+          options={ROLE_OPTIONS}
+          placeholder="Select role"
+        />
 
-            {filtersVisible && (
-              <div className="space-y-4">
-                {/* Action Filter */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium flex items-center gap-1">
-                    <Activity className="h-4 w-4" />
-                    Action
-                  </label>
-                  <Select value={selectedAction} onValueChange={setSelectedAction}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select action" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {ACTION_OPTIONS.map((opt) => (
-                        <SelectItem key={opt.value} value={opt.value}>
-                          {opt.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+        <TextFilterField
+          label="User Name"
+          icon={User}
+          value={userName}
+          onChange={setUserName}
+          placeholder="Search user name..."
+        />
 
-                {/* Role Filter */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium flex items-center gap-1">
-                    <Shield className="h-4 w-4" />
-                    Role
-                  </label>
-                  <Select value={selectedRole} onValueChange={setSelectedRole}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select role" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {ROLE_OPTIONS.map((opt) => (
-                        <SelectItem key={opt.value} value={opt.value}>
-                          {opt.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+        <DateRangeFilterField
+          label="Date Range"
+          icon={Calendar}
+          startDate={startDate}
+          endDate={endDate}
+          onStartDateChange={setStartDate}
+          onEndDateChange={setEndDate}
+        />
 
-                {/* User Name Filter */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium flex items-center gap-1">
-                    <User className="h-4 w-4" />
-                    User Name
-                  </label>
-                  <Input
-                    type="text"
-                    value={userName}
-                    onChange={(e) => setUserName(e.target.value)}
-                    placeholder="Search user name..."
-                  />
-                </div>
+        <FilterActionButtons
+          applyIcon={Search}
+          onApply={handleApplyFilters}
+          onReset={handleFilterReset}
+        />
 
-                {/* Date Range */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium flex items-center gap-1">
-                    <Calendar className="h-4 w-4" />
-                    Date Range
-                  </label>
-                  <Input
-                    type="date"
-                    value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
-                    placeholder="Start date"
-                  />
-                  <Input
-                    type="date"
-                    value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
-                    placeholder="End date"
-                  />
-                </div>
+        <FilterExportButtons
+          onInternalExport={handleExport}
+          internalLabel="Export CSV"
+        />
+      </FilterSidebar>
 
-                {/* Buttons */}
-                <div className="pt-2 space-y-2">
-                  <Button className="w-full" onClick={() => handleLogs(0)}>
-                    <Search className="h-4 w-4 mr-2" />
-                    Apply Filters
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="w-full"
-                    onClick={handleFilterReset}
-                  >
-                    Reset
-                  </Button>
-                </div>
-
-                {/* Export */}
-                <div className="pt-4 border-t space-y-2">
-                  <label className="text-sm font-medium">Export</label>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="w-full"
-                    onClick={handleExport}
-                  >
-                    <Download className="h-4 w-4 mr-2" />
-                    Export CSV
-                  </Button>
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-
-      {/* ================= MAIN CONTENT ================= */}
-      <div className="flex-1 p-6 overflow-auto">
+      <div className="flex-1 overflow-auto p-6">
         <Card className="w-full">
           <CardHeader className="flex flex-row items-center justify-between">
             <div className="flex items-center gap-2">
               <LogIn className="h-6 w-6 text-primary" />
               <CardTitle className="text-2xl">Authentication Logs</CardTitle>
             </div>
-            <div className="text-sm text-muted-foreground">
-              Showing {filteredLogs.length} of {logsData.totalRecords} records
-            </div>
           </CardHeader>
           <CardContent>
-            {loading ? (
-              <div className="flex justify-center py-8">
-                <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" />
-              </div>
-            ) : (
-              <>
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="w-12">#</TableHead>
-                        <TableHead className="w-32">Date/Time</TableHead>
-                        <TableHead className="w-40">User</TableHead>
-                        <TableHead className="w-32">Role</TableHead>
-                        <TableHead className="w-28">Action</TableHead>
-                        <TableHead>Description</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {filteredLogs.length === 0 ? (
-                        <TableRow>
-                          <TableCell
-                            colSpan={6}
-                            className="text-center py-8 text-muted-foreground"
-                          >
-                            No logs found
-                          </TableCell>
-                        </TableRow>
-                      ) : (
-                        filteredLogs.map((log, index) => (
-                          <TableRow key={index} className="hover:bg-muted/50">
-                            <TableCell className="font-mono text-xs">
-                              {index + 1 + logsData.pageNo * logsData.pageSize}
-                            </TableCell>
-                            <TableCell className="text-sm whitespace-nowrap">
-                              {format(new Date(log.timestamp), "dd/MM/yyyy HH:mm")}
-                            </TableCell>
-                            <TableCell>
-                              <div className="font-medium">
-                                {log.user_full_name || "-"}
-                              </div>
-                              <div className="text-xs text-muted-foreground">
-                                {log.user}
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              {log.role && (
-                                <Badge className={getRoleBadgeColor(log.role)}>
-                                  {log.role}
-                                </Badge>
-                              )}
-                            </TableCell>
-                            <TableCell>
-                              <Badge className={getActionBadgeColor(log.method)}>
-                                {log.method}
-                              </Badge>
-                            </TableCell>
-                            <TableCell className="max-w-md truncate">
-                              {log.message}
-                            </TableCell>
-                          </TableRow>
-                        ))
-                      )}
-                    </TableBody>
-                  </Table>
-                </div>
-
-                {/* Pagination */}
-                {logsData.totalPages > 0 && (
-                  <div className="flex items-center justify-end gap-2 mt-4">
-                    <span className="text-sm text-muted-foreground">Page</span>
-                    <input
-                      type="number"
-                      className="w-16 text-center border rounded-md px-2 py-1 text-sm"
-                      min={1}
-                      max={logsData.totalPages}
-                      value={jumpPage}
-                      onChange={(e) => setJumpPage(Number(e.target.value))}
-                    />
-                    <span className="text-sm text-muted-foreground">
-                      of {logsData.totalPages}
-                    </span>
-                    <Button variant="outline" size="sm" onClick={handleJump}>
-                      Go
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      disabled={logsData.pageNo <= 0}
-                      onClick={() => goToPage(logsData.pageNo - 1)}
-                    >
-                      Prev
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      disabled={logsData.pageNo >= logsData.totalPages - 1}
-                      onClick={() => goToPage(logsData.pageNo + 1)}
-                    >
-                      Next
-                    </Button>
-                  </div>
-                )}
-              </>
-            )}
+            <DataTableServer
+              data={tableRows}
+              pagination={{
+                pageNo: logsData.pageNo,
+                pageSize: logsData.pageSize,
+                totalRecords: logsData.totalRecords,
+                totalPages: effectiveTotalPages,
+              }}
+              columns={columns}
+              viewMore={false}
+              hideActionsHeader={true}
+              fetchData={handleTableFetch}
+              pageSizeOptions={pageSizeOptions}
+              expandable={false}
+              loading={loading}
+              showPageSizeSelector={true}
+              showPaginationControls={true}
+            />
           </CardContent>
         </Card>
       </div>

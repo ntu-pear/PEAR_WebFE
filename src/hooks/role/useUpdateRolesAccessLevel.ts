@@ -12,18 +12,25 @@ type Variables = {
 const useUpdateRoleAccessLevel = () => {
   return useMutation({
     mutationFn: ({ roleId, roleName, accessLevelSensitive }: Variables) =>
-      updateRole(roleId, roleName, true, accessLevelSensitive),
-    onSuccess: ({ roleName }) => {
-      toast.success(`Privacy level of ${roleName} updated successfully`);
-      queryClient.refetchQueries({ queryKey: ["roles"] });
+      // Pass only 2 arguments: the ID and the Payload Object
+      updateRole(roleId, {
+        roleName,
+        // Map your 'accessLevelSensitive' to the correct API field
+        // Note: Check if your API expects an ID (string) or a Rank (number)
+        accessLevelId: String(accessLevelSensitive), 
+      }),
+    
+    // In TanStack Query v5, onSuccess provides (data, variables, context)
+    onSuccess: (_data, variables) => {
+      toast.success(`Privacy level of ${variables.roleName} updated successfully`);
+      // Use invalidateQueries to trigger a background refresh
+      queryClient.invalidateQueries({ queryKey: ["roles"] });
     },
-    onError: (
-      error: { response: { data: { detail: string } } },
-      { roleName }
-    ) =>
-      toast.error(
-        `Failed to update access level of ${roleName}. ${error.response.data.detail}`
-      ),
+
+    onError: (error: any, variables) => {
+      const detail = error?.response?.data?.detail || "An unknown error occurred";
+      toast.error(`Failed to update ${variables.roleName}. ${detail}`);
+    },
   });
 };
 

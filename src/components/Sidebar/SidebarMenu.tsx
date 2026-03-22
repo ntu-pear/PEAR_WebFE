@@ -190,7 +190,7 @@ const adminMenu: MenuSection[] = [
     title: "CENTRES",
     items: [
       {
-        title: "Manage Centre",
+        title: "Manage Care Centre",
         icon: "List",
         path: "/admin/manage-centre",
       },
