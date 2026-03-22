@@ -43,6 +43,7 @@ import {
 } from "@/api/activity/activityPreference";
 import BulkActivityExclusionForm from "../Form/BulkActivityExclusionForm";
 import CentreActivityExclusionForm from "../Form/ActivityExclusionForm";
+import { formatDate } from "@/utils/formatDate"
 import { toast } from "sonner";
 
 interface PatientActivityPreferenceCardProps {
@@ -312,8 +313,8 @@ const PatientActivityPreferenceCard: React.FC<
 
         {/* TOOLTIP */}
         <div className="absolute invisible group-hover:visible z-50 bg-black text-white text-xs p-2 rounded w-56 -top-2 left-1/2 -translate-x-1/2 -translate-y-full pointer-events-none">
-          <div><b>Start:</b> {exclusion.startDate}</div>
-          <div><b>End:</b> {exclusion.endDate || "Indefinite"}</div>
+          <div><b>Start:</b> {formatDate(exclusion.startDate)}</div>
+          <div><b>End:</b> {exclusion.endDate ? formatDate(exclusion.endDate) : "Indefinite"}</div>
           <div><b>Remarks:</b> {exclusion.exclusionRemarks || "-"}</div>
         </div>
       </div>
