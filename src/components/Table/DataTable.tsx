@@ -1,15 +1,33 @@
-// src/components/Table/DataTable.tsx
-import React, { useState, useEffect } from "react";
-import { ChevronUp, ChevronDown, ChevronsUpDown } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import {
+  ChevronUp,
+  ChevronDown,
+  ChevronsUpDown,
+  ChevronRight,
+} from "lucide-react";
+
 import {
   Table,
   TableBody,
   TableHeader,
   TableRow,
   TableHead as TableHeadCell,
+  TableCell,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import DataTableRow from "./DataTableRow";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import TruncatedCell from "./TruncatedCell";
+
+// ---------------------------------------------------------------------------
+// Shared types
+// ---------------------------------------------------------------------------
 
 export interface TableRowData {
   id: string | number;
@@ -17,20 +35,187 @@ export interface TableRowData {
 }
 
 type DataTableColumn<T extends Record<string, any>> = {
-  key: keyof T;
+  key: keyof T | string;
   header: string;
-  render?: (value: T[keyof T], item: T) => React.ReactNode;
+  render?: (value: any, item: T) => React.ReactNode;
   className?: string;
-  sortable?: boolean; // for server-side
+  sortable?: boolean;
+  width?: string;
 };
 
 export type DataTableColumns<T extends Record<string, any>> = Array<
   DataTableColumn<T>
 >;
 
+type ExpandTogglePlacement = "leading" | "actions";
+
+// Sentinel used to represent "All records" without mixing strings into a
+// number array. Consumers that pass pageSizeOptions should use this value;
+// DataTableServer maps it to the label "All" internally.
+export const ALL_RECORDS_SENTINEL = -1;
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+const getNestedValue = (obj: any, path: string): any =>
+  path.split(".").reduce((acc, key) => acc && acc[key], obj);
+
+// ---------------------------------------------------------------------------
+// InternalDataTableRow
+// ---------------------------------------------------------------------------
+
+interface InternalDataTableRowProps<T extends TableRowData> {
+  item: T;
+  columns: DataTableColumns<T>;
+  viewMore: boolean;
+  viewMoreLink?: string;
+  renderActions?: (item: T) => React.ReactNode;
+  expandable?: boolean;
+  renderExpandedContent?: (item: T) => React.ReactNode;
+  onExpand?: (item: T) => void;
+  selectable?: boolean;
+  isSelected?: boolean;
+  onToggleSelect?: () => void;
+  expandTogglePlacement?: ExpandTogglePlacement;
+}
+
+function InternalDataTableRow<T extends TableRowData>({
+  item,
+  columns,
+  viewMore,
+  viewMoreLink,
+  renderActions,
+  expandable = false,
+  renderExpandedContent,
+  onExpand,
+  selectable = false,
+  isSelected = false,
+  onToggleSelect,
+  expandTogglePlacement = "leading",
+}: InternalDataTableRowProps<T>) {
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  const handleToggleExpand = () => {
+    const next = !isExpanded;
+    setIsExpanded(next);
+    if (next && onExpand) onExpand(item);
+  };
+
+  const showExpandInLeadingColumn =
+    expandable && expandTogglePlacement === "leading";
+
+  const showActionsCell = Boolean(
+    (viewMore && viewMoreLink) ||
+      renderActions ||
+      (expandable && expandTogglePlacement === "actions")
+  );
+
+  const expandedColSpan =
+    columns.length +
+    (selectable ? 1 : 0) +
+    (showExpandInLeadingColumn ? 1 : 0) +
+    (showActionsCell ? 1 : 0);
+
+  return (
+    <>
+      <TableRow>
+        {selectable && (
+          <TableCell className="w-12 text-center">
+            <input
+              type="checkbox"
+              checked={isSelected}
+              onChange={onToggleSelect}
+              className="form-checkbox h-4 w-4 text-primary rounded border-gray-300"
+            />
+          </TableCell>
+        )}
+
+        {showExpandInLeadingColumn && (
+          <TableCell className="w-10">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleToggleExpand}
+              className="h-8 w-8 p-0"
+            >
+              {isExpanded ? (
+                <ChevronDown className="h-5 w-5 text-gray-600" />
+              ) : (
+                <ChevronRight className="h-5 w-5 text-gray-600" />
+              )}
+            </Button>
+          </TableCell>
+        )}
+
+        {columns.map((column) => {
+          const rawValue = getNestedValue(item, column.key.toString());
+          const cellValue = column.render
+            ? column.render(rawValue, item)
+            : rawValue;
+
+          const isTruncated = column.className?.includes("truncate-column");
+
+          return (
+            <TableCell
+              key={column.key.toString()}
+              className={column.className || ""}
+              style={{ width: column.width || "auto" }}
+            >
+              {isTruncated ? (
+                <TruncatedCell value={cellValue} className={column.className} />
+              ) : (
+                cellValue
+              )}
+            </TableCell>
+          );
+        })}
+
+        {showActionsCell && (
+          <TableCell className="align-middle">
+            <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
+              {expandable && expandTogglePlacement === "actions" && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleToggleExpand}
+                >
+                  {isExpanded ? "Collapse" : "Expand"}
+                </Button>
+              )}
+
+              {viewMore && viewMoreLink ? (
+                <Link to={viewMoreLink}>
+                  <Button aria-label="View more" variant="default" size="sm">
+                    View More
+                  </Button>
+                </Link>
+              ) : null}
+
+              {renderActions && <div>{renderActions(item)}</div>}
+            </div>
+          </TableCell>
+        )}
+      </TableRow>
+
+      {expandable && isExpanded && renderExpandedContent && (
+        <TableRow>
+          <TableCell
+            colSpan={expandedColSpan}
+            className="bg-muted/20 px-6 shadow-inner"
+          >
+            {renderExpandedContent(item)}
+          </TableCell>
+        </TableRow>
+      )}
+    </>
+  );
+}
+
 /* =========================
    CLIENT-SIDE TABLE
 ========================= */
+
 interface DataTableClientProps<T extends TableRowData> {
   data: T[];
   columns: DataTableColumns<T>;
@@ -47,7 +232,9 @@ interface DataTableClientProps<T extends TableRowData> {
   selectable?: boolean;
   selectedItems?: T[];
   onSelectChange?: (selected: T[]) => void;
-  loading?: boolean; // ✅ Add loading prop
+  loading?: boolean;
+  expandTogglePlacement?: ExpandTogglePlacement;
+  actionsHeaderLabel?: string;
 }
 
 export function DataTableClient<T extends TableRowData>({
@@ -67,44 +254,39 @@ export function DataTableClient<T extends TableRowData>({
   selectedItems,
   onSelectChange,
   loading = false,
+  expandTogglePlacement = "leading",
+  actionsHeaderLabel = "Actions",
 }: DataTableClientProps<T>) {
-  const [currentPage, setCurrentPage] = useState(1);
-  const totalPages = Math.ceil(data.length / itemsPerPage);
-  const [rowsInput, setRowsInput] = useState(itemsPerPage);
-  const [rowsPerPage, setRowsPerPage] = useState(itemsPerPage);
-  const [jumpPage, setJumpPage] = useState(1);
+  // Single source of truth for the current page (1-based).
+  const [page, setPage] = useState(1);
+  // Single source of truth for rows per page; initialised from the prop.
+  const [rowsPerPage] = useState(itemsPerPage);
 
   const total = data.length;
   const pageCount = Math.max(1, Math.ceil(total / rowsPerPage));
 
-  const current = Math.min(jumpPage, pageCount);
+  // Clamp the current page whenever data length or rowsPerPage changes so we
+  // never sit on a page that no longer exists (e.g. after filtering).
+  useEffect(() => {
+    setPage((p) => Math.min(p, Math.max(1, Math.ceil(total / rowsPerPage))));
+  }, [total, rowsPerPage]);
 
-  const startIndex = (current - 1) * rowsPerPage;
+  const startIndex = (page - 1) * rowsPerPage;
   const paginatedData = data.slice(startIndex, startIndex + rowsPerPage);
 
+  // "Showing" range derived entirely from the single page / rowsPerPage state.
   const showingFrom = total === 0 ? 0 : startIndex + 1;
   const showingTo = Math.min(startIndex + paginatedData.length, total);
 
   const goToPage = (p: number) => {
-    if (p >= 1 && p <= pageCount) {
-      setJumpPage(p);
-    }
+    if (p >= 1 && p <= pageCount) setPage(p);
   };
 
-  const handleJump = () => {
-    const p = Math.max(1, Math.min(jumpPage, pageCount));
-    goToPage(p);
-  };
-
-  const handleRowsChange = () => {
-    const newSize = Math.max(1, rowsInput || 1);
-    setRowsPerPage(newSize);
-    setJumpPage(1);
-  };
-
-  useEffect(() => {
-    if (data.length !== 0 && totalPages < currentPage) setCurrentPage(totalPages);
-  }, [data.length, totalPages, currentPage]);
+  const showActionsColumn =
+    !hideActionsHeader &&
+    (viewMore ||
+      !!renderActions ||
+      (expandable && expandTogglePlacement === "actions"));
 
   if (loading) {
     return (
@@ -132,7 +314,9 @@ export function DataTableClient<T extends TableRowData>({
                 <TableHeadCell className="w-12 flex items-center justify-center">
                   <input
                     type="checkbox"
-                    checked={selectedItems.length === data.length && data.length > 0}
+                    checked={
+                      selectedItems.length === data.length && data.length > 0
+                    }
                     onChange={() =>
                       onSelectChange(
                         selectedItems.length === data.length ? [] : data
@@ -142,26 +326,38 @@ export function DataTableClient<T extends TableRowData>({
                   />
                 </TableHeadCell>
               )}
-              {expandable && <TableHeadCell className="w-12"></TableHeadCell>}
+
+              {expandable && expandTogglePlacement === "leading" && (
+                <TableHeadCell className="w-12" />
+              )}
+
               {columns.map((column) => (
                 <TableHeadCell
                   key={column.key.toString()}
-                  className={`cursor-pointer ${column.className || ""}`}
+                  className={column.className || ""}
                 >
                   {column.header}
                 </TableHeadCell>
               ))}
-              {!hideActionsHeader && <TableHeadCell className="pl-9">Actions</TableHeadCell>}
+
+              {showActionsColumn && (
+                <TableHeadCell className="pl-9">
+                  {actionsHeaderLabel}
+                </TableHeadCell>
+              )}
             </TableRow>
           </TableHeader>
+
           <TableBody>
             {paginatedData.map((item) => (
-              <DataTableRow
+              <InternalDataTableRow
                 key={item.id}
                 item={item}
                 columns={columns}
                 viewMore={viewMore}
-                viewMoreLink={`${viewMoreBaseLink}/${item.id}${activeTab ? `?tab=${activeTab}` : ""}`}
+                viewMoreLink={`${viewMoreBaseLink}/${item.id}${
+                  activeTab ? `?tab=${activeTab}` : ""
+                }`}
                 renderActions={renderActions}
                 expandable={expandable}
                 renderExpandedContent={renderExpandedContent}
@@ -175,72 +371,48 @@ export function DataTableClient<T extends TableRowData>({
                     : [...selectedItems, item];
                   onSelectChange(newSelected);
                 }}
+                expandTogglePlacement={expandTogglePlacement}
               />
             ))}
           </TableBody>
         </Table>
       </div>
 
-      <div className="flex items-center justify-between px-6 py-3 text-sm text-muted-foreground">
-  
-        <div>
-          {total === 0
-            ? "Showing 0 of 0 records"
-            : `Showing ${showingFrom}-${showingTo} of ${total} records`}
+      {/* FIX: was a mismatched </div> closing tag here — corrected to match
+          the opening conditional wrapper */}
+      {data.length > 0 && (
+        <div className="flex items-center justify-between py-4">
+          {/* FIX: was using orphaned currentPage/itemsPerPage state;
+              now uses showingFrom/showingTo derived from single page state */}
+          <div className="text-xs text-muted-foreground">
+            Showing{" "}
+            <strong>
+              {showingFrom}–{showingTo}
+            </strong>{" "}
+            of <strong>{total}</strong> records
+          </div>
+
+          <div className="flex items-center space-x-2">
+            {/* FIX: was calling undefined handlePageChange; now calls goToPage */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => goToPage(page - 1)}
+              disabled={page === 1}
+            >
+              Previous
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => goToPage(page + 1)}
+              disabled={page === pageCount}
+            >
+              Next
+            </Button>
+          </div>
         </div>
-
-        <div className="flex items-center gap-2">
-
-          {/* Rows per page */}
-          <span>Rows</span>
-          <input
-            type="number"
-            min={1}
-            value={rowsInput}
-            onChange={(e) => setRowsInput(Number(e.target.value))}
-            className="w-16 text-center border rounded-md px-2 py-1 text-sm"
-          />
-          <Button size="sm" variant="outline" onClick={handleRowsChange}>
-            Change
-          </Button>
-
-          {/* Jump page */}
-          <span>Page</span>
-          <input
-            type="number"
-            min={1}
-            max={pageCount}
-            value={jumpPage}
-            onChange={(e) => setJumpPage(Number(e.target.value))}
-            className="w-16 text-center border rounded-md px-2 py-1 text-sm"
-          />
-          <span>of {pageCount}</span>
-
-          <Button size="sm" variant="outline" onClick={handleJump}>
-            Go
-          </Button>
-
-          {/* Prev / Next */}
-          <Button
-            size="sm"
-            variant="outline"
-            disabled={current <= 1}
-            onClick={() => goToPage(current - 1)}
-          >
-            Prev
-          </Button>
-
-          <Button
-            size="sm"
-            variant="outline"
-            disabled={current >= pageCount}
-            onClick={() => goToPage(current + 1)}
-          >
-            Next
-          </Button>
-
-        </div>
-      </div>
+      )}
     </div>
   );
 }
@@ -248,12 +420,18 @@ export function DataTableClient<T extends TableRowData>({
 /* =========================
    SERVER-SIDE TABLE
 ========================= */
+
 export interface ServerPagination {
   pageNo: number;
   pageSize: number;
   totalRecords: number;
   totalPages: number;
 }
+
+type PageSizeOption = {
+  label: string;
+  value: number;
+};
 
 interface DataTableServerProps<T extends TableRowData> {
   data: T[];
@@ -265,16 +443,23 @@ interface DataTableServerProps<T extends TableRowData> {
   hideActionsHeader?: boolean;
   className?: string;
   renderActions?: (item: T) => React.ReactNode;
-  fetchData: (pageNo: number, pageSize: number, sortColumn?: string, sortDirection?: "asc" | "desc") => void;
+  fetchData: (
+    pageNo: number,
+    pageSize: number,
+    sortColumn?: string,
+    sortDirection?: "asc" | "desc"
+  ) => void | Promise<void>;
   sortBy?: string | null;
   sortDir?: "asc" | "desc";
-  onSort?: (column: string) => void;
-  onPageSizeChange?: (pageSize: number | string) => void;
-  pageSizeOptions?: (number | string)[];
+  pageSizeOptions?: PageSizeOption[];
   expandable?: boolean;
   renderExpandedContent?: (item: T) => React.ReactNode;
   onExpand?: (item: T) => void;
   loading?: boolean;
+  showPageSizeSelector?: boolean;
+  showPaginationControls?: boolean;
+  expandTogglePlacement?: ExpandTogglePlacement;
+  actionsHeaderLabel?: string;
 }
 
 export function DataTableServer<T extends TableRowData>({
@@ -289,20 +474,47 @@ export function DataTableServer<T extends TableRowData>({
   renderActions,
   fetchData,
   sortBy,
-  sortDir,
-  onSort,
+  sortDir = "asc",
+  pageSizeOptions = [
+    { label: "5", value: 5 },
+    { label: "10", value: 10 },
+    { label: "20", value: 20 },
+    { label: "50", value: 50 },
+    { label: "100", value: 100 },
+  ],
   expandable = false,
   renderExpandedContent,
   onExpand,
   loading = false,
+  showPageSizeSelector = true,
+  showPaginationControls = true,
+  expandTogglePlacement = "leading",
+  actionsHeaderLabel = "Actions",
 }: DataTableServerProps<T>) {
   const { pageNo, pageSize, totalRecords, totalPages } = pagination;
   const currentPage = pageNo + 1;
 
   const handlePageChange = async (newPage: number) => {
     if (newPage < 1 || newPage > totalPages) return;
-    await fetchData(newPage - 1, pageSize);
+    await fetchData(newPage - 1, pageSize, sortBy ?? undefined, sortDir);
   };
+
+  const handleSort = async (column: string) => {
+    const newSortDir: "asc" | "desc" =
+      sortBy === column && sortDir === "asc" ? "desc" : "asc";
+    await fetchData(0, pageSize, column, newSortDir);
+  };
+
+  const handlePageSizeChange = async (value: string) => {
+    const nextPageSize = Number(value);
+    await fetchData(0, nextPageSize, sortBy ?? undefined, sortDir);
+  };
+
+  const showActionsColumn =
+    !hideActionsHeader &&
+    (viewMore ||
+      !!renderActions ||
+      (expandable && expandTogglePlacement === "actions"));
 
   if (loading) {
     return (
@@ -320,75 +532,127 @@ export function DataTableServer<T extends TableRowData>({
     );
   }
 
+  const showingFrom = totalRecords === 0 ? 0 : pageNo * pageSize + 1;
+  const showingTo = pageNo * pageSize + data.length;
+
   return (
     <div>
       <div className="rounded-md border">
         <Table className={className}>
           <TableHeader>
             <TableRow>
-              {expandable && <TableHeadCell className="w-12"></TableHeadCell>}
+              {expandable && expandTogglePlacement === "leading" && (
+                <TableHeadCell className="w-12" />
+              )}
+
               {columns.map((column) => (
                 <TableHeadCell
                   key={column.key.toString()}
-                  className={`${column.className || ""} ${column.sortable ? "cursor-pointer" : ""}`}
-                  onClick={() => column.sortable && onSort?.(column.key.toString())}
+                  className={`${column.className || ""} ${
+                    column.sortable ? "cursor-pointer select-none" : ""
+                  }`}
+                  onClick={() =>
+                    column.sortable && handleSort(column.key.toString())
+                  }
                 >
                   <div className="flex items-center space-x-1">
                     <span>{column.header}</span>
-                    {column.sortable && (
-                      sortBy === column.key.toString() ? (
-                        sortDir === "asc" ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />
-                      ) : <ChevronsUpDown className="h-4 w-4 text-gray-400" />
-                    )}
+                    {column.sortable &&
+                      (sortBy === column.key.toString() ? (
+                        sortDir === "asc" ? (
+                          <ChevronUp className="h-4 w-4" />
+                        ) : (
+                          <ChevronDown className="h-4 w-4" />
+                        )
+                      ) : (
+                        <ChevronsUpDown className="h-4 w-4 text-gray-400" />
+                      ))}
                   </div>
                 </TableHeadCell>
               ))}
-              {!hideActionsHeader && <TableHeadCell className="pl-9">Actions</TableHeadCell>}
+
+              {showActionsColumn && (
+                <TableHeadCell className="pl-9">
+                  {actionsHeaderLabel}
+                </TableHeadCell>
+              )}
             </TableRow>
           </TableHeader>
+
           <TableBody>
             {data.map((item) => (
-              <DataTableRow
+              <InternalDataTableRow
                 key={item.id}
                 item={item}
                 columns={columns}
                 viewMore={viewMore}
-                viewMoreLink={`${viewMoreBaseLink}/${item.id}${activeTab ? `?tab=${activeTab}` : ""}`}
+                viewMoreLink={`${viewMoreBaseLink}/${item.id}${
+                  activeTab ? `?tab=${activeTab}` : ""
+                }`}
                 renderActions={renderActions}
                 expandable={expandable}
                 renderExpandedContent={renderExpandedContent}
                 onExpand={onExpand}
+                expandTogglePlacement={expandTogglePlacement}
               />
             ))}
           </TableBody>
         </Table>
       </div>
 
-      {data.length > 0 && (
-        <div className="flex items-center justify-between py-4">
-          <div className="text-xs text-muted-foreground">
-            Showing <strong>{pageNo * pageSize + 1}-{pageNo * pageSize + data.length}</strong> of <strong>{totalRecords}</strong> records
-          </div>
-          <div className="flex items-center space-x-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handlePageChange(currentPage - 1)}
-              disabled={currentPage === 1 || pageSize >= totalRecords}
-            >
-              Previous
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handlePageChange(currentPage + 1)}
-              disabled={currentPage === totalPages || pageSize >= totalRecords}
-            >
-              Next
-            </Button>
-          </div>
+      <div className="flex items-center justify-between py-4">
+        <div className="text-xs text-muted-foreground">
+          Showing{" "}
+          <strong>
+            {showingFrom}–{showingTo}
+          </strong>{" "}
+          of <strong>{totalRecords}</strong> records
         </div>
-      )}
+
+        <div className="flex items-center gap-4">
+          {showPageSizeSelector && (
+            <div className="flex items-center gap-2 text-sm">
+              <span className="font-semibold">Rows per page</span>
+              <Select value={String(pageSize)} onValueChange={handlePageSizeChange}>
+                <SelectTrigger className="h-8 w-[90px] text-xs">
+                  <SelectValue placeholder="10" />
+                </SelectTrigger>
+                <SelectContent>
+                  {pageSizeOptions.map((option) => (
+                    <SelectItem
+                      key={option.value}
+                      value={String(option.value)}
+                    >
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
+          {showPaginationControls && (
+            <div className="flex items-center space-x-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1 || totalPages <= 1}
+              >
+                Previous
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages || totalPages <= 1}
+              >
+                Next
+              </Button>
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

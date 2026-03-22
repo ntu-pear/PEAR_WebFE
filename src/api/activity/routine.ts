@@ -120,9 +120,20 @@ export const fetchPatientRoutine = async (patientId: number, include_deleted?: b
     }
 }
 
-const convertDayofWeek = (day: number) => {
-    const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
-    return days[day - 1]
+const convertDayofWeek = (day: number): string => {
+    const days = [
+        { label: "Monday",    bit: 1  },
+        { label: "Tuesday",   bit: 2  },
+        { label: "Wednesday", bit: 4  },
+        { label: "Thursday",  bit: 8  },
+        { label: "Friday",    bit: 16 },
+        { label: "Saturday",  bit: 32 },
+        { label: "Sunday",    bit: 64 },
+    ]
+    return days
+        .filter(d => (day & d.bit) !== 0)
+        .map(d => d.label)
+        .join(", ")
 }
 
 export const fetchPatientRoutineExclusion = async (include_deleted: boolean, patientId: number): Promise<RoutineExclusion[]> => {

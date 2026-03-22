@@ -443,6 +443,10 @@ export const supervisorAPI = axios.create({
   baseURL: `${VITE_USER_SERVICE_URL}/supervisor`,
 });
 
+export const accessLevelAPI = axios.create({
+  baseURL: `${VITE_USER_SERVICE_URL}/access-levels`,
+});
+
 export const getDoctorNameAPI = (roleName: string) =>
   axios.create({
     baseURL: `${VITE_USER_SERVICE_URL}/${roleName}/get_doctor`,

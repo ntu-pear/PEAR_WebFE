@@ -8,31 +8,23 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import {
   ChevronDown,
   ChevronUp,
-  Download,
-  Filter,
-  X,
-  FileText,
-  User,
-  Calendar,
-  Activity,
   Search,
 } from "lucide-react";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
 import { fetchAllLogs, LogsTableDataServer, LogType } from "@/api/logger/logs";
+import FilterSidebar from "@/components/Filters/FilterSidebar";
+import TextFilterField from "@/components/Filters/TextFilterField";
+import SelectFilterField from "@/components/Filters/SelectFilterField";
+import DateRangeFilterField from "@/components/Filters/DateRangeFilterField";
+import FilterActionButtons from "@/components/Filters/FilterActionButtons";
+import FilterExportButtons from "@/components/Filters/FilterExportButtons";
+import { User, FileText, Activity, Calendar } from "lucide-react";
 
 const LOG_TYPE_OPTIONS = [
   { value: "all", label: "All Types" },
@@ -47,11 +39,11 @@ const LOG_TYPE_OPTIONS = [
   { value: "guardian", label: "Guardian" },
   { value: "prescription", label: "Prescription" },
   { value: "patient_allocation", label: "Patient Allocation" },
-  { value: "dementia_allocation", label: "Dementia Allocation"},
-  { value: "guardian_relationship", label: "Guardian Relationship"},
-  { value: "highlight", label: "Highlight"},
-  { value: "mobility", label: "Mobility"},
-  { value: "personal_preference", label: "Personal Preference"}
+  { value: "dementia_allocation", label: "Dementia Allocation" },
+  { value: "guardian_relationship", label: "Guardian Relationship" },
+  { value: "highlight", label: "Highlight" },
+  { value: "mobility", label: "Mobility" },
+  { value: "personal_preference", label: "Personal Preference" },
 ];
 
 const ACTION_OPTIONS = [
@@ -62,13 +54,10 @@ const ACTION_OPTIONS = [
 ];
 
 const PatientLogs: React.FC = () => {
-  const [expandedRows, setExpandedRows] = useState<{
-    [key: number]: boolean;
-  }>({});
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [filtersVisible, setFiltersVisible] = useState(true);
+  const [expandedRows, setExpandedRows] = useState<{ [key: number]: boolean }>(
+    {}
+  );
 
-  // Filter states - using text inputs for name searches
   const [patientName, setPatientName] = useState<string>("");
   const [caregiverName, setCaregiverName] = useState<string>("");
   const [selectedLogType, setSelectedLogType] = useState<string>("all");
@@ -76,7 +65,6 @@ const PatientLogs: React.FC = () => {
   const [startDate, setStartDate] = useState<string>("");
   const [endDate, setEndDate] = useState<string>("");
 
-  // Logs data
   const [logsData, setLogsData] = useState<LogsTableDataServer>({
     logs: [],
     pagination: {
@@ -116,7 +104,14 @@ const PatientLogs: React.FC = () => {
         setLoading(false);
       }
     },
-    [selectedAction, caregiverName, selectedLogType, patientName, startDate, endDate]
+    [
+      selectedAction,
+      caregiverName,
+      selectedLogType,
+      patientName,
+      startDate,
+      endDate,
+    ]
   );
 
   useEffect(() => {
@@ -166,7 +161,9 @@ const PatientLogs: React.FC = () => {
 
     const rows = logs.map((log) => [
       format(new Date(log.timestamp), "yyyy-MM-dd HH:mm:ss"),
-      type === "internal" ? log.patient_full_name || log.patient_id || "-" : log.patient_id || "-",
+      type === "internal"
+        ? log.patient_full_name || log.patient_id || "-"
+        : log.patient_id || "-",
       type === "internal" ? log.user_full_name || log.user : log.user,
       log.method,
       log.table,
@@ -180,14 +177,19 @@ const PatientLogs: React.FC = () => {
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
-    link.download = `patient-logs-${type}-${format(new Date(), "yyyy-MM-dd")}.csv`;
+    link.download = `patient-logs-${type}-${format(
+      new Date(),
+      "yyyy-MM-dd"
+    )}.csv`;
     link.click();
   };
 
-  // Compute diff between original and updated data
   const computeDiff = (original: any, updated: any) => {
     const changes: { field: string; old: any; new: any }[] = [];
-    const allKeys = new Set([...Object.keys(original || {}), ...Object.keys(updated || {})]);
+    const allKeys = new Set([
+      ...Object.keys(original || {}),
+      ...Object.keys(updated || {}),
+    ]);
 
     allKeys.forEach((key) => {
       const oldVal = original?.[key];
@@ -215,196 +217,69 @@ const PatientLogs: React.FC = () => {
 
   return (
     <div className="flex min-h-screen w-full">
-      {/* ================= FILTER SIDEBAR ================= */}
-      <div
-        className={`${
-          sidebarCollapsed ? "w-12" : "w-64"
-        } flex-shrink-0 border-r bg-white transition-all duration-300`}
+      <FilterSidebar
       >
-        {sidebarCollapsed ? (
-          <div className="p-2">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setSidebarCollapsed(false)}
-              className="w-8 h-8"
-            >
-              <Filter className="h-4 w-4" />
-            </Button>
-          </div>
-        ) : (
-          <div className="p-4">
-            {/* Filter header with collapse */}
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold flex items-center gap-2">
-                <Filter className="h-5 w-5" />
-                Filters
-              </h3>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setSidebarCollapsed(true)}
-                className="h-8 w-8"
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
+        <TextFilterField
+          label="Patient Name"
+          icon={User}
+          value={patientName}
+          onChange={setPatientName}
+          placeholder="Search patient name..."
+        />
 
-            {/* Toggle filters visibility */}
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setFiltersVisible(!filtersVisible)}
-              className="w-full justify-between mb-2"
-            >
-              {filtersVisible ? "Hide Filters" : "Show Filters"}
-              {filtersVisible ? (
-                <ChevronUp className="h-4 w-4" />
-              ) : (
-                <ChevronDown className="h-4 w-4" />
-              )}
-            </Button>
+        <TextFilterField
+          label="Caregiver/Guardian"
+          icon={User}
+          value={caregiverName}
+          onChange={setCaregiverName}
+          placeholder="Search caregiver name..."
+        />
 
-            {filtersVisible && (
-              <div className="space-y-4">
-                {/* Patient Name Filter */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium flex items-center gap-1">
-                    <User className="h-4 w-4" />
-                    Patient Name
-                  </label>
-                  <Input
-                    type="text"
-                    value={patientName}
-                    onChange={(e) => setPatientName(e.target.value)}
-                    placeholder="Search patient name..."
-                  />
-                </div>
+        <SelectFilterField
+          label="Data Type"
+          icon={FileText}
+          value={selectedLogType}
+          onChange={setSelectedLogType}
+          options={LOG_TYPE_OPTIONS}
+          placeholder="Select type"
+        />
 
-                {/* Caregiver Name Filter */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium flex items-center gap-1">
-                    <User className="h-4 w-4" />
-                    Caregiver/Guardian
-                  </label>
-                  <Input
-                    type="text"
-                    value={caregiverName}
-                    onChange={(e) => setCaregiverName(e.target.value)}
-                    placeholder="Search caregiver name..."
-                  />
-                </div>
+        <SelectFilterField
+          label="Action"
+          icon={Activity}
+          value={selectedAction}
+          onChange={setSelectedAction}
+          options={ACTION_OPTIONS}
+          placeholder="Select action"
+        />
 
-                {/* Data Type Filter (log_type) */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium flex items-center gap-1">
-                    <FileText className="h-4 w-4" />
-                    Data Type
-                  </label>
-                  <Select value={selectedLogType} onValueChange={setSelectedLogType}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {LOG_TYPE_OPTIONS.map((opt) => (
-                        <SelectItem key={opt.value} value={opt.value}>
-                          {opt.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+        <DateRangeFilterField
+          label="Date Range"
+          icon={Calendar}
+          startDate={startDate}
+          endDate={endDate}
+          onStartDateChange={setStartDate}
+          onEndDateChange={setEndDate}
+        />
 
-                {/* Action Filter */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium flex items-center gap-1">
-                    <Activity className="h-4 w-4" />
-                    Action
-                  </label>
-                  <Select value={selectedAction} onValueChange={setSelectedAction}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select action" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {ACTION_OPTIONS.map((opt) => (
-                        <SelectItem key={opt.value} value={opt.value}>
-                          {opt.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+        <FilterActionButtons
+          applyIcon={Search}
+          onApply={() => handleLogs(0)}
+          onReset={handleFilterReset}
+        />
+        <FilterExportButtons
+            onInternalExport={() => handleExport("internal")}
+            onExternalExport={() => handleExport("external")}
+          />
+      </FilterSidebar>
 
-                {/* Date Range */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium flex items-center gap-1">
-                    <Calendar className="h-4 w-4" />
-                    Date Range
-                  </label>
-                  <Input
-                    type="date"
-                    value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
-                    placeholder="Start date"
-                  />
-                  <Input
-                    type="date"
-                    value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
-                    placeholder="End date"
-                  />
-                </div>
-
-                {/* Buttons */}
-                <div className="pt-2 space-y-2">
-                  <Button className="w-full" onClick={() => handleLogs(0)}>
-                    <Search className="h-4 w-4 mr-2" />
-                    Apply Filters
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="w-full"
-                    onClick={handleFilterReset}
-                  >
-                    Reset
-                  </Button>
-                </div>
-
-                {/* Export */}
-                <div className="pt-4 border-t space-y-2">
-                  <label className="text-sm font-medium">Export</label>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="w-full"
-                    onClick={() => handleExport("internal")}
-                  >
-                    <Download className="h-4 w-4 mr-2" />
-                    Internal (Full)
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="w-full"
-                    onClick={() => handleExport("external")}
-                  >
-                    <Download className="h-4 w-4 mr-2" />
-                    External (Anon)
-                  </Button>
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-
-      {/* ================= MAIN CONTENT ================= */}
       <div className="flex-1 p-6 overflow-auto">
         <Card className="w-full">
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="text-2xl">Patient Information Logs</CardTitle>
             <div className="text-sm text-muted-foreground">
-              Showing {logsData.logs.length} of {logsData.pagination.totalRecords} records
+              Showing {logsData.logs.length} of {logsData.pagination.totalRecords}{" "}
+              records
             </div>
           </CardHeader>
           <CardContent>
@@ -431,7 +306,10 @@ const PatientLogs: React.FC = () => {
                     <TableBody>
                       {logsData.logs.length === 0 ? (
                         <TableRow>
-                          <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                          <TableCell
+                            colSpan={8}
+                            className="text-center py-8 text-muted-foreground"
+                          >
                             No logs found
                           </TableCell>
                         </TableRow>
@@ -440,7 +318,10 @@ const PatientLogs: React.FC = () => {
                           <React.Fragment key={index}>
                             <TableRow className="hover:bg-muted/50">
                               <TableCell className="font-mono text-xs">
-                                {index + 1 + logsData.pagination.pageNo * logsData.pagination.pageSize}
+                                {index +
+                                  1 +
+                                  logsData.pagination.pageNo *
+                                    logsData.pagination.pageSize}
                               </TableCell>
                               <TableCell className="text-sm whitespace-nowrap">
                                 {format(new Date(log.timestamp), "dd/MM/yyyy HH:mm")}
@@ -489,32 +370,38 @@ const PatientLogs: React.FC = () => {
                               </TableCell>
                             </TableRow>
 
-                            {/* Expanded Details Row */}
                             {expandedRows[index] && (
                               <TableRow>
                                 <TableCell colSpan={8} className="p-0">
                                   <div className="bg-muted/30 p-4">
                                     <div className="mb-4">
-                                      <h4 className="font-semibold mb-2">Change Details</h4>
+                                      <h4 className="font-semibold mb-2">
+                                        Change Details
+                                      </h4>
                                       <div className="grid grid-cols-2 gap-4 text-sm">
                                         <div>
-                                          <span className="text-muted-foreground">Log ID:</span>{" "}
+                                          <span className="text-muted-foreground">
+                                            Log ID:
+                                          </span>{" "}
                                           {log.id || "-"}
                                         </div>
                                         <div>
-                                          <span className="text-muted-foreground">Entity ID:</span>{" "}
+                                          <span className="text-muted-foreground">
+                                            Entity ID:
+                                          </span>{" "}
                                           {log.entity_id || "-"}
                                         </div>
                                         {log.entity_name && (
                                           <div>
-                                            <span className="text-muted-foreground">Entity Name:</span>{" "}
+                                            <span className="text-muted-foreground">
+                                              Entity Name:
+                                            </span>{" "}
                                             {log.entity_name}
                                           </div>
                                         )}
                                       </div>
                                     </div>
 
-                                     {/* Changes Table */}
                                     {(log.original_data || log.updated_data) && (
                                       <div className="mt-4">
                                         <h5 className="text-sm font-medium mb-2">
@@ -530,42 +417,45 @@ const PatientLogs: React.FC = () => {
                                             </TableRow>
                                           </TableHeader>
                                           <TableBody>
-                                            {computeDiff(log.original_data, log.updated_data).map(
-                                              (change, idx) => (
-                                                <TableRow key={idx}>
-                                                  <TableCell className="font-medium">
-                                                    {change.field}
-                                                  </TableCell>
-                                                  <TableCell className="text-red-600 bg-red-50/50">
-                                                    {change.old === undefined
-                                                      ? "-"
-                                                      : String(change.old)}
-                                                  </TableCell>
-                                                  <TableCell className="text-green-600 bg-green-50/50">
-                                                    {change.new === undefined
-                                                      ? "-"
-                                                      : String(change.new)}
-                                                  </TableCell>
-                                                  <TableCell>
-                                                    {!change.old && change.new ? (
-                                                      <Badge className="bg-green-100 text-green-800">
-                                                        Added
-                                                      </Badge>
-                                                    ) : change.old && !change.new ? (
-                                                      <Badge className="bg-red-100 text-red-800">
-                                                        Removed
-                                                      </Badge>
-                                                    ) : (
-                                                      <Badge className="bg-blue-100 text-blue-800">
-                                                        Modified
-                                                      </Badge>
-                                                    )}
-                                                  </TableCell>
-                                                </TableRow>
-                                              )
-                                            )}
-                                            {computeDiff(log.original_data, log.updated_data)
-                                              .length === 0 && (
+                                            {computeDiff(
+                                              log.original_data,
+                                              log.updated_data
+                                            ).map((change, idx) => (
+                                              <TableRow key={idx}>
+                                                <TableCell className="font-medium">
+                                                  {change.field}
+                                                </TableCell>
+                                                <TableCell className="text-red-600 bg-red-50/50">
+                                                  {change.old === undefined
+                                                    ? "-"
+                                                    : String(change.old)}
+                                                </TableCell>
+                                                <TableCell className="text-green-600 bg-green-50/50">
+                                                  {change.new === undefined
+                                                    ? "-"
+                                                    : String(change.new)}
+                                                </TableCell>
+                                                <TableCell>
+                                                  {!change.old && change.new ? (
+                                                    <Badge className="bg-green-100 text-green-800">
+                                                      Added
+                                                    </Badge>
+                                                  ) : change.old && !change.new ? (
+                                                    <Badge className="bg-red-100 text-red-800">
+                                                      Removed
+                                                    </Badge>
+                                                  ) : (
+                                                    <Badge className="bg-blue-100 text-blue-800">
+                                                      Modified
+                                                    </Badge>
+                                                  )}
+                                                </TableCell>
+                                              </TableRow>
+                                            ))}
+                                            {computeDiff(
+                                              log.original_data,
+                                              log.updated_data
+                                            ).length === 0 && (
                                               <TableRow>
                                                 <TableCell
                                                   colSpan={4}
@@ -590,12 +480,9 @@ const PatientLogs: React.FC = () => {
                   </Table>
                 </div>
 
-                {/* Pagination */}
                 {logsData.pagination.totalPages > 0 && (
                   <div className="flex items-center justify-end gap-2 mt-4">
-                    <span className="text-sm text-muted-foreground">
-                      Page
-                    </span>
+                    <span className="text-sm text-muted-foreground">Page</span>
                     <input
                       type="number"
                       className="w-16 text-center border rounded-md px-2 py-1 text-sm"
