@@ -2,38 +2,39 @@ import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
-// API schema:
+// Matches the lib's WorkingHours type:
 //   open day   -> { open: "09:00", close: "17:00" }
-//   closed day -> {}
+//   closed day -> { open: null,    close: null    }
 export type WorkingHourDay = {
-  open?: string;
-  close?: string;
+  open: string | null;
+  close: string | null;
 };
 
 export type WorkingHours = {
-  monday: WorkingHourDay;
-  tuesday: WorkingHourDay;
+  monday:    WorkingHourDay;
+  tuesday:   WorkingHourDay;
   wednesday: WorkingHourDay;
-  thursday: WorkingHourDay;
-  friday: WorkingHourDay;
-  saturday: WorkingHourDay;
-  sunday: WorkingHourDay;
+  thursday:  WorkingHourDay;
+  friday:    WorkingHourDay;
+  saturday:  WorkingHourDay;
+  sunday:    WorkingHourDay;
 };
 
-// Weekdays open with blank times, weekends closed.
+// Weekdays open with blank times (user must fill), weekends closed.
 export const defaultWorkingHours = (): WorkingHours => ({
-  monday:    { open: "", close: "" },
-  tuesday:   { open: "", close: "" },
-  wednesday: { open: "", close: "" },
-  thursday:  { open: "", close: "" },
-  friday:    { open: "", close: "" },
-  saturday:  {},
-  sunday:    {},
+  monday:    { open: "",   close: ""   },
+  tuesday:   { open: "",   close: ""   },
+  wednesday: { open: "",   close: ""   },
+  thursday:  { open: "",   close: ""   },
+  friday:    { open: "",   close: ""   },
+  saturday:  { open: null, close: null },
+  sunday:    { open: null, close: null },
 });
 
-// Closed = object has no "open" key at all (stored as {}).
-// { open: "", close: "" } = open but times not yet filled.
-const isDayClosed = (d?: WorkingHourDay): boolean => !d || !("open" in d);
+// null open/close = closed day.
+// "" open/close   = open but not yet filled in.
+const isDayClosed = (d?: WorkingHourDay | null): boolean =>
+  d?.open == null && d?.close == null;
 
 type Props = {
   value: WorkingHours;
@@ -41,24 +42,24 @@ type Props = {
   showErrors?: boolean;
 };
 
-const DAYS: { key: keyof WorkingHours; label: string; short: string }[] = [
-  { key: "monday",    label: "Monday",    short: "Mon" },
-  { key: "tuesday",   label: "Tuesday",   short: "Tue" },
-  { key: "wednesday", label: "Wednesday", short: "Wed" },
-  { key: "thursday",  label: "Thursday",  short: "Thu" },
-  { key: "friday",    label: "Friday",    short: "Fri" },
-  { key: "saturday",  label: "Saturday",  short: "Sat" },
-  { key: "sunday",    label: "Sunday",    short: "Sun" },
+const DAYS: { key: keyof WorkingHours; short: string }[] = [
+  { key: "monday",    short: "Mon" },
+  { key: "tuesday",   short: "Tue" },
+  { key: "wednesday", short: "Wed" },
+  { key: "thursday",  short: "Thu" },
+  { key: "friday",    short: "Fri" },
+  { key: "saturday",  short: "Sat" },
+  { key: "sunday",    short: "Sun" },
 ];
 
-function toMinutes(t?: string): number | null {
+function toMinutes(t?: string | null): number | null {
   if (!t) return null;
   const m = /^([01]\d|2[0-3]):([0-5]\d)$/.exec(t);
   if (!m) return null;
   return Number(m[1]) * 60 + Number(m[2]);
 }
 
-function getDayError(day: WorkingHourDay | undefined, touched: boolean): string | null {
+function getDayError(day: WorkingHourDay | null | undefined, touched: boolean): string | null {
   if (!day || isDayClosed(day)) return null;
   const o = toMinutes(day.open);
   const c = toMinutes(day.close);
@@ -68,14 +69,14 @@ function getDayError(day: WorkingHourDay | undefined, touched: boolean): string 
     const partial = !openMissing || !closeMissing;
     if (partial || touched) {
       if (openMissing && closeMissing) return "Opening and closing times are required";
-      if (openMissing)                 return "Opening time is required";
+      if (openMissing) return "Opening time is required";
       return "Closing time is required";
     }
     return null;
   }
   if (o >= c)       return "Closing time must be after opening time";
-  if (o < 9 * 60)  return "Cannot open before 09:00";
-  if (c > 17 * 60) return "Cannot close after 17:00";
+  if (o < 6 * 60)   return "Cannot open before 06:00";
+  if (c > 19 * 60)  return "Cannot close after 19:00";
   return null;
 }
 
@@ -87,12 +88,14 @@ export default function WorkingHoursInput({ value, onChange, showErrors = false 
     friday: false, saturday: false, sunday: false,
   });
 
-  const setTime = (day: keyof WorkingHours, field: "open" | "close", val: string) => {
-    onChange({ ...value, [day]: { ...value[day], [field]: val } });
-  };
+  const setTime = (day: keyof WorkingHours, field: "open" | "close", val: string) =>
+    onChange({ ...value, [day]: { ...value[day], [field]: val || "" } });
 
-  const closeDay  = (day: keyof WorkingHours) => onChange({ ...value, [day]: {} });
-  const reopenDay = (day: keyof WorkingHours) => onChange({ ...value, [day]: { open: "", close: "" } });
+  const closeDay  = (day: keyof WorkingHours) =>
+    onChange({ ...value, [day]: { open: null, close: null } });
+
+  const reopenDay = (day: keyof WorkingHours) =>
+    onChange({ ...value, [day]: { open: "", close: "" } });
 
   const applyBulkToOpenDays = () => {
     if (!bulkOpen || !bulkClose) return;
@@ -105,7 +108,7 @@ export default function WorkingHoursInput({ value, onChange, showErrors = false 
 
   const applyBulkToAllDays = () => {
     if (!bulkOpen || !bulkClose) return;
-    const next = {} as WorkingHours;
+    const next = { ...value };
     DAYS.forEach(({ key }) => { next[key] = { open: bulkOpen, close: bulkClose }; });
     onChange(next);
   };
@@ -117,11 +120,13 @@ export default function WorkingHoursInput({ value, onChange, showErrors = false 
 
       {/* Bulk apply */}
       <div className="rounded-lg border bg-muted/30 p-4 space-y-3">
-        <p className="text-sm font-medium">Bulk apply</p>
+        <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+          Bulk apply
+        </p>
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-1">
             <label className="text-xs text-muted-foreground">Opens</label>
-            <Input type="time" value={bulkOpen}  onChange={(e) => setBulkOpen(e.target.value)}  />
+            <Input type="time" value={bulkOpen}  onChange={(e) => setBulkOpen(e.target.value)} />
           </div>
           <div className="space-y-1">
             <label className="text-xs text-muted-foreground">Closes</label>
@@ -162,8 +167,7 @@ export default function WorkingHoursInput({ value, onChange, showErrors = false 
                 closed ? "bg-muted/50 opacity-70" : "bg-background",
                 err    ? "border-destructive"      : "",
               ].join(" ")}>
-
-                <span className="w-7 shrink-0 text-xs font-medium text-muted-foreground">
+                <span className="w-7 shrink-0 text-xs font-semibold text-muted-foreground uppercase">
                   {short}
                 </span>
 
@@ -184,7 +188,7 @@ export default function WorkingHoursInput({ value, onChange, showErrors = false 
                       type="time"
                       className="h-8 flex-1 min-w-0 text-sm"
                       value={d?.open ?? ""}
-                      onChange={(e) => setTime(key, "open", e.target.value)}
+                      onChange={(e) => setTime(key, "open",  e.target.value)}
                       onBlur={() => setTouched((p) => ({ ...p, [key]: true }))}
                     />
                     <span className="text-xs text-muted-foreground shrink-0">–</span>
@@ -216,25 +220,35 @@ export default function WorkingHoursInput({ value, onChange, showErrors = false 
 
       {/* Schedule preview */}
       <div className="space-y-1.5">
-        <p className="text-xs text-muted-foreground font-medium">Preview</p>
+        <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+          Preview
+        </p>
         <div className="grid grid-cols-7 gap-1">
           {DAYS.map(({ key, short }) => {
             const d      = value[key];
             const isOpen = !isDayClosed(d) && d?.open && d?.close;
             return (
-              <div key={key} className={[
-                "flex flex-col items-center gap-0.5 rounded-md py-1.5 px-1 text-center",
-                isOpen ? "bg-green-50 dark:bg-green-950/30" : "bg-muted/40",
-              ].join(" ")}>
+              <div
+                key={key}
+                className={[
+                  "flex flex-col items-center gap-0.5 rounded-md py-1.5 px-1 text-center",
+                  isOpen ? "bg-green-50 dark:bg-green-950/30" : "bg-muted/40",
+                ].join(" ")}
+              >
                 <span className={[
-                  "text-[10px] font-medium",
+                  "text-[10px] font-semibold uppercase",
                   isOpen ? "text-green-700 dark:text-green-400" : "text-muted-foreground",
-                ].join(" ")}>{short}</span>
+                ].join(" ")}>
+                  {short}
+                </span>
                 <span className={[
                   "text-[9px] leading-tight",
                   isOpen ? "text-green-600 dark:text-green-500" : "text-muted-foreground/60",
                 ].join(" ")}>
-                  {isOpen ? <>{d!.open}<br />{d!.close}</> : "—"}
+                  {isOpen
+                    ? <>{d!.open}<br />{d!.close}</>
+                    : "—"
+                  }
                 </span>
               </div>
             );
