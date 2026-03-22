@@ -37,7 +37,6 @@ export const useCentreActivityExclusionMutations = () => {
     mutationFn: deleteCentreActivityExclusion,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['centre-activity-exclusions'] });
-      toast.success('Centre activity exclusion deleted successfully');
     },
     onError: (error: any) => {
       toast.error(`Failed to delete centre activity exclusion: ${error.message || 'Unknown error'}`);

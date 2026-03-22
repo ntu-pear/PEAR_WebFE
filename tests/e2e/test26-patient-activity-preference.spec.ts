@@ -9,7 +9,7 @@ const supervisorEmail = process.env.SUPERVISOR_ACCOUNT_EMAIL!;
 const supervisorPassword = process.env.SUPERVISOR_ACCOUNT_PASSWORD!;
 
 test("Supervisor - Patient Activity Preference Page", async ({ page }) => {
-
+  
   // ================= LOGIN =================
   await test.step("Login", async () => {
     await page.goto(frontendUrl);
@@ -103,114 +103,126 @@ test("Supervisor - Patient Activity Preference Page", async ({ page }) => {
     await expect(firstRow).toBeVisible();
   });
 
-    // ================= ADD EXCLUSION =================
-    await test.step("Add Activity Exclusion", async () => {
-        await page.getByRole("button", {
-            name: "Add Activity Exclusion",
-        }).click();
+  // ================= ADD EXCLUSION =================
+  await test.step("Add Activity Exclusion", async () => {
+    await page.getByRole("button", {
+        name: "Add Activity Exclusion",
+    }).click();
 
-        await expect(
-            page.getByRole("heading", {
-                name: "Add Activity Exclusion",
-                level: 2,
-        })
-        ).toBeVisible();
-
-        const dialog = page.getByRole("dialog", { name: /add activity exclusion/i });
-        await expect(dialog).toBeVisible();
-
-        // Search
-        await dialog
-            .getByRole("textbox", { name: /search activities/i })
-            .fill("Playwright");
-
-        // Select activity 
-        const activityRow = dialog.getByText(
-            "PLAYWRIGHT TEST ACTIVITY(Do not delete, this is to playwright test centre activities)"
-        );
-
-        await expect(activityRow).toBeVisible();
-        await activityRow.click();
-
-
-        // remarks
-        await dialog
-            .getByRole("textbox", { name: /exclusion remarks/i })
-            .fill("Test exclusion remarks");
-
-        // create
-        const createBtn = dialog.getByRole("button", { name: /create/i });
-
-        await expect(createBtn).toBeEnabled();
-        await createBtn.click();
-
-        await expect(page.getByText("Exclusion(s) created")).toBeVisible();
-    });
-
-    // ================= WAIT =================
     await expect(
-        page.getByRole("dialog", { name: /add activity exclusion/i })
-    ).toBeHidden();
+        page.getByRole("heading", {
+            name: "Add Activity Exclusion",
+            level: 2,
+    })
+    ).toBeVisible();
 
-    // ================= CHECK EXCLUSION =================
-    await test.step("Check exclusion exists", async () => {
-        const statusBadge = page.locator("text=Yes").first();
-        await expect(statusBadge).toBeVisible();
-    });
+    const dialog = page.getByRole("dialog", { name: /add activity exclusion/i });
+    await expect(dialog).toBeVisible();
 
-    const playwrightRow = page.locator("tbody tr").filter({
-        has: page.getByRole("cell", { name: /^PLAYWRIGHT TEST ACTIVITY$/ }),
-    });
+    // Search
+    await dialog
+        .getByRole("textbox", { name: /search activities/i })
+        .fill("Playwright");
 
-    await expect(playwrightRow).toBeVisible();
+    // Select activity 
+    const activityRow = dialog.getByText(
+        "PLAYWRIGHT TEST ACTIVITY(Do not delete, this is to playwright test centre activities)"
+    );
 
-    // ================= EDIT EXCLUSION =================
-await test.step("Edit exclusion", async () => {
-  // Ensure Add dialog fully closed
+    await expect(activityRow).toBeVisible();
+    await activityRow.click();
+
+
+    // remarks
+    await dialog
+        .getByRole("textbox", { name: /exclusion remarks/i })
+        .fill("Test exclusion remarks");
+
+    // create
+    const createBtn = dialog.getByRole("button", { name: /create/i });
+
+    await expect(createBtn).toBeEnabled();
+    await createBtn.click();
+
+    await expect(page.getByText("Exclusion(s) created")).toBeVisible();
+  });
+
+  // ================= WAIT =================
   await expect(
-    page.getByRole("dialog", { name: /add activity exclusion/i })
+      page.getByRole("dialog", { name: /add activity exclusion/i })
   ).toBeHidden();
 
-  // Wait for the correct row
+  // ================= CHECK EXCLUSION =================
+  await test.step("Check exclusion exists", async () => {
+      const statusBadge = page.locator("text=Yes").first();
+      await expect(statusBadge).toBeVisible();
+  });
+
   const playwrightRow = page.locator("tbody tr").filter({
-    has: page.getByRole("cell", {
-      name: /^PLAYWRIGHT TEST ACTIVITY$/,
-    }),
+      has: page.getByRole("cell", { name: /^PLAYWRIGHT TEST ACTIVITY$/ }),
   });
 
   await expect(playwrightRow).toBeVisible();
 
-  
-// Click EDIT (not delete)
-await playwrightRow.getByRole("button", { name: "Edit exclusion" }).click();
+  // ================= EDIT EXCLUSION =================
+  await test.step("Edit exclusion", async () => {
+    // Ensure Add dialog fully closed
+    await expect(
+      page.getByRole("dialog", { name: /add activity exclusion/i })
+    ).toBeHidden();
 
-// Scope assertions to the edit dialog
-const editDialog = page.getByRole("dialog", { name: /edit exclusion/i });
-await expect(editDialog).toBeVisible();
+    // Wait for the correct row
+    const playwrightRow = page.locator("tbody tr").filter({
+      has: page.getByRole("cell", {
+        name: /^PLAYWRIGHT TEST ACTIVITY$/,
+      }),
+    });
 
-const updateButton = editDialog.getByRole("button", { name: "Update" });
-await expect(updateButton).toBeVisible();
+    await expect(playwrightRow).toBeVisible();
 
-await updateButton.click();
-await expect(page.getByText("Exclusion updated")).toBeVisible();
+    
+    // Click EDIT
+    await playwrightRow.getByRole("button", { name: "Edit exclusion" }).click();
 
+    // Scope assertions to the edit dialog
+    const editDialog = page.getByRole("dialog", { name: /edit exclusion/i });
+    await expect(editDialog).toBeVisible();
+
+    const updateButton = editDialog.getByRole("button", { name: "Update" });
+    await expect(updateButton).toBeVisible();
+
+    await updateButton.click();
+    await expect(page.getByText("Exclusion updated")).toBeVisible();
+
+
+  });
+
+  // ================= DELETE EXCLUSION =================
+await test.step("Delete exclusion", async () => {
+  await expect(
+    page.getByRole("dialog", { name: /edit exclusion/i })
+  ).toBeHidden();
+
+  const playwrightRow = page.locator("tbody tr").filter({
+    has: page.getByRole("cell", { name: /^PLAYWRIGHT TEST ACTIVITY$/ }),
+  });
+
+  await expect(playwrightRow).toBeVisible();
+
+  page.once("dialog", dialog => {
+  expect(dialog.message()).toMatch(/delete/i);
+  dialog.accept();
 });
 
-    // ================= DELETE EXCLUSION =================
-    await test.step("Delete exclusion", async () => {
-        const row = page.locator("tbody tr").filter({
-        has: page.locator("text=Yes"),
-        }).first();
+await playwrightRow
+  .getByRole("button", { name: "Delete exclusion" })
+  .click();
 
-        page.once("dialog", dialog => dialog.accept());
+await expect(
+  page.getByRole("region", { name: /notifications/i })
+    .getByText("Exclusion deleted", { exact: true })
+).toBeVisible();
+});
 
-        await row.getByRole("button").nth(1).click(); // delete button
-
-        const notifications = page.getByRole("region", { name: /notifications/i });
-
-        await expect(
-          notifications.getByText("Exclusion updated", { exact: true })
-        ).toBeVisible();
-    });
 
 });

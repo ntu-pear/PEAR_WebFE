@@ -136,6 +136,7 @@ const PatientActivityPreferenceCard: React.FC<
 
     toast.success("Exclusion updated");
     setEditingExclusion(null);
+    await Promise.resolve();
 
     refreshCentreActivityExclusions();
   };
@@ -339,6 +340,7 @@ const PatientActivityPreferenceCard: React.FC<
         </Button>
 
         <Button
+          aria-label="Delete exclusion"
           size="icon"
           variant="ghost"
           className="h-6 w-6 text-destructive"
