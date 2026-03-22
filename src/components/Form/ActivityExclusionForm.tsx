@@ -116,6 +116,12 @@ export default function CentreActivityExclusionForm({
     fetchData();
   }, []);
 
+  useEffect(() => {
+    if (isEditing && initial?.centre_activity_id) {
+      setCentreActivityId(initial.centre_activity_id.toString());
+    }
+  }, [isEditing, initial?.centre_activity_id]);
+
   const validateForm = (): boolean => {
     const newErrors: Record<string, string[]> = {};
 
@@ -128,7 +134,7 @@ export default function CentreActivityExclusionForm({
     if (!startDate) {
       newErrors.start_date = ["Start date is required"];
     }
-    if (!exclusionRemarks.trim()) {
+    if (!isEditing && !exclusionRemarks.trim()) {
       newErrors.exclusion_remarks = ["Exclusion remarks are required"];
     }
     if (!isIndefinite && endDate && startDate && new Date(endDate) <= new Date(startDate)) {
@@ -297,7 +303,7 @@ export default function CentreActivityExclusionForm({
       {/* Form Actions */}
       <div className="flex gap-2 pt-4">
         <Button type="submit" disabled={submitting} className="flex-1">
-          {submitting ? "Saving..." : initial?.id ? "Update Centre Activity Exclusion" : "Create Centre Activity Exclusion"}
+          {submitting ? "Saving..." : initial?.id ? "Update" : "Create Centre Activity Exclusion"}
         </Button>
         {onCancel && (
           <Button type="button" variant="outline" onClick={onCancel} className="flex-1">

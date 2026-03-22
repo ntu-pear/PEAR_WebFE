@@ -27,7 +27,6 @@ export const useCentreActivityExclusionMutations = () => {
     mutationFn: updateCentreActivityExclusion,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['centre-activity-exclusions'] });
-      toast.success('Centre activity exclusion updated successfully');
     },
     onError: (error: any) => {
       toast.error(`Failed to update centre activity exclusion: ${error.message || 'Unknown error'}`);

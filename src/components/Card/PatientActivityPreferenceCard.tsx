@@ -329,6 +329,7 @@ const PatientActivityPreferenceCard: React.FC<
     return (
       <div className="flex items-center justify-center gap-2">
         <Button
+          aria-label="Edit exclusion"
           size="icon"
           variant="ghost"
           className="h-6 w-6"
@@ -563,7 +564,7 @@ const PatientActivityPreferenceCard: React.FC<
 
             <SheetContent>
               <SheetHeader>
-                <SheetTitle>Add Exclusions</SheetTitle>
+                <SheetTitle>Add Activity Exclusion</SheetTitle>
               </SheetHeader>
 
               <BulkActivityExclusionForm
