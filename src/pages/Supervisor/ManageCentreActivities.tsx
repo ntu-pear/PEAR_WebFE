@@ -241,7 +241,7 @@ export default function ManageCentreActivities() {
               {/* Edit sheet */}
               <Sheet open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
                 <SheetContent className="w-[480px] sm:w-[540px]">
-                  <SheetHeader><SheetTitle>Edit Activity</SheetTitle></SheetHeader>
+                  <SheetHeader><SheetTitle>Edit Centre Activity</SheetTitle></SheetHeader>
                   {editing && (
                     <div className="h-[90vh] overflow-y-auto">
                       <CentreActivityForm
