@@ -164,8 +164,6 @@ export default function CentreActivityForm({
     { value: 60, label: "60 mins"}
   ];
 
-  const isIndefinite = end_date === indefiniteDate;
-
   return (
     <form 
       className="mt-4 space-y-4"
@@ -376,9 +374,50 @@ export default function CentreActivityForm({
           <Label htmlFor="min_people_req">Minimum people required: (At least 2 pax)</Label>
             <Input
               id="min_people_req"
+              type="number"
+              min={2}
               value={min_people_req}
-              disabled={is_deleted ? true : false}
-              onChange={(e) => setMin_people_req(parseInt(e.target.value))}
+              disabled={is_deleted}
+              onChange={(e) => {
+                const value = e.target.value;
+
+                // Allow empty while typing
+                if (value === "") {
+                  setMin_people_req(2);
+                  setErrors(prev => ({
+                    ...prev,
+                    min_people_req: "Minimum people required is mandatory",
+                  }));
+                  return;
+                }
+
+                // Reject non-numeric input
+                if (!/^\d+$/.test(value)) {
+                  setErrors(prev => ({
+                    ...prev,
+                    min_people_req: "Only numeric values are allowed",
+                  }));
+                  return;
+                }
+
+                const numericValue = parseInt(value, 10);
+
+                // Enforce group rule
+                if (numericValue < 2) {
+                  setErrors(prev => ({
+                    ...prev,
+                    min_people_req: "Group activities require at least 2 people",
+                  }));
+                  return;
+                }
+
+                // Clear error and accept value
+                setErrors(prev => ({
+                  ...prev,
+                  min_people_req: undefined,
+                }));
+                setMin_people_req(numericValue);
+              }}
             />
           {errors.min_people_req && <p className="text-sm text-red-600">{errors.min_people_req}</p>}
         </div>
@@ -442,33 +481,38 @@ export default function CentreActivityForm({
         {errors.start_date && <p className="text-sm text-red-600">{errors.start_date}</p>}
       </div>
 
-      {/* Indefinite Checkbox */}
+      {/* Fixed End Date Question */}
       <div className="space-y-2 space-x-2">
-        <Label htmlFor="is_indefinite">Does this activity have no fixed end date?</Label>
+        <Label htmlFor="has_fixed_end_date">
+          Does this activity have a fixed end date?
+        </Label>
+
         <div className="space-x-2">
-          {radioBtnOptions.map((choice) => (
-            <Label className="space-x-1">
-              <input
-                type="radio"
-                id = {choice.value.toString()}
-                name="is_indefinite"
-                value={choice.value.toString()}
-                disabled={is_deleted ? true : false}
-                checked={isIndefinite === choice.value}
-                //checked={end_date.includes("999") ? true === choice.value : false === choice.value}
-                // checked={end_date === "" ? is_indefinite === choice.value : end_date.includes("999") ? is_indefinite === choice.value : false}
-                onChange={() =>{
-                  if (choice.value) {
-                    setEnd_date(indefiniteDate);
-                  }
-                  else {
-                    setEnd_date("");
-                  }
-                }}
-              />
-              <label>{choice.label}</label>
-            </Label>
-          ))}
+          {radioBtnOptions.map((choice) => {
+            const hasFixedEndDate = end_date !== indefiniteDate;
+
+            return (
+              <Label key={choice.value.toString()} className="space-x-1">
+                <input
+                  type="radio"
+                  name="has_fixed_end_date"
+                  value={choice.value.toString()}
+                  disabled={is_deleted}
+                  checked={hasFixedEndDate === choice.value}
+                  onChange={() => {
+                    if (choice.value) {
+                      // Yes → has fixed end date
+                      setEnd_date(today);
+                    } else {
+                      // No → no fixed end date (indefinite)
+                      setEnd_date(indefiniteDate);
+                    }
+                  }}
+                />
+                <label>{choice.label}</label>
+              </Label>
+            );
+          })}
         </div>
       </div>
 
