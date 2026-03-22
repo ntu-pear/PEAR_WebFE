@@ -116,6 +116,12 @@ export default function CentreActivityExclusionForm({
     fetchData();
   }, []);
 
+  useEffect(() => {
+    if (isEditing && initial?.centre_activity_id) {
+      setCentreActivityId(initial.centre_activity_id.toString());
+    }
+  }, [isEditing, initial?.centre_activity_id]);
+
   const validateForm = (): boolean => {
     const newErrors: Record<string, string[]> = {};
 
@@ -128,7 +134,7 @@ export default function CentreActivityExclusionForm({
     if (!startDate) {
       newErrors.start_date = ["Start date is required"];
     }
-    if (!exclusionRemarks.trim()) {
+    if (!isEditing && !exclusionRemarks.trim()) {
       newErrors.exclusion_remarks = ["Exclusion remarks are required"];
     }
     if (!isIndefinite && endDate && startDate && new Date(endDate) <= new Date(startDate)) {
@@ -168,27 +174,34 @@ export default function CentreActivityExclusionForm({
   return (
     <form className="space-y-4" onSubmit={handleSubmit}>
       {/* Activity Selection */}
-      <div className="space-y-2">
-        <Label htmlFor="centre-activity">Activity *</Label>
-        <select
-          id="centre-activity"
-          value={centreActivityId}
-          onChange={(e) => setCentreActivityId(e.target.value)}
-          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 appearance-none cursor-pointer"
-        >
-          <option value="" disabled>Select an activity</option>
-          {centreActivities.map((ca) => (
-            <option key={ca.id} value={ca.id.toString()}>
-              {ca.activity_title}
-            </option>
-          ))}
-        </select>
-        {errors.centre_activity_id && (
-          <div className="text-sm text-red-600">
-            {errors.centre_activity_id.join(", ")}
-          </div>
-        )}
-      </div>
+      {isEditing ? (
+  <div className="space-y-2">
+    <Label>Activity</Label>
+    <div className="h-10 flex items-center rounded-md border bg-muted px-3 text-sm">
+      {
+        centreActivities.find(ca => ca.id.toString() === centreActivityId)
+          ?.activity_title || "Unknown Activity"
+      }
+    </div>
+  </div>
+) : (
+  <div className="space-y-2">
+    <Label htmlFor="centre-activity">Activity *</Label>
+    <select
+      id="centre-activity"
+      value={centreActivityId}
+      onChange={(e) => setCentreActivityId(e.target.value)}
+      className="flex h-10 w-full rounded-md border px-3 py-2 text-sm"
+    >
+      <option value="" disabled>Select an activity</option>
+      {centreActivities.map(ca => (
+        <option key={ca.id} value={ca.id.toString()}>
+          {ca.activity_title}
+        </option>
+      ))}
+    </select>
+  </div>
+)}
 
       {/* Patient Selection - Only show when not editing */}
       {!isEditing && (
@@ -297,7 +310,7 @@ export default function CentreActivityExclusionForm({
       {/* Form Actions */}
       <div className="flex gap-2 pt-4">
         <Button type="submit" disabled={submitting} className="flex-1">
-          {submitting ? "Saving..." : initial?.id ? "Update Centre Activity Exclusion" : "Create Centre Activity Exclusion"}
+          {submitting ? "Saving..." : initial?.id ? "Update" : "Create Centre Activity Exclusion"}
         </Button>
         {onCancel && (
           <Button type="button" variant="outline" onClick={onCancel} className="flex-1">

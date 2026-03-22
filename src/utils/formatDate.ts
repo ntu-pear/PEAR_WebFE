@@ -10,7 +10,7 @@ export const formatDate = (date: string) => {
   return dayjs
     .utc(date) // Parse the date in UTC
     .tz("Asia/Singapore") // Convert to Singapore timezone
-    .format("DD MMM YYYY"); // Format as "21 Jan 2025"
+    .format("DD-MMM-YYYY"); // Format as "21 Jan 2025"
 };
 
 export const formatDateString = (date: string) => {
@@ -58,7 +58,7 @@ export const getTimeDiffFromServer = (serverDateTime: string) => {
 export const formatDateTime = (date: string | null) => {
   if (!date) return "-";
   return dayjs(date)
-    .format("DD MMM YYYY hh:mm A");
+    .format("DD-MMM-YYYY hh:mm A");
 };
 
 export const formatTimeForInput12h = () => {
