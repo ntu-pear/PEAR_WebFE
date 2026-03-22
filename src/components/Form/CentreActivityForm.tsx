@@ -335,36 +335,7 @@ export default function CentreActivityForm({
         
       )}
 
-      {/* Indefinite Checkbox */}
-      <div className="space-y-2 space-x-2">
-        <Label htmlFor="is_indefinite">Does this activity have no fixed end date?</Label>
-        <div className="space-x-2">
-          {radioBtnOptions.map((choice) => (
-            <Label className="space-x-1">
-              <input
-                type="radio"
-                id = {choice.value.toString()}
-                name="is_indefinite"
-                value={choice.value.toString()}
-                disabled={is_deleted ? true : false}
-                checked={isIndefinite === choice.value}
-                //checked={end_date.includes("999") ? true === choice.value : false === choice.value}
-                // checked={end_date === "" ? is_indefinite === choice.value : end_date.includes("999") ? is_indefinite === choice.value : false}
-                onChange={() =>{
-                  if (choice.value) {
-                    setEnd_date(indefiniteDate);
-                  }
-                  else {
-                    setEnd_date("");
-                  }
-                }}
-              />
-              <label>{choice.label}</label>
-            </Label>
-          ))}
-        </div>
-      </div>
-
+      
       <div className="space-y-2 space-x-2">
         <Label htmlFor="is_group">Is this a group activity?</Label>
         <div className="space-x-2">
@@ -381,9 +352,15 @@ export default function CentreActivityForm({
                   setIs_Group(choice.value);
 
                   /*Business rule, Individual activities requires at least 1 person. */
-                  if (!choice.value) {
-                    setMin_people_req(1);
-                  } 
+                  
+                if (choice.value) {
+                  // Group activity → minimum 2 people
+                  setMin_people_req(2);
+                } else {
+                  // Individual activity → minimum 1 person
+                  setMin_people_req(1);
+                }
+
                 }}
               />
               <label>{choice.label}</label>
@@ -396,7 +373,7 @@ export default function CentreActivityForm({
       {/* Minmum people required (Display only if group is checked) */}
       {is_group && (
         <div className="space-y-2">
-          <Label htmlFor="min_people_req">Minimum people required (Atleast 2 pax)</Label>
+          <Label htmlFor="min_people_req">Minimum people required: (At least 2 pax)</Label>
             <Input
               id="min_people_req"
               value={min_people_req}
@@ -463,6 +440,36 @@ export default function CentreActivityForm({
           onChange={(e) => setStart_date(e.target.value)}
         />
         {errors.start_date && <p className="text-sm text-red-600">{errors.start_date}</p>}
+      </div>
+
+      {/* Indefinite Checkbox */}
+      <div className="space-y-2 space-x-2">
+        <Label htmlFor="is_indefinite">Does this activity have no fixed end date?</Label>
+        <div className="space-x-2">
+          {radioBtnOptions.map((choice) => (
+            <Label className="space-x-1">
+              <input
+                type="radio"
+                id = {choice.value.toString()}
+                name="is_indefinite"
+                value={choice.value.toString()}
+                disabled={is_deleted ? true : false}
+                checked={isIndefinite === choice.value}
+                //checked={end_date.includes("999") ? true === choice.value : false === choice.value}
+                // checked={end_date === "" ? is_indefinite === choice.value : end_date.includes("999") ? is_indefinite === choice.value : false}
+                onChange={() =>{
+                  if (choice.value) {
+                    setEnd_date(indefiniteDate);
+                  }
+                  else {
+                    setEnd_date("");
+                  }
+                }}
+              />
+              <label>{choice.label}</label>
+            </Label>
+          ))}
+        </div>
       </div>
 
       {end_date !== indefiniteDate && (
