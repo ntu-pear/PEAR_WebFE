@@ -136,9 +136,9 @@ async function testSearchFilterViewMore(page: any, role: 'supervisor' | 'doctor'
 
 // testing manage patient, GUARDIAN role
 test('Guardian - Manage Patient Page', async ({ page }) => {
-    await test.step('Setup route interception', async () => {
-        await setupRouteInterception(page, userServiceURL, patientServiceURL);
-    });
+    // await test.step('Setup route interception', async () => {
+    //     await setupRouteInterception(page, userServiceURL, patientServiceURL);
+    // });
     await test.step('Login as guardian', async () => {
         await login(page, guardianEmail, guardianPassword, 'guardian');
     });
@@ -170,9 +170,9 @@ test('Guardian - Manage Patient Page', async ({ page }) => {
 });
 
 test('Supervisor - Manage Patient Page', async ({ page }) => {
-    await test.step('Setup route interception', async () => {
-        await setupRouteInterception(page, userServiceURL, patientServiceURL);
-    });
+    // await test.step('Setup route interception', async () => {
+    //     await setupRouteInterception(page, userServiceURL, patientServiceURL);
+    // });
     await test.step('Login as supervisor', async () => {
         await login(page, supervisorEmail, supervisorPassword, 'supervisor');
     });
@@ -202,9 +202,9 @@ test('Supervisor - Manage Patient Page', async ({ page }) => {
 });
 
 test('Doctor - Manage Patient Page', async ({ page }) => {
-    await test.step('Setup route interception', async () => {
-        await setupRouteInterception(page, userServiceURL, patientServiceURL);
-    });
+    // await test.step('Setup route interception', async () => {
+    //     await setupRouteInterception(page, userServiceURL, patientServiceURL);
+    // });
     await test.step('Login as doctor', async () => {
         await login(page, doctorEmail, doctorPassword, 'doctor');
     });
