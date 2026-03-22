@@ -16,7 +16,6 @@ export const useCentreActivityExclusionMutations = () => {
     mutationFn: createCentreActivityExclusion,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['centre-activity-exclusions'] });
-      toast.success('Centre activity exclusion created successfully');
     },
     onError: (error: any) => {
       toast.error(`Failed to create centre activity exclusion: ${error.message || 'Unknown error'}`);
