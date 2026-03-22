@@ -5,8 +5,8 @@ import { Label } from "@/components/ui/label";
 import { useCentreActivities } from "@/hooks/activities/useCentreActivities";
 import { type FormErrors, type CentreActivityAvailabilityFormValues, validateLocal} from "@/lib/validation/activityAvailability";
 import { CentreActivityWithTitle } from "@/api/activities/centreActivities";
-import { useCareCentreHours } from "@/hooks/activities/useCareCentreHours";
-import type { WorkingHours } from "@/api/activities/careCentres";
+//import { useCareCentreHours } from "@/hooks/activities/useCareCentreHours";
+//import type { WorkingHours } from "@/api/activities/careCentres";
 
 
 
@@ -24,6 +24,7 @@ export interface RadioBtnOption {
   label: string;
   value: boolean;
 }
+const DEFAULT_WORKING_DAYS = [1, 2, 4, 8, 16]; // Mon–Fri (Mock data for now)
 
 const DAYS_MAP = [
   { label: "Mon", value: 1 },
@@ -35,6 +36,7 @@ const DAYS_MAP = [
   { label: "Sun", value: 64 },
 ];
 
+/*
 const BIT_TO_DAY: Record<number, keyof WorkingHours> = {
   1: "monday",
   2: "tuesday",
@@ -44,7 +46,7 @@ const BIT_TO_DAY: Record<number, keyof WorkingHours> = {
   32: "saturday",
   64: "sunday",
 };
-
+*/
 
 export default function ActivityAvailabilityForm({ 
   initial, 
@@ -91,7 +93,7 @@ export default function ActivityAvailabilityForm({
     const [deleted] = useState(initial?.is_deleted ?? false);
     const [is_deleted, setIsDeleted] = useState(initial?.is_deleted ?? false);
     const {centreActivities} = useCentreActivities(false);
-    const { centre: selectedCentre} = useCareCentreHours("weqw");
+    //const { centre: selectedCentre} = useCareCentreHours("weqw");
     const [errors, setErrors] = useState<FormErrors>({ _summary: [] });
     const [selectedDays, setSelectedDays] = useState<number[]>([]);
 
@@ -258,60 +260,43 @@ export default function ActivityAvailabilityForm({
             </div>
 
             {/* Days-of-week checkboxes */}
-                {is_everyday && selectedCentre && (
+                {is_everyday && (
                     <div className="space-y-2">
                         <Label>Select days of the week:</Label>
                         <div className="flex flex-wrap space-x-2">
-                        {DAYS_MAP.filter(day => {
-                            // Only show days where the centre has open & close times
-                            const dayKey = BIT_TO_DAY[day.value];
-                            const hours = selectedCentre.working_hours[dayKey];
-                            return hours?.open && hours?.close;
-                        }).map(day => (
-                            <label key={day.value} className="flex items-center space-x-1">
+                        {DAYS_MAP.filter(day => DEFAULT_WORKING_DAYS.includes(day.value)).map(day => (
+                        <label key={day.value} className="flex items-center space-x-1">
                             <input
-                                type="checkbox"
-                                value={day.value}
-                                checked={selectedDays.includes(day.value)}
-                                onChange={e => {
-                                const val = day.value;
+                            type="checkbox"
+                            value={day.value}
+                            checked={selectedDays.includes(day.value)}
+                            onChange={e => {
                                 if (e.target.checked) {
-                                    setSelectedDays(prev => [...new Set([...prev, val])]);
+                                setSelectedDays(prev => [...new Set([...prev, day.value])]);
                                 } else {
-                                    setSelectedDays(prev => prev.filter(v => v !== val));
+                                setSelectedDays(prev => prev.filter(v => v !== day.value));
                                 }
-                                }}
+                            }}
                             />
                             <span>{day.label}</span>
-                            </label>
+                        </label>
                         ))}
 
                         {/* Every open day toggle */}
                         <label className="flex items-center space-x-1 ml-4">
                             <input
-                            type="checkbox"
-                            checked={
-                                selectedDays.length ===
-                                DAYS_MAP.filter(day => {
-                                const dayKey = BIT_TO_DAY[day.value];
-                                const hours = selectedCentre.working_hours[dayKey];
-                                return hours?.open && hours?.close;
-                                }).length
-                            }
-                            onChange={e => {
-                                if (e.target.checked)
-                                setSelectedDays(
-                                    DAYS_MAP.filter(day => {
-                                    const dayKey = BIT_TO_DAY[day.value];
-                                    const hours = selectedCentre.working_hours[dayKey];
-                                    return hours?.open && hours?.close;
-                                    }).map(d => d.value)
-                                );
-                                else setSelectedDays([]);
-                            }}
+                                type="checkbox"
+                                checked={selectedDays.length === DEFAULT_WORKING_DAYS.length}
+                                onChange={(e) => {
+                                if (e.target.checked) {
+                                    setSelectedDays(DEFAULT_WORKING_DAYS);
+                                } else {
+                                    setSelectedDays([]);
+                                }
+                                }}
                             />
-                            <span>Every open day</span>
-                        </label>
+                            <span>Every weekday (Mon–Fri)</span>
+                            </label>
                         </div>
                     </div>
                 )}
