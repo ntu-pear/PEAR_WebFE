@@ -374,17 +374,51 @@ const PatientActivityPreferenceCard: React.FC<
           ]
         : []),
       {
-        key: "activityName" as keyof (typeof activityPreferences)[0],
-        header: "Activity Name",
-        className: "min-w-[200px]",
-        render: (value) => (
-          <div className="relative group cursor-help">
-            <span className="text-sm text-gray-900 uppercase">
-              {value}
-            </span>
-          </div>
-        ),
-      },
+  key: "activityName",
+  header: "Activity Name",
+  className: "min-w-[200px]",
+  render: (_value, item) => {
+    if (!item.activityDescription) {
+      return (
+        <span className="text-sm text-gray-900 uppercase">
+          {item.activityName}
+        </span>
+      );
+    }
+
+    return (
+      <div className="relative group cursor-help">
+        <span className="text-sm text-gray-900 uppercase">
+          {item.activityName}
+        </span>
+
+        {/* Tooltip */}
+        <div
+          className="
+            absolute
+            invisible
+            group-hover:visible
+            z-50
+            bg-black
+            text-white
+            text-xs
+            p-2
+            rounded
+            shadow-lg
+            max-w-xs
+            -top-2
+            left-1/2
+            -translate-x-1/2
+            -translate-y-full
+            whitespace-normal
+          "
+        >
+          {item.activityDescription}
+        </div>
+      </div>
+    );
+  },
+},
       {
         key: "patientPreference" as keyof (typeof activityPreferences)[0],
         header: "Patient Preference",
@@ -395,12 +429,13 @@ const PatientActivityPreferenceCard: React.FC<
             onClick={() => {
               // Toggle logic
               let newPref: "LIKE" | "NEUTRAL" | "DISLIKE";
-              if (item.patientPreference === "LIKE") {
-                newPref = "NEUTRAL";
-              } else if (item.patientPreference === "NEUTRAL") {
+
+              if (item.patientPreference === "NEUTRAL") {
+                newPref = "LIKE";
+              } else if (item.patientPreference === "LIKE") {
                 newPref = "DISLIKE";
               } else {
-                newPref = "LIKE"; // default toggle from neutral
+                newPref = "NEUTRAL";
               }
               handleSingleUpdate(item, newPref);
             }}
