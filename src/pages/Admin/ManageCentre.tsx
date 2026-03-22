@@ -76,7 +76,7 @@ function formatWorkingHours(wh: WorkingHours) {
         return (
           <div key={key} className="flex gap-2">
             <span className="w-8 shrink-0 font-medium text-foreground">{label}:</span>
-            <span className="text-muted-foreground">{display}</span>
+            <span className="text-foreground">{display}</span>
           </div>
         );
       })}
