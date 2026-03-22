@@ -12,7 +12,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
   ArrowLeft,
-  ShieldCheck,
   Users,
   Info,
   Fingerprint,
@@ -133,21 +132,13 @@ const EditRole: React.FC = () => {
 
   <div className="shrink-0 pt-1">
     <Badge
-      variant={role.isDeleted ? "secondary" : "default"}
-      className="h-12 px-10 text-lg font-semibold rounded-full"
-    >
-      {!role.isDeleted ? "Active" : "Deleted"}
-    </Badge>
-
-
-            {canEditRoleFields && (
-              <Button onClick={handleSave} disabled={saving} size="sm">
-                <Save className="h-4 w-4 mr-2" />
-                Save
-              </Button>
-            )}
-          </div>
-        </div>
+        variant={role.isDeleted ? "secondary" : "default"}
+        className="h-12 px-10 text-lg font-semibold rounded-full"
+      >
+        {!role.isDeleted ? "Active" : "Deleted"}
+      </Badge>
+      </div>
+    </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-6">
@@ -291,7 +282,16 @@ const EditRole: React.FC = () => {
                   Manage Assignments
                 </Button>
               </div>
+
             </Card>
+                          <div className="mt-6 flex justify-end">
+                {canEditRoleFields && (
+              <Button onClick={handleSave} disabled={saving} size="sm">
+                <Save className="h-4 w-4 mr-2" />
+                Save Role Changes 
+              </Button>
+            )}
+              </div>
           </div>
         </div>
       </div>

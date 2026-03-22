@@ -6,16 +6,15 @@ import { useNavigate } from "react-router-dom";
 import useCreateRole from "@/hooks/role/useCreateRole";
 import Input from "@/components/Form/Input";
 import Select from "@/components/Form/Select";
-import { fetchAccessLevels, AccessLevel } from "@/api/access_level/access_level.ts";
-import { 
-  ArrowLeft, 
-  ShieldPlus, 
-  ShieldCheck, 
-  Info, 
-  Save, 
+import { fetchAccessLevels, AccessLevel } from "@/api/access_level/access_level";
+import {
+  ArrowLeft,
+  ShieldCheck,
+  Info,
+  Save,
   XCircle,
   Lock,
-  Loader2
+  Loader2,
 } from "lucide-react";
 
 type RoleForm = {
@@ -56,71 +55,58 @@ const CreateRole: React.FC = () => {
 
   const onSubmit: SubmitHandler<RoleForm> = (data) =>
     mutate({
-      roleName: data.roleName.toUpperCase(), // Best practice for system roles
+      roleName: data.roleName.toUpperCase(),
       description: data.description,
       accessLevelId: data.accessLevelId,
     });
 
   return (
-    <div className="min-h-screen bg-background flex flex-col font-sans">
-      {/* Page Header - Matches Workbench Style */}
-      <div className="bg-card border-b border-border px-8 py-6 flex flex-col gap-6 shadow-sm">
-        <div className="max-w-[1200px] mx-auto w-full">
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={() => navigate(-1)}
-            className="text-muted-foreground hover:text-primary font-bold text-[14px] mb-4 -ml-2"
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" /> Back
-          </Button>
-          
-          <div className="flex items-center gap-5">
-            <div className="p-3 bg-primary text-primary-foreground rounded-2xl shadow-lg shadow-primary/10">
-              <ShieldPlus className="h-8 w-8" />
-            </div>
-            <div>
-              <h1 className="text-3xl font-bold tracking-tight text-foreground">
-                Define New Role
-              </h1>
-              <p className="text-muted-foreground font-medium text-[14px] mt-1">
-                Configure global permissions and access tiers for system users.
-              </p>
-            </div>
+    <div className="min-h-screen bg-background p-6 font-sans">
+      <div className="max-w-7xl mx-auto">
+        <Button onClick={() => navigate(-1)} variant="ghost" className="mb-6">
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Back
+        </Button>
+
+        <div className="flex items-start gap-4 mb-8">
+          <div className="flex-1 min-w-0 px-4">
+            <h1 className="text-3xl font-semibold">Create role</h1>
+            <p className="text-sm text-muted-foreground">
+              Configure role details and assign an access level.
+            </p>
           </div>
         </div>
-      </div>
 
-      <main className="p-10 flex-1 max-w-[1200px] mx-auto w-full">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          
-          {/* Left Column: Form Fields */}
+        <main className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div className="md:col-span-2">
-            <Card className="border border-border shadow-md rounded-2xl overflow-hidden bg-card">
-              <CardHeader className="bg-muted/30 border-b p-8">
-                <CardTitle className="text-lg font-bold">Role Details</CardTitle>
-                <CardDescription>Enter the identity and purpose of this security rank.</CardDescription>
+            <Card className="border border-border shadow-sm rounded-2xl overflow-hidden bg-card">
+              <CardHeader className="border-b border-border">
+                <CardTitle>Role details</CardTitle>
+                <CardDescription>
+                  Enter the role name, description, and access level assignment.
+                </CardDescription>
               </CardHeader>
-              <CardContent className="p-8">
+
+              <CardContent className="p-6">
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                   <div className="grid gap-6">
-                    <Input 
-                      formReturn={form} 
-                      label="Role Name" 
-                      name="roleName" 
+                    <Input
+                      formReturn={form}
+                      label="Role name"
+                      name="roleName"
                       placeholder="e.g. CLINICAL_SUPERVISOR"
                     />
-                    <Input 
-                      formReturn={form} 
-                      label="Description" 
-                      name="description" 
+
+                    <Input
+                      formReturn={form}
+                      label="Description"
+                      name="description"
                       placeholder="Briefly explain the responsibilities of this role..."
                     />
 
                     <Select
                       form={form}
-                      label="Access Level Policy"
+                      label="Access level"
                       name="accessLevelId"
                       options={accessLevels.map((level) => ({
                         value: level.id,
@@ -130,19 +116,20 @@ const CreateRole: React.FC = () => {
                   </div>
 
                   <div className="pt-6 border-t border-border flex items-center gap-3">
-                    <Button 
-                      type="submit" 
-                      disabled={isPending}
-                      className="bg-primary text-primary-foreground px-8 py-6 rounded-xl font-bold uppercase tracking-widest text-[11px] shadow-lg shadow-primary/20"
-                    >
-                      {isPending ? <Loader2 className="animate-spin h-4 w-4 mr-2" /> : <Save className="h-4 w-4 mr-2" />}
-                      Create System Role
+                    <Button type="submit" disabled={isPending} size="sm">
+                      {isPending ? (
+                        <Loader2 className="animate-spin h-4 w-4 mr-2" />
+                      ) : (
+                        <Save className="h-4 w-4 mr-2" />
+                      )}
+                      Create role
                     </Button>
+
                     <Button
                       type="button"
                       variant="ghost"
-                      className="text-muted-foreground hover:text-reject font-bold px-6 py-6"
-                      onClick={() => navigate("/admin/manage-roles")}
+                      className="text-muted-foreground hover:text-primary hover:bg-accent"
+                      onClick={() => navigate("/admin/edit-roles")}
                     >
                       <XCircle className="h-4 w-4 mr-2" />
                       Discard
@@ -153,50 +140,56 @@ const CreateRole: React.FC = () => {
             </Card>
           </div>
 
-          {/* Right Column: Policy Preview */}
           <div className="md:col-span-1">
-            <Card className="border-dashed border-2 border-border bg-muted/20 rounded-2xl flex flex-col h-full">
-              <CardHeader className="p-8 pb-4">
-                <CardTitle className="text-sm font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-                  <ShieldCheck className="h-4 w-4" /> Policy Preview
-                </CardTitle>
+            <Card className="border border-border shadow-sm rounded-2xl overflow-hidden bg-card h-full flex flex-col">
+              <CardHeader className="border-b border-border">
+                <div className="flex items-center gap-2">
+                  <ShieldCheck className="h-4 w-4 text-primary" />
+                  <CardTitle>Policy preview</CardTitle>
+                </div>
+                <CardDescription>
+                  Review the selected access level before creating the role.
+                </CardDescription>
               </CardHeader>
-              <CardContent className="p-8 pt-0 flex-1">
+
+              <CardContent className="p-6 flex-1">
                 {selectedAccessLevel ? (
-                  <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                    <div className="bg-card border border-border p-5 rounded-2xl shadow-sm">
-                      <p className="text-[12px] font-mono font-bold text-primary uppercase mb-1">
-                        Tier {selectedAccessLevel.code}
+                  <div className="space-y-4">
+                    <div className="border border-border rounded-xl bg-muted/20 p-5">
+                      <p className="text-sm text-muted-foreground">
+                        {selectedAccessLevel.code}
                       </p>
-                      <h4 className="font-bold text-foreground text-lg mb-2">
+                      <h4 className="text-sm font-medium text-foreground mt-1">
                         {selectedAccessLevel.levelName}
                       </h4>
-                      <p className="text-[13px] text-muted-foreground leading-relaxed">
+                      <p className="text-sm text-muted-foreground leading-relaxed mt-2">
                         {selectedAccessLevel.description}
                       </p>
                     </div>
-                    <div className="flex items-start gap-3 p-4 bg-primary/5 rounded-xl border border-primary/10">
+
+                    <div className="flex items-start gap-3 rounded-xl border border-border bg-muted/20 p-4">
                       <Info className="h-4 w-4 text-primary mt-0.5 shrink-0" />
-                      <p className="text-[11px] text-muted-foreground font-medium italic">
-                        Assigning this policy will grant users all permissions associated with the {selectedAccessLevel.levelName} tier.
+                      <p className="text-sm text-muted-foreground leading-relaxed">
+                        Assigning this policy will grant users permissions associated with the{" "}
+                        {selectedAccessLevel.levelName} access level.
                       </p>
                     </div>
                   </div>
                 ) : (
-                  <div className="h-full flex flex-col items-center justify-center text-center p-10 py-20">
+                  <div className="h-full flex flex-col items-center justify-center text-center p-10">
                     <div className="w-12 h-12 bg-muted rounded-full flex items-center justify-center mb-4">
                       <Lock className="h-6 w-6 text-muted-foreground/50" />
                     </div>
-                    <p className="text-[13px] text-muted-foreground font-medium">
-                      Select an Access Level to preview the security policy details.
+                    <p className="text-sm text-muted-foreground">
+                      Select an access level to preview the policy details.
                     </p>
                   </div>
                 )}
               </CardContent>
             </Card>
           </div>
-        </div>
-      </main>
+        </main>
+      </div>
     </div>
   );
 };

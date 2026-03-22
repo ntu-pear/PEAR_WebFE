@@ -105,12 +105,14 @@ const ManageRoles: React.FC = () => {
       <div className="flex-1 p-6 overflow-auto">
         <div className="max-w-7xl mx-auto space-y-6">
           
-          <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 px-2">
+          <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div className="-ml-6">
                       <Searchbar
                 searchItem={nameInput}
                 onSearchChange={(e) => setNameInput(e.target.value)}
                 placeholder="Filter by role title..."
               />
+              </div>
             <div className="flex items-center gap-5">
 
               <div className="space-y-1"></div>
@@ -120,9 +122,9 @@ const ManageRoles: React.FC = () => {
 
           <Card className="border border-border shadow-sm bg-card overflow-hidden rounded-2xl">
             <CardHeader>
-              <CardTitle>Access Control</CardTitle>
+              <CardTitle>Manage Roles</CardTitle>
               <CardDescription>
-                Configure institutional roles and responsibility scopes.
+                View Role Information and Edit Role Assignments. Click on a role to see details and manage user assignments.
               </CardDescription>
             </CardHeader>
 
