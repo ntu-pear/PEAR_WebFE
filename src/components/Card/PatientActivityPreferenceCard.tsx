@@ -283,65 +283,6 @@ const PatientActivityPreferenceCard: React.FC<
     );
   };
 
-  const renderExclusion = (activityId: number) => {
-    const exclusion = centreActivityExclusions.find(
-      (e) => e.centreActivityId === activityId
-    );
-
-    const now = new Date();
-
-    const isActive =
-      exclusion &&
-      new Date(exclusion.startDate) <= now &&
-      (!exclusion.endDate || new Date(exclusion.endDate) >= now);
-
-    if (!exclusion) {
-      return (
-        <Badge className="bg-gray-300 text-gray-700 text-xs">No</Badge>
-      );
-    }
-
-    return (
-      <div className="flex items-center justify-center gap-2 group relative">
-        {/* STATUS */}
-        <Badge
-          className={`text-xs ${
-            isActive ? "bg-red-500 text-white" : "bg-gray-400 text-white"
-          }`}
-        >
-          {isActive ? "Yes" : "Inactive"}
-        </Badge>
-
-        {/* EDIT */}
-        <Button
-          size="icon"
-          variant="ghost"
-          className="h-6 w-6 opacity-0 group-hover:opacity-100"
-          onClick={() => setEditingExclusion(exclusion)}
-        >
-          <Edit className="h-3 w-3" />
-        </Button>
-
-        {/* DELETE */}
-        <Button
-          size="icon"
-          variant="ghost"
-          className="h-6 w-6 text-destructive opacity-0 group-hover:opacity-100"
-          onClick={() => handleDeleteExclusion(exclusion)}
-        >
-          <Trash2 className="h-3 w-3" />
-        </Button>
-
-        {/* TOOLTIP */}
-        <div className="absolute invisible group-hover:visible z-50 bg-black text-white text-xs p-2 rounded w-56 -top-2 left-1/2 -translate-x-1/2 -translate-y-full">
-          <div><b>Start:</b> {exclusion.startDate}</div>
-          <div><b>End:</b> {exclusion.endDate || "Indefinite"}</div>
-          <div><b>Remarks:</b> {exclusion.exclusionRemarks || "-"}</div>
-        </div>
-      </div>
-    );
-  };
-
   const renderExclusionStatus = (activityId: number) => {
     const exclusion = centreActivityExclusions.find(
       (e) => e.centreActivityId === activityId
@@ -570,57 +511,6 @@ const PatientActivityPreferenceCard: React.FC<
     }
   };
 
-  // Define actions render function for supervisors
-  /*replaced
-  const renderActions =
-    (currentUser?.roleName === "SUPERVISOR")
-      ? (item: PatientActivityPreferenceWithRecommendation) => (
-          <div className="flex justify-center gap-2">
-            <Button
-              variant={
-                item.patientPreference === "LIKE" ? "default" : "outline"
-              }
-              size="default"
-              onClick={() => handleSingleUpdate(item, "LIKE")}
-              className={`px-4 py-2 min-w-[44px] min-h-[44px] ${item.patientPreference === "LIKE" ? "bg-green-500 hover:bg-green-600" : "hover:bg-green-50"}`}
-              title="Set to Like"
-            >
-              <Heart
-                className={`h-4 w-4 ${item.patientPreference === "LIKE" ? "fill-current text-white" : "text-green-500"}`}
-              />
-            </Button>
-            <Button
-              variant={
-                item.patientPreference === "NEUTRAL" || !item.patientPreference
-                  ? "default"
-                  : "outline"
-              }
-              size="default"
-              onClick={() => handleSingleUpdate(item, "NEUTRAL")}
-              className={`px-4 py-2 min-w-[44px] min-h-[44px] ${item.patientPreference === "NEUTRAL" || !item.patientPreference ? "bg-gray-500 hover:bg-gray-600" : "hover:bg-gray-50"}`}
-              title="Set to Neutral"
-            >
-              <span
-                className={`h-4 w-4 rounded-full ${item.patientPreference === "NEUTRAL" || !item.patientPreference ? "bg-white" : "bg-gray-400"}`}
-              />
-            </Button>
-            <Button
-              variant={
-                item.patientPreference === "DISLIKE" ? "destructive" : "outline"
-              }
-              size="default"
-              onClick={() => handleSingleUpdate(item, "DISLIKE")}
-              className={`px-4 py-2 min-w-[44px] min-h-[44px] ${item.patientPreference !== "DISLIKE" ? "hover:bg-red-50" : ""}`}
-              title="Set to Dislike"
-            >
-              <HeartCrack
-                className={`h-4 w-4 ${item.patientPreference === "DISLIKE" ? "text-white" : "text-red-500"}`}
-              />
-            </Button>
-          </div>
-        )
-      : undefined;
-  */
   if (loading) {
     return (
       <Card>
