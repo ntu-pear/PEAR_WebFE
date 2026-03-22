@@ -6,23 +6,27 @@ import { toast } from "sonner";
 type Variables = {
   roleId: string;
   roleName: string;
-  accessLevelSensitive: 0 | 1 | 2 | 3;
+  accessLevelId: string;
 };
 
 const useUpdateRoleAccessLevel = () => {
   return useMutation({
-    mutationFn: ({ roleId, roleName, accessLevelSensitive }: Variables) =>
-      updateRole(roleId, roleName, true, accessLevelSensitive),
-    onSuccess: ({ roleName }) => {
-      toast.success(`Privacy level of ${roleName} updated successfully`);
+    mutationFn: ({ roleId, accessLevelId }: Variables) =>
+      updateRole(roleId, { accessLevelId }),
+
+    onSuccess: (_data, { roleName }) => {
+      toast.success(`Access level of ${roleName} updated successfully`);
       queryClient.refetchQueries({ queryKey: ["roles"] });
     },
+
     onError: (
-      error: { response: { data: { detail: string } } },
+      error: { response?: { data?: { detail?: string } } },
       { roleName }
     ) =>
       toast.error(
-        `Failed to update access level of ${roleName}. ${error.response.data.detail}`
+        `Failed to update access level of ${roleName}. ${
+          error.response?.data?.detail || "Unknown error"
+        }`
       ),
   });
 };
