@@ -154,12 +154,12 @@ const App: React.FC = () => {
                       />
                       <Route path="add-patient" element={<AddPatient />} />
                       <Route
-                        path="view-medication-schedule"
-                        element={<ViewMedicationSchedule />}
-                      />
-                      <Route
                         path="manage-medication"
                         element={<ManageMedication />}
+                      />
+                      <Route
+                        path="view-medication-schedule"
+                        element={<ViewMedicationSchedule />}
                       />
                       <Route
                         path="manage-activities"
