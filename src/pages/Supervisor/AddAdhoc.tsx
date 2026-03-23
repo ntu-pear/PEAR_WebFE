@@ -245,7 +245,7 @@ const AddAdhoc: React.FC = () => {
                 <Form.Item
                   label={
                     <label className="block text-sm font-medium leading-6 text-primary">
-                      New Activity
+                      Ad hoc
                     </label>
                   }
                   name="new_centre_activity_id"
@@ -253,7 +253,7 @@ const AddAdhoc: React.FC = () => {
                   rules={[
                     {
                       required: true,
-                      message: "Please select a new activity!",
+                      message: "Please select a adhoc!",
                     },
                   ]}
                   className="sm:col-span-4"
@@ -263,7 +263,7 @@ const AddAdhoc: React.FC = () => {
                     disabled={loadingActivities}
                   >
                     <option value="" disabled>
-                      Select New Activity
+                      Select New Activity to be Ad hoc
                     </option>
 
                     {activities.map((activity) => (
