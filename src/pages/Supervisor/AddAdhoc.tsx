@@ -84,7 +84,7 @@ const AddAdhoc: React.FC = () => {
 
     form.setFieldsValue({
       start_date: now,
-      end_date: now,
+      end_date: now.add(1, "hour"),
     });
   }, [form]);
 
@@ -164,6 +164,14 @@ const AddAdhoc: React.FC = () => {
 
     fetchActivities();
   }, []);
+
+  const getSortedActivities = () => {
+    return [...activities].sort((a, b) => {
+      const titleA = (activityMap[a.activity_id] || "ZZZZ_UNKNOWN").toUpperCase();
+      const titleB = (activityMap[b.activity_id] || "ZZZZ_UNKNOWN").toUpperCase();
+      return titleA.localeCompare(titleB);
+    });
+  };
   return (
     <div className="flex min-h-screen w-full flex-col lg:flex-row container mx-auto px-4">
       {/* Left Sidebar Navigation */}
@@ -198,7 +206,7 @@ const AddAdhoc: React.FC = () => {
                 Adhoc Information
               </h2>
               <p className="mt-1 text-sm leading-6 text-primary">
-                Add in adhoc activity information for a particular patient
+                Add an adhoc activity to replace an original activity for a particular patient
               </p>
 
               <div className="mt-10 grid grid-cols-1 gap-x-6 gap-y-6 sm:grid-cols-8">
@@ -295,9 +303,9 @@ const AddAdhoc: React.FC = () => {
                     </option>
                     
 
-                    {activities.map((activity) => (
+                    {getSortedActivities().map((activity) => (
                       <option key={activity.id} value={activity.id}>
-                        {activityMap[activity.activity_id] ?? "Unknown Activity"}
+                        {(activityMap[activity.activity_id] ?? "Unknown Activity").toUpperCase()}
                       </option>
                     ))}
                   </select>
@@ -348,11 +356,13 @@ const AddAdhoc: React.FC = () => {
                       Select New Activity to be Ad hoc
                     </option>
 
-                    {activities.map((activity) => (
+                    
+                    {getSortedActivities().map((activity) => (
                       <option key={activity.id} value={activity.id}>
-                        {activityMap[activity.activity_id] ?? "Unknown Activity"}
+                        {(activityMap[activity.activity_id] ?? "Unknown Activity").toUpperCase()}
                       </option>
                     ))}
+
                   </select>
 
                 </Form.Item>
