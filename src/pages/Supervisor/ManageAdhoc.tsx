@@ -52,14 +52,28 @@ const ManageAdhoc: React.FC = () => {
     setLoading(true);
     try {
       const data = await listAdhocActivities(false, 0, 100);
-      const formatted = data.map(a => ({
-        ...a,
-        startDate: formatDateTime(a.startDate ?? null),
-        endDate: formatDateTime(a.endDate ?? null),
-        lastUpdated: formatDateTime(a.lastUpdated ?? null),
-        oldActivityTitle: getCentreActivityDisplayName(a.oldActivityId ? centreActivityMap[a.oldActivityId] : undefined),
-        newActivityTitle: getCentreActivityDisplayName(a.newActivityId ? centreActivityMap[a.newActivityId] : undefined),
-      }));
+      const formatted = data.map(a => {
+        const oldCentre = a.oldActivityId
+          ? centreActivityMap[a.oldActivityId]
+          : undefined;
+
+        const newCentre = a.newActivityId
+          ? centreActivityMap[a.newActivityId]
+          : undefined;
+
+        return {
+          ...a,
+          startDate: formatDateTime(a.startDate ?? null),
+          endDate: formatDateTime(a.endDate ?? null),
+          lastUpdated: formatDateTime(a.lastUpdated ?? null),
+
+          oldActivityTitle: getCentreActivityDisplayName(oldCentre),
+          oldActivityDescription: getCentreActivityDescription(oldCentre),
+
+          newActivityTitle: getCentreActivityDisplayName(newCentre),
+          newActivityDescription: getCentreActivityDescription(newCentre),
+        };
+      });
       setAdhocActivities(formatted);
     } catch (err) {
       console.error("Failed to fetch adhoc activities:", err);
@@ -95,6 +109,13 @@ const ManageAdhoc: React.FC = () => {
 
     const activity = activityMap[ca.activity_id];
     return activity ? activity.title.toUpperCase() : "UNKNOWN ACTIVITY";
+  };
+
+  const getCentreActivityDescription = (ca?: CentreActivity) => {
+    if (!ca) return "-";
+
+    const activity = activityMap[ca.activity_id];
+    return activity?.description ?? "-";
   };
 
   useEffect(() => {
@@ -144,8 +165,13 @@ const ManageAdhoc: React.FC = () => {
     { key: "patientName", header: "Patient Name" },
     { key: "startDate", header: "Start Date" },
     { key: "endDate", header: "End Date" },
+    
     { key: "oldActivityTitle", header: "Original Activity" },
+    { key: "oldActivityDescription", header: "Original Activity Description" },
+
     { key: "newActivityTitle", header: "Ad Hoc Activity" },
+    { key: "newActivityDescription", header: "Ad Hoc Activity Description" },
+
   ];
 
   return (
@@ -245,8 +271,13 @@ const ManageAdhoc: React.FC = () => {
                       ...a,
                       oldActivityId: newOldActivityId,
                       newActivityId: newNewActivityId,
+                      
                       oldActivityTitle: getCentreActivityDisplayName(oldActivity),
-                      newActivityTitle: getCentreActivityDisplayName(newActivity),                
+                      oldActivityDescription: getCentreActivityDescription(oldActivity),
+
+                      newActivityTitle: getCentreActivityDisplayName(newActivity),
+                      newActivityDescription: getCentreActivityDescription(newActivity),
+               
                       startDate: formatDateTime(payload.startDate),
                       endDate: formatDateTime(payload.endDate),
                       status: payload.status,
