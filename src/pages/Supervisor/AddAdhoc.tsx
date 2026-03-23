@@ -46,6 +46,22 @@ const AddAdhoc: React.FC = () => {
     message.error("Please fill out all required fields correctly.");
   };
 
+  const validateDifferentActivity = (_: RuleObject, value: number) => {
+    const oldActivity = form.getFieldValue("old_centre_activity_id");
+
+    if (!value || !oldActivity) {
+      return Promise.resolve();
+    }
+
+    if (Number(value) === Number(oldActivity)) {
+      return Promise.reject(
+        new Error("Adhoc activity must be different from old activity")
+      );
+    }
+
+    return Promise.resolve();
+  };
+
   const validateEndDate = (
     _: RuleObject,
     value: Dayjs | null
@@ -61,6 +77,7 @@ const AddAdhoc: React.FC = () => {
     }
     return Promise.resolve();
   };
+
 
   useEffect(() => {
     const now = dayjs();
@@ -129,6 +146,13 @@ const AddAdhoc: React.FC = () => {
         });
 
         setActivityMap(map);
+
+        if (centreRes.length > 0) {
+                form.setFieldsValue({
+                  old_centre_activity_id: centreRes[0].id,
+                  new_centre_activity_id: centreRes[1].id,
+                });
+              }
 
       } catch (error) {
         console.error("Failed to fetch activities", error);
@@ -226,12 +250,32 @@ const AddAdhoc: React.FC = () => {
                   className="sm:col-span-3"
                 >
                   <select
-                    className="block w-full rounded-md border-0 py-2 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:max-w-xs sm:text-sm sm:leading-6"
+                    className="block w-full rounded-md border-0 py-2 px-3"
                     disabled={loadingActivities}
+                    onChange={(e) => {
+                      const selectedOld = Number(e.target.value);
+
+                      // Update old activity
+                      form.setFieldsValue({
+                        old_centre_activity_id: selectedOld,
+                      });
+
+                      // Auto-pick a different adhoc if needed
+                      const currentNew = form.getFieldValue("new_centre_activity_id");
+                      if (currentNew === selectedOld) {
+                        const alternative = activities.find(a => a.id !== selectedOld);
+                        if (alternative) {
+                          form.setFieldsValue({
+                            new_centre_activity_id: alternative.id,
+                          });
+                        }
+                      }
+                    }}
                   >
                     <option value="" disabled>
                       Select Old Activity
                     </option>
+                    
 
                     {activities.map((activity) => (
                       <option key={activity.id} value={activity.id}>
@@ -255,12 +299,20 @@ const AddAdhoc: React.FC = () => {
                       required: true,
                       message: "Please select a adhoc!",
                     },
+                    { validator: validateDifferentActivity },
                   ]}
                   className="sm:col-span-4"
                 >
                   <select
                     className="block w-full rounded-md border-0 py-2 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:max-w-xs sm:text-sm sm:leading-6"
                     disabled={loadingActivities}
+                    
+                    onChange={(e) =>
+                          form.setFieldsValue({
+                            new_centre_activity_id: Number(e.target.value),
+                          })
+                        }
+
                   >
                     <option value="" disabled>
                       Select New Activity to be Ad hoc
