@@ -227,6 +227,7 @@ const ManageAdhoc: React.FC = () => {
         activity={editingActivity}
         open={editModalOpen}
         centreActivityList={centreActivityList}
+        getDisplayName={getCentreActivityDisplayName}
         onClose={() => setEditModalOpen(false)}
         onSave={async (updated) => {
           try {
@@ -309,19 +310,13 @@ interface EditAdhocModalProps {
   onClose: () => void;
   onSave: (updated: AdhocActivity) => void;
   centreActivityList: CentreActivity[];
+  getDisplayName: (ca?: CentreActivity) => string;
 }
 
-const EditAdhocModal: React.FC<EditAdhocModalProps> = ({ activity, open, onClose, onSave, centreActivityList }) => {
+const EditAdhocModal: React.FC<EditAdhocModalProps> = ({ activity, open, onClose, onSave, centreActivityList, getDisplayName }) => {
   const [selectedActivityId, setSelectedActivityId] = useState<number | undefined>(activity?.newActivityId);
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
-
-  
-
-  const getDisplayName = (ca?: CentreActivity) => {
-    if (!ca) return "UNKNOWN ACTIVITY";
-    return `ACTIVITY ${ca.activity_id}`;
-  };
 
 
   
@@ -355,11 +350,16 @@ const EditAdhocModal: React.FC<EditAdhocModalProps> = ({ activity, open, onClose
               onChange={(e) => setSelectedActivityId(Number(e.target.value))}
             >
               <option value={-1}>Keep Current</option>
-              {centreActivityList.map((ca) => (
-                <option key={ca.id} value={ca.id}>
-                  {getDisplayName(ca)}
-                </option>
-              ))}
+              {[...centreActivityList]
+                .sort((a, b) =>
+                  getDisplayName(a).localeCompare(getDisplayName(b))
+                )
+                .map((ca) => (
+                  <option key={ca.id} value={ca.id}>
+                    {getDisplayName(ca).toUpperCase()}
+                  </option>
+                ))}
+
             </select>
           </div>
 
