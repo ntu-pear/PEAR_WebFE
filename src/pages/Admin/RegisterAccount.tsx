@@ -197,26 +197,30 @@ const RegisterAccount: React.FC = () => {
     <div className="flex min-h-screen w-full flex-col container mx-auto px-0 sm:px-4">
       <div className="flex flex-col sm:gap-4 sm:py-4 sm:pl-14">
         <main className="flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
-          <Card>
+          <Card className="w-full">
             <CardHeader>
               <CardTitle>Register Account</CardTitle>
             </CardHeader>
-            <CardContent className="flex flex-col align-middle">
-              <form onSubmit={form.handleSubmit(onSubmit)}>
-                <Card className="m-3">
-                  <CardHeader className="bg-sky-400 py-3 text-white font-semibold">
+
+            <CardContent>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                <div className="space-y-3">
+                  <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
                     Personal Information
-                  </CardHeader>
-                  <CardContent className="py-4 flex flex-col">
-                    <Input
-                      label="Full Name according to NRIC"
-                      name="fullName"
-                      formReturn={form}
-                      validation={{
-                        onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
-                          handleSanitizedChange("fullName", e.target.value),
-                      }}
-                    />
+                  </p>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="md:col-span-2">
+                      <Input
+                        label="Full Name according to NRIC"
+                        name="fullName"
+                        formReturn={form}
+                        validation={{
+                          onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
+                            handleSanitizedChange("fullName", e.target.value),
+                        }}
+                      />
+                    </div>
 
                     <Input
                       label="NRIC Number"
@@ -229,16 +233,6 @@ const RegisterAccount: React.FC = () => {
                     />
 
                     <Input
-                      label="Address"
-                      name="address"
-                      formReturn={form}
-                      validation={{
-                        onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
-                          handleSanitizedChange("address", e.target.value),
-                      }}
-                    />
-
-                    <Input
                       label="Contact No."
                       name="contactNo"
                       formReturn={form}
@@ -247,6 +241,18 @@ const RegisterAccount: React.FC = () => {
                           handleSanitizedChange("contactNo", e.target.value),
                       }}
                     />
+
+                    <div className="md:col-span-2">
+                      <Input
+                        label="Address"
+                        name="address"
+                        formReturn={form}
+                        validation={{
+                          onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
+                            handleSanitizedChange("address", e.target.value),
+                        }}
+                      />
+                    </div>
 
                     <RadioGroup
                       label="Gender"
@@ -263,14 +269,15 @@ const RegisterAccount: React.FC = () => {
                       name="dateOfBirth"
                       form={form}
                     />
-                  </CardContent>
-                </Card>
+                  </div>
+                </div>
 
-                <Card className="m-3">
-                  <CardHeader className="bg-sky-400 py-3 text-white font-semibold">
+                <div className="space-y-3">
+                  <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
                     Account Information
-                  </CardHeader>
-                  <CardContent className="py-4 flex flex-col">
+                  </p>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <Input
                       label="Email"
                       name="email"
@@ -292,16 +299,17 @@ const RegisterAccount: React.FC = () => {
                         })) || []
                       }
                     />
-                  </CardContent>
-                </Card>
+                  </div>
+                </div>
 
-                <Button
-                  type="submit"
-                  className="bg-blue-500 mr-1 ml-3"
-                  disabled={isPending}
-                >
-                  {isPending ? "Sending..." : "Send registration link to email"}
-                </Button>
+                <div className="flex justify-end gap-2 pt-2">
+                  <Button
+                    type="submit"
+                    disabled={isPending}
+                  >
+                    {isPending ? "Sending..." : "Send registration link to email"}
+                  </Button>
+                </div>
               </form>
             </CardContent>
           </Card>
