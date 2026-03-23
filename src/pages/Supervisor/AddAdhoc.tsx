@@ -1,5 +1,6 @@
 import { Form, DatePicker, message } from "antd";
 import { Dayjs } from "dayjs";
+import dayjs from "dayjs";
 import { RuleObject } from "antd/es/form";
 import React, { useEffect, useState } from "react";
 import { fetchAllPatientTD } from "@/api/patients/patients";
@@ -45,6 +46,22 @@ const AddAdhoc: React.FC = () => {
     message.error("Please fill out all required fields correctly.");
   };
 
+  const validateDifferentActivity = (_: RuleObject, value: number) => {
+    const oldActivity = form.getFieldValue("old_centre_activity_id");
+
+    if (!value || !oldActivity) {
+      return Promise.resolve();
+    }
+
+    if (Number(value) === Number(oldActivity)) {
+      return Promise.reject(
+        new Error("Adhoc activity must be different from old activity")
+      );
+    }
+
+    return Promise.resolve();
+  };
+
   const validateEndDate = (
     _: RuleObject,
     value: Dayjs | null
@@ -60,6 +77,17 @@ const AddAdhoc: React.FC = () => {
     }
     return Promise.resolve();
   };
+
+
+  useEffect(() => {
+    const now = dayjs();
+
+    form.setFieldsValue({
+      start_date: now,
+      end_date: now.add(1, "hour"),
+    });
+  }, [form]);
+
 
   useEffect(() => {
     const fetchPatients = async () => {
@@ -119,6 +147,13 @@ const AddAdhoc: React.FC = () => {
 
         setActivityMap(map);
 
+        if (centreRes.length > 0) {
+                form.setFieldsValue({
+                  old_centre_activity_id: centreRes[0].id,
+                  new_centre_activity_id: centreRes[1].id,
+                });
+              }
+
       } catch (error) {
         console.error("Failed to fetch activities", error);
         message.error("Failed to load activities");
@@ -129,6 +164,14 @@ const AddAdhoc: React.FC = () => {
 
     fetchActivities();
   }, []);
+
+  const getSortedActivities = () => {
+    return [...activities].sort((a, b) => {
+      const titleA = (activityMap[a.activity_id] || "ZZZZ_UNKNOWN").toUpperCase();
+      const titleB = (activityMap[b.activity_id] || "ZZZZ_UNKNOWN").toUpperCase();
+      return titleA.localeCompare(titleB);
+    });
+  };
   return (
     <div className="flex min-h-screen w-full flex-col lg:flex-row container mx-auto px-4">
       {/* Left Sidebar Navigation */}
@@ -163,7 +206,7 @@ const AddAdhoc: React.FC = () => {
                 Adhoc Information
               </h2>
               <p className="mt-1 text-sm leading-6 text-primary">
-                Add in adhoc activity information for a particular patient
+                Add an adhoc activity to replace an original activity for a particular patient
               </p>
 
               <div className="mt-10 grid grid-cols-1 gap-x-6 gap-y-6 sm:grid-cols-8">
@@ -215,16 +258,54 @@ const AddAdhoc: React.FC = () => {
                   className="sm:col-span-3"
                 >
                   <select
-                    className="block w-full rounded-md border-0 py-2 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:max-w-xs sm:text-sm sm:leading-6"
+                    className="
+                      block w-full rounded-md border-0 py-2 px-3
+                      text-gray-900 shadow-sm
+                      ring-1 ring-inset ring-gray-300
+                      focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-600
+                    "
                     disabled={loadingActivities}
+                    onChange={(e) => {
+                    const selectedOld = Number(e.target.value);
+                    const currentNew = form.getFieldValue("new_centre_activity_id");
+
+                    // If conflict detected
+                    if (selectedOld === currentNew) {
+                      const alternative = activities.find(a => a.id !== selectedOld);
+
+                      if (alternative) {
+                        form.setFieldsValue({
+                          old_centre_activity_id: alternative.id,
+                        });
+
+                        //User-facing explanation
+                        message.error(
+                          "Original and Adhoc activities must be different. " +
+                          "The original activity was automatically adjusted to avoid a conflict."
+                        );
+
+                        
+                        //clear stale Adhoc validation error
+                        form.validateFields(["new_centre_activity_id"])
+
+                        return;
+                      }
+                    }
+
+                    // Normal case
+                    form.setFieldsValue({
+                      old_centre_activity_id: selectedOld,
+                    });
+                  }}
                   >
                     <option value="" disabled>
                       Select Old Activity
                     </option>
+                    
 
-                    {activities.map((activity) => (
+                    {getSortedActivities().map((activity) => (
                       <option key={activity.id} value={activity.id}>
-                        {activityMap[activity.activity_id] ?? "Unknown Activity"}
+                        {(activityMap[activity.activity_id] ?? "Unknown Activity").toUpperCase()}
                       </option>
                     ))}
                   </select>
@@ -234,7 +315,7 @@ const AddAdhoc: React.FC = () => {
                 <Form.Item
                   label={
                     <label className="block text-sm font-medium leading-6 text-primary">
-                      New Activity
+                      Ad hoc
                     </label>
                   }
                   name="new_centre_activity_id"
@@ -242,24 +323,46 @@ const AddAdhoc: React.FC = () => {
                   rules={[
                     {
                       required: true,
-                      message: "Please select a new activity!",
+                      message: "Please select a adhoc!",
                     },
+                    { validator: validateDifferentActivity },
                   ]}
                   className="sm:col-span-4"
                 >
                   <select
                     className="block w-full rounded-md border-0 py-2 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:max-w-xs sm:text-sm sm:leading-6"
                     disabled={loadingActivities}
+                    
+                    onChange={(e) => {
+                    const selectedNew = Number(e.target.value);
+                    const oldActivity = form.getFieldValue("old_centre_activity_id");
+
+                    if (selectedNew === oldActivity) {
+                      message.error(
+                        "Adhoc activity must be different from the original activity. " +
+                        "Please select a different adhoc activity."
+                      );
+                      return;
+                    }
+
+                    form.setFieldsValue({
+                      new_centre_activity_id: selectedNew,
+                    });
+                  }}
+
+
                   >
                     <option value="" disabled>
-                      Select New Activity
+                      Select New Activity to be Ad hoc
                     </option>
 
-                    {activities.map((activity) => (
+                    
+                    {getSortedActivities().map((activity) => (
                       <option key={activity.id} value={activity.id}>
-                        {activityMap[activity.activity_id] ?? "Unknown Activity"}
+                        {(activityMap[activity.activity_id] ?? "Unknown Activity").toUpperCase()}
                       </option>
                     ))}
+
                   </select>
 
                 </Form.Item>
@@ -275,8 +378,8 @@ const AddAdhoc: React.FC = () => {
                   className="sm:col-span-3"
                 >
                   <DatePicker
-                    showTime={{ format: "HH:mm:ss" }}
-                    format="YYYY-MM-DD HH:mm:ss"
+                    showTime={{ format: "HH:mm" }}
+                    format="YYYY-MM-DD HH:mm"
                     className="w-full"
                   />
                 </Form.Item>
@@ -295,8 +398,8 @@ const AddAdhoc: React.FC = () => {
                   className="sm:col-span-3"
                 >
                   <DatePicker
-                    showTime={{ format: "HH:mm:ss" }}
-                    format="YYYY-MM-DD HH:mm:ss"
+                    showTime={{ format: "HH:mm" }}
+                    format="YYYY-MM-DD HH:mm"
                     className="w-full"
                   />
                 </Form.Item>

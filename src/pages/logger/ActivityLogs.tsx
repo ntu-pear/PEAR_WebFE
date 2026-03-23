@@ -279,7 +279,7 @@ const ActivityLogs: React.FC = () => {
                                 {index + 1 + logsData.pageNo * logsData.pageSize}
                               </TableCell>
                               <TableCell className="text-sm whitespace-nowrap">
-                                {format(new Date(log.timestamp), "dd MMM yyyy HH:mm")}
+                                {format(new Date(log.timestamp), "dd-MMM-yyyy HH:mm")}
                               </TableCell>
                               <TableCell>
                                 <div className="font-medium">{log.patient_full_name || "-"}</div>
