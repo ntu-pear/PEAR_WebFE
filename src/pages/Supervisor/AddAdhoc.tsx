@@ -250,27 +250,45 @@ const AddAdhoc: React.FC = () => {
                   className="sm:col-span-3"
                 >
                   <select
-                    className="block w-full rounded-md border-0 py-2 px-3"
+                    className="
+                      block w-full rounded-md border-0 py-2 px-3
+                      text-gray-900 shadow-sm
+                      ring-1 ring-inset ring-gray-300
+                      focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-600
+                    "
                     disabled={loadingActivities}
                     onChange={(e) => {
-                      const selectedOld = Number(e.target.value);
+                    const selectedOld = Number(e.target.value);
+                    const currentNew = form.getFieldValue("new_centre_activity_id");
 
-                      // Update old activity
-                      form.setFieldsValue({
-                        old_centre_activity_id: selectedOld,
-                      });
+                    // If conflict detected
+                    if (selectedOld === currentNew) {
+                      const alternative = activities.find(a => a.id !== selectedOld);
 
-                      // Auto-pick a different adhoc if needed
-                      const currentNew = form.getFieldValue("new_centre_activity_id");
-                      if (currentNew === selectedOld) {
-                        const alternative = activities.find(a => a.id !== selectedOld);
-                        if (alternative) {
-                          form.setFieldsValue({
-                            new_centre_activity_id: alternative.id,
-                          });
-                        }
+                      if (alternative) {
+                        form.setFieldsValue({
+                          old_centre_activity_id: alternative.id,
+                        });
+
+                        //User-facing explanation
+                        message.error(
+                          "Original and Adhoc activities must be different. " +
+                          "The original activity was automatically adjusted to avoid a conflict."
+                        );
+
+                        
+                        //clear stale Adhoc validation error
+                        form.validateFields(["new_centre_activity_id"])
+
+                        return;
                       }
-                    }}
+                    }
+
+                    // Normal case
+                    form.setFieldsValue({
+                      old_centre_activity_id: selectedOld,
+                    });
+                  }}
                   >
                     <option value="" disabled>
                       Select Old Activity
@@ -307,11 +325,23 @@ const AddAdhoc: React.FC = () => {
                     className="block w-full rounded-md border-0 py-2 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:max-w-xs sm:text-sm sm:leading-6"
                     disabled={loadingActivities}
                     
-                    onChange={(e) =>
-                          form.setFieldsValue({
-                            new_centre_activity_id: Number(e.target.value),
-                          })
-                        }
+                    onChange={(e) => {
+                    const selectedNew = Number(e.target.value);
+                    const oldActivity = form.getFieldValue("old_centre_activity_id");
+
+                    if (selectedNew === oldActivity) {
+                      message.error(
+                        "Adhoc activity must be different from the original activity. " +
+                        "Please select a different adhoc activity."
+                      );
+                      return;
+                    }
+
+                    form.setFieldsValue({
+                      new_centre_activity_id: selectedNew,
+                    });
+                  }}
+
 
                   >
                     <option value="" disabled>
