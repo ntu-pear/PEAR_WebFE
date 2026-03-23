@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { DataTableServer } from "@/components/Table/DataTable";
+import { DataTableServer, DataTableClient } from "@/components/Table/DataTable";
 import { Button } from "@/components/ui/button";
 import Searchbar from "@/components/Searchbar";
 import { useModal } from "@/hooks/useModal";
@@ -15,16 +15,9 @@ import {
   CardHeader,
   CardTitle,
   CardDescription,
+  CardContent,
 } from "@/components/ui/card";
-import {
-  Wrench,
-  PlusCircle,
-  Trash2,
-  Edit,
-  AlertCircle,
-  ShieldAlert,
-  Lock,
-} from "lucide-react";
+import { PlusCircle, Trash2, Edit2, ShieldAlert, ChevronRight } from "lucide-react";
 
 import useDebounce from "@/hooks/useDebounce";
 import { fetchRolesPaginated, RolesResponse, Role } from "@/api/role/roles";
@@ -32,6 +25,8 @@ import {
   AccessLevel,
   fetchAccessLevels,
 } from "@/api/access_level/access_level";
+
+const PAGE_SIZE = 10;
 
 const EditRoles: React.FC = () => {
   const navigate = useNavigate();
@@ -42,7 +37,7 @@ const EditRoles: React.FC = () => {
   const [data, setData] = useState<RolesResponse>({
     total: 0,
     page: 0,
-    page_size: 10,
+    page_size: PAGE_SIZE,
     roles: [],
   });
   const [accessLevels, setAccessLevels] = useState<AccessLevel[]>([]);
@@ -88,7 +83,7 @@ const EditRoles: React.FC = () => {
       if (activeTab === "roles") {
         const res = await fetchRolesPaginated(
           page,
-          10,
+          PAGE_SIZE,
           urlName,
           "roleName",
           "asc"
@@ -114,48 +109,47 @@ const EditRoles: React.FC = () => {
   const roleColumns = [
     {
       key: "roleName",
-      header: "Role Title",
-      className:
-        "w-[220px] font-sans font-bold text-foreground text-[15px] tracking-tight px-6",
+      header: "Name",
       render: (val: string, role: Role) => (
-        <div className="flex flex-col py-3">
-          <span className="font-bold">{val}</span>
-          <p className="text-[12px] text-muted-foreground font-medium italic mt-0.5">
-            {role.description || "No description set..."}
-          </p>
+        <div>
+          <div className="text-sm font-medium text-foreground">{val}</div>
+          <div className="text-sm text-muted-foreground">
+            {role.description || "(no description)"}
+          </div>
         </div>
       ),
     },
     {
       key: "id",
-      header: "System ID",
-      className:
-        "w-[160px] font-mono text-[12px] text-muted-foreground font-medium px-6",
+      header: "ID",
       render: (val: string) => (
-        <span className="truncate-column block">{val}</span>
+        <span className="font-mono text-sm text-foreground">{val}</span>
       ),
     },
     {
       key: "actions",
-      header: "Actions",
-      className: "px-6 w-[180px]",
+      header: "",
+      className: "font-sans w-[120px] px-4",
       render: (_: any, role: Role) => (
-        <div className="flex gap-3">
+        <div className="flex gap-2">
           <Button
             variant="ghost"
             size="sm"
-            className="text-primary hover:bg-primary/10 font-semibold text-[13px] px-4"
+            className="text-muted-foreground hover:text-primary hover:bg-accent group"
             onClick={() =>
-              navigate(`/admin/edit-role/${role.id}`, { state: { role, mode:"edit" } })
+              navigate(`/admin/edit-role/${role.id}`, {
+                state: { role, mode: "edit" },
+              })
             }
           >
-            <Edit className="h-4 w-4 mr-2" /> Edit
+            <Edit2 className="h-4 w-4 mr-1" />
+            <span>Edit</span>
+            <ChevronRight className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-all -ml-1" />
           </Button>
-
           <Button
             variant="ghost"
             size="sm"
-            className="text-reject hover:bg-reject/10 font-semibold text-[13px] px-4"
+            className="text-muted-foreground hover:text-primary hover:bg-accent"
             disabled={role.roleName === "ADMIN"}
             onClick={() =>
               openModal("deleteRole", {
@@ -164,230 +158,214 @@ const EditRoles: React.FC = () => {
               })
             }
           >
-            <Trash2 className="h-4 w-4 mr-2" /> Delete
+            <Trash2 className="h-4 w-4 mr-1" />
+            Delete
           </Button>
         </div>
       ),
     },
   ];
 
-  return (
-    <div className="flex flex-col min-h-screen bg-background font-sans">
-      <div className="bg-card border-b border-border px-8 py-6 flex items-center justify-between shadow-sm">
-        <div className="flex items-center gap-6">
-          <div className="h-8 w-[1px] bg-border" />
+  const accessLevelColumns = [
+  {
+    key: "levelName",
+    header: "Name",
+    render: (val: string, lvl: AccessLevel) => (
+      <div>
+        <div className="text-sm font-medium text-foreground">{val}</div>
+        <div className="text-sm text-muted-foreground">
+          {lvl.description || "(no description)"}
+        </div>
+      </div>
+    ),
+  },
+  {
+    key: "id",
+    header: "ID",
+    render: (val: string) => (
+      <span className="font-mono text-sm text-foreground">{val}</span>
+    ),
+  },
+  {
+    key: "levelRank",
+    header: "Rank",
+    render: (val: number) => (
+      <span className="font-mono text-sm text-foreground">{val}</span>
+    ),
+  },
+  {
+    key: "code",
+    header: "Code",
+    render: (val: string) => (
+      <span className="font-mono text-sm text-foreground">{val}</span>
+    ),
+  },
+  {
+    key: "actions",
+    header: "",
+    className: "font-sans w-[120px] px-4",
+    render: (_: any, lvl: AccessLevel) => (
+      <div className="flex gap-2">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="text-muted-foreground hover:text-primary hover:bg-accent"
+          onClick={() =>
+            openModal("editAccessLevel", {
+              level: lvl,
+              onSuccess: loadData,
+            })
+          }
+        >
+          <Edit2 className="h-4 w-4 mr-1" />
+          Edit
+        </Button>
 
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-primary text-primary-foreground rounded-xl shadow-md shadow-primary/20">
-              <Wrench className="h-6 w-6" />
-            </div>
-            <h1 className="text-xl font-bold text-foreground tracking-tight">
-              Role Workbench
-            </h1>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="text-muted-foreground hover:text-primary hover:bg-accent"
+          disabled={lvl.isSystem}
+          onClick={() =>
+            openModal("deleteAccessLevel", {
+              level: lvl,
+              onSuccess: loadData,
+            })
+          }
+        >
+          <Trash2 className="h-4 w-4 mr-1" />
+          Delete
+        </Button>
+      </div>
+    ),
+  },
+];
+
+  return (
+    <div className="flex min-h-screen w-full font-sans">
+      <div className="flex-1 p-6 overflow-auto">
+        <div className="max-w-7xl mx-auto space-y-6">
+          <div className="flex items-center justify-between gap-4">
+            <Tabs
+              value={activeTab}
+              onValueChange={(val) => updateQuery({ tab: val, page: 0, name: "" })}
+              className="w-full"
+            >
+              <div className="flex items-center justify-between gap-4">
+                <TabsList className="bg-muted/50 border border-border p-1 rounded-xl">
+                  <TabsTrigger
+                    value="roles"
+                    className="px-5 py-2 rounded-lg text-sm"
+                  >
+                    Roles
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="levels"
+                    className="px-5 py-2 rounded-lg text-sm"
+                  >
+                    Access Levels
+                  </TabsTrigger>
+                </TabsList>
+
+                <div className="flex items-center gap-3 px-5 py-5 bg-pending/30 rounded-2xl border border-pending/50">
+                  <ShieldAlert className="h-4 w-4 text-pending-foreground" />
+                  <p className="text-[11px] text-pending-foreground font-semibold uppercase tracking-widest">
+                    Administrative workspace
+                  </p>
+                </div>
+              </div>
+
+              <TabsContent value="roles" className="mt-6">
+                <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 px-2 mb-0">
+                  <Searchbar
+                    searchItem={nameInput}
+                    onSearchChange={(e) => setNameInput(e.target.value)}
+                    placeholder="Filter by role title..."
+                  />
+                  <div className="flex items-center gap-5">
+                    <Button
+                      onClick={() => navigate("/admin/create-role")}
+                      size="sm"
+                    >
+                      <PlusCircle className="mr-2 h-4 w-4" />
+                      Add New Role
+                    </Button>
+                  </div>
+                </header>
+
+                <Card className="border border-border shadow-sm bg-card overflow-hidden rounded-2xl mt-6">
+                  <CardHeader>
+                    <CardTitle>Access Control</CardTitle>
+                    <CardDescription>
+                      Configure institutional roles and responsibility scopes.
+                    </CardDescription>
+                  </CardHeader>
+
+                  <CardContent className="pt-0">
+                    <div className="overflow-x-auto">
+                      <DataTableServer
+                        data={data.roles}
+                        columns={roleColumns}
+                        pagination={{
+                          pageNo: data.page,
+                          pageSize: data.page_size,
+                          totalRecords: data.total,
+                          totalPages: Math.ceil(data.total / data.page_size) || 1,
+                        }}
+                        fetchData={(p) => updateQuery({ page: p })}
+                        loading={loading}
+                        className="min-w-full"
+                        viewMore={false}
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="levels" className="mt-6">
+                <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 px-2 mb-0">
+                  <div />
+                  <div className="flex items-center gap-5">
+                    <Button
+                      size="sm"
+                      onClick={() =>
+                        openModal("createAccessLevel", {
+                          onSuccess: loadData,
+                        })
+                      }
+                    >
+                      <PlusCircle className="mr-2 h-4 w-4" />
+                      Add Access Level
+                    </Button>
+                  </div>
+                </header>
+
+                <Card className="border border-border shadow-sm bg-card overflow-hidden rounded-2xl mt-6">
+                  <CardHeader>
+                    <CardTitle>Access Level Definitions</CardTitle>
+                    <CardDescription>
+                      Seeded system levels can only have their descriptions updated. Custom
+                      levels may be edited or deleted.
+                    </CardDescription>
+                  </CardHeader>
+
+                  <CardContent className="pt-0">
+                    <div className="overflow-x-auto">
+                      <DataTableClient<AccessLevel>
+                        data={accessLevels}
+                        columns={accessLevelColumns}
+                        loading={loading}
+                        className="min-w-full"
+                        viewMore={false}
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
           </div>
         </div>
-
-        {activeTab === "roles" && (
-          <Button
-            onClick={() => navigate("/admin/create-role")}
-            className="bg-primary text-primary-foreground font-bold text-[14px] px-6 py-6 rounded-xl shadow-lg shadow-primary/10"
-          >
-            <PlusCircle className="mr-2 h-5 w-5" /> Add New Role
-          </Button>
-        )}
       </div>
-
-      <main className="p-10 max-w-7xl mx-auto w-full flex-1">
-        <Tabs
-          value={activeTab}
-          onValueChange={(val) => updateQuery({ tab: val, page: 0, name: "" })}
-        >
-          <div className="flex items-center justify-between mb-10">
-            <TabsList className="bg-muted/50 border border-border p-1.5 rounded-2xl">
-              <TabsTrigger
-                value="roles"
-                className="text-[14px] font-semibold px-8 py-2.5 rounded-xl data-[state=active]:bg-background data-[state=active]:shadow-md"
-              >
-                Roles
-              </TabsTrigger>
-              <TabsTrigger
-                value="levels"
-                className="text-[14px] font-semibold px-8 py-2.5 rounded-xl data-[state=active]:bg-background data-[state=active]:shadow-md"
-              >
-                Access Levels
-              </TabsTrigger>
-            </TabsList>
-
-            <div className="flex items-center gap-4 text-pending-foreground bg-pending/30 px-6 py-3 rounded-2xl border border-pending/50">
-              <AlertCircle className="h-5 w-5" />
-              <span className="text-[13px] font-bold">
-                Administrative Workspace
-              </span>
-            </div>
-          </div>
-
-          <TabsContent value="roles">
-            <Card className="border border-border shadow-md rounded-2xl overflow-hidden bg-card">
-              <div className="p-6 border-b border-border bg-muted/30">
-                <Searchbar
-                  searchItem={nameInput}
-                  onSearchChange={(e) => setNameInput(e.target.value)}
-                  placeholder="Search for a role..."
-                />
-              </div>
-
-              <div className="overflow-x-auto">
-                <DataTableServer
-                  data={data.roles}
-                  columns={roleColumns}
-                  pagination={{
-                    pageNo: data.page,
-                    pageSize: data.page_size,
-                    totalRecords: data.total,
-                    totalPages: Math.ceil(data.total / data.page_size) || 1,
-                  }}
-                  fetchData={(p) => updateQuery({ page: p })}
-                  loading={loading}
-                  className="table-fixed min-w-full"
-                  viewMore={false}
-                />
-              </div>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="levels">
-            <Card className="border border-border shadow-md rounded-2xl overflow-hidden bg-card">
-              <CardHeader className="bg-muted/30 border-b p-8">
-                <div className="flex items-center justify-between gap-4">
-                  <div className="flex items-center gap-4">
-                    <ShieldAlert className="h-6 w-6 text-primary" />
-                    <div>
-                      <CardTitle className="text-lg font-bold">
-                        Access Level Definitions
-                      </CardTitle>
-                      <CardDescription className="text-[14px] font-medium text-muted-foreground mt-1.5 italic">
-                        Seeded system levels can only have their descriptions
-                        updated. Custom levels may be edited or deleted.
-                      </CardDescription>
-                    </div>
-                  </div>
-
-                  <Button
-                    onClick={() =>
-                      openModal("createAccessLevel", {
-                        onSuccess: loadData,
-                      })
-                    }
-                    className="bg-primary text-primary-foreground font-bold text-[14px] px-5 py-2.5 rounded-xl"
-                  >
-                    <PlusCircle className="mr-2 h-4 w-4" />
-                    Add Access Level
-                  </Button>
-                </div>
-              </CardHeader>
-
-              <div className="p-0">
-                <table className="w-full text-sm border-collapse table-fixed">
-                  <thead>
-                    <tr className="border-b bg-muted/50 text-muted-foreground text-[13px] font-bold text-left">
-                      <th className="p-8 w-36">Rank</th>
-                      <th className="p-8 w-44">Code</th>
-                      <th className="p-8 w-52">Name</th>
-                      <th className="p-8">Description</th>
-                      <th className="p-8 w-40">Type</th>
-                      <th className="p-8 w-56 text-right">Actions</th>
-                    </tr>
-                  </thead>
-
-                  <tbody className="divide-y divide-border">
-                    {accessLevels.map((lvl) => (
-                      <tr
-                        key={lvl.id}
-                        className="hover:bg-muted/20 transition-colors group"
-                      >
-                        <td className="p-8 font-mono text-primary font-bold text-[14px]">
-                          {lvl.levelRank}
-                        </td>
-
-                        <td className="p-8">
-                          <span className="font-mono text-[13px] font-semibold text-foreground">
-                            {lvl.code}
-                          </span>
-                        </td>
-
-                        <td className="p-8 font-bold text-foreground text-[15px] tracking-tight">
-                          {lvl.levelName}
-                        </td>
-
-                        <td className="p-8 text-muted-foreground text-[14px] font-medium leading-relaxed whitespace-pre-wrap">
-                          {lvl.description || "No description set."}
-                        </td>
-
-                        <td className="p-8">
-                          {lvl.isSystem ? (
-                            <div className="inline-flex items-center gap-2 rounded-xl border border-border bg-muted px-3 py-2 text-[12px] font-bold text-muted-foreground">
-                              <Lock className="h-3.5 w-3.5" />
-                              System
-                            </div>
-                          ) : (
-                            <div className="inline-flex items-center rounded-xl border border-primary/20 bg-primary/5 px-3 py-2 text-[12px] font-bold text-primary">
-                              Custom
-                            </div>
-                          )}
-                        </td>
-
-                        <td className="p-8 text-right">
-                          <div className="flex justify-end gap-2">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="text-primary hover:bg-primary/10 font-bold text-[13px] px-4"
-                              onClick={() =>
-                                openModal("editAccessLevel", {
-                                  level: lvl,
-                                  onSuccess: loadData,
-                                })
-                              }
-                            >
-                              <Edit className="h-4 w-4 mr-2" /> Edit
-                            </Button>
-
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              disabled={lvl.isSystem}
-                              className="text-reject hover:bg-reject/10 font-bold text-[13px] px-4 disabled:opacity-50 disabled:cursor-not-allowed"
-                              onClick={() =>
-                                openModal("deleteAccessLevel", {
-                                  level: lvl,
-                                  onSuccess: loadData,
-                                })
-                              }
-                            >
-                              <Trash2 className="h-4 w-4 mr-2" /> Delete
-                            </Button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-
-                    {!loading && accessLevels.length === 0 && (
-                      <tr>
-                        <td
-                          colSpan={6}
-                          className="p-10 text-center text-muted-foreground font-medium"
-                        >
-                          No access levels found.
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </Card>
-          </TabsContent>
-        </Tabs>
-      </main>
 
       {activeModal.name === "deleteRole" && <DeleteRoleModal />}
       {activeModal.name === "editAccessLevel" && <EditAccessLevelModal />}

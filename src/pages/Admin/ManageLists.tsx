@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { ListFilter, PlusCircle } from "lucide-react";
 import Searchbar from "@/components/Searchbar";
 import useDebounce from "@/hooks/useDebounce";
@@ -31,7 +31,8 @@ import { toast } from "sonner";
 import AddListItemModal from "@/components/Modal/Add/AddListItemModal";
 import EditListItemModal from "@/components/Modal/Edit/EditListItemModal";
 import DeleteListItemModal from "@/components/Modal/Delete/DeleteListItemModal";
-import { useMemo } from "react";
+import { Badge } from "@/components/ui/badge";
+
 const ManageLists: React.FC = () => {
   const { activeModal, openModal } = useModal();
 
@@ -42,11 +43,11 @@ const ManageLists: React.FC = () => {
   const debouncedSelectedType = useDebounce(selectedType, 250);
 
   type ListItemUpsert = {
-  value: string;
-  typeCode?: string;
-  description?: string;
-  isEnabled?: boolean;
-};
+    value: string;
+    typeCode?: string;
+    description?: string;
+    isEnabled?: boolean;
+  };
 
   const fetchListItemsData = () => {
     fetchListItems(debouncedSelectedType).then((data) => {
@@ -81,7 +82,6 @@ const ManageLists: React.FC = () => {
       })
       .catch(() => toast.error("Failed to update item."));
   };
-  
 
   const handleDelete = async (type: string, id: string) => {
     await deleteListItem({ type, id })
@@ -93,69 +93,105 @@ const ManageLists: React.FC = () => {
   };
 
   const columns = useMemo(() => {
-  if (debouncedSelectedType === "Highlight") {
+    if (debouncedSelectedType === "Highlight") {
+      return [
+        {
+          key: "value",
+          header: "Name",
+          sortable: true,
+        },
+        {
+          key: "typeCode",
+          header: "Code",
+          sortable: true,
+        },
+        {
+          key: "description",
+          header: "Description",
+          sortable: false,
+        },
+        {
+          key: "isEnabled",
+          header: "Enabled",
+          sortable: true,
+          render: (v: boolean | undefined) => (v ? "Yes" : "No"),
+        },
+      ];
+    }
+
     return [
-      { key: "value", header: "Name" },
-      { key: "typeCode", header: "Code" },
-      { key: "description", header: "Description" },
       {
-        key: "isEnabled",
-        header: "Enabled",
-        render: (v: boolean | undefined) => (v ? "Yes" : "No"),
+        key: "value",
+        header: `Item`,
+        className: "truncate w-full",
+        sortable: true,
+        render: (value: string) => <span title={value}>{value}</span>,
       },
     ];
-  }
+  }, [debouncedSelectedType]);
 
-  return [
-    {
-      key: "value",
-      header: "Value",
-      className: "truncate w-full",
-      render: (value: string) => <span title={value}>{value}</span>,
-    },
-  ];
-}, [debouncedSelectedType]);
   return (
     <div className="flex min-h-screen w-full flex-col container mx-auto px-0 sm:px-4">
       <div className="flex flex-col sm:gap-4 sm:py-4 sm:pl-14">
-        <div className="flex justify-between items-center">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <Searchbar
             searchItem={search}
             onSearchChange={(e) => setSearch(e.target.value)}
+            placeholder={`Search ${debouncedSelectedType.toLowerCase()} items...`}
           />
-          <DropdownMenu modal={false}>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="h-8 gap-1">
-                <ListFilter className="h-4 w-4" />
-                <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                  List Type
-                </span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuRadioGroup
-                value={selectedType}
-                onValueChange={setSelectedType}
-              >
-                {mockListTypes.map((type) => (
-                  <DropdownMenuRadioItem key={type} value={type}>
-                    {type}
-                  </DropdownMenuRadioItem>
-                ))}
-              </DropdownMenuRadioGroup>
-            </DropdownMenuContent>
-          </DropdownMenu>
+
+          <div className="flex items-center gap-2 self-start sm:self-auto">
+            <span className="text-sm font-medium text-muted-foreground">
+              Active List:
+            </span>
+            <DropdownMenu modal={false}>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="h-8 gap-1">
+                  <ListFilter className="h-4 w-4" />
+                  <span>{selectedType}</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuRadioGroup
+                  value={selectedType}
+                  onValueChange={setSelectedType}
+                >
+                  {mockListTypes.map((type) => (
+                    <DropdownMenuRadioItem key={type} value={type}>
+                      {type}
+                    </DropdownMenuRadioItem>
+                  ))}
+                </DropdownMenuRadioGroup>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
 
         <Card className="ml-4 sm:ml-6 px-4 py-2">
           <CardHeader>
-            <div className="flex justify-between items-end">
-              <div className="space-y-1.5">
-                <CardTitle>Manage Lists</CardTitle>
-                <CardDescription>
-                  Select a list and add, edit, or delete its items.
-                </CardDescription>
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <CardTitle>Manage Lists</CardTitle>
+                  <Badge
+  variant="secondary"
+  className="h-8 px-4 text-base font-semibold leading-none"
+>
+  {debouncedSelectedType}
+</Badge>
+                </div>
+
+                <div className="space-y-1">
+                  <CardDescription>
+                    Viewing all values currently configured under the{" "}
+                    <span className="font-medium text-foreground">
+                      {debouncedSelectedType}
+                    </span>{" "}
+                    list. Add, edit, or remove individual list items below.
+                  </CardDescription>
+                </div>
               </div>
+
               <Button
                 size="sm"
                 className="h-8 gap-1"
@@ -168,7 +204,7 @@ const ManageLists: React.FC = () => {
                 }
               >
                 <PlusCircle className="h-4 w-4" />
-                <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+                <span className="whitespace-nowrap">
                   Add Item
                 </span>
               </Button>
@@ -176,6 +212,8 @@ const ManageLists: React.FC = () => {
           </CardHeader>
 
           <CardContent>
+
+
             <DataTableClient<ListItem>
               data={listItems}
               columns={columns}
@@ -219,7 +257,6 @@ const ManageLists: React.FC = () => {
         </Card>
       </div>
 
-      {/* Modals */}
       {activeModal.name === "addListItem" && <AddListItemModal />}
       {activeModal.name === "editListItem" && <EditListItemModal />}
       {activeModal.name === "deleteListItem" && <DeleteListItemModal />}
