@@ -1,5 +1,6 @@
 import { Form, DatePicker, message } from "antd";
 import { Dayjs } from "dayjs";
+import dayjs from "dayjs";
 import { RuleObject } from "antd/es/form";
 import React, { useEffect, useState } from "react";
 import { fetchAllPatientTD } from "@/api/patients/patients";
@@ -60,6 +61,16 @@ const AddAdhoc: React.FC = () => {
     }
     return Promise.resolve();
   };
+
+  useEffect(() => {
+    const now = dayjs();
+
+    form.setFieldsValue({
+      start_date: now,
+      end_date: now,
+    });
+  }, [form]);
+
 
   useEffect(() => {
     const fetchPatients = async () => {
@@ -275,8 +286,8 @@ const AddAdhoc: React.FC = () => {
                   className="sm:col-span-3"
                 >
                   <DatePicker
-                    showTime={{ format: "HH:mm:ss" }}
-                    format="YYYY-MM-DD HH:mm:ss"
+                    showTime={{ format: "HH:mm" }}
+                    format="YYYY-MM-DD HH:mm"
                     className="w-full"
                   />
                 </Form.Item>
@@ -295,8 +306,8 @@ const AddAdhoc: React.FC = () => {
                   className="sm:col-span-3"
                 >
                   <DatePicker
-                    showTime={{ format: "HH:mm:ss" }}
-                    format="YYYY-MM-DD HH:mm:ss"
+                    showTime={{ format: "HH:mm" }}
+                    format="YYYY-MM-DD HH:mm"
                     className="w-full"
                   />
                 </Form.Item>
