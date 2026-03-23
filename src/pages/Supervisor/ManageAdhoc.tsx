@@ -17,7 +17,11 @@ import {
   updateAdhocActivity,
   deleteAdhocActivity,
 } from "@/api/activities/adhoc";
-import { listActivities, Activity } from "@/api/activities/activities"; // master activity list
+import { listActivities, Activity } from "@/api/activities/activities";
+import {
+  listCentreActivities,
+  CentreActivity,
+} from "@/api/activities/centreActivities"; 
 import { formatDateTime } from "@/utils/formatDate";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
@@ -27,6 +31,7 @@ dayjs.extend(utc);
 dayjs.extend(timezone);
 const SG_TZ = "Asia/Singapore";
 
+
 const ManageAdhoc: React.FC = () => {
   const [adhocActivities, setAdhocActivities] = useState<AdhocActivity[]>([]);
   const [searchItem, setSearchItem] = useState("");
@@ -34,8 +39,8 @@ const ManageAdhoc: React.FC = () => {
 
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [editingActivity, setEditingActivity] = useState<AdhocActivity | null>(null);
-
-  const [activityList, setActivityList] = useState<Activity[]>([]); // full master list
+  const [centreActivityList, setCentreActivityList] = useState<CentreActivity[]>([]);
+  const [activityList, setActivityList] = useState<Activity[]>([]);
 
   const handleInputChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => setSearchItem(e.target.value),
@@ -47,14 +52,28 @@ const ManageAdhoc: React.FC = () => {
     setLoading(true);
     try {
       const data = await listAdhocActivities(false, 0, 100);
-      const formatted = data.map(a => ({
-        ...a,
-        startDate: formatDateTime(a.startDate ?? null),
-        endDate: formatDateTime(a.endDate ?? null),
-        lastUpdated: formatDateTime(a.lastUpdated ?? null),
-        oldActivityTitle: a.oldActivityTitle?.toUpperCase(),
-        newActivityTitle: a.newActivityTitle?.toUpperCase(),
-      }));
+      const formatted = data.map(a => {
+        const oldCentre = a.oldActivityId
+          ? centreActivityMap[a.oldActivityId]
+          : undefined;
+
+        const newCentre = a.newActivityId
+          ? centreActivityMap[a.newActivityId]
+          : undefined;
+
+        return {
+          ...a,
+          startDate: formatDateTime(a.startDate ?? null),
+          endDate: formatDateTime(a.endDate ?? null),
+          lastUpdated: formatDateTime(a.lastUpdated ?? null),
+
+          oldActivityTitle: getCentreActivityDisplayName(oldCentre),
+          oldActivityDescription: getCentreActivityDescription(oldCentre),
+
+          newActivityTitle: getCentreActivityDisplayName(newCentre),
+          newActivityDescription: getCentreActivityDescription(newCentre),
+        };
+      });
       setAdhocActivities(formatted);
     } catch (err) {
       console.error("Failed to fetch adhoc activities:", err);
@@ -64,21 +83,67 @@ const ManageAdhoc: React.FC = () => {
     }
   };
 
-  // Fetch master activity list
-  const fetchMasterActivities = async () => {
+  const fetchActivities = async () => {
     try {
-      const data = await listActivities(); // [{id, title, description}]
+      const data = await listActivities({ include_deleted: false, limit: 1000 });
       setActivityList(data);
     } catch (err) {
-      console.error("Failed to fetch activity list:", err);
+      console.error("Failed to fetch activities", err);
       setActivityList([]);
     }
   };
 
+
+  const fetchCentreActivities = async () => {
+    try {
+      const data = await listCentreActivities({ include_deleted: false, limit: 1000 });
+      setCentreActivityList(data);
+    } catch (err) {
+      console.error("Failed to fetch centre activities", err);
+      setCentreActivityList([]);
+    }
+  };
+
+  const getCentreActivityDisplayName = (ca?: CentreActivity) => {
+    if (!ca) return "UNKNOWN ACTIVITY";
+
+    const activity = activityMap[ca.activity_id];
+    return activity ? activity.title.toUpperCase() : "UNKNOWN ACTIVITY";
+  };
+
+  const getCentreActivityDescription = (ca?: CentreActivity) => {
+    if (!ca) return "-";
+
+    const activity = activityMap[ca.activity_id];
+    return activity?.description ?? "-";
+  };
+
   useEffect(() => {
-    fetchAdhoc();
-    fetchMasterActivities();
+    fetchCentreActivities();
+    fetchActivities();
   }, []);
+
+  useEffect(() => {
+    if (centreActivityList.length > 0 && activityList.length > 0) {
+      fetchAdhoc();
+    }
+  }, [centreActivityList, activityList]);
+
+  const activityMap = React.useMemo(() => {
+    const map: Record<number, Activity> = {};
+    activityList.forEach(a => {
+      map[a.id] = a;
+    });
+    return map;
+  }, [activityList]);
+
+  const centreActivityMap = React.useMemo(() => {
+    const map: Record<number, CentreActivity> = {};
+    centreActivityList.forEach(ca => {
+      map[ca.id] = ca;
+    });
+    return map;
+  }, [centreActivityList]);
 
   const filteredActivities = adhocActivities.filter(a =>
     a.patientName?.toLowerCase().includes(searchItem.toLowerCase())
@@ -100,10 +165,13 @@ const ManageAdhoc: React.FC = () => {
     { key: "patientName", header: "Patient Name" },
     { key: "startDate", header: "Start Date" },
     { key: "endDate", header: "End Date" },
+    
     { key: "oldActivityTitle", header: "Original Activity" },
     { key: "oldActivityDescription", header: "Original Activity Description" },
+
     { key: "newActivityTitle", header: "Ad Hoc Activity" },
     { key: "newActivityDescription", header: "Ad Hoc Activity Description" },
+
   ];
 
   return (
@@ -158,7 +226,8 @@ const ManageAdhoc: React.FC = () => {
       <EditAdhocModal
         activity={editingActivity}
         open={editModalOpen}
-        activityList={activityList}
+        centreActivityList={centreActivityList}
+        getDisplayName={getCentreActivityDisplayName}
         onClose={() => setEditModalOpen(false)}
         onSave={async (updated) => {
           try {
@@ -186,8 +255,15 @@ const ManageAdhoc: React.FC = () => {
 
             await updateAdhocActivity(payload);
 
-            const oldActivity = activityList.find(a => a.id === newOldActivityId);
-            const newActivity = activityList.find(a => a.id === newNewActivityId);
+            const oldActivity =
+              typeof newOldActivityId === "number"
+                ? centreActivityMap[newOldActivityId]
+                : undefined;
+
+            const newActivity =
+              typeof newNewActivityId === "number"
+                ? centreActivityMap[newNewActivityId]
+                : undefined;
 
             setAdhocActivities(prev =>
               prev.map(a =>
@@ -196,10 +272,13 @@ const ManageAdhoc: React.FC = () => {
                       ...a,
                       oldActivityId: newOldActivityId,
                       newActivityId: newNewActivityId,
-                      oldActivityTitle: oldActivity?.title || a.oldActivityTitle,
-                      oldActivityDescription: oldActivity?.description || a.oldActivityDescription,
-                      newActivityTitle: newActivity?.title || a.newActivityTitle,
-                      newActivityDescription: newActivity?.description || a.newActivityDescription,
+                      
+                      oldActivityTitle: getCentreActivityDisplayName(oldActivity),
+                      oldActivityDescription: getCentreActivityDescription(oldActivity),
+
+                      newActivityTitle: getCentreActivityDisplayName(newActivity),
+                      newActivityDescription: getCentreActivityDescription(newActivity),
+               
                       startDate: formatDateTime(payload.startDate),
                       endDate: formatDateTime(payload.endDate),
                       status: payload.status,
@@ -230,14 +309,17 @@ interface EditAdhocModalProps {
   open: boolean;
   onClose: () => void;
   onSave: (updated: AdhocActivity) => void;
-  activityList: Activity[];
+  centreActivityList: CentreActivity[];
+  getDisplayName: (ca?: CentreActivity) => string;
 }
 
-const EditAdhocModal: React.FC<EditAdhocModalProps> = ({ activity, open, onClose, onSave, activityList }) => {
+const EditAdhocModal: React.FC<EditAdhocModalProps> = ({ activity, open, onClose, onSave, centreActivityList, getDisplayName }) => {
   const [selectedActivityId, setSelectedActivityId] = useState<number | undefined>(activity?.newActivityId);
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
 
+
+  
   useEffect(() => {
     if (!activity) return;
 
@@ -268,11 +350,16 @@ const EditAdhocModal: React.FC<EditAdhocModalProps> = ({ activity, open, onClose
               onChange={(e) => setSelectedActivityId(Number(e.target.value))}
             >
               <option value={-1}>Keep Current</option>
-              {activityList.map((a) => (
-                <option key={a.id} value={a.id}>
-                  {a.title?.toUpperCase()}
-                </option>
-              ))}
+              {[...centreActivityList]
+                .sort((a, b) =>
+                  getDisplayName(a).localeCompare(getDisplayName(b))
+                )
+                .map((ca) => (
+                  <option key={ca.id} value={ca.id}>
+                    {getDisplayName(ca).toUpperCase()}
+                  </option>
+                ))}
+
             </select>
           </div>
 

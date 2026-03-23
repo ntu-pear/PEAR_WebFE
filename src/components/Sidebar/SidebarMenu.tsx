@@ -44,14 +44,14 @@ const supervisorMenu: MenuSection[] = [
         path: "/supervisor/add-patient",
       },
       {
-        title: "View Medication Schedule",
-        icon: "Calendar",
-        path: "/supervisor/view-medication-schedule",
-      },
-      {
         title: "Manage Medication",
         icon: "Pill",
         path: "/supervisor/manage-medication",
+      },
+      {
+        title: "View Medication Schedule",
+        icon: "Calendar",
+        path: "/supervisor/view-medication-schedule",
       },
     ],
   },
