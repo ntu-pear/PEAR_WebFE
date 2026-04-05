@@ -9,7 +9,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { Trash2, Upload } from "lucide-react";
+import { ArrowLeft, Trash2, Upload } from "lucide-react";
 import { useModal } from "@/hooks/useModal";
 import UploadProfilePhotoModal from "@/components/Modal/UploadProfilePhotoModal";
 import ConfirmProfilePhotoModal from "@/components/Modal/ConfirmProfilePhotoModal";
@@ -58,6 +58,19 @@ const ViewPatient: React.FC = () => {
   const { id, patientInfo, refreshPatientData, patientAllocation } = useViewPatient();
   const { activeModal, openModal } = useModal();
 
+  const managePatientsPath = (() => {
+    switch (currentUser?.roleName) {
+      case "SUPERVISOR":
+        return "/supervisor/manage-patients";
+      case "DOCTOR":
+        return "/doctor/manage-patients";
+      case "GUARDIAN":
+        return "/guardian/manage-patients";
+      default:
+        return null;
+    }
+  })();
+
   const handleTabChange = (value: string) => {
     // Update the URL with the new tab
     navigate({
@@ -71,7 +84,8 @@ const ViewPatient: React.FC = () => {
     <>
       <div className="flex min-h-screen w-full flex-col max-w-[1400px] container mx-auto px-4">
         <div className="container mx-auto p-4">
-          <div className="flex items-center space-x-6 mb-8 sm:pl-14">
+          <div className="mb-8 flex items-start justify-between gap-4 sm:pl-14">
+            <div className="flex items-center space-x-6">
             <div className="relative inline-block group">
               <Avatar className="h-36 w-36">
                 <AvatarImage
@@ -132,6 +146,17 @@ const ViewPatient: React.FC = () => {
               <h1 className="text-2xl font-bold">{patientInfo?.name}</h1>
               <p className="text-gray-600">{patientInfo?.preferredName}</p>
             </div>
+          </div>
+            {managePatientsPath && (
+              <Button
+                variant="outline"
+                className="shrink-0"
+                onClick={() => navigate(managePatientsPath)}
+              >
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back to Manage Patients
+              </Button>
+            )}
           </div>
 
           <Tabs

@@ -28,6 +28,7 @@ import { useNavigate } from "react-router-dom";
 dayjs.extend(utc);
 dayjs.extend(timezone);
 const SG_TZ = "Asia/Singapore";
+const DATE_TIME_DISPLAY_FORMAT = "DD-MMM-YYYY hh:mm A";
 
 const formatApiDateTime = (value: string | Dayjs) =>
   dayjs(value).format("YYYY-MM-DDTHH:mm:ss.SSS") + "000";
@@ -262,12 +263,13 @@ const EditAdhocModal: React.FC<EditAdhocModalProps> = ({ activity, open, onClose
   const [selectedActivityId, setSelectedActivityId] = useState<number | undefined>(activity?.newActivityId);
   const [startDate, setStartDate] = useState<Dayjs | null>(null);
   const [endDate, setEndDate] = useState<Dayjs | null>(null);
-  const dateTimeFormat = "YYYY-MM-DD hh:mm:ss A";
+  const dateTimeFormat = DATE_TIME_DISPLAY_FORMAT;
   const [durationMinutes, setDurationMinutes] = useState(30);
   const pickerPopupClassName = "adhoc-datetime-picker-popup";
   const timePickerProps = {
-    format: "hh:mm:ss A",
+    format: "hh:mm A",
     use12Hours: true,
+    showSecond: false,
   };
 
   const resetForm = useCallback(() => {

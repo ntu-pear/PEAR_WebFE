@@ -30,30 +30,24 @@ import {
   fetchUserProfilePhotoById,
 } from "@/api/scheduler/medicalSchedule";
 import { getUserDetails } from "@/api/users/user";
+import { formatDateString } from "@/utils/formatDate";
+import dayjs from "dayjs";
 
 // Format today's date
 const getFormattedDate = () => {
-  const today = new Date();
-  return today.toLocaleDateString("en-GB", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
+  return formatDateString(new Date().toISOString());
 };
 
-// Format time in 0000 style
-const formatTimeHHMM = (time: string | undefined | null) => {
+const formatTime12Hour = (time: string | undefined | null) => {
   if (!time || time === "null" || time === "undefined") return "-";
 
   if (time.includes("T")) {
-    const date = new Date(time);
-    if (isNaN(date.getTime())) return "-";
-    return `${String(date.getHours()).padStart(2, "0")}${String(
-      date.getMinutes()
-    ).padStart(2, "0")}`;
+    const parsedDateTime = dayjs(time);
+    return parsedDateTime.isValid() ? parsedDateTime.format("hh:mm A") : "-";
   }
 
-  return time;
+  const parsedTime = dayjs(time, ["HHmm", "HH:mm", "hh:mm A"], true);
+  return parsedTime.isValid() ? parsedTime.format("hh:mm A") : time;
 };
 
 const isLate = (allocatedTime: string | undefined) => {
@@ -201,7 +195,7 @@ const ViewMedicationSchedule: React.FC = () => {
     {
       key: "administerTime",
       header: "Allocated Time",
-      render: (_value, item) => formatTimeHHMM(item.administerTime),
+      render: (_value, item) => formatTime12Hour(item.administerTime),
     },
     {
       key: "assignedTo",
@@ -223,7 +217,7 @@ const ViewMedicationSchedule: React.FC = () => {
     {
       key: "actualAdministerTime",
       header: "Actual Administered Time",
-      render: (_value, item) => formatTimeHHMM(item.actualAdministerTime),
+      render: (_value, item) => formatTime12Hour(item.actualAdministerTime),
     },
     {
       key: "administeredBy",

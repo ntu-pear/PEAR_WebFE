@@ -24,7 +24,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import Searchbar from "@/components/Searchbar";
 import { DataTableClient } from "@/components/Table/DataTable";
-import dayjs from "dayjs"
 import useDebounce from "@/hooks/useDebounce";
 import {
   fetchHighlights,
@@ -35,6 +34,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { mockCaregiverNameList } from "@/mocks/mockHighlightTableData";
 import { useNavigate } from "react-router";
+import { formatDateString } from "@/utils/formatDate";
 
 const HighlightTable: React.FC = () => {
   const [allHighlights, setAllHighlights] = useState<HighlightTableData[]>([]);
@@ -223,8 +223,7 @@ const HighlightTable: React.FC = () => {
       render: (_: string, highlight: HighlightTableData) => {
         if (!highlight.highlightCreatedDate) return <div>-</div>;
 
-        const formattedDate = dayjs(highlight.highlightCreatedDate)
-          .format("ddd, DD MMM YYYY");
+        const formattedDate = formatDateString(highlight.highlightCreatedDate);
 
         return (
           <div className="font-medium whitespace-nowrap">

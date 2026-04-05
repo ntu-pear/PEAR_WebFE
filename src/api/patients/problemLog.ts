@@ -1,6 +1,7 @@
 import { TableRowData } from "@/components/Table/DataTable"
 import { retrieveAccessTokenFromCookie } from "../users/auth"
 import { problemListAPI, problemLogAPI } from "../apiConfig"
+import { formatDateString } from "@/utils/formatDate"
 
 export interface ProblemLog {
     PatientID: number,
@@ -84,24 +85,22 @@ export const fetchPatientProblemLog = async (
 }
 
 const convertToProblemLogTD = (problemLog: ProblemLog[]): ProblemLogTD[] => {
-    return problemLog.map((problem) => ({
-        id: problem.Id,
-        Id: problem.Id,
-        ProblemListID: problem.ProblemListID,
-        DateOfDiagnosis: new Date(problem.DateOfDiagnosis).toLocaleDateString("en-GB", {
-            day: "2-digit",
-            month: "short",
-            year: "numeric"
-        }).toUpperCase(),
-        ProblemRemarks: problem.ProblemRemarks,
-        SourceOfInformation: problem.SourceOfInformation,
-        ProblemName: problem.ProblemName,
-    })).sort((a, b) => {
-        const dateDiff = new Date(b.DateOfDiagnosis).getTime()
-            - new Date(a.DateOfDiagnosis).getTime();
-        if (dateDiff !== 0) return dateDiff;                       
-        return a.ProblemName.localeCompare(b.ProblemName);        
-    });
+    return [...problemLog]
+        .sort((a, b) => {
+            const dateDiff =
+                new Date(b.DateOfDiagnosis).getTime() - new Date(a.DateOfDiagnosis).getTime();
+            if (dateDiff !== 0) return dateDiff;
+            return a.ProblemName.localeCompare(b.ProblemName);
+        })
+        .map((problem) => ({
+            id: problem.Id,
+            Id: problem.Id,
+            ProblemListID: problem.ProblemListID,
+            DateOfDiagnosis: formatDateString(problem.DateOfDiagnosis),
+            ProblemRemarks: problem.ProblemRemarks,
+            SourceOfInformation: problem.SourceOfInformation,
+            ProblemName: problem.ProblemName,
+        }));
 }
 
 export const getProblemList = async (): Promise<ProblemList[]> => {

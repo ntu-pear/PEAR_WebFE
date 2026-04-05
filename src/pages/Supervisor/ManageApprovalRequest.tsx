@@ -12,6 +12,7 @@ import React, { useEffect, useState } from 'react'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { DataTableClient } from "@/components/Table/DataTable";
 import { Badge } from "@/components/ui/badge";
+import { formatDateTime } from "@/utils/formatDate";
 
 const ManageApprovalRequest: React.FC = () => {
     type RequestStatus = "All" | "Pending" | "Approved" | "Rejected"
@@ -61,7 +62,7 @@ const ManageApprovalRequest: React.FC = () => {
             {
                 key: "created_date",
                 header: "Created Date",
-                render: (value: Date) => value.toLocaleString()
+                render: (value: Date) => formatDateTime(value.toISOString())
             },
             { key: "requested_by", header: "Requested By" },
             { key: "requestee_role", header: "Role" },

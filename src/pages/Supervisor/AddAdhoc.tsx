@@ -7,6 +7,8 @@ import { createAdhocActivity } from "@/api/activities/adhoc";
 import { listCentreActivities, CentreActivity, getActivities } from "@/api/activities/centreActivities";
 import { useNavigate } from "react-router-dom";
 
+const DATE_TIME_DISPLAY_FORMAT = "DD-MMM-YYYY hh:mm A";
+
 const AddAdhoc: React.FC = () => {
   const navigate = useNavigate();
   const [activities, setActivities] = useState<CentreActivity[]>([]);
@@ -19,12 +21,13 @@ const AddAdhoc: React.FC = () => {
 
 
   const [form] = Form.useForm();
-  const dateTimeFormat = "YYYY-MM-DD hh:mm:ss A";
+  const dateTimeFormat = DATE_TIME_DISPLAY_FORMAT;
   const [durationMinutes, setDurationMinutes] = useState(30);
   const pickerPopupClassName = "adhoc-datetime-picker-popup";
   const timePickerProps = {
-    format: "hh:mm:ss A",
+    format: "hh:mm A",
     use12Hours: true,
+    showSecond: false,
   };
 
   const onFinish = async (values: any) => {

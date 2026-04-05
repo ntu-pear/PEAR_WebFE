@@ -12,6 +12,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import CentreActivityExclusionForm, { CentreActivityExclusionFormValues } from "../Form/ActivityExclusionForm";
 import BulkActivityExclusionForm, { BulkCentreActivityExclusionFormValues } from "../Form/BulkActivityExclusionForm";
+import { formatDateString } from "@/utils/formatDate";
 
 interface ActivityExclusionCardProps {
   patientId: string;
@@ -32,12 +33,7 @@ const CentreActivityExclusionCard: React.FC<ActivityExclusionCardProps> = ({ pat
   // Helper function to format dates as DD/MMM/YYYY
   const formatDate = (dateStr: string) => {
     try {
-      const date = new Date(dateStr);
-      return date.toLocaleDateString('en-GB', {
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric'
-      });
+      return formatDateString(dateStr);
     } catch {
       return dateStr;
     }
