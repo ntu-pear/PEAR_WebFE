@@ -41,19 +41,39 @@ const getFormattedDate = () => {
   });
 };
 
-// Format time in 0000 style
-const formatTimeHHMM = (time: string | undefined | null) => {
+const formatTimeAMPM = (time: string | undefined | null) => {
   if (!time || time === "null" || time === "undefined") return "-";
 
+  let date: Date;
+
+  // ISO datetime (e.g. 2026-04-16T16:00:00Z)
   if (time.includes("T")) {
-    const date = new Date(time);
+    date = new Date(time);
     if (isNaN(date.getTime())) return "-";
-    return `${String(date.getHours()).padStart(2, "0")}${String(
-      date.getMinutes()
-    ).padStart(2, "0")}`;
+  }
+  // HHmm (e.g. 1600)
+  else if (/^\d{4}$/.test(time)) {
+    const hours = parseInt(time.slice(0, 2), 10);
+    const minutes = parseInt(time.slice(2, 4), 10);
+    date = new Date();
+    date.setHours(hours, minutes, 0, 0);
+  }
+  // HH:mm
+  else if (/^\d{2}:\d{2}$/.test(time)) {
+    const [h, m] = time.split(":").map(Number);
+    date = new Date();
+    date.setHours(h, m, 0, 0);
+  } else {
+    return time;
   }
 
-  return time;
+  return date
+    .toLocaleTimeString("en-US", {
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    })
+    .toUpperCase();
 };
 
 const isLate = (allocatedTime: string | undefined) => {
@@ -201,7 +221,7 @@ const ViewMedicationSchedule: React.FC = () => {
     {
       key: "administerTime",
       header: "Allocated Time",
-      render: (_value, item) => formatTimeHHMM(item.administerTime),
+      render: (_value, item) => formatTimeAMPM(item.administerTime),
     },
     {
       key: "assignedTo",
@@ -223,7 +243,7 @@ const ViewMedicationSchedule: React.FC = () => {
     {
       key: "actualAdministerTime",
       header: "Actual Administered Time",
-      render: (_value, item) => formatTimeHHMM(item.actualAdministerTime),
+      render: (_value, item) => formatTimeAMPM(item.actualAdministerTime),
     },
     {
       key: "administeredBy",
