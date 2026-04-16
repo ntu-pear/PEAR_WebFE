@@ -28,7 +28,7 @@ export const formatTime = (date: string) => {
   return dayjs
     .utc(date) // Parse the date in UTC
     .tz("Asia/Singapore") // Convert to Singapore timezone
-    .format("hh:mm A"); // Format as "08:53 PM"
+    .format("h:mm A"); // Format as "08:53 PM"
 };
 
 export const formatTimeString = (date: string) => {
@@ -69,5 +69,5 @@ export const formatTimeForInput12h = () => {
 
 export const formatTimeFromHHMMSS = (time: string) => {
   const today = dayjs().format("YYYY-MM-DD");
-  return dayjs.tz(`${today}T${time}`, "Asia/Singapore").format("hh:mm A");
+  return dayjs.tz(`${today}T${time}`, "Asia/Singapore").format("h:mm A");
 };
