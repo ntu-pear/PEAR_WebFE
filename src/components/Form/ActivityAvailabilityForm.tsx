@@ -7,7 +7,7 @@ import { type FormErrors, type CentreActivityAvailabilityFormValues, validateLoc
 import { CentreActivityWithTitle } from "@/api/activities/centreActivities";
 //import { useCareCentreHours } from "@/hooks/activities/useCareCentreHours";
 //import type { WorkingHours } from "@/api/activities/careCentres";
-
+import dayjs from "dayjs";
 
 
 type Props = {
@@ -36,18 +36,6 @@ const DAYS_MAP = [
   { label: "Sun", value: 64 },
 ];
 
-/*
-const BIT_TO_DAY: Record<number, keyof WorkingHours> = {
-  1: "monday",
-  2: "tuesday",
-  4: "wednesday",
-  8: "thursday",
-  16: "friday",
-  32: "saturday",
-  64: "sunday",
-};
-*/
-
 export default function ActivityAvailabilityForm({ 
   initial, 
   submitting,
@@ -60,7 +48,11 @@ export default function ActivityAvailabilityForm({
     const [start_date, setStartDate] = useState(initial?.start_date ?? "");
     const [end_date, setEndDate] = useState(initial?.end_date ?? "");
 
-    const hourOptions = Array.from({ length: 9 }, (_, i) => (i + 9).toString().padStart(2, "0"));
+    const hourOptions = Array.from(
+        { length: 12 },
+        (_, i) => (i + 1).toString().padStart(2, "0")
+    );
+
 
     const minuteOptions = Array.from({ length: 12 }, (_, i) =>
         (i * 5).toString().padStart(2, "0")
@@ -72,22 +64,35 @@ export default function ActivityAvailabilityForm({
     const [endHour, setEndHour] = useState("10");
     const [endMinute, setEndMinute] = useState("00");
 
+    const [startPeriod, setStartPeriod] = useState<"AM" | "PM">("AM");
+    const [endPeriod, setEndPeriod] = useState<"AM" | "PM">("AM");
+
+
     useEffect(() => {
         if (initial?.start_time) {
-            const [h, m] = initial.start_time.split(":");
-            setStartHour(h);
-            setStartMinute(m);
+            const d = dayjs(initial.start_time, "HH:mm");
+            setStartHour(d.format("hh"));
+            setStartMinute(d.format("mm"));
+            setStartPeriod(d.format("A") as "AM" | "PM");
         }
 
         if (initial?.end_time) {
-            const [h, m] = initial.end_time.split(":");
-            setEndHour(h);
-            setEndMinute(m);
+            const d = dayjs(initial.end_time, "HH:mm");
+            setEndHour(d.format("hh"));
+            setEndMinute(d.format("mm"));
+            setEndPeriod(d.format("A") as "AM" | "PM");
         }
     }, [initial]);
 
-    const formattedStart = `${startHour}:${startMinute}`;
-    const formattedEnd = `${endHour}:${endMinute}`;
+    const formattedStart = dayjs(
+        `${startHour}:${startMinute} ${startPeriod}`,
+        "hh:mm A"
+    ).format("HH:mm");
+
+    const formattedEnd = dayjs(
+        `${endHour}:${endMinute} ${endPeriod}`,
+        "hh:mm A"
+    ).format("HH:mm");
 
     const [is_everyday, setIsEveryday] = useState(false);
     const [deleted] = useState(initial?.is_deleted ?? false);
@@ -354,6 +359,15 @@ export default function ActivityAvailabilityForm({
                         <option key={m} value={m}>{m}</option>
                     ))}
                     </select>
+
+                    <select
+                        value={startPeriod}
+                        onChange={(e) => setStartPeriod(e.target.value as "AM" | "PM")}
+                        className="border rounded px-2 py-1"
+                        >
+                        <option value="AM">AM</option>
+                        <option value="PM">PM</option>
+                    </select>
                 </div>
             </div>
 
@@ -381,6 +395,16 @@ export default function ActivityAvailabilityForm({
                         <option key={m} value={m}>{m}</option>
                     ))}
                     </select>
+
+                    <select
+                        value={endPeriod}
+                        onChange={(e) => setEndPeriod(e.target.value as "AM" | "PM")}
+                        className="border rounded px-2 py-1"
+                        >
+                        <option value="AM">AM</option>
+                        <option value="PM">PM</option>
+                    </select>
+
                 </div>
             </div>
 
