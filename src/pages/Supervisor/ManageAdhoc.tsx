@@ -22,7 +22,7 @@ import {
   listCentreActivities,
   CentreActivity,
 } from "@/api/activities/centreActivities"; 
-import { formatDateTime } from "@/utils/formatDate";
+import { formatDateTimeNoYear, formatDateTime } from "@/utils/formatDate";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
@@ -63,9 +63,9 @@ const ManageAdhoc: React.FC = () => {
 
         return {
           ...a,
-          startDate: formatDateTime(a.startDate ?? null),
-          endDate: formatDateTime(a.endDate ?? null),
-          lastUpdated: formatDateTime(a.lastUpdated ?? null),
+          startDate: formatDateTimeNoYear(a.startDate ?? null),
+          endDate: formatDateTimeNoYear(a.endDate ?? null),
+          lastUpdated: formatDateTimeNoYear(a.lastUpdated ?? null),
 
           oldActivityTitle: getCentreActivityDisplayName(oldCentre),
           oldActivityDescription: getCentreActivityDescription(oldCentre),

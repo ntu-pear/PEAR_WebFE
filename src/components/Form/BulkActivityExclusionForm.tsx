@@ -46,7 +46,7 @@ export default function BulkActivityExclusionForm({
   const [exclusionRemarks, setExclusionRemarks] = useState(initial?.exclusion_remarks ?? "");
   const [startDate, setStartDate] = useState(initial?.start_date ?? "");
   const [endDate, setEndDate] = useState(initial?.end_date ?? "");
-  const [isIndefinite, setIsIndefinite] = useState(!initial?.end_date);
+  const [isIndefinite, setIsIndefinite] = useState<boolean>(false);
   const [searchTerm, setSearchTerm] = useState("");
   
   const [centreActivities, setCentreActivities] = useState<CentreActivityWithDetails[]>([]);
@@ -231,25 +231,36 @@ export default function BulkActivityExclusionForm({
           ) : (
             <div className="space-y-1 p-2">
               {filteredActivities.map((activity) => (
-                <label
-  key={activity.id}
-  className="flex items-center space-x-2 p-2 hover:bg-gray-50 rounded cursor-pointer"
->
-  <Checkbox
-    checked={selectedActivityIds.has(activity.id)}
-    onCheckedChange={(checked) =>
-      handleActivityToggle(activity.id, checked as boolean)
-    }
-  />
-  <span className="flex-1 text-sm">
-    {activity.activity_title}
-    {activity.activity_description && (
-      <span className="text-gray-500 ml-2 text-xs">
-        ({activity.activity_description})
-      </span>
-    )}
-  </span>
-</label>
+
+                <div
+                  key={activity.id}
+                  className="flex items-start space-x-2 p-2 hover:bg-gray-50 rounded"
+                >
+                  <Checkbox
+                    checked={selectedActivityIds.has(activity.id)}
+                    onCheckedChange={(checked) =>
+                      handleActivityToggle(activity.id, checked as boolean)
+                    }
+                  />
+
+                  <span
+                    className="flex-1 text-sm cursor-pointer select-none"
+                    onClick={() =>
+                      handleActivityToggle(
+                        activity.id,
+                        !selectedActivityIds.has(activity.id)
+                      )
+                    }
+                  >
+                    {activity.activity_title}
+                    {activity.activity_description && (
+                      <span className="text-gray-500 ml-2 text-xs">
+                        ({activity.activity_description})
+                      </span>
+                    )}
+                  </span>
+                </div>
+
               ))}
             </div>
           )}

@@ -324,7 +324,7 @@ const PatientLogs: React.FC = () => {
                                     logsData.pagination.pageSize}
                               </TableCell>
                               <TableCell className="text-sm whitespace-nowrap">
-                                {format(new Date(log.timestamp), "dd/MM/yyyy HH:mm")}
+                                {format(new Date(log.timestamp), "dd-MMM-yyyy h:mm a").toUpperCase()}
                               </TableCell>
                               <TableCell>
                                 <div className="font-medium">
