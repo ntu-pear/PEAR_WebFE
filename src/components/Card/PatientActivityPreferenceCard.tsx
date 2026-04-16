@@ -1,5 +1,11 @@
 import React, { useState } from "react";
 import { CardHeader, CardTitle, CardContent, Card } from "../ui/card";
+import {
+  ContextMenu,
+  ContextMenuTrigger,
+  ContextMenuContent,
+  ContextMenuItem,
+} from "../ui/context-menu";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import { Checkbox } from "../ui/checkbox";
@@ -24,8 +30,6 @@ import {
   ThumbsDown,
   Users,
   X,
-  Edit,
-  Trash2
 } from "lucide-react";
 import { DataTableClient, DataTableColumns } from "../Table/DataTable";
 import {
@@ -286,72 +290,73 @@ const PatientActivityPreferenceCard: React.FC<
   };
 
   const renderExclusionStatus = (activityId: number) => {
-    const exclusion = centreActivityExclusions.find(
-      (e) => e.centreActivityId === activityId
-    );
+  const exclusion = centreActivityExclusions.find(
+    (e) => e.centreActivityId === activityId
+  );
 
-    if (!exclusion) {
-      return <Badge className="bg-gray-300 text-gray-700 text-xs">No</Badge>;
-    }
-
-    const now = new Date();
-
-    const isActive =
-      new Date(exclusion.startDate) <= now &&
-      (!exclusion.endDate || new Date(exclusion.endDate) >= now);
-
+  if (!exclusion) {
     return (
-      <div className="relative group inline-flex justify-center">
-        {/* STATUS BADGE */}
-        <Badge
-          className={`text-xs cursor-help ${
-            isActive ? "bg-red-500 text-white" : "bg-gray-400 text-white"
-          }`}
-        >
-          {isActive ? "Yes" : "Inactive"}
-        </Badge>
+      <Badge className="bg-gray-300 text-gray-700 text-xs">
+        No
+      </Badge>
+    );
+  }
 
-        {/* TOOLTIP */}
-        <div className="absolute invisible group-hover:visible z-50 bg-black text-white text-xs p-2 rounded w-56 -top-2 left-1/2 -translate-x-1/2 -translate-y-full pointer-events-none">
-          <div><b>Start:</b> {formatDate(exclusion.startDate)}</div>
-          <div><b>End:</b> {exclusion.endDate ? formatDate(exclusion.endDate) : "Indefinite"}</div>
-          <div><b>Remarks:</b> {exclusion.exclusionRemarks || "-"}</div>
+  const now = new Date();
+  const isActive =
+    new Date(exclusion.startDate) <= now &&
+    (!exclusion.endDate || new Date(exclusion.endDate) >= now);
+
+  return (
+    <ContextMenu>
+      <ContextMenuTrigger>
+        <div className="relative group inline-flex justify-center cursor-context-menu">
+          {/* STATUS BADGE */}
+          <Badge
+            className={`text-xs ${
+              isActive ? "bg-red-500 text-white" : "bg-gray-400 text-white"
+            }`}
+          >
+            {isActive ? "Yes" : "Inactive"}
+          </Badge>
+
+          {/* TOOLTIP */}
+          <div className="absolute invisible group-hover:visible z-50 bg-black text-white text-xs p-2 rounded w-56 -top-2 left-1/2 -translate-x-1/2 -translate-y-full pointer-events-none">
+            <div><b>Start:</b> {formatDate(exclusion.startDate)}</div>
+            <div>
+              <b>End:</b>{" "}
+              {exclusion.endDate ? formatDate(exclusion.endDate) : "Indefinite"}
+            </div>
+            <div>
+              <b>Remarks:</b> {exclusion.exclusionRemarks || "-"}
+            </div>
+          </div>
         </div>
-      </div>
-    );
-  };
+      </ContextMenuTrigger>
 
-  const renderExclusionActions = (activityId: number) => {
-    const exclusion = centreActivityExclusions.find(
-      (e) => e.centreActivityId === activityId
-    );
-
-    if (!exclusion) return null;
-
-    return (
-      <div className="flex items-center justify-center gap-2">
-        <Button
-          aria-label="Edit exclusion"
-          size="icon"
-          variant="ghost"
-          className="h-6 w-6"
-          onClick={() => setEditingExclusion(exclusion)}
+      <ContextMenuContent>
+        <ContextMenuItem
+          onSelect={(e) => {
+            e.preventDefault();  
+            setEditingExclusion(exclusion);
+          }}
         >
-          <Edit className="h-3 w-3" />
-        </Button>
+          ✏️ Edit Exclusion
+        </ContextMenuItem>
 
-        <Button
-          aria-label="Delete exclusion"
-          size="icon"
-          variant="ghost"
-          className="h-6 w-6 text-destructive"
-          onClick={() => handleDeleteExclusion(exclusion)}
+        <ContextMenuItem
+          className="text-destructive"
+          onSelect={(e) => {
+            e.preventDefault();
+            handleDeleteExclusion(exclusion);
+          }}
         >
-          <Trash2 className="h-3 w-3" />
-        </Button>
-      </div>
-    );
-  };
+          🗑 Delete Exclusion
+        </ContextMenuItem>
+      </ContextMenuContent>
+    </ContextMenu>
+  );
+};
 
   const columns: DataTableColumns<PatientActivityPreferenceWithRecommendation> =
     [
@@ -375,88 +380,109 @@ const PatientActivityPreferenceCard: React.FC<
           ]
         : []),
       {
-  key: "activityName",
-  header: "Activity Name",
-  className: "min-w-[200px]",
-  render: (_value, item) => {
-    if (!item.activityDescription) {
-      return (
-        <span className="text-sm text-gray-900 uppercase">
-          {item.activityName}
-        </span>
-      );
-    }
+        key: "activityName",
+        header: "Activity Name",
+        className: "min-w-[200px]",
+        render: (_value, item) => {
+          if (!item.activityDescription) {
+            return (
+              <span className="text-sm text-gray-900 uppercase">
+                {item.activityName}
+              </span>
+            );
+          }
 
-    return (
-      <div className="relative group cursor-help">
-        <span className="text-sm text-gray-900 uppercase">
-          {item.activityName}
-        </span>
+          return (
+            <div className="relative group cursor-help">
+              <span className="text-sm text-gray-900 uppercase">
+                {item.activityName}
+              </span>
 
-        {/* Tooltip */}
-        <div
-          className="
-            absolute
-            invisible
-            group-hover:visible
-            z-50
-            bg-black
-            text-white
-            text-xs
-            p-2
-            rounded
-            shadow-lg
-            max-w-xs
-            -top-2
-            left-1/2
-            -translate-x-1/2
-            -translate-y-full
-            whitespace-normal
-          "
-        >
-          {item.activityDescription}
-        </div>
-      </div>
-    );
-  },
-},
-      {
-        key: "patientPreference" as keyof (typeof activityPreferences)[0],
-        header: "Patient Preference",
-        className: "w-[160px] text-center",
-        render: (value, item) => (
-          <button
-            className="flex justify-center items-center w-full min-h-[40px] cursor-pointer"
-            onClick={() => {
-              // Toggle logic
-              let newPref: "LIKE" | "NEUTRAL" | "DISLIKE";
+              {/* Tooltip */}
+              <div
+                className="
+                  absolute
+                  invisible
+                  group-hover:visible
+                  z-50
+                  bg-black
+                  text-white
+                  text-xs
+                  p-2
+                  rounded
+                  shadow-lg
+                  max-w-xs
+                  -top-2
+                  left-1/2
+                  -translate-x-1/2
+                  -translate-y-full
+                  whitespace-normal
+                "
+              >
+                {item.activityDescription}
+              </div>
+            </div>
+          );
+        },
+      },
+            {
+              key: "patientPreference" as keyof (typeof activityPreferences)[0],
+              header: "Patient Preference",
+              className: "w-[160px] text-center",
+              
+      render: (value, item) => {
+        const options: Array<"LIKE" | "NEUTRAL" | "DISLIKE"> =
+          item.patientPreference === "LIKE"
+            ? ["NEUTRAL", "DISLIKE"]
+            : item.patientPreference === "DISLIKE"
+            ? ["LIKE", "NEUTRAL"]
+            : ["LIKE", "DISLIKE"];
 
-              if (item.patientPreference === "NEUTRAL") {
-                newPref = "LIKE";
-              } else if (item.patientPreference === "LIKE") {
-                newPref = "DISLIKE";
-              } else {
-                newPref = "NEUTRAL";
-              }
-              handleSingleUpdate(item, newPref);
-            }}
-            title="Click to toggle preference"
-          >
-            {renderPreferenceBadge(String(value))}
-          </button>
-        ),
+        return (
+          <ContextMenu>
+            <ContextMenuTrigger className="flex justify-center items-center w-full min-h-[40px] cursor-context-menu">
+              {renderPreferenceBadge(String(value))}
+            </ContextMenuTrigger>
+
+            <ContextMenuContent>
+              {options.map((option) => (
+                <ContextMenuItem
+                  key={option}
+                  onSelect={() => handleSingleUpdate(item, option)}
+                >
+                  {option === "LIKE" && (
+                    <div className="flex items-center gap-2 text-green-600">
+                      <Heart className="h-4 w-4" />
+                      Like
+                    </div>
+                  )}
+
+                  {option === "NEUTRAL" && (
+                    <div className="flex items-center gap-2 text-gray-600">
+                      <span className="h-3 w-3 rounded-full bg-gray-400" />
+                      Neutral
+                    </div>
+                  )}
+
+                  {option === "DISLIKE" && (
+                    <div className="flex items-center gap-2 text-red-600">
+                      <HeartCrack className="h-4 w-4" />
+                      Dislike
+                    </div>
+                  )}
+                </ContextMenuItem>
+              ))}
+            </ContextMenuContent>
+          </ContextMenu>
+        );
+      }
+
       },
       {
         key: "exclusionStatus" as keyof (typeof activityPreferences)[0],
         header: "Exclusion",
-        className: "w-[150px] text-center",
+        className: "w-[100px] text-center",
         render: (_unused: any, item) => renderExclusionStatus(item.centreActivityId),
-      },
-      {
-        key: "exclusionActions" as keyof (typeof activityPreferences)[0],
-        header: "",
-        className: "w-[80px] text-center",
-        render: (_: any, item) => renderExclusionActions(item.centreActivityId),
       },
       {
         key: "doctorRecommendation" as keyof (typeof activityPreferences)[0],
@@ -717,11 +743,17 @@ const PatientActivityPreferenceCard: React.FC<
       </CardContent>
       <Sheet
         open={!!editingExclusion}
+        modal={false}
         onOpenChange={(open) => {
           if (!open) setEditingExclusion(null);
         }}
       >
-        <SheetContent>
+        <SheetContent
+          onOpenAutoFocus={(e) => e.preventDefault()}
+          onCloseAutoFocus={(e) => e.preventDefault()}
+          onInteractOutside={(e) => e.preventDefault()}
+        >
+          
           <SheetHeader>
             <SheetTitle>Edit Exclusion</SheetTitle>
           </SheetHeader>
