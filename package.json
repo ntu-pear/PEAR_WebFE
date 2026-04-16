@@ -7,7 +7,8 @@
     "dev": "vite --mode development",
     "mock": "vite --mode mock",
     "format": "prettier --write .",
-    "build": "tsc -b &&  tsc -b --clean && vite build",
+    
+    "build": "npx tsc -b && npx tsc -b --clean && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "jest --coverage",
