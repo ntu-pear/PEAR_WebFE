@@ -46,7 +46,7 @@ export default function BulkActivityExclusionForm({
   const [exclusionRemarks, setExclusionRemarks] = useState(initial?.exclusion_remarks ?? "");
   const [startDate, setStartDate] = useState(initial?.start_date ?? "");
   const [endDate, setEndDate] = useState(initial?.end_date ?? "");
-  const [isIndefinite, setIsIndefinite] = useState(!initial?.end_date);
+  const [isIndefinite, setIsIndefinite] = useState<boolean>(false);
   const [searchTerm, setSearchTerm] = useState("");
   
   const [centreActivities, setCentreActivities] = useState<CentreActivityWithDetails[]>([]);
