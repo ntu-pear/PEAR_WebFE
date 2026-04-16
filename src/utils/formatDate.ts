@@ -1,8 +1,6 @@
 import dayjs from "dayjs"; 
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
-
-// Extend Day.js with plugins
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
@@ -58,7 +56,13 @@ export const getTimeDiffFromServer = (serverDateTime: string) => {
 export const formatDateTime = (date: string | null) => {
   if (!date) return "-";
   return dayjs(date)
-    .format("DD-MMM-YYYY hh:mm A");
+    .format("DD-MMM-YYYY h:mm A");
+};
+
+export const formatDateTimeNoYear = (date: string | null) => {
+  if (!date) return "-";
+  return dayjs(date)
+    .format("DD-MMM h:mm A");
 };
 
 export const formatTimeForInput12h = () => {
@@ -71,3 +75,18 @@ export const formatTimeFromHHMMSS = (time: string) => {
   const today = dayjs().format("YYYY-MM-DD");
   return dayjs.tz(`${today}T${time}`, "Asia/Singapore").format("h:mm A");
 };
+
+
+export const to12HourParts = (time: string) => {
+  const d = dayjs(time, "HH:mm");
+  return {
+    hour: d.format("h"),      // "9"
+    minute: d.format("mm"),   // "00"
+    period: d.format("A"),    // "AM"
+  };
+};
+
+export const to24Hour = (hour: string, minute: string, period: "AM" | "PM") => {
+  return dayjs(`${hour}:${minute} ${period}`, "h:mm A").format("HH:mm");
+};
+``
