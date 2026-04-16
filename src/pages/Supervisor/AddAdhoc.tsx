@@ -378,10 +378,14 @@ const AddAdhoc: React.FC = () => {
                   className="sm:col-span-3"
                 >
                   <DatePicker
-                    showTime={{ format: "HH:mm" }}
-                    format="YYYY-MM-DD HH:mm"
+                    showTime={{
+                      use12Hours: true,
+                      format: "h:mm A",  
+                    }}
+                    format="YYYY-MM-DD h:mm A"
                     className="w-full"
                   />
+
                 </Form.Item>
 
                 <Form.Item
@@ -398,10 +402,14 @@ const AddAdhoc: React.FC = () => {
                   className="sm:col-span-3"
                 >
                   <DatePicker
-                    showTime={{ format: "HH:mm" }}
-                    format="YYYY-MM-DD HH:mm"
+                    showTime={{
+                      use12Hours: true,
+                      format: "h:mm A",   
+                    }}
+                    format="YYYY-MM-DD h:mm A"
                     className="w-full"
                   />
+
                 </Form.Item>
 
               </div>
