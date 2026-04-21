@@ -131,7 +131,7 @@ const ManageLists: React.FC = () => {
   }, [debouncedSelectedType]);
 
   return (
-    <div className="flex min-h-screen w-full flex-col container mx-auto px-0 sm:px-4">
+    <div className="flex min-h-screen w-full flex-col mx-auto w-full max-w-5xl px-4">
       <div className="flex flex-col sm:gap-4 sm:py-4 sm:pl-14">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <Searchbar
@@ -174,11 +174,11 @@ const ManageLists: React.FC = () => {
                 <div className="flex items-center gap-2">
                   <CardTitle>Manage Lists</CardTitle>
                   <Badge
-  variant="secondary"
-  className="h-8 px-4 text-base font-semibold leading-none"
->
-  {debouncedSelectedType}
-</Badge>
+                    variant="secondary"
+                    className="h-8 px-4 text-base font-semibold leading-none"
+                  >
+                    {debouncedSelectedType}
+                  </Badge>
                 </div>
 
                 <div className="space-y-1">
@@ -187,7 +187,9 @@ const ManageLists: React.FC = () => {
                     <span className="font-medium text-foreground">
                       {debouncedSelectedType}
                     </span>{" "}
-                    list. Add, edit, or remove individual list items below.
+                    list.
+                    <br />
+                    Add, edit, or remove individual list items below.
                   </CardDescription>
                 </div>
               </div>
