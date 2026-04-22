@@ -6,9 +6,8 @@ import ManageAccessLevelCard from "@/components/Card/ManagePrivacyLevelCard";
 
 const ManageSocialHistory: React.FC = () => {
   const [activeTab, setActiveTab] = useState("privacy");
-
   return (
-    <div className="flex min-h-screen w-full font-sans">
+    <div className="flex min-h-screen w-full flex-col mx-auto w-full max-w-4xl px-4 font-sans">
       <div className="flex-1 p-6 overflow-auto">
         <div className="max-w-7xl mx-auto space-y-6">
           <Tabs

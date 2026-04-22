@@ -180,7 +180,7 @@ const ManagePrivacySettingsCard = () => {
   ];
 
   return (
-    <Card className="border border-border shadow-sm bg-card overflow-hidden rounded-2xl">
+    <Card className="border border-border shadow-sm bg-card overflow-visible rounded-2xl">
       <CardHeader>
         <div className="flex items-center gap-2">
           <CardTitle>Privacy settings</CardTitle>
@@ -195,14 +195,13 @@ const ManagePrivacySettingsCard = () => {
             </div>
 
             {tooltipVisible && (
-              <div className="absolute left-0 top-full z-20 mt-2 w-96 rounded-md border border-border bg-popover px-3 py-2 text-xs text-popover-foreground shadow-md">
-                <p>Configure sensitivity of each social history information.</p>
-                <p className="mt-1">
-                  Non-sensitive social history information can be viewed by
-                  Caregivers, Doctors and Supervisors regardless of privacy level.
-                </p>
-              </div>
-            )}
+            <div className="absolute left-0 top-full z-50 mt-2 w-80 rounded-md border border-border bg-popover px-3 py-2 text-xs text-popover-foreground shadow-md">
+              <p className="mt-1">
+                Non-sensitive social history information can be viewed by
+                Caregivers, Doctors and Supervisors regardless of privacy level.
+              </p>
+            </div>
+          )}
           </div>
         </div>
 
