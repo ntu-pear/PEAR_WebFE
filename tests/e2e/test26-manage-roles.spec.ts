@@ -199,7 +199,7 @@ test('Edit User In Role — page renders correctly', async ({ page }) => {
 
     await test.step('Navigate to Manage Assignments', async () => {
         await page.getByRole('button', { name: 'Manage Assignments' }).click();
-        await page.waitForURL('**/admin/edit-user-in-role/**', { timeout: 15000 });
+        await page.waitForURL('**/admin/assign-user-to-role/**', { timeout: 15000 });
     });
 
     await test.step('Assert staff directory and roster panels are visible', async () => {
@@ -219,7 +219,7 @@ test('Edit User In Role — assign user to role', async ({ page }) => {
         await gotoManageRoles(page);
         await openRoleFromManageRoles(page, 'CAREGIVER');
         await page.getByRole('button', { name: 'Manage Assignments' }).click();
-        await page.waitForURL('**/admin/edit-user-in-role/**', { timeout: 15000 });
+        await page.waitForURL('**/admin/assign-user-to-role/**', { timeout: 15000 });
         await page.locator('table tbody tr').first().waitFor({ state: 'visible', timeout: 10000 });
     });
 
@@ -246,7 +246,7 @@ test('Edit User In Role — remove user from role triggers orphan reassign modal
         await gotoManageRoles(page);
         await openRoleFromManageRoles(page, 'CAREGIVER');
         await page.getByRole('button', { name: 'Manage Assignments' }).click();
-        await page.waitForURL('**/admin/edit-user-in-role/**', { timeout: 15000 });
+        await page.waitForURL('**/admin/assign-user-to-role/**', { timeout: 15000 });
     });
 
     await test.step('Remove a user from the current roster', async () => {
@@ -279,7 +279,7 @@ test('Edit User In Role — ADMIN role users show Locked badge, not Add button',
         await gotoManageRoles(page);
         await openRoleFromManageRoles(page, 'CAREGIVER');
         await page.getByRole('button', { name: 'Manage Assignments' }).click();
-        await page.waitForURL('**/admin/edit-user-in-role/**', { timeout: 15000 });
+        await page.waitForURL('**/admin/assign-user-to-role/**', { timeout: 15000 });
         await page.locator('table tbody tr').first().waitFor({ state: 'visible', timeout: 10000 });
     });
 
@@ -305,7 +305,7 @@ test('Edit User In Role — search filters staff directory', async ({ page }) =>
         await gotoManageRoles(page);
         await openRoleFromManageRoles(page, 'CAREGIVER');
         await page.getByRole('button', { name: 'Manage Assignments' }).click();
-        await page.waitForURL('**/admin/edit-user-in-role/**', { timeout: 15000 });
+        await page.waitForURL('**/admin/assign-user-to-role/**', { timeout: 15000 });
         await page.locator('table tbody tr').first().waitFor({ state: 'visible', timeout: 10000 });
     });
 
