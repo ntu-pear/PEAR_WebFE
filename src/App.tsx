@@ -34,7 +34,7 @@ import EditRoles from "./pages/Admin/EditRoles";
 import CreateRole from "./pages/Admin/CreateRole";
 import EditRole from "./pages/Admin/EditRole";
 import ManageRoles from "./pages/Admin/ManageRoles";
-import EditUserInRole from "./pages/Admin/EditUserInRole";
+import AssignUserToRole from "./pages/Admin/AssignUserToRole";
 import RegisterAccount from "./pages/Admin/RegisterAccount";
 import DevPermanentDelete from "./pages/Admin/DevPermanentDeleteAccount";
 import ManageMiscellaneous from "./pages/Admin/ManageMiscellaneous";
@@ -244,8 +244,8 @@ const App: React.FC = () => {
                       <Route path="edit-role/:id" element={<EditRole />} />
                       <Route path="manage-roles" element={<ManageRoles />} />
                       <Route
-                        path="edit-user-in-role/:id"
-                        element={<EditUserInRole />}
+                        path="assign-user-to-role/:id"
+                        element={<AssignUserToRole />}
                       />
                       <Route
                         path="manage-social-history"

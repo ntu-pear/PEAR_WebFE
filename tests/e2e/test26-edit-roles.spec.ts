@@ -365,9 +365,9 @@ test('Delete Role — creates then deletes a role successfully', async ({ page }
     });
 });
 
-// ─── Tests: Edit User In Role (from Edit Roles) ───────────────────────────────
+// ─── Tests: Assign User To Role (from Edit Roles) ───────────────────────────────
 
-async function gotoEditUserInRole(page: any, roleName: string) {
+async function gotoAssignUserToRole(page: any, roleName: string) {
     await gotoEditRoles(page);
     await openRoleInEditMode(page, roleName);
 
@@ -378,7 +378,7 @@ async function gotoEditUserInRole(page: any, roleName: string) {
     );
 
     await page.getByRole('button', { name: 'Manage Assignments' }).click();
-    await page.waitForURL('**/admin/edit-user-in-role/**', { timeout: 15000 });
+    await page.waitForURL('**/admin/assign-user-to-role/**', { timeout: 15000 });
     await usersLoaded;
     await page.locator('table tbody tr').first().waitFor({ state: 'visible', timeout: 10000 });
 }
@@ -393,7 +393,7 @@ test('Edit User In Role (from Edit Roles) — navigates correctly', async ({ pag
 
     await test.step('Click Manage Assignments and assert navigation', async () => {
         await page.getByRole('button', { name: 'Manage Assignments' }).click();
-        await page.waitForURL('**/admin/edit-user-in-role/**', { timeout: 15000 });
+        await page.waitForURL('**/admin/assign-user-to-role/**', { timeout: 15000 });
         await expect(page.getByRole('heading', { name: 'Staff directory' })).toBeVisible();
         await expect(page.getByRole('heading', { name: 'Current roster' })).toBeVisible();
     });
@@ -403,7 +403,7 @@ test('Edit User In Role — assign user to role', async ({ page }) => {
     await test.step('Setup', async () => {
         await setupRouteInterception(page, userServiceURL, roleServiceURL);
         await loginAsAdmin(page);
-        await gotoEditUserInRole(page, 'CAREGIVER');
+        await gotoAssignUserToRole(page, 'CAREGIVER');
     });
 
     await test.step('Find an unassigned user and assign them', async () => {
@@ -425,7 +425,7 @@ test('Edit User In Role — search filters staff directory', async ({ page }) =>
     await test.step('Setup', async () => {
         await setupRouteInterception(page, userServiceURL, roleServiceURL);
         await loginAsAdmin(page);
-        await gotoEditUserInRole(page, 'CAREGIVER');
+        await gotoAssignUserToRole(page, 'CAREGIVER');
     });
 
     await test.step('Type in search and assert table updates', async () => {
@@ -454,7 +454,7 @@ test('Edit User In Role — Assigned badge shows for current roster users in dir
     await test.step('Setup', async () => {
         await setupRouteInterception(page, userServiceURL, roleServiceURL);
         await loginAsAdmin(page);
-        await gotoEditUserInRole(page, 'CAREGIVER');
+        await gotoAssignUserToRole(page, 'CAREGIVER');
     });
 
     await test.step('Assert Assigned badges exist in staff directory', async () => {

@@ -295,7 +295,7 @@ const EditRole: React.FC = () => {
                   disabled={!canManageAssignments}
                   className="w-full"
                   onClick={() =>
-                    navigate(`/admin/edit-user-in-role/${role.id}`, {
+                    navigate(`/admin/assign-user-to-role/${role.id}`, {
                       state: { role },
                     })
                   }
