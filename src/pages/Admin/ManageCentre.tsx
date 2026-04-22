@@ -247,24 +247,62 @@ export default function ManageCentre() {
 
   // ── columns ───────────────────────────────────────────────────────────────
 
-  const cols = useMemo(() => [
-    { key: "name", header: "Centre" },
+  const cols = useMemo(
+  () => [
+    {
+      key: "name",
+      header: "Centre",
+      className: "min-w-[150px] max-w-[200px] whitespace-normal break-words",
+      render: (v: string) => (
+        <div className="min-w-[150px] max-w-[200px] whitespace-normal break-words leading-6">
+          {v}
+        </div>
+      ),
+    },
     {
       key: "country_code",
       header: "Country",
+      className: "w-[150px]",
       render: (v: string) => <Badge variant="secondary">{v}</Badge>,
     },
-    { key: "address", header: "Address" },
-    { key: "postal_code", header: "Postal" },
-    { key: "contact_no", header: "Contact" },
-    { key: "no_of_devices_avail", header: "Devices" },
+    {
+      key: "address",
+      header: "Address",
+      className: "min-w-[200px] max-w-[250px] whitespace-normal break-words",
+      render: (v: string) => (
+        <div className="min-w-[200px] max-w-[250px] whitespace-normal break-words leading-6">
+          {v}
+        </div>
+      ),
+    },
+    {
+      key: "postal_code",
+      header: "Postal",
+      className: "w-[110px]",
+    },
+    {
+      key: "contact_no",
+      header: "Contact",
+      className: "w-[130px]",
+    },
+    {
+      key: "no_of_devices_avail",
+      header: "Devices",
+      className: "w-[150px]",
+    },
     {
       key: "working_hours",
       header: "Hours",
-      render: (wh: WorkingHours) => formatWorkingHours(wh),
+      className: "min-w-[100px] w-[150px]",
+      render: (wh: WorkingHours) => (
+        <div className="min-w-[100px] w-[150px]">
+          {formatWorkingHours(wh)}
+        </div>
+      ),
     },
-  ], []);
-
+  ],
+  []
+);
   const isBusy = isFetching || isFetchingAddress || createMut.isPending || updateMut.isPending;
 
   // ── render ────────────────────────────────────────────────────────────────
