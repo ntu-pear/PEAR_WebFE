@@ -25,7 +25,6 @@ import {
 import {
   ArrowLeft,
   UserPlus,
-  UserMinus,
   Search,
   CheckCircle2,
   Loader2,
@@ -78,7 +77,7 @@ const AssignUserToRole: React.FC = () => {
     [currentRoster]
   );
 
-  const { safeAssign, safeRemove, isProcessing } =
+  const { safeAssign, isProcessing } =
     useUserRoleManagement(role.roleName);
 
   useEffect(() => {
@@ -270,7 +269,6 @@ const AssignUserToRole: React.FC = () => {
               <CardContent className="flex-1 p-0">
                 <div className="max-h-[450px] overflow-y-auto divide-y divide-border">
                   {currentRoster?.map((user: any) => {
-                    const isUserAdmin = user.roleName === "ADMIN";
 
                     return (
                       <div
