@@ -181,24 +181,26 @@ const ManageAccessLevelCard = () => {
   ];
 
   return (
-    <Card className="border border-border shadow-sm bg-card overflow-hidden rounded-2xl">
+    <Card className="border border-border shadow-sm bg-card overflow-visible rounded-2xl">
       <CardHeader>
         <div className="flex items-center gap-2">
           <CardTitle>Access levels</CardTitle>
 
-          <div
-            className="cursor-pointer text-muted-foreground hover:text-foreground"
-            onMouseEnter={() => setTooltipVisible(true)}
-            onMouseLeave={() => setTooltipVisible(false)}
-          >
-            <InfoIcon className="h-4 w-4" />
-          </div>
-
-          {tooltipVisible && (
-            <div className="absolute mt-2 w-80 bg-popover border border-border text-xs p-2 rounded-md shadow-md">
-              Select the access level for each role.
+          <div className="relative flex items-center">
+            <div
+              className="cursor-pointer text-muted-foreground hover:text-foreground"
+              onMouseEnter={() => setTooltipVisible(true)}
+              onMouseLeave={() => setTooltipVisible(false)}
+            >
+              <InfoIcon className="h-4 w-4" />
             </div>
-          )}
+
+            {tooltipVisible && (
+              <div className="absolute left-0 top-full z-20 mt-2 w-80 rounded-md border border-border bg-popover px-3 py-2 text-xs text-popover-foreground shadow-md">
+                Select the access level for each role.
+              </div>
+            )}
+        </div>
         </div>
 
         <CardDescription>

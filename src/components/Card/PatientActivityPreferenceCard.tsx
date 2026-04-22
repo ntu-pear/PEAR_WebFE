@@ -336,7 +336,7 @@ const PatientActivityPreferenceCard: React.FC<
 
       <ContextMenuContent>
         <ContextMenuItem
-          onSelect={(e) => {
+          onSelect={(e: Event) => {
             e.preventDefault();  
             setEditingExclusion(exclusion);
           }}
@@ -346,7 +346,7 @@ const PatientActivityPreferenceCard: React.FC<
 
         <ContextMenuItem
           className="text-destructive"
-          onSelect={(e) => {
+          onSelect={(e: Event) => {
             e.preventDefault();
             handleDeleteExclusion(exclusion);
           }}

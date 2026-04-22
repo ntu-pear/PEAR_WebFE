@@ -25,7 +25,6 @@ import {
 import {
   ArrowLeft,
   UserPlus,
-  UserMinus,
   Search,
   CheckCircle2,
   Loader2,
@@ -42,7 +41,7 @@ import useGetUsersFromRole from "@/hooks/role/useGetUsersFromRole";
 import { useUsers } from "@/hooks/admin/useUsers";
 import { useUserRoleManagement } from "@/hooks/admin/useUserRoleManagement";
 
-const EditUserInRole: React.FC = () => {
+const AssignUserToRole: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -78,7 +77,7 @@ const EditUserInRole: React.FC = () => {
     [currentRoster]
   );
 
-  const { safeAssign, safeRemove, isProcessing } =
+  const { safeAssign, isProcessing } =
     useUserRoleManagement(role.roleName);
 
   useEffect(() => {
@@ -196,7 +195,7 @@ const EditUserInRole: React.FC = () => {
         <div className="flex items-start justify-between gap-4 mb-8">
           <div className="flex items-center gap-4">
             <div className="flex-1 min-w-0 px-7">
-              <h1 className="text-3xl font-semibold">{role.roleName}</h1>
+              <h1 className="text-3xl font-semibold">Assign Users to Role: {role.roleName}</h1>
               <p className="text-sm text-muted-foreground">
                 Manage staff assignments for this role.
               </p>
@@ -270,7 +269,6 @@ const EditUserInRole: React.FC = () => {
               <CardContent className="flex-1 p-0">
                 <div className="max-h-[450px] overflow-y-auto divide-y divide-border">
                   {currentRoster?.map((user: any) => {
-                    const isUserAdmin = user.roleName === "ADMIN";
 
                     return (
                       <div
@@ -286,7 +284,7 @@ const EditUserInRole: React.FC = () => {
                           </div>
                         </div>
 
-                        <Button
+                        {/* <Button
                           variant="ghost"
                           size="sm"
                           className="text-muted-foreground hover:text-primary hover:bg-accent"
@@ -307,7 +305,7 @@ const EditUserInRole: React.FC = () => {
                           ) : (
                             <UserMinus className="h-4 w-4" />
                           )}
-                        </Button>
+                        </Button> */}
                       </div>
                     );
                   })}
@@ -351,4 +349,4 @@ const EditUserInRole: React.FC = () => {
   );
 };
 
-export default EditUserInRole;
+export default AssignUserToRole;

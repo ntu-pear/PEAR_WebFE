@@ -154,7 +154,8 @@ const EditRole: React.FC = () => {
               </CardHeader>
 
               <CardContent className="p-6 space-y-8">
-                <div className="space-y-3">
+
+                <div className="space-y-3 pt-2 border-border">
                   <label className="text-sm font-medium text-foreground">
                     Responsibilities and scope
                   </label>
@@ -173,14 +174,13 @@ const EditRole: React.FC = () => {
                     </div>
                   )}
                 </div>
+                <div className="space-y-4 border-t border-border pt-4">
+                  <label className="text-sm font-medium text-foreground">
+                    Assigned access level
+                  </label>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-6 border-t border-border">
-                  <div className="space-y-3">
-                    <label className="text-sm font-medium text-foreground">
-                      Assigned access level
-                    </label>
-
-                    {canEditRoleFields ? (
+                  {canEditRoleFields ? (
+                    <div className="space-y-4 rounded-2xl border border-primary/20 bg-primary/5 p-5">
                       <select
                         value={accessLevelId}
                         onChange={(e) => setAccessLevelId(e.target.value)}
@@ -188,35 +188,57 @@ const EditRole: React.FC = () => {
                       >
                         {accessLevels.map((level) => (
                           <option key={level.id} value={level.id}>
-                            {level.levelName} • Rank {level.levelRank} • {level.code}
+                            {level.levelName}
                           </option>
                         ))}
                       </select>
-                    ) : (
-                      <div className="flex items-center gap-4 p-4 bg-muted/20 rounded-xl border border-border">
-                        <Fingerprint className="h-5 w-5 text-primary" />
-                        <div>
-                          <p className="text-sm font-medium text-foreground">
-                            {role.accessLevel?.levelName || "Standard"}
-                          </p>
-                          <p className="text-sm text-muted-foreground">
-                            Rank {role.accessLevel?.levelRank || "0"} •{" "}
-                            {role.accessLevel?.code || "N/A"}
+
+                      <div className="rounded-xl border border-border bg-background/80 p-4">
+                        <div className="flex items-start gap-3">
+                          <Fingerprint className="mt-0.5 h-5 w-5 text-primary" />
+                          <div className="space-y-1">
+                            <p className="text-base font-semibold text-foreground">
+                              {selectedAccessLevel?.levelName || "Standard"}
+                            </p>
+                            <p className="text-sm text-muted-foreground">
+                              Rank {selectedAccessLevel?.levelRank || "0"} 
+                            </p>
+                            <p className="pt-2 text-sm leading-relaxed text-muted-foreground">
+                              {selectedAccessLevel?.description ||
+                                "Generic access rights apply to this level."}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="rounded-2xl border border-primary/20 bg-primary/5 p-5">
+                      <div className="flex items-start gap-4">
+                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10">
+                          <Fingerprint className="h-5 w-5 text-primary" />
+                        </div>
+
+                        <div className="space-y-2">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <p className="text-lg font-semibold text-foreground">
+                              {role.accessLevel?.levelName || "Standard"}
+                            </p>
+                            <span className="rounded-full bg-background px-3 py-1 text-xs font-medium text-muted-foreground border border-border">
+                              Rank {role.accessLevel?.levelRank || "0"}
+                            </span>
+                            <span className="rounded-full bg-background px-3 py-1 text-xs font-medium text-muted-foreground border border-border">
+                              {role.accessLevel?.code || "N/A"}
+                            </span>
+                          </div>
+
+                          <p className="text-sm leading-relaxed text-muted-foreground">
+                            {selectedAccessLevel?.description ||
+                              "Generic access rights apply to this level."}
                           </p>
                         </div>
                       </div>
-                    )}
-                  </div>
-
-                  <div className="space-y-3">
-                    <label className="text-sm font-medium text-foreground">
-                      Access Description
-                    </label>
-                    <p className="text-sm text-muted-foreground leading-relaxed">
-                      {selectedAccessLevel?.description ||
-                        "Generic access rights apply to this level."}
-                    </p>
-                  </div>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -273,7 +295,7 @@ const EditRole: React.FC = () => {
                   disabled={!canManageAssignments}
                   className="w-full"
                   onClick={() =>
-                    navigate(`/admin/edit-user-in-role/${role.id}`, {
+                    navigate(`/admin/assign-user-to-role/${role.id}`, {
                       state: { role },
                     })
                   }

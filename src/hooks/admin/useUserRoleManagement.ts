@@ -4,10 +4,10 @@ import { toast } from "sonner";
 
 const ADMIN_ROLE = "ADMIN";
 
-type RemovePayload = {
-  userId: string;
-  onSuccessCallback?: () => void;
-};
+// type RemovePayload = {
+//   userId: string;
+//   onSuccessCallback?: () => void;
+// };
 
 export const useUserRoleManagement = (roleName: string) => {
   const queryClient = useQueryClient();
@@ -37,23 +37,23 @@ export const useUserRoleManagement = (roleName: string) => {
     },
   });
 
-  // ✅ REMOVE USER (WITH CALLBACK SUPPORT)
-  const removeMutation = useMutation({
-    mutationFn: ({ userId }: RemovePayload) =>
-      updateUser(userId, { roleName: "" }),
+  // // ✅ REMOVE USER (WITH CALLBACK SUPPORT)
+  // const removeMutation = useMutation({
+  //   mutationFn: ({ userId }: RemovePayload) =>
+  //     updateUser(userId, { roleName: "" }),
 
-    onSuccess: (_, variables: RemovePayload) => {
-      toast.success("User removed");
-      refresh();
+  //   onSuccess: (_, variables: RemovePayload) => {
+  //     toast.success("User removed");
+  //     refresh();
 
-      // 🔥 trigger orphan modal
-      variables.onSuccessCallback?.();
-    },
+  //     // 🔥 trigger orphan modal
+  //     variables.onSuccessCallback?.();
+  //   },
 
-    onError: () => {
-      toast.error("Failed to remove user");
-    },
-  });
+  //   onError: () => {
+  //     toast.error("Failed to remove user");
+  //   },
+  // });
 
   // ✅ SAFE ASSIGN
   const safeAssign = (
@@ -72,28 +72,28 @@ export const useUserRoleManagement = (roleName: string) => {
   });
 };
 
-  // ✅ SAFE REMOVE
-  const safeRemove = (
-    user: any,
-    isAdminWorkbench: boolean,
-    onSuccessCallback?: () => void
-  ) => {
-    if (isAdminWorkbench || user.roleName === ADMIN_ROLE) {
-      toast.error("Admin cannot be modified");
-      return;
-    }
+  // // ✅ SAFE REMOVE
+  // const safeRemove = (
+  //   user: any,
+  //   isAdminWorkbench: boolean,
+  //   onSuccessCallback?: () => void
+  // ) => {
+  //   if (isAdminWorkbench || user.roleName === ADMIN_ROLE) {
+  //     toast.error("Admin cannot be modified");
+  //     return;
+  //   }
 
-    removeMutation.mutate({
-      userId: user.id,
-      onSuccessCallback,
-    });
-  };
+  //   removeMutation.mutate({
+  //     userId: user.id,
+  //     onSuccessCallback,
+  //   });
+  // };
 
   // ✅ CRITICAL RETURN (this was missing before)
   return {
     safeAssign,
-    safeRemove,
+    // safeRemove,
     isProcessing:
-      assignMutation.isPending || removeMutation.isPending,
+      assignMutation.isPending, 
   };
 };
