@@ -107,6 +107,7 @@ const ListsLog: React.FC = () => {
     {
       key: "createdDateTime" as const,
       header: "Date",
+      sortable:true,
       render: (v: string) => fmtEU(v),
     },
     { key: "userName" as const, header: "Action by" },
