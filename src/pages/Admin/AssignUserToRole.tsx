@@ -1,8 +1,13 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
-// UI Components
 import {
   Card,
   CardContent,
@@ -12,8 +17,6 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { DataTableServer } from "@/components/Table/DataTable";
-import Searchbar from "@/components/Searchbar";
 import {
   Dialog,
   DialogContent,
@@ -21,7 +24,9 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 
-// Icons
+import { DataTableServer } from "@/components/Table/DataTable";
+import Searchbar from "@/components/Searchbar";
+
 import {
   ArrowLeft,
   UserPlus,
@@ -29,62 +34,216 @@ import {
   CheckCircle2,
   Loader2,
   Lock,
-  ShieldAlert
+  ShieldAlert,
 } from "lucide-react";
 
-// Hooks & API
 import useDebounce from "@/hooks/useDebounce";
-import { Role, fetchRolesPaginated } from "@/api/role/roles";
 import useGetUsersFromRole from "@/hooks/role/useGetUsersFromRole";
-
-// ✅ NEW HOOKS
-import { useUsers } from "@/hooks/admin/useUsers";
 import { useUserRoleManagement } from "@/hooks/admin/useUserRoleManagement";
+import { useUsers } from "@/hooks/admin/useUsers";
+
+import { Role, fetchRolesPaginated } from "@/api/role/roles";
+import { User } from "@/api/admin/user";
+
+const DEFAULT_PAGE_SIZE = 10;
+const DEFAULT_SORT_BY = "nric_FullName";
+const DEFAULT_SORT_DIR: "asc" | "desc" = "asc";
+
+const VALID_PAGE_SIZES = [5, 10, 50, 100];
+
+function parsePageSize(raw: string | null): number {
+  const n = Number(raw ?? DEFAULT_PAGE_SIZE);
+
+  if (Number.isNaN(n) || n <= 0) {
+    return DEFAULT_PAGE_SIZE;
+  }
+
+  return n;
+}
 
 const AssignUserToRole: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const role = location.state?.role;
-
-  if (!role) {
-    return <div className="p-10">Invalid access. Please go back.</div>;
-  }
-
-  const [orphanUser, setOrphanUser] = useState<{ id: string; name: string } | null>(null);
-  const [allSystemRoles, setAllSystemRoles] = useState<Role[]>([]);
-
-  const [searchTerm, setSearchTerm] = useState("");
-  const debouncedSearch = useDebounce(searchTerm, 300);
-  const [page, setPage] = useState(0);
-
-  const [sortBy, setSortBy] = useState<string>("nric_FullName");
-  const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
-
-  const isAdminWorkbench = role.roleName === "ADMIN";
-
-  // IMPORTANT:
-  // This assumes your useUsers hook supports sortBy + sortDir.
-  // If it currently only accepts (page, search), update that hook/API call too.
-  const { data, isLoading } = useUsers(page, debouncedSearch);
-  const availableUsers = data?.users || [];
-  const total = data?.total || 0;
-
-  const { data: currentRoster } = useGetUsersFromRole(role.roleName);
-
-  const rosterIds = useMemo(
-    () => new Set(currentRoster?.map((u) => u.id)),
-    [currentRoster]
-  );
-
-  const { safeAssign, isProcessing } =
-    useUserRoleManagement(role.roleName);
+  const latestLocationRef = useRef(location);
 
   useEffect(() => {
-    fetchRolesPaginated(0, 50, "", "roleName", "asc").then((res) =>
-      setAllSystemRoles(res.roles)
-    );
+    latestLocationRef.current = location;
+  }, [location]);
+
+  const roleFromState = location.state?.role as Role | undefined;
+  const roleRef = useRef<Role | undefined>(roleFromState);
+
+  useEffect(() => {
+    if (roleFromState) {
+      roleRef.current = roleFromState;
+    }
+  }, [roleFromState]);
+
+  const role = roleFromState ?? roleRef.current;
+  const roleName = role?.roleName ?? "";
+  const isValidRole = !!role;
+
+  const [orphanUser, setOrphanUser] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
+
+  const [allSystemRoles, setAllSystemRoles] = useState<Role[]>([]);
+
+  const queryParams = useMemo(
+    () => new URLSearchParams(location.search),
+    [location.search]
+  );
+
+  const urlName = queryParams.get("name") ?? "";
+
+  const rawPage = Number(queryParams.get("page") ?? "0");
+  const page = Number.isNaN(rawPage) || rawPage < 0 ? 0 : rawPage;
+
+  const pageSize = parsePageSize(queryParams.get("pageSize"));
+
+  const urlSortBy = queryParams.get("sortBy") ?? DEFAULT_SORT_BY;
+
+  const urlSortDir = (
+    queryParams.get("sortDir") === "desc" ? "desc" : DEFAULT_SORT_DIR
+  ) as "asc" | "desc";
+
+  const updateQuery = useCallback(
+    (updates: {
+      name?: string;
+      page?: number;
+      pageSize?: number;
+      sortBy?: string;
+      sortDir?: "asc" | "desc";
+    }) => {
+      const currentSearch = latestLocationRef.current.search;
+      const next = new URLSearchParams(currentSearch);
+
+      const nextName = updates.name ?? next.get("name") ?? "";
+      const nextPage = updates.page ?? Number(next.get("page") ?? "0");
+      const nextPageSize =
+        updates.pageSize ?? parsePageSize(next.get("pageSize"));
+      const nextSortBy =
+        updates.sortBy ?? next.get("sortBy") ?? DEFAULT_SORT_BY;
+      const nextSortDir =
+        updates.sortDir ??
+        ((next.get("sortDir") === "desc"
+          ? "desc"
+          : DEFAULT_SORT_DIR) as "asc" | "desc");
+
+      if (nextName.trim()) {
+        next.set("name", nextName.trim());
+      } else {
+        next.delete("name");
+      }
+
+      if (nextPage > 0) {
+        next.set("page", String(nextPage));
+      } else {
+        next.delete("page");
+      }
+
+      if (nextPageSize !== DEFAULT_PAGE_SIZE) {
+        next.set("pageSize", String(nextPageSize));
+      } else {
+        next.delete("pageSize");
+      }
+
+      if (nextSortBy !== DEFAULT_SORT_BY) {
+        next.set("sortBy", nextSortBy);
+      } else {
+        next.delete("sortBy");
+      }
+
+      if (nextSortDir !== DEFAULT_SORT_DIR) {
+        next.set("sortDir", nextSortDir);
+      } else {
+        next.delete("sortDir");
+      }
+
+      const nextSearch = next.toString();
+      const normalizedCurrentSearch = currentSearch.startsWith("?")
+        ? currentSearch.slice(1)
+        : currentSearch;
+
+      if (nextSearch !== normalizedCurrentSearch) {
+        navigate(
+          {
+            pathname: latestLocationRef.current.pathname,
+            search: nextSearch ? `?${nextSearch}` : "",
+          },
+          {
+            replace: true,
+            state: latestLocationRef.current.state,
+          }
+        );
+      }
+    },
+    [navigate]
+  );
+
+  const [searchTerm, setSearchTerm] = useState(urlName);
+  const debouncedSearchTerm = useDebounce(searchTerm, 300);
+  const isExternalSync = useRef(false);
+
+  useEffect(() => {
+    isExternalSync.current = true;
+    setSearchTerm(urlName);
+  }, [urlName]);
+
+  useEffect(() => {
+    if (isExternalSync.current) {
+      isExternalSync.current = false;
+
+      if (debouncedSearchTerm === urlName) {
+        return;
+      }
+    }
+
+    updateQuery({
+      name: debouncedSearchTerm,
+      page: 0,
+    });
+  }, [debouncedSearchTerm, updateQuery, urlName]);
+
+  const { data, isLoading } = useUsers(
+    page,
+    pageSize,
+    urlName,
+    urlSortBy,
+    urlSortDir
+  );
+
+  const availableUsers = data?.users ?? [];
+  const total = data?.total ?? 0;
+
+  const isAdminWorkbench = roleName === "ADMIN";
+
+  const { data: currentRoster } = useGetUsersFromRole(roleName);
+
+  const rosterIds = useMemo(() => {
+    return new Set(currentRoster?.map((user: any) => user.id));
+  }, [currentRoster]);
+
+  const { safeAssign, isProcessing } = useUserRoleManagement();
+
+  useEffect(() => {
+    fetchRolesPaginated(0, 50)
+      .then((res) => {
+        setAllSystemRoles(res.roles ?? []);
+      })
+      .catch((error) => {
+        toast.error(
+          "Error fetching roles: " +
+            (error instanceof Error ? error.message : "Unknown error")
+        );
+      });
   }, []);
+
+  const handleAssignUser = (user: User) => {
+    safeAssign(user, roleName, isAdminWorkbench);
+  };
 
   const handleRescueUser = (targetRoleName: string) => {
     if (!orphanUser) return;
@@ -94,7 +253,14 @@ const AssignUserToRole: React.FC = () => {
       return;
     }
 
-    safeAssign({ id: orphanUser.id, roleName: "" }, targetRoleName, false);
+    safeAssign(
+      {
+        id: orphanUser.id,
+        roleName: "",
+      },
+      targetRoleName,
+      false
+    );
 
     toast.success(`${orphanUser.name} reassigned to ${targetRoleName}`);
     setOrphanUser(null);
@@ -102,40 +268,58 @@ const AssignUserToRole: React.FC = () => {
 
   const handleTableFetch = (
     nextPage: number,
-    _pageSize: number,
+    nextPageSize: number,
     nextSortBy?: string,
     nextSortDir?: "asc" | "desc"
   ) => {
-    setPage(nextPage);
+    const pageSizeChanged = nextPageSize !== pageSize;
+    const sortChanged =
+      nextSortBy !== urlSortBy || nextSortDir !== urlSortDir;
 
-    if (nextSortBy) {
-      setSortBy(nextSortBy);
-    }
-
-    if (nextSortDir) {
-      setSortDir(nextSortDir);
-    }
+    updateQuery({
+      page: pageSizeChanged || sortChanged ? 0 : nextPage,
+      pageSize: nextPageSize,
+      sortBy: nextSortBy ?? urlSortBy,
+      sortDir: nextSortDir ?? urlSortDir,
+    });
   };
 
-  const directoryColumns = [
+  const directoryColumns: {
+    key: keyof User | "actions";
+    header: string;
+    sortable?: boolean;
+    render?: (value: any, user: User) => React.ReactNode;
+    className?: string;
+  }[] = [
     {
       key: "nric_FullName",
       header: "Staff member",
       sortable: true,
-      render: (val: string, user: any) => (
+      render: (value: string, user: User) => (
         <div>
-          <div className="text-sm font-medium text-foreground">{val}</div>
+          <div className="text-sm font-medium text-foreground">{value}</div>
           <div className="text-sm text-muted-foreground">
             {user.roleName || "(unassigned)"}
           </div>
         </div>
       ),
     },
-
+    {
+      key: "email",
+      header: "Email",
+      sortable: true,
+    },
+    {
+      key: "roleName",
+      header: "Current Role",
+      sortable: true,
+      render: (value: string | null) => value || "(unassigned)",
+    },
     {
       key: "actions",
       header: "Status",
-      render: (_: any, user: any) => {
+      sortable: false,
+      render: (_: any, user: User) => {
         const isAlreadyInRole = rosterIds.has(user.id);
         const isUserAdmin = user.roleName === "ADMIN";
 
@@ -169,7 +353,7 @@ const AssignUserToRole: React.FC = () => {
             variant="outline"
             size="sm"
             disabled={isProcessing}
-            onClick={() => safeAssign(user, role.roleName, false)}
+            onClick={() => handleAssignUser(user)}
             className="h-8"
           >
             {isProcessing ? (
@@ -184,6 +368,34 @@ const AssignUserToRole: React.FC = () => {
     },
   ];
 
+  const pageSizeOptions =
+    total > 0
+      ? [
+          ...VALID_PAGE_SIZES.map((size) => ({
+            label: String(size),
+            value: size,
+          })),
+          ...(!VALID_PAGE_SIZES.includes(total)
+            ? [
+                {
+                  label: "All",
+                  value: total,
+                },
+              ]
+            : []),
+        ]
+      : VALID_PAGE_SIZES.map((size) => ({
+          label: String(size),
+          value: size,
+        }));
+
+  const effectivePageSize = Math.max(pageSize, 1);
+  const totalPages = total === 0 ? 0 : Math.ceil(total / effectivePageSize);
+
+  if (!isValidRole) {
+    return <div className="p-10">Invalid access. Please go back.</div>;
+  }
+
   return (
     <div className="min-h-screen bg-background p-6 font-sans">
       <div className="max-w-7xl mx-auto">
@@ -195,7 +407,9 @@ const AssignUserToRole: React.FC = () => {
         <div className="flex items-start justify-between gap-4 mb-8">
           <div className="flex items-center gap-4">
             <div className="flex-1 min-w-0 px-7">
-              <h1 className="text-3xl font-semibold">Assign Users to Role: {role.roleName}</h1>
+              <h1 className="text-3xl font-semibold">
+                Assign Users to Role: {roleName}
+              </h1>
               <p className="text-sm text-muted-foreground">
                 Manage staff assignments for this role.
               </p>
@@ -220,10 +434,7 @@ const AssignUserToRole: React.FC = () => {
                 <div className="w-[340px] shrink-0">
                   <Searchbar
                     searchItem={searchTerm}
-                    onSearchChange={(e) => {
-                      setSearchTerm(e.target.value);
-                      setPage(0);
-                    }}
+                    onSearchChange={(e) => setSearchTerm(e.target.value)}
                     placeholder="Search for staff..."
                   />
                 </div>
@@ -235,13 +446,14 @@ const AssignUserToRole: React.FC = () => {
                   columns={directoryColumns}
                   pagination={{
                     pageNo: page,
-                    pageSize: 10,
+                    pageSize,
                     totalRecords: total,
-                    totalPages: Math.ceil(total / 10),
+                    totalPages,
                   }}
                   fetchData={handleTableFetch}
-                  sortBy={sortBy}
-                  sortDir={sortDir}
+                  sortBy={urlSortBy}
+                  sortDir={urlSortDir}
+                  pageSizeOptions={pageSizeOptions}
                   loading={isLoading}
                   viewMore={false}
                 />
@@ -268,47 +480,27 @@ const AssignUserToRole: React.FC = () => {
 
               <CardContent className="flex-1 p-0">
                 <div className="max-h-[450px] overflow-y-auto divide-y divide-border">
-                  {currentRoster?.map((user: any) => {
-
-                    return (
-                      <div
-                        key={user.id}
-                        className="flex items-center justify-between px-6 py-3 hover:bg-muted/50"
-                      >
-                        <div>
-                          <div className="text-sm font-medium text-foreground">
-                            {user.FullName}
-                          </div>
-                          <div className="text-sm text-muted-foreground">
-                            {user.id}
-                          </div>
+                  {currentRoster?.map((user: any) => (
+                    <div
+                      key={user.id}
+                      className="flex items-center justify-between px-6 py-3 hover:bg-muted/50"
+                    >
+                      <div>
+                        <div className="text-sm font-medium text-foreground">
+                          {user.FullName}
                         </div>
-
-                        {/* <Button
-                          variant="ghost"
-                          size="sm"
-                          className="text-muted-foreground hover:text-primary hover:bg-accent"
-                          disabled={
-                            isProcessing || isAdminWorkbench || isUserAdmin
-                          }
-                          onClick={() =>
-                            safeRemove(user, isAdminWorkbench, () => {
-                              setOrphanUser({
-                                id: user.id,
-                                name: user.FullName || user.nric_FullName,
-                              });
-                            })
-                          }
-                        >
-                          {isUserAdmin ? (
-                            <Lock className="h-4 w-4" />
-                          ) : (
-                            <UserMinus className="h-4 w-4" />
-                          )}
-                        </Button> */}
+                        <div className="text-sm text-muted-foreground">
+                          {user.id}
+                        </div>
                       </div>
-                    );
-                  })}
+                    </div>
+                  ))}
+
+                  {!currentRoster?.length && (
+                    <div className="px-6 py-8 text-sm text-muted-foreground">
+                      No users are currently assigned to this role.
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -318,28 +510,31 @@ const AssignUserToRole: React.FC = () => {
         <footer className="flex items-center gap-3 px-5 py-5 mt-8 bg-pending/30 rounded-2xl border border-pending/50">
           <ShieldAlert className="h-4 w-4 text-pending-foreground" />
           <p className="text-[11px] text-pending-foreground font-semibold tracking-wide">
-            Role assignment changes impact system access and should be reviewed carefully.
+            Role assignment changes impact system access and should be reviewed
+            carefully.
           </p>
         </footer>
       </div>
 
       <Dialog open={!!orphanUser}>
         <DialogContent className="rounded-2xl [&>button]:hidden">
-          <DialogTitle className="text-xl font-semibold">Assign role</DialogTitle>
+          <DialogTitle className="text-xl font-semibold">
+            Assign role
+          </DialogTitle>
           <DialogDescription className="text-sm text-muted-foreground">
             {orphanUser?.name} needs a new role.
           </DialogDescription>
 
           <div className="space-y-2 mt-4">
-            {allSystemRoles.map((r) => (
+            {allSystemRoles.map((systemRole) => (
               <Button
-                key={r.id}
-                disabled={r.roleName === "ADMIN"}
-                onClick={() => handleRescueUser(r.roleName)}
+                key={systemRole.id}
+                disabled={systemRole.roleName === "ADMIN"}
+                onClick={() => handleRescueUser(systemRole.roleName)}
                 className="w-full justify-between"
                 variant="outline"
               >
-                <span>{r.roleName}</span>
+                <span>{systemRole.roleName}</span>
               </Button>
             ))}
           </div>
