@@ -108,7 +108,6 @@ export const fetchRolesPaginated = async (
     },
     headers: { Authorization: `Bearer ${token}` },
   });
-
   return response.data;
 };
 

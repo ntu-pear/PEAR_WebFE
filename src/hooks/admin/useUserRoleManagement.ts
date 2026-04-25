@@ -1,35 +1,24 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { updateUser } from "@/api/admin/user";
 import { toast } from "sonner";
 
 const ADMIN_ROLE = "ADMIN";
 
-// type RemovePayload = {
-//   userId: string;
-//   onSuccessCallback?: () => void;
-// };
-
-export const useUserRoleManagement = (roleName: string) => {
-  const queryClient = useQueryClient();
-
-  const refresh = () => {
-    queryClient.invalidateQueries({ queryKey: ["users"] });
-    queryClient.invalidateQueries({ queryKey: ["roster", roleName] });
-  };
-
-  // ✅ ASSIGN USER
+export const useUserRoleManagement = () => {
   const assignMutation = useMutation({
     mutationFn: ({
-  userId,
-  targetRoleName,
-}: {
-  userId: string;
-  targetRoleName: string;
-}) => updateUser(userId, { roleName: targetRoleName }),
+      userId,
+      targetRoleName,
+    }: {
+      userId: string;
+      targetRoleName: string;
+    }) => updateUser(userId, { roleName: targetRoleName }),
 
     onSuccess: () => {
       toast.success("User assigned");
-      refresh();
+
+      // Force hard refresh so all pages/data reload from backend
+      window.location.reload();
     },
 
     onError: () => {
@@ -37,63 +26,29 @@ export const useUserRoleManagement = (roleName: string) => {
     },
   });
 
-  // // ✅ REMOVE USER (WITH CALLBACK SUPPORT)
-  // const removeMutation = useMutation({
-  //   mutationFn: ({ userId }: RemovePayload) =>
-  //     updateUser(userId, { roleName: "" }),
-
-  //   onSuccess: (_, variables: RemovePayload) => {
-  //     toast.success("User removed");
-  //     refresh();
-
-  //     // 🔥 trigger orphan modal
-  //     variables.onSuccessCallback?.();
-  //   },
-
-  //   onError: () => {
-  //     toast.error("Failed to remove user");
-  //   },
-  // });
-
-  // ✅ SAFE ASSIGN
   const safeAssign = (
-  user: any,
-  targetRoleName: string,
-  isAdminWorkbench: boolean
-) => {
-  if (isAdminWorkbench || user.roleName === ADMIN_ROLE) {
-    toast.error("Admin cannot be modified");
-    return;
-  }
+    user: any,
+    targetRoleName: string,
+    isAdminWorkbench: boolean
+  ) => {
+    if (!targetRoleName) {
+      toast.error("No target role selected");
+      return;
+    }
 
-  assignMutation.mutate({
-    userId: user.id,
-    targetRoleName,
-  });
-};
+    if (isAdminWorkbench || user.roleName === ADMIN_ROLE) {
+      toast.error("Admin cannot be modified");
+      return;
+    }
 
-  // // ✅ SAFE REMOVE
-  // const safeRemove = (
-  //   user: any,
-  //   isAdminWorkbench: boolean,
-  //   onSuccessCallback?: () => void
-  // ) => {
-  //   if (isAdminWorkbench || user.roleName === ADMIN_ROLE) {
-  //     toast.error("Admin cannot be modified");
-  //     return;
-  //   }
+    assignMutation.mutate({
+      userId: user.id,
+      targetRoleName,
+    });
+  };
 
-  //   removeMutation.mutate({
-  //     userId: user.id,
-  //     onSuccessCallback,
-  //   });
-  // };
-
-  // ✅ CRITICAL RETURN (this was missing before)
   return {
     safeAssign,
-    // safeRemove,
-    isProcessing:
-      assignMutation.isPending, 
+    isProcessing: assignMutation.isPending,
   };
 };
