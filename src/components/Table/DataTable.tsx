@@ -279,7 +279,6 @@ export function DataTableClient<T extends TableRowData>({
     const sorted = [...data].sort((a, b) => {
       const aValue = getNestedValue(a, sortBy);
       const bValue = getNestedValue(b, sortBy);
-
       if (aValue == null && bValue == null) return 0;
       if (aValue == null) return 1;
       if (bValue == null) return -1;
