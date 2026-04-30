@@ -2,7 +2,6 @@ import { TimePicker } from "antd";
 import { Controller, FieldValues, Path, UseFormReturn } from "react-hook-form";
 import dayjs, { Dayjs } from "dayjs";
 
-const format = "HH:mm";
 
 type Props<T extends FieldValues> = {
   label: string;
@@ -29,8 +28,6 @@ export default function TimeInput<T extends FieldValues>({
   form,
   hourStep = 1,
   minuteStep = 5,
-  minHour,
-  maxHour,
   required = true,
 }: Props<T>) {
   const {
@@ -51,47 +48,63 @@ export default function TimeInput<T extends FieldValues>({
           required: required
             ? `Please select a value for ${label}.`
             : undefined,
+
+          validate: (value: string) => {
+            if (!value) return true;
+
+            // value is HHmm (e.g. "0900", "1700")
+            const hour = parseInt(value.slice(0, 2), 10);
+            const minute = parseInt(value.slice(2), 10);
+
+            // 9:00 AM – 5:00 PM rules
+            if (hour < 9 || hour > 17) {
+              return "Medication time must be between 9:00 AM and 5:00 PM.";
+            }
+
+            if (hour === 17 && minute !== 0) {
+              return "Only 5:00 PM is allowed as the last administration time.";
+            }
+
+            return true;
+          },
         }}
         render={({ field }) => {
           const value: Dayjs | null =
-            field.value && dayjs(field.value).isValid()
-              ? dayjs(field.value)
+            field.value && typeof field.value === "string"
+              ? dayjs(field.value, "HHmm")
               : null;
 
           return (
             <TimePicker
               value={value}
-              onChange={(time) => field.onChange(time)}
               id={name}
               className="w-full"
               size="large"
-              format={format}
+              format="h:mm A"
+              use12Hours
               hourStep={hourStep}
               minuteStep={minuteStep}
               placeholder={`Select ${label}`}
               needConfirm={false}
-
-              disabledHours={() => {
-                if (minHour === undefined || maxHour === undefined) return [];
-
-                const disabled: number[] = [];
-                for (let i = 0; i < 24; i++) {
-                  if (i < minHour || i > maxHour) {
-                    disabled.push(i);
-                  }
+              onChange={(time) => {
+                if (!time) {
+                  field.onChange("");
+                  return;
                 }
-                return disabled;
-              }}
 
+                // Store as HHmm (backend-compatible)
+                field.onChange(time.format("HHmm"));
+              }}
               getPopupContainer={(trigger) => trigger.parentElement!}
             />
           );
         }}
       />
 
+
       {errors[name] && (
         <p role="alert" className="text-red-600 text-sm">
-          The {label} field is required.
+          The {label} field is invalid. Proper timings within opening hours required.
         </p>
       )}
     </div>
