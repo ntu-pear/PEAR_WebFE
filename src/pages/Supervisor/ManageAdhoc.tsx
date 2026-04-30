@@ -23,9 +23,10 @@ import {
   CentreActivity,
 } from "@/api/activities/centreActivities"; 
 import { formatDateTimeNoYear, formatDateTime } from "@/utils/formatDate";
-import dayjs from "dayjs";
+import dayjs, { Dayjs } from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
+import { DatePicker } from "antd";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -63,9 +64,14 @@ const ManageAdhoc: React.FC = () => {
 
         return {
           ...a,
-          startDate: formatDateTimeNoYear(a.startDate ?? null),
-          endDate: formatDateTimeNoYear(a.endDate ?? null),
-          lastUpdated: formatDateTimeNoYear(a.lastUpdated ?? null),
+          startDate: a.startDate,        
+          endDate: a.endDate,              
+          lastUpdated: a.lastUpdated,     
+
+          startDateDisplay: formatDateTimeNoYear(a.startDate),
+          endDateDisplay: formatDateTimeNoYear(a.endDate),
+          lastUpdatedDisplay: formatDateTimeNoYear(a.lastUpdated ?? null),
+          //lastUpdated: formatDateTimeNoYear(a.lastUpdated ?? null),
 
           oldActivityTitle: getCentreActivityDisplayName(oldCentre),
           oldActivityDescription: getCentreActivityDescription(oldCentre),
@@ -163,8 +169,9 @@ const ManageAdhoc: React.FC = () => {
   const columns: DataTableColumns<AdhocActivity> = [
     { key: "lastUpdated", header: "Last Updated" },
     { key: "patientName", header: "Patient Name" },
-    { key: "startDate", header: "Start Date" },
-    { key: "endDate", header: "End Date" },
+    { key: "startDateDisplay", header: "Start Date" },
+    { key: "endDateDisplay", header: "End Date" },
+
     
     { key: "oldActivityTitle", header: "Original Activity" },
     { key: "oldActivityDescription", header: "Original Activity Description" },
@@ -315,8 +322,9 @@ interface EditAdhocModalProps {
 
 const EditAdhocModal: React.FC<EditAdhocModalProps> = ({ activity, open, onClose, onSave, centreActivityList, getDisplayName }) => {
   const [selectedActivityId, setSelectedActivityId] = useState<number | undefined>(activity?.newActivityId);
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
+  const [startDate, setStartDate] = useState<Dayjs | null>(null);
+  const [endDate, setEndDate] = useState<Dayjs | null>(null);
+
 
 
   
@@ -324,9 +332,11 @@ const EditAdhocModal: React.FC<EditAdhocModalProps> = ({ activity, open, onClose
     if (!activity) return;
 
     setSelectedActivityId(activity.newActivityId);
+    
+    
+    const startSG = dayjs.utc(activity.startDate).tz(SG_TZ);
+    const endSG = dayjs.utc(activity.endDate).tz(SG_TZ);
 
-    const startSG = dayjs(activity.startDate).tz(SG_TZ).format("YYYY-MM-DDTHH:mm");
-    const endSG = dayjs(activity.endDate).tz(SG_TZ).format("YYYY-MM-DDTHH:mm");
 
     setStartDate(startSG);
     setEndDate(endSG);
@@ -365,19 +375,23 @@ const EditAdhocModal: React.FC<EditAdhocModalProps> = ({ activity, open, onClose
 
           <div>
             <label className="text-sm font-medium">Start Date</label>
-            <Input
-              type="datetime-local"
+            <DatePicker
               value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
+              onChange={(value) => setStartDate(value)}
+              showTime={{ use12Hours: true, format: "h:mm A" }}
+              format="DD-MMM-YYYY h:mm A"
+              className="w-full"
             />
           </div>
 
           <div>
             <label className="text-sm font-medium">End Date</label>
-            <Input
-              type="datetime-local"
+            <DatePicker
               value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
+              onChange={(value) => setEndDate(value)}
+              showTime={{ use12Hours: true, format: "h:mm A" }}
+              format="DD-MMM-YYYY h:mm A"
+              className="w-full"
             />
           </div>
         </div>
@@ -385,10 +399,24 @@ const EditAdhocModal: React.FC<EditAdhocModalProps> = ({ activity, open, onClose
         <DialogFooter className="mt-4 flex space-x-2">
           <Button
             onClick={() => {
-              if (!selectedActivityId && selectedActivityId !== 0) return alert("Select a new activity");
-              const newId = selectedActivityId === -1 ? activity.newActivityId : selectedActivityId;
-              onSave({ ...activity, newActivityId: newId, startDate, endDate });
+              if (!startDate || !endDate) {
+                alert("Please select valid start and end dates");
+                return;
+              }
+
+              const newId =
+                selectedActivityId === -1
+                  ? activity.newActivityId
+                  : selectedActivityId;
+
+              onSave({
+                ...activity,
+                newActivityId: newId,
+                startDate: startDate.tz(SG_TZ).toISOString(),
+                endDate: endDate.tz(SG_TZ).toISOString(),
+              });
             }}
+
           >
             Save
           </Button>
