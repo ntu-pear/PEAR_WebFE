@@ -27,7 +27,6 @@ const AddAdhoc: React.FC = () => {
   const [activityMap, setActivityMap] = useState<Record<number, string>>({});
   const [availabilities, setAvailabilities] =
     useState<CentreActivityAvailability[]>([]);
-  const [loadingAvailabilities, setLoadingAvailabilities] = useState(true);
 
   const onFinish = async (values: any) => {
     try {
@@ -131,8 +130,6 @@ const AddAdhoc: React.FC = () => {
       } catch (error) {
         console.error("Failed to fetch availabilities", error);
         message.error("Failed to load activity availabilities");
-      } finally {
-        setLoadingAvailabilities(false);
       }
     };
 
