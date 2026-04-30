@@ -2,6 +2,12 @@ import { centreActivityAvailabilitiesAPI,
         getCurrentUserAPI
 } from "@/api/apiConfig";
 import { retrieveAccessTokenFromCookie } from "@/api/users/auth";
+import dayjs from "dayjs";
+import isSameOrAfter from "dayjs/plugin/isSameOrAfter";
+import isSameOrBefore from "dayjs/plugin/isSameOrBefore";
+import type { Dayjs } from "dayjs";
+dayjs.extend(isSameOrAfter);
+dayjs.extend(isSameOrBefore);
 
 export interface CentreActivityAvailability {
   id: number;
@@ -130,3 +136,31 @@ export async function softDeleteCentreActivityAvailability(id: number) {
   return res.data;
 };
 
+export async function listAvailabilitiesForAdhoc(date: string) {
+  const res = await listCentreActivityAvailabilities({
+    include_deleted: false,
+    limit: 1000,
+  });
+
+  return res.filter(a =>
+    dayjs(date).isSameOrAfter(dayjs(a.start_date)) &&
+    dayjs(date).isSameOrBefore(dayjs(a.end_date))
+  );
+}
+
+export function availabilityCoversTime(
+  availability: CentreActivityAvailability,
+  start: Dayjs,
+  end: Dayjs
+) {
+  const availStart = dayjs(availability.start_time, "HH:mm:ss");
+  const availEnd = dayjs(availability.end_time, "HH:mm:ss");
+
+  const startTime = start.hour(availStart.hour()).minute(availStart.minute());
+  const endTime = start.hour(availEnd.hour()).minute(availEnd.minute());
+
+  return (
+    start.isSameOrAfter(startTime) &&
+    end.isSameOrBefore(endTime)
+  );
+}
