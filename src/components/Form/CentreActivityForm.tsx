@@ -7,6 +7,8 @@ import dayjs from "dayjs";
 import { toast } from "sonner";
 import { listActivities } from "@/api/activities/activities";
 import { type FormErrors, type CentreActivityFormValues, validateLocal } from "@/lib/validation/centreActivity";
+import { useCareCentreHours } from "@/hooks/activities/useCareCentreHours";
+
 
 type Props = {
   initial?: CentreActivityFormValues & {id?: number};
@@ -48,27 +50,74 @@ export default function CentreActivityForm({
   const [max_duration, setMax_duration] = useState<number>(initial?.max_duration ?? 60);
   const [is_group, setIs_Group] = useState(initial?.is_group ?? false);
   const [min_people_req, setMin_people_req] = useState(initial?.min_people_req ?? 1);
-  const [fixed_time_slots, setFixed_time_slots] = useState(initial?.fixed_time_slots ?? "");
   const [selectedDays, setSelectedDays] = useState<string[]>([]);
   const [dayTimes, setDayTimes] = useState<Record<string, string>>({});
   const [is_deleted, setIsDeleted] = useState(initial?.is_deleted ?? false);
   const [deleted] = useState(initial?.is_deleted ?? false);
-  const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
-  const timeOptions = [
-    "09:00", "09:30", "10:00", "10:30",
-    "11:00", "11:30", "12:00", "12:30",
-    "13:00", "13:30", "14:00", "14:30",
-    "15:00", "15:30", "16:00", "16:30"
-  ];
+
+  
+  const DAY_CODE_TO_LABEL: Record<string, string> = {
+    MON: "Monday",
+    TUE: "Tuesday",
+    WED: "Wednesday",
+    THU: "Thursday",
+    FRI: "Friday",
+    SAT: "Saturday",
+    SUN: "Sunday",
+  };
+
   const formattedTimeSlots = selectedDays
-  .sort()
-  .map(day => `${day} ${dayTimes[day]}`)
-  .join(",");
+    .sort()
+    .map(dayCode => {
+      const label = DAY_CODE_TO_LABEL[dayCode];
+      const time = dayTimes[dayCode];
+      return label && time ? `${label} ${time}` : "";
+    })
+    .filter(Boolean)
+    .join(",");
+
   const indefiniteDate = dayjs(new Date(2999, 0, 1).toDateString()).format("YYYY-MM-DD");
   const [errors, setErrors] = useState<FormErrors>({ _summary: [] });
   const [activities, setActivities] = useState<Activity[]>([]);
 
-  
+  const { centre } = useCareCentreHours();
+  const workingHours = centre?.working_hours;
+
+
+  const WEEKDAY_MAP = [
+    { key: "monday", label: "Monday", code: "MON" },
+    { key: "tuesday", label: "Tuesday", code: "TUE" },
+    { key: "wednesday", label: "Wednesday", code: "WED" },
+    { key: "thursday", label: "Thursday", code: "THU" },
+    { key: "friday", label: "Friday", code: "FRI" },
+    { key: "saturday", label: "Saturday", code: "SAT" },
+    { key: "sunday", label: "Sunday", code: "SUN" },
+  ];
+
+  const availableDays = useMemo(() => {
+    if (!workingHours) return [];
+
+    return WEEKDAY_MAP.filter(d => {
+      const wh = workingHours[d.key as keyof typeof workingHours];
+      return wh.open && wh.close;
+    });
+  }, [workingHours]);
+
+  function buildTimeOptions(open: string, close: string) {
+    const result: string[] = [];
+
+    const start = dayjs(open, "HH:mm");
+    const end = dayjs(close, "HH:mm");
+
+    let current = start;
+    while (current.isBefore(end)) {
+      result.push(current.format("HH:mm"));
+      current = current.add(30, "minute");
+    }
+
+    return result;
+  }
+
   const sortedActivities = useMemo(() => {
     return [...activities].sort((a, b) =>
       a.title.localeCompare(b.title, undefined, { sensitivity: "base" })
@@ -266,11 +315,12 @@ export default function CentreActivityForm({
                 value={choice.value.toString()}
                 disabled={is_deleted ? true : false}
                 checked={is_fixed === choice.value ? true : false}
-                onChange={() =>{
+                onChange={() => {
                   setIs_Fixed(choice.value);
 
-                  if (!choice.value && fixed_time_slots.length > 0) {
-                    setFixed_time_slots("");
+                  if (!choice.value) {
+                    setSelectedDays([]);
+                    setDayTimes({});
                   }
                 }}
               />
@@ -284,49 +334,67 @@ export default function CentreActivityForm({
       
       {is_fixed && (
         <div className="space-y-2">
-          <Label>Select Days</Label>
           <div className="flex flex-wrap gap-2">
-            {days.map(day => (
-              <div key={day} className="flex items-center gap-2 border px-3 py-2 rounded">
-                <input
-                  type="checkbox"
-                  checked={selectedDays.includes(day)}
-                  onChange={(e) => {
-                    if (e.target.checked) {
-                      setSelectedDays([...selectedDays, day]);
-                    } else {
-                      setSelectedDays(selectedDays.filter(d => d !== day));
 
-                      // remove time if unchecked
-                      const newTimes = { ...dayTimes };
-                      delete newTimes[day];
-                      setDayTimes(newTimes);
-                    }
-                  }}
-                />
+            {is_fixed && (
+              <div className="space-y-2">
+                <Label>Select Days *</Label>
 
-                <span>{day}</span>
+                <div className="flex flex-wrap gap-3">
+                  {availableDays.map(day => {
+                    const wh = workingHours?.[day.key as keyof typeof workingHours];
+                    if (!wh?.open || !wh?.close) return null;
 
-                {selectedDays.includes(day) && (
-                  <select
-                    value={dayTimes[day] || "09:00"}
-                    onChange={(e) =>
-                      setDayTimes({
-                        ...dayTimes,
-                        [day]: e.target.value,
-                      })
-                    }
-                    className="border rounded px-2 py-1 ml-2"
-                  >
-                    {timeOptions.map(time => (
-                      <option key={time} value={time}>
-                        {time}
-                      </option>
-                    ))}
-                  </select>
-                )}
+                    const timeOptions = buildTimeOptions(wh.open, wh.close);
+
+                    return (
+                      <div key={day.code} className="flex items-center gap-2 border px-3 py-2 rounded">
+                        <input
+                          type="checkbox"
+                          checked={selectedDays.includes(day.code)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setSelectedDays([...selectedDays, day.code]);
+                              setDayTimes(prev => ({
+                                ...prev,
+                                [day.code]: timeOptions[0],
+                              }));
+                            } else {
+                              setSelectedDays(selectedDays.filter(d => d !== day.code));
+
+                              const newTimes = { ...dayTimes };
+                              delete newTimes[day.code];
+                              setDayTimes(newTimes);
+                            }
+                          }}
+                        />
+
+                        <span>{day.label}</span>
+
+                        {selectedDays.includes(day.code) && (
+                          <select
+                            className="border rounded px-2 py-1"
+                            value={dayTimes[day.code] ?? timeOptions[0]}
+                            onChange={(e) =>
+                              setDayTimes({
+                                ...dayTimes,
+                                [day.code]: e.target.value,
+                              })
+                            }
+                          >
+                            {timeOptions.map(t => (
+                              <option key={t} value={t}>{t}</option>
+                            ))}
+                          </select>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
-            ))}
+            )}
+
+            
           </div>
         </div>
         
