@@ -18,7 +18,6 @@ import {
   addPatientMedication,
   IMedicationFormData,
 } from "@/api/patients/medication";
-import dayjs from "dayjs";
 
 type TAddMedicationForm = {
   PrescriptionListId: number;
@@ -76,31 +75,18 @@ const AddMedicationModal: React.FC = () => {
     AdministerTime,
     ...data
   }) => {
-    const time = dayjs(AdministerTime).format("HHmm");
-
-    const hour = parseInt(time.slice(0, 2), 10);
-    const minute = time.slice(2);
-
-    if (hour < 9 || hour > 17) {
-      toast.error("Only 09:00–17:00 allowed");
-      return;
-    }
-
-    if (hour === 17 && minute !== "00") {
-      toast.error("Only 17:00 is allowed");
-      return;
-    }
 
     const payload: IMedicationFormData = {
       IsDeleted: "0",
       PatientId: parseInt(patientId as string, 10),
-      AdministerTime: time,
+      AdministerTime: AdministerTime, 
       ...data,
-      CreatedDateTime: getDateTimeNowInUTC() as string,
-      UpdatedDateTime: getDateTimeNowInUTC() as string,
-      CreatedById: submitterId as string,
-      ModifiedById: submitterId as string,
+      CreatedDateTime: getDateTimeNowInUTC(),
+      UpdatedDateTime: getDateTimeNowInUTC(),
+      CreatedById: submitterId,
+      ModifiedById: submitterId,
     };
+
 
     try {
       await addPatientMedication(payload);
@@ -166,8 +152,6 @@ const AddMedicationModal: React.FC = () => {
             label="Administer Time"
             name="AdministerTime"
             form={form}
-            minHour={9}
-            maxHour={16}
           />
 
           <Input

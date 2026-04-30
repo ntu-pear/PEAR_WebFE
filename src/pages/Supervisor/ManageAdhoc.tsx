@@ -10,7 +10,6 @@ import Searchbar from "@/components/Searchbar";
 import { DataTableClient, DataTableColumns } from "@/components/Table/DataTable";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import {
   listAdhocActivities,
   AdhocActivity,
@@ -22,10 +21,16 @@ import {
   listCentreActivities,
   CentreActivity,
 } from "@/api/activities/centreActivities"; 
+import {
+  listCentreActivityAvailabilities,
+  availabilityCoversTime,
+  CentreActivityAvailability,
+} from "@/api/activities/centreActivityAvailabilities";
 import { formatDateTimeNoYear, formatDateTime } from "@/utils/formatDate";
-import dayjs from "dayjs";
+import dayjs, { Dayjs } from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
+import { DatePicker } from "antd";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -63,9 +68,14 @@ const ManageAdhoc: React.FC = () => {
 
         return {
           ...a,
-          startDate: formatDateTimeNoYear(a.startDate ?? null),
-          endDate: formatDateTimeNoYear(a.endDate ?? null),
-          lastUpdated: formatDateTimeNoYear(a.lastUpdated ?? null),
+          startDate: a.startDate,        
+          endDate: a.endDate,              
+          lastUpdated: a.lastUpdated,     
+
+          startDateDisplay: formatDateTimeNoYear(a.startDate),
+          endDateDisplay: formatDateTimeNoYear(a.endDate),
+          lastUpdatedDisplay: formatDateTimeNoYear(a.lastUpdated ?? null),
+          //lastUpdated: formatDateTimeNoYear(a.lastUpdated ?? null),
 
           oldActivityTitle: getCentreActivityDisplayName(oldCentre),
           oldActivityDescription: getCentreActivityDescription(oldCentre),
@@ -129,6 +139,12 @@ const ManageAdhoc: React.FC = () => {
     }
   }, [centreActivityList, activityList]);
 
+  useEffect(() => {
+    listCentreActivityAvailabilities({ include_deleted: false, limit: 1000 })
+      .catch(err => console.error("Failed to load availabilities", err));
+  }, []);
+
+
   const activityMap = React.useMemo(() => {
     const map: Record<number, Activity> = {};
     activityList.forEach(a => {
@@ -163,8 +179,9 @@ const ManageAdhoc: React.FC = () => {
   const columns: DataTableColumns<AdhocActivity> = [
     { key: "lastUpdated", header: "Last Updated" },
     { key: "patientName", header: "Patient Name" },
-    { key: "startDate", header: "Start Date" },
-    { key: "endDate", header: "End Date" },
+    { key: "startDateDisplay", header: "Start Date" },
+    { key: "endDateDisplay", header: "End Date" },
+
     
     { key: "oldActivityTitle", header: "Original Activity" },
     { key: "oldActivityDescription", header: "Original Activity Description" },
@@ -231,8 +248,13 @@ const ManageAdhoc: React.FC = () => {
         onClose={() => setEditModalOpen(false)}
         onSave={async (updated) => {
           try {
-            const startISO = dayjs.tz(updated.startDate, SG_TZ).format();
-            const endISO = dayjs.tz(updated.endDate, SG_TZ).format();
+            const startISO = dayjs(updated.startDate)
+              .tz(SG_TZ)
+              .format("YYYY-MM-DDTHH:mm:ss");
+
+            const endISO = dayjs(updated.endDate)
+              .tz(SG_TZ)
+              .format("YYYY-MM-DDTHH:mm:ss");
             const modifiedISO = dayjs.tz(new Date(), SG_TZ).format();
 
             // Swap old/new if activity changed
@@ -279,8 +301,11 @@ const ManageAdhoc: React.FC = () => {
                       newActivityTitle: getCentreActivityDisplayName(newActivity),
                       newActivityDescription: getCentreActivityDescription(newActivity),
                
-                      startDate: formatDateTime(payload.startDate),
-                      endDate: formatDateTime(payload.endDate),
+                      startDate: payload.startDate,
+                      endDate: payload.endDate,
+
+                      startDateDisplay: formatDateTimeNoYear(payload.startDate),
+                      endDateDisplay: formatDateTimeNoYear(payload.endDate),
                       status: payload.status,
                       isDeleted: payload.isDeleted,
                       modifiedById: payload.modifiedById,
@@ -315,24 +340,49 @@ interface EditAdhocModalProps {
 
 const EditAdhocModal: React.FC<EditAdhocModalProps> = ({ activity, open, onClose, onSave, centreActivityList, getDisplayName }) => {
   const [selectedActivityId, setSelectedActivityId] = useState<number | undefined>(activity?.newActivityId);
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
+  const [startDate, setStartDate] = useState<Dayjs | null>(null);
+  const [endDate, setEndDate] = useState<Dayjs | null>(null);
+  const [availabilities, setAvailabilities] =
+    useState<CentreActivityAvailability[]>([]);
 
-
-  
   useEffect(() => {
     if (!activity) return;
 
     setSelectedActivityId(activity.newActivityId);
 
-    const startSG = dayjs(activity.startDate).tz(SG_TZ).format("YYYY-MM-DDTHH:mm");
-    const endSG = dayjs(activity.endDate).tz(SG_TZ).format("YYYY-MM-DDTHH:mm");
+    const startSG = dayjs.utc(activity.startDate).tz(SG_TZ);
+    const endSG = dayjs.utc(activity.endDate).tz(SG_TZ);
 
     setStartDate(startSG);
     setEndDate(endSG);
   }, [activity]);
 
-  if (!activity) return null;
+
+  useEffect(() => {
+    listCentreActivityAvailabilities({ include_deleted: false, limit: 1000 })
+      .then(setAvailabilities)
+      .catch(err =>
+        console.error("Failed to load availabilities", err)
+      );
+  }, []);
+
+  const validReplacementIds = React.useMemo(() => {
+    if (!startDate || !endDate) return [];
+
+    const selectedDate = startDate.format("YYYY-MM-DD");
+
+    return availabilities
+      .filter(a => {
+        if (selectedDate < a.start_date || selectedDate > a.end_date) {
+          return false;
+        }
+
+        return availabilityCoversTime(a, startDate, endDate);
+      })
+      .map(a => a.centre_activity_id);
+  }, [availabilities, startDate, endDate]);
+
+   if (!activity) return null;
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -350,34 +400,51 @@ const EditAdhocModal: React.FC<EditAdhocModalProps> = ({ activity, open, onClose
               onChange={(e) => setSelectedActivityId(Number(e.target.value))}
             >
               <option value={-1}>Keep Current</option>
-              {[...centreActivityList]
+              {centreActivityList
+                .filter(ca => validReplacementIds.includes(ca.id))
                 .sort((a, b) =>
                   getDisplayName(a).localeCompare(getDisplayName(b))
                 )
-                .map((ca) => (
+                .map(ca => (
                   <option key={ca.id} value={ca.id}>
                     {getDisplayName(ca).toUpperCase()}
                   </option>
                 ))}
+
 
             </select>
           </div>
 
           <div>
             <label className="text-sm font-medium">Start Date</label>
-            <Input
-              type="datetime-local"
+            <DatePicker
               value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
+                onChange={(value) => {
+                  if (!value) return;
+                  setStartDate(value.second(0));
+                  setSelectedActivityId(undefined); 
+                }}
+
+              showTime={{ use12Hours: true, format: "h:mm A" }}
+              format="DD-MMM-YYYY h:mm A"
+              className="w-full"
             />
           </div>
 
           <div>
             <label className="text-sm font-medium">End Date</label>
-            <Input
-              type="datetime-local"
+            <DatePicker
               value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
+              
+              onChange={(value) => {
+                  if (!value) return;
+                  setEndDate(value.second(0));
+                  setSelectedActivityId(undefined); 
+                }}
+
+              showTime={{ use12Hours: true, format: "h:mm A" }}
+              format="DD-MMM-YYYY h:mm A"
+              className="w-full"
             />
           </div>
         </div>
@@ -385,10 +452,24 @@ const EditAdhocModal: React.FC<EditAdhocModalProps> = ({ activity, open, onClose
         <DialogFooter className="mt-4 flex space-x-2">
           <Button
             onClick={() => {
-              if (!selectedActivityId && selectedActivityId !== 0) return alert("Select a new activity");
-              const newId = selectedActivityId === -1 ? activity.newActivityId : selectedActivityId;
-              onSave({ ...activity, newActivityId: newId, startDate, endDate });
+              if (!startDate || !endDate) {
+                alert("Please select valid start and end dates");
+                return;
+              }
+
+              const newId =
+                selectedActivityId === -1
+                  ? activity.newActivityId
+                  : selectedActivityId;
+
+              onSave({
+                ...activity,
+                newActivityId: newId,
+                startDate: startDate.tz(SG_TZ).toISOString(),
+                endDate: endDate.tz(SG_TZ).toISOString(),
+              });
             }}
+
           >
             Save
           </Button>

@@ -68,7 +68,7 @@ export const formatDateTimeNoYear = (date: string | null) => {
 export const formatTimeForInput12h = () => {
   return dayjs()
     .tz("Asia/Singapore") // use Singapore time
-    .format("hh:mm A");   // 12-hour format with correct AM/PM
+    .format("h:mm A");   // 12-hour format with correct AM/PM
 };
 
 export const formatTimeFromHHMMSS = (time: string) => {
@@ -78,7 +78,7 @@ export const formatTimeFromHHMMSS = (time: string) => {
 
 
 export const to12HourParts = (time: string) => {
-  const d = dayjs(time, "HH:mm");
+  const d = dayjs(time, "H:mm");
   return {
     hour: d.format("h"),      // "9"
     minute: d.format("mm"),   // "00"
@@ -87,6 +87,6 @@ export const to12HourParts = (time: string) => {
 };
 
 export const to24Hour = (hour: string, minute: string, period: "AM" | "PM") => {
-  return dayjs(`${hour}:${minute} ${period}`, "h:mm A").format("HH:mm");
+  return dayjs(`${hour}:${minute} ${period}`, "h:mm A").format("H:mm");
 };
 ``

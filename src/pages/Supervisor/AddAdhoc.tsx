@@ -6,8 +6,18 @@ import React, { useEffect, useState } from "react";
 import { fetchAllPatientTD } from "@/api/patients/patients";
 import { createAdhocActivity } from "@/api/activities/adhoc"; 
 import { listCentreActivities, CentreActivity, getActivities } from "@/api/activities/centreActivities";
+import {
+  listCentreActivityAvailabilities,
+  availabilityCoversTime,
+  CentreActivityAvailability,
+} from "@/api/activities/centreActivityAvailabilities";
+
 
 const AddAdhoc: React.FC = () => {
+  const [form] = Form.useForm();
+  const startDate: Dayjs | null = Form.useWatch("start_date", form);
+  const endDate: Dayjs | null = Form.useWatch("end_date", form);
+
   const [activities, setActivities] = useState<CentreActivity[]>([]);
   const [loadingActivities, setLoadingActivities] = useState(true);
 
@@ -15,21 +25,26 @@ const AddAdhoc: React.FC = () => {
   const [loadingPatients, setLoadingPatients] = useState(true);
 
   const [activityMap, setActivityMap] = useState<Record<number, string>>({});
-
-
-  const [form] = Form.useForm();
+  const [availabilities, setAvailabilities] =
+    useState<CentreActivityAvailability[]>([]);
 
   const onFinish = async (values: any) => {
+    const startISO = values.start_date
+      .second(0)
+      .format("YYYY-MM-DDTHH:mm:ss");
+
+    const endISO = values.end_date
+      .second(0)
+      .format("YYYY-MM-DDTHH:mm:ss");
+    
     try {
       // call the service instead of using fetch
       await createAdhocActivity({
         patientId: Number(values.patient_id),
         oldActivityId: Number(values.old_centre_activity_id),
         newActivityId: Number(values.new_centre_activity_id),
-        startDate: values.start_date.format("YYYY-MM-DDTHH:mm:ss.SSS") + "000",
-        endDate: values.end_date.format("YYYY-MM-DDTHH:mm:ss.SSS") + "000",
-        // optional fields; status defaults to PENDING in the API service
-        // created_by_id will default to "system" if not passed
+        startDate: startISO,
+        endDate: endISO,
       });
 
       message.success("Adhoc activity added successfully!");
@@ -62,6 +77,42 @@ const AddAdhoc: React.FC = () => {
     return Promise.resolve();
   };
 
+  const validReplacementActivityIds = React.useMemo(() => {
+    if (!startDate || !endDate) return [];
+
+        
+    if (!startDate.isBefore(endDate)) {
+        return [];
+      }
+
+    const selectedDate = startDate.format("YYYY-MM-DD");
+
+    return availabilities
+      .filter((a) => {
+        // Date range check (inclusive)
+        if (selectedDate < a.start_date || selectedDate > a.end_date) {
+          return false;
+        }
+
+        // Time window check
+        return availabilityCoversTime(a, startDate, endDate);
+      })
+      .map((a) => a.centre_activity_id);
+  }, [availabilities, startDate, endDate]);
+
+  const validateAvailabilityMatch: RuleObject["validator"] = async () => {
+    const newId = form.getFieldValue("new_centre_activity_id");
+    if (!newId) return Promise.resolve();
+
+    if (!getValidReplacementActivityIds().includes(newId)) {
+      return Promise.reject(
+        new Error("Selected activity does not match the chosen date and time window.")
+      );
+    }
+
+    return Promise.resolve();
+  };
+
   const validateEndDate = (
     _: RuleObject,
     value: Dayjs | null
@@ -80,11 +131,31 @@ const AddAdhoc: React.FC = () => {
 
 
   useEffect(() => {
-    const now = dayjs();
+    const fetchAvailabilities = async () => {
+      try {
+        const res = await listCentreActivityAvailabilities({
+          include_deleted: false,
+          limit: 1000,
+        });
+        setAvailabilities(res);
+      } catch (error) {
+        console.error("Failed to fetch availabilities", error);
+        message.error("Failed to load activity availabilities");
+      }
+    };
+
+    fetchAvailabilities();
+  }, []);
+
+  useEffect(() => {
+    const todayMorning = dayjs()
+      .hour(9)
+      .minute(0)
+      .second(0);
 
     form.setFieldsValue({
-      start_date: now,
-      end_date: now.add(1, "hour"),
+      start_date: todayMorning,
+      end_date: todayMorning.add(1, "hour"),
     });
   }, [form]);
 
@@ -164,6 +235,46 @@ const AddAdhoc: React.FC = () => {
 
     fetchActivities();
   }, []);
+
+  const getValidReplacementActivityIds = () => {
+    const start: Dayjs | null = form.getFieldValue("start_date");
+    const end: Dayjs | null = form.getFieldValue("end_date");
+
+    if (!start || !end) return [];
+
+    const selectedDate = start.startOf("day");
+
+    console.log("Adhoc start:", start.format());
+    console.log("Adhoc end:", end.format());
+
+    availabilities.forEach(a => {
+      console.log(
+        "Checking availability",
+        a.centre_activity_id,
+        a.start_date,
+        a.end_date,
+        a.start_time,
+        a.end_time,
+        availabilityCoversTime(a, start, end)
+      );
+    });
+
+
+    return availabilities
+      .filter((a) => {
+        // Date range must cover selected date
+        const dateMatches =
+          selectedDate.isSameOrAfter(dayjs(a.start_date)) &&
+          selectedDate.isSameOrBefore(dayjs(a.end_date));
+
+        if (!dateMatches) return false;
+
+        // Time window must fully cover adhoc interval
+        return availabilityCoversTime(a, start, end);
+      })
+      .map((a) => a.centre_activity_id);
+  };
+
 
   const getSortedActivities = () => {
     return [...activities].sort((a, b) => {
@@ -308,6 +419,7 @@ const AddAdhoc: React.FC = () => {
                         {(activityMap[activity.activity_id] ?? "Unknown Activity").toUpperCase()}
                       </option>
                     ))}
+
                   </select>
 
                 </Form.Item>
@@ -326,6 +438,7 @@ const AddAdhoc: React.FC = () => {
                       message: "Please select a adhoc!",
                     },
                     { validator: validateDifferentActivity },
+                    { validator: validateAvailabilityMatch },
                   ]}
                   className="sm:col-span-4"
                 >
@@ -352,16 +465,21 @@ const AddAdhoc: React.FC = () => {
 
 
                   >
-                    <option value="" disabled>
+                    <option value="">
                       Select New Activity to be Ad hoc
                     </option>
 
                     
-                    {getSortedActivities().map((activity) => (
-                      <option key={activity.id} value={activity.id}>
-                        {(activityMap[activity.activity_id] ?? "Unknown Activity").toUpperCase()}
-                      </option>
+                    {getSortedActivities()
+                      .filter((activity) =>
+                        validReplacementActivityIds.includes(activity.id)
+                      )
+                      .map((activity) => (
+                        <option key={activity.id} value={activity.id}>
+                          {(activityMap[activity.activity_id] ?? "Unknown Activity").toUpperCase()}
+                        </option>
                     ))}
+
 
                   </select>
 
@@ -380,11 +498,26 @@ const AddAdhoc: React.FC = () => {
                   <DatePicker
                     showTime={{
                       use12Hours: true,
-                      format: "h:mm A",  
+                      format: "h:mm A",
                     }}
                     format="YYYY-MM-DD h:mm A"
                     className="w-full"
+                    onChange={(value) => {
+                      if (!value) return;
+
+                      form.setFields([
+                        { name: "start_date", value: value.second(0) },
+                        {
+                          name: "new_centre_activity_id",
+                          value: "",
+                        },
+                      ]);
+
+                      
+                      form.validateFields(["new_centre_activity_id"]);
+                    }}
                   />
+
 
                 </Form.Item>
 
@@ -404,11 +537,25 @@ const AddAdhoc: React.FC = () => {
                   <DatePicker
                     showTime={{
                       use12Hours: true,
-                      format: "h:mm A",   
+                      format: "h:mm A",
                     }}
                     format="YYYY-MM-DD h:mm A"
                     className="w-full"
+                    onChange={(value) => {
+                      if (!value) return;
+
+                      form.setFields([
+                        { name: "end_date", value: value.second(0) },
+                        {
+                          name: "new_centre_activity_id",
+                          value: "", 
+                        },
+                      ]);
+
+                      form.validateFields(["new_centre_activity_id"]);
+                    }}
                   />
+
 
                 </Form.Item>
 
@@ -426,7 +573,16 @@ const AddAdhoc: React.FC = () => {
               </button>
               <button
                 type="submit"
-                className="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                
+                className="
+                    rounded-md bg-black px-3 py-2
+                    text-sm font-semibold text-white
+                    shadow-sm
+                    hover:bg-gray-800
+                    focus-visible:outline focus-visible:outline-2
+                    focus-visible:outline-offset-2 focus-visible:outline-black
+                  "
+
               >
                 Add Adhoc
               </button>

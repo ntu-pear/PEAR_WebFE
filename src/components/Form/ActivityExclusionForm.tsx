@@ -175,15 +175,15 @@ export default function CentreActivityExclusionForm({
     <form className="space-y-4" onSubmit={handleSubmit}>
       {/* Activity Selection */}
       {isEditing ? (
-  <div className="space-y-2">
-    <Label>Activity</Label>
-    <div className="h-10 flex items-center rounded-md border bg-muted px-3 text-sm">
-      {
-        centreActivities.find(ca => ca.id.toString() === centreActivityId)
-          ?.activity_title || "Unknown Activity"
-      }
-    </div>
-  </div>
+      <div className="mb-6">
+        <p className="text-sm text-muted-foreground mb-1">Activity</p>
+        <p className="text-lg font-semibold">
+          {
+            centreActivities.find(ca => ca.id.toString() === centreActivityId)
+              ?.activity_title || "Unknown Activity"
+          }
+        </p>
+      </div>
 ) : (
   <div className="space-y-2">
     <Label htmlFor="centre-activity">Activity *</Label>
@@ -291,7 +291,7 @@ export default function CentreActivityExclusionForm({
 
       {/* Exclusion Remarks */}
       <div className="space-y-2">
-        <Label htmlFor="remarks">Exclusion Remarks *</Label>
+        <Label htmlFor="remarks">Exclusion Remarks*</Label>
         <Textarea
           id="remarks"
           placeholder="Enter reason for exclusion..."
