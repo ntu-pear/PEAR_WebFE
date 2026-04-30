@@ -156,11 +156,23 @@ export function availabilityCoversTime(
   const availStart = dayjs(availability.start_time, "HH:mm:ss");
   const availEnd = dayjs(availability.end_time, "HH:mm:ss");
 
-  const startTime = start.hour(availStart.hour()).minute(availStart.minute());
-  const endTime = start.hour(availEnd.hour()).minute(availEnd.minute());
+  const availStartDateTime = start
+    .clone()
+    .hour(availStart.hour())
+    .minute(availStart.minute())
+    .second(0);
+
+  const availEndDateTime = start
+    .clone()
+    .hour(availEnd.hour())
+    .minute(availEnd.minute())
+    .second(0);
+
+  const normalizedStart = start.second(0);
+  const normalizedEnd = end.second(0);
 
   return (
-    start.isSameOrAfter(startTime) &&
-    end.isSameOrBefore(endTime)
+    normalizedStart.isSameOrAfter(availStartDateTime) &&
+    normalizedEnd.isSameOrBefore(availEndDateTime)
   );
 }
