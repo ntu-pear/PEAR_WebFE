@@ -29,16 +29,22 @@ const AddAdhoc: React.FC = () => {
     useState<CentreActivityAvailability[]>([]);
 
   const onFinish = async (values: any) => {
+    const startISO = values.start_date
+      .second(0)
+      .format("YYYY-MM-DDTHH:mm:ss");
+
+    const endISO = values.end_date
+      .second(0)
+      .format("YYYY-MM-DDTHH:mm:ss");
+    
     try {
       // call the service instead of using fetch
       await createAdhocActivity({
         patientId: Number(values.patient_id),
         oldActivityId: Number(values.old_centre_activity_id),
         newActivityId: Number(values.new_centre_activity_id),
-        startDate: values.start_date.format("YYYY-MM-DDTHH:mm:ss.SSS") + "000",
-        endDate: values.end_date.format("YYYY-MM-DDTHH:mm:ss.SSS") + "000",
-        // optional fields; status defaults to PENDING in the API service
-        // created_by_id will default to "system" if not passed
+        startDate: startISO,
+        endDate: endISO,
       });
 
       message.success("Adhoc activity added successfully!");
@@ -73,6 +79,11 @@ const AddAdhoc: React.FC = () => {
 
   const validReplacementActivityIds = React.useMemo(() => {
     if (!startDate || !endDate) return [];
+
+        
+    if (!startDate.isBefore(endDate)) {
+        return [];
+      }
 
     const selectedDate = startDate.format("YYYY-MM-DD");
 
