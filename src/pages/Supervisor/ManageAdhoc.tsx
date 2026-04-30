@@ -46,7 +46,6 @@ const ManageAdhoc: React.FC = () => {
   const [editingActivity, setEditingActivity] = useState<AdhocActivity | null>(null);
   const [centreActivityList, setCentreActivityList] = useState<CentreActivity[]>([]);
   const [activityList, setActivityList] = useState<Activity[]>([]);
-  const [availabilities, setAvailabilities] = useState<CentreActivityAvailability[]>([]);
 
   const handleInputChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => setSearchItem(e.target.value),
@@ -142,7 +141,6 @@ const ManageAdhoc: React.FC = () => {
 
   useEffect(() => {
     listCentreActivityAvailabilities({ include_deleted: false, limit: 1000 })
-      .then(setAvailabilities)
       .catch(err => console.error("Failed to load availabilities", err));
   }, []);
 
