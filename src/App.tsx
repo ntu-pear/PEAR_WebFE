@@ -34,7 +34,7 @@ import EditRoles from "./pages/Admin/EditRoles";
 import CreateRole from "./pages/Admin/CreateRole";
 import EditRole from "./pages/Admin/EditRole";
 import ManageRoles from "./pages/Admin/ManageRoles";
-import EditUserInRole from "./pages/Admin/EditUserInRole";
+import AssignUserToRole from "./pages/Admin/AssignUserToRole";
 import RegisterAccount from "./pages/Admin/RegisterAccount";
 import DevPermanentDelete from "./pages/Admin/DevPermanentDeleteAccount";
 import ManageMiscellaneous from "./pages/Admin/ManageMiscellaneous";
@@ -65,7 +65,7 @@ import ViewAccount from "./pages/Admin/ViewAccount";
 import { ViewAccountProvider } from "./hooks/admin/useViewAccount";
 import ManageSocialHistory from "./pages/Admin/ManageSocialHistory";
 import ManageCentre from "./pages/Admin/ManageCentre";
-import CustomRoleProtectedRoute from "./components/CustomRoleProtectedRoute";
+//import CustomRoleProtectedRoute from "./components/CustomRoleProtectedRoute";
 import PatientScheduleView from "./pages/Supervisor/PatientScheduleView";
 import SchedulerSystemTest from "./pages/Supervisor/SchedulerSystemTest";
 import FeatureFlagSettings from "./pages/FeatureFlagSettings";
@@ -154,12 +154,12 @@ const App: React.FC = () => {
                       />
                       <Route path="add-patient" element={<AddPatient />} />
                       <Route
-                        path="view-medication-schedule"
-                        element={<ViewMedicationSchedule />}
-                      />
-                      <Route
                         path="manage-medication"
                         element={<ManageMedication />}
+                      />
+                      <Route
+                        path="view-medication-schedule"
+                        element={<ViewMedicationSchedule />}
                       />
                       <Route
                         path="manage-activities"
@@ -244,8 +244,8 @@ const App: React.FC = () => {
                       <Route path="edit-role/:id" element={<EditRole />} />
                       <Route path="manage-roles" element={<ManageRoles />} />
                       <Route
-                        path="edit-user-in-role/:id"
-                        element={<EditUserInRole />}
+                        path="assign-user-to-role/:id"
+                        element={<AssignUserToRole />}
                       />
                       <Route
                         path="manage-social-history"
@@ -364,7 +364,7 @@ const App: React.FC = () => {
                       </Route>
                     </Route>
 
-                    {/* Routes for Dynamically Created Role*/}
+                    {/* Routes for Dynamically Created Role*/}{/*
                     <Route
                       path=":role/*"
                       element={<CustomRoleProtectedRoute />}
@@ -383,11 +383,12 @@ const App: React.FC = () => {
                         ))}
                       </Route>
                     </Route>
-
+*/}
                     <Route path="/unauthorized" element={<Unauthorized />} />
-                    <Route path="/not-found" element={<NotFound />} />
                     <Route path="/test-geocode" element={<TestGeocode />} />
                     <Route path="/" element={<Navigate to="/login" />} />
+                    <Route path="/not-found" element={<NotFound />} />
+                    <Route path="*" element={<Navigate to="/not-found" replace />} />
                   </Routes>
                 </main>
                 <Toaster richColors />

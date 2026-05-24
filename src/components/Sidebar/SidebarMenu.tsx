@@ -44,14 +44,14 @@ const supervisorMenu: MenuSection[] = [
         path: "/supervisor/add-patient",
       },
       {
-        title: "View Medication Schedule",
-        icon: "Calendar",
-        path: "/supervisor/view-medication-schedule",
-      },
-      {
         title: "Manage Medication",
         icon: "Pill",
         path: "/supervisor/manage-medication",
+      },
+      {
+        title: "View Medication Schedule",
+        icon: "Calendar",
+        path: "/supervisor/view-medication-schedule",
       },
     ],
   },
@@ -215,12 +215,7 @@ const adminMenu: MenuSection[] = [
     title: "DEVELOPER",
     items: [
       {
-        title: "Feature Flag Settings",
-        icon: "Settings",
-        path: "/admin/feature-flag-settings",
-      },
-      {
-        title: "Edit Roles",
+        title: "Edit Roles and Access Levels",
         icon: "Wrench",
         path: "/admin/edit-roles",
       },
@@ -230,9 +225,14 @@ const adminMenu: MenuSection[] = [
         path: "/admin/manage-social-history",
       },
       {
-        title: "Manage Miscellaneous",
-        icon: "Wrench",
+        title: "Manage Miscellaneous Settings",
+        icon: "Settings",
         path: "/admin/manage-miscellaneous",
+      },
+      {
+        title: "Feature Flag Settings",
+        icon: "Settings",
+        path: "/admin/feature-flag-settings",
       },
       {
         title: "Permanent Delete",

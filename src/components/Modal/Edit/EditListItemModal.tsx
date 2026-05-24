@@ -73,7 +73,7 @@ const EditListItemModal: React.FC = () => {
         <form onSubmit={submit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium">
-              Value <span className="text-red-600">*</span>
+              Name of Item <span className="text-red-600">*</span>
             </label>
             <input
               autoFocus

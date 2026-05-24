@@ -1,8 +1,6 @@
-import dayjs from "dayjs";
+import dayjs from "dayjs"; 
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
-
-// Extend Day.js with plugins
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
@@ -28,7 +26,7 @@ export const formatTime = (date: string) => {
   return dayjs
     .utc(date) // Parse the date in UTC
     .tz("Asia/Singapore") // Convert to Singapore timezone
-    .format("hh:mm A"); // Format as "08:53 PM"
+    .format("h:mm A"); // Format as "08:53 PM"
 };
 
 export const formatTimeString = (date: string) => {
@@ -58,16 +56,36 @@ export const getTimeDiffFromServer = (serverDateTime: string) => {
 export const formatDateTime = (date: string | null) => {
   if (!date) return "-";
   return dayjs(date)
-    .format("DD-MMM-YYYY hh:mm A");
+    .format("DD-MMM-YYYY h:mm A");
+};
+
+export const formatDateTimeNoYear = (date: string | null) => {
+  if (!date) return "-";
+  return dayjs(date)
+    .format("DD-MMM h:mm A");
 };
 
 export const formatTimeForInput12h = () => {
   return dayjs()
     .tz("Asia/Singapore") // use Singapore time
-    .format("hh:mm A");   // 12-hour format with correct AM/PM
+    .format("h:mm A");   // 12-hour format with correct AM/PM
 };
 
 export const formatTimeFromHHMMSS = (time: string) => {
   const today = dayjs().format("YYYY-MM-DD");
-  return dayjs.tz(`${today}T${time}`, "Asia/Singapore").format("hh:mm A");
+  return dayjs.tz(`${today}T${time}`, "Asia/Singapore").format("h:mm A");
+};
+
+
+export const to12HourParts = (time: string) => {
+  const d = dayjs(time, "H:mm");
+  return {
+    hour: d.format("h"),      // "9"
+    minute: d.format("mm"),   // "00"
+    period: d.format("A"),    // "AM"
+  };
+};
+
+export const to24Hour = (hour: string, minute: string, period: "AM" | "PM") => {
+  return dayjs(`${hour}:${minute} ${period}`, "h:mm A").format("H:mm");
 };

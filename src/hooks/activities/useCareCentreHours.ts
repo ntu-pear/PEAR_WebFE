@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { listCareCentres, CareCentre } from "@/api/activities/careCentres";
 
-export function useCareCentreHours(centreName: string) {
+export function useCareCentreHours() {
   const [centre, setCentre] = useState<CareCentre | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -9,10 +9,7 @@ export function useCareCentreHours(centreName: string) {
     async function load() {
       try {
         const centres = await listCareCentres();
-        const found = centres.find(
-          c => c.name.toLowerCase() === centreName.toLowerCase()
-        );
-        setCentre(found ?? null);
+        setCentre(centres.length > 0 ? centres[0] : null);
       } catch (e) {
         console.error("Failed to load care centres", e);
         setCentre(null);
@@ -22,7 +19,7 @@ export function useCareCentreHours(centreName: string) {
     }
 
     load();
-  }, [centreName]);
+  }, []);
 
   return { centre, loading };
 }

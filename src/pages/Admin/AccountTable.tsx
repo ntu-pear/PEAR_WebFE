@@ -35,6 +35,7 @@ const STATUS_OPTIONS = [
   { value: "all", label: "All Statuses" },
   { value: "active", label: "Active" },
   { value: "inactive", label: "Inactive" },
+  { value: "locked-out", label: "Locked Out" },
 ];
 
 const DEFAULT_PAGE_SIZE = 10;
@@ -52,8 +53,14 @@ function buildFilterPayload(name: string, status: string): Record<string, string
     nric_FullName: name.trim(),
   };
 
-  if (status === "active") filters.isDeleted = "false";
-  else if (status === "inactive") filters.isDeleted = "true";
+  if (status === "active") {
+    filters.isDeleted = "false";
+    filters.lockOutEnabled = "false";
+  } else if (status === "inactive") {
+    filters.isDeleted = "true";
+  } else if (status === "locked-out") {
+    filters.lockOutEnabled = "true";
+  }
 
   return Object.fromEntries(
     Object.entries(filters).filter(([, value]) => value !== "")
@@ -68,6 +75,12 @@ function parsePageSize(raw: string | null): number {
 const AccountTable: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
+
+  const latestLocationRef = useRef(location);
+
+  useEffect(() => {
+    latestLocationRef.current = location;
+  }, [location]);
 
   const [tabValue, setTabValue] = useState("all");
   const [loading, setLoading] = useState(false);
@@ -106,59 +119,53 @@ const AccountTable: React.FC = () => {
   // ---------------------------------------------------------------------------
 
   const updateQuery = useCallback(
-    (updates: {
-      name?: string;
-      status?: string;
-      sortBy?: string;
-      sortDir?: "asc" | "desc";
-      page?: number;
-      pageSize?: number;
-    }) => {
-      const next = new URLSearchParams(location.search);
+  (updates: {
+    name?: string;
+    status?: string;
+    sortBy?: string;
+    sortDir?: "asc" | "desc";
+    page?: number;
+    pageSize?: number;
+  }) => {
+    // Use the ref so we always read the latest URL, not a stale closure
+    const currentSearch = latestLocationRef.current.search;
+    const next = new URLSearchParams(currentSearch);
 
-      const nextName = updates.name ?? (next.get("name") ?? "");
-      const nextStatus = updates.status ?? (next.get("status") ?? "all");
-      const nextSortBy = updates.sortBy ?? (next.get("sortBy") ?? DEFAULT_SORT_BY);
-      const nextSortDir =
-        updates.sortDir ??
-        ((next.get("sortDir") === "desc" ? "desc" : DEFAULT_SORT_DIR) as
-          | "asc"
-          | "desc");
-      const nextPage = updates.page ?? Number(next.get("page") ?? "0");
-      const nextPageSize = updates.pageSize ?? parsePageSize(next.get("pageSize"));
+    const nextName = updates.name ?? (next.get("name") ?? "");
+    const nextStatus = updates.status ?? (next.get("status") ?? "all");
+    const nextSortBy = updates.sortBy ?? (next.get("sortBy") ?? DEFAULT_SORT_BY);
+    const nextSortDir =
+      updates.sortDir ??
+      ((next.get("sortDir") === "desc" ? "desc" : DEFAULT_SORT_DIR) as "asc" | "desc");
+    const nextPage = updates.page ?? Number(next.get("page") ?? "0");
+    const nextPageSize = updates.pageSize ?? parsePageSize(next.get("pageSize"));
 
-      nextName.trim() ? next.set("name", nextName.trim()) : next.delete("name");
-      nextStatus !== "all" ? next.set("status", nextStatus) : next.delete("status");
-      nextSortBy !== DEFAULT_SORT_BY
-        ? next.set("sortBy", nextSortBy)
-        : next.delete("sortBy");
-      nextSortDir !== DEFAULT_SORT_DIR
-        ? next.set("sortDir", nextSortDir)
-        : next.delete("sortDir");
-      nextPage > 0 ? next.set("page", String(nextPage)) : next.delete("page");
+    nextName.trim() ? next.set("name", nextName.trim()) : next.delete("name");
+    nextStatus !== "all" ? next.set("status", nextStatus) : next.delete("status");
+    nextSortBy !== DEFAULT_SORT_BY ? next.set("sortBy", nextSortBy) : next.delete("sortBy");
+    nextSortDir !== DEFAULT_SORT_DIR ? next.set("sortDir", nextSortDir) : next.delete("sortDir");
+    nextPage > 0 ? next.set("page", String(nextPage)) : next.delete("page");
+    nextPageSize !== DEFAULT_PAGE_SIZE
+      ? next.set("pageSize", String(nextPageSize))
+      : next.delete("pageSize");
 
-      if (nextPageSize !== DEFAULT_PAGE_SIZE) {
-        next.set("pageSize", String(nextPageSize));
-      } else {
-        next.delete("pageSize");
-      }
-      const nextSearch = next.toString();
-      const currentSearch = location.search.startsWith("?")
-        ? location.search.slice(1)
-        : location.search;
+    const nextSearch = next.toString();
+    const normalizedCurrent = currentSearch.startsWith("?")
+      ? currentSearch.slice(1)
+      : currentSearch;
 
-      if (nextSearch !== currentSearch) {
-        navigate(
-          {
-            pathname: location.pathname,
-            search: nextSearch ? `?${nextSearch}` : "",
-          },
-          { replace: true }
-        );
-      }
-    },
-    [location.pathname, location.search, navigate]
-  );
+    if (nextSearch !== normalizedCurrent) {
+      navigate(
+        {
+          pathname: latestLocationRef.current.pathname,
+          search: nextSearch ? `?${nextSearch}` : "",
+        },
+        { replace: true }
+      );
+    }
+  },
+  [navigate] // removed location.search and location.pathname from deps
+);
 
   // ---------------------------------------------------------------------------
   // Name input with debounce
@@ -174,13 +181,14 @@ const AccountTable: React.FC = () => {
   }, [urlName]);
 
   useEffect(() => {
-    if (isExternalSync.current) {
-      isExternalSync.current = false;
-      return;
-    }
+  if (isExternalSync.current) {
+    isExternalSync.current = false;
+    // Only skip if the debounced value matches what's already in the URL
+    if (debouncedNameInput === urlName) return;
+  }
 
-    updateQuery({ name: debouncedNameInput, page: 0 });
-  }, [debouncedNameInput, updateQuery]);
+  updateQuery({ name: debouncedNameInput, page: 0 });
+}, [debouncedNameInput, updateQuery, urlName]);
 
   // ---------------------------------------------------------------------------
   // Data fetching
@@ -233,19 +241,23 @@ const AccountTable: React.FC = () => {
     navigate({ pathname: location.pathname, search: "" }, { replace: true });
   };
 
-  const handleTableFetch = (
-    pageNo: number,
-    nextPageSize: number,
-    nextSortBy?: string,
-    nextSortDir?: "asc" | "desc"
-  ) => {
-    updateQuery({
-      page: pageNo,
-      pageSize: nextPageSize,
-      sortBy: nextSortBy ?? urlSortBy,
-      sortDir: nextSortDir ?? urlSortDir,
-    });
-  };
+ const handleTableFetch = (
+  pageNo: number,
+  nextPageSize: number,
+  nextSortBy?: string,
+  nextSortDir?: "asc" | "desc"
+) => {
+  const pageSizeChanged = nextPageSize !== pageSize;
+  const sortChanged =
+    nextSortBy !== urlSortBy || nextSortDir !== urlSortDir;
+
+  updateQuery({
+    page: pageSizeChanged || sortChanged ? 0 : pageNo,
+    pageSize: nextPageSize,
+    sortBy: nextSortBy ?? urlSortBy,
+    sortDir: nextSortDir ?? urlSortDir,
+  });
+};
 
   const handleExport = async (type: "internal" | "external") => {
     let loadingToast;
@@ -309,16 +321,24 @@ const AccountTable: React.FC = () => {
     {
       key: "isDeleted",
       header: "Status",
-      sortable: true,
-      render: (value: boolean | undefined) => {
-        const status =
-          value === false ? "Active" : value === true ? "Inactive" : "";
+      sortable: false,
+      render: (value: boolean | undefined, user: User) => {
+        const isLockedOut = user.lockOutEnabled;
+       const status = isLockedOut
+        ? "Locked Out"
+        : value === false
+          ? "Active"
+          : value === true
+            ? "Inactive"
+            : "";
         const variant =
-          status === "Active"
-            ? "default"
-            : status === "Inactive"
-              ? "secondary"
-              : "outline";
+      status === "Active"
+        ? "default"
+        : status === "Locked Out"
+          ? "destructive"
+          : status === "Inactive"
+            ? "secondary"
+            : "outline";
         return <Badge variant={variant}>{status}</Badge>;
       },
     },

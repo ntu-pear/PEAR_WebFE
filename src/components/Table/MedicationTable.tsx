@@ -9,6 +9,7 @@ import {
   fetchPatientMedicationTD,
   IMedicationTableDataServer,
 } from "@/api/patients/medication";
+import { formatTimeFromHHMMSS} from "@/utils/formatDate";
 
 type TMedicationTableProps = {
   patient: PatientTableData;
@@ -27,7 +28,7 @@ const MedicationTable = ({ patient, openModal }: TMedicationTableProps) => {
 
   const medicationColumns = [
     { key: "drugName", header: "Drug Name" },
-    { key: "administerTime", header: "Administer Time" },
+    { key: "administerTime", header: "Administer Time", render: (value: string) => formatTimeFromHHMMSS(value)   },
     { key: "dosage", header: "Dosage" },
     {
       key: "instruction",

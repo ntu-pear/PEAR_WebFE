@@ -3,7 +3,7 @@ export type FormErrors = { title?: string; description?: string; _summary?: stri
 
 export const ERRORS = {
   SHORT_TITLE_16: "Use 16 characters or fewer.",
-  DUPLICATE_NAME: "Already used by another activity.",
+  DUPLICATE_NAME: "Already used by another exisiting or soft deleted activity.",
   REQUIRED_TITLE: "Title is required.",
   REQUIRED_DESCRIPTION: "Description is required.",
 } as const;

@@ -39,6 +39,7 @@ export interface AccountTableDataServer {
 export interface ExportUserFilters {
   nric_FullName?: string;
   isDeleted?: string;
+  lockOutEnabled?: string;
 }
 
 export const fetchUsers = async () => {

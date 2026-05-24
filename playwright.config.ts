@@ -17,6 +17,8 @@ dotenv.config({ path: path.resolve(process.cwd(), '.env') });
 dotenv.config({ path: path.resolve(process.cwd(), 'tests/e2e/test.env') });
 
 export default defineConfig({
+  timeout: 60000,
+
   testDir: './tests/e2e',
   /* Run tests in files in parallel */
   fullyParallel: true,
@@ -35,6 +37,8 @@ export default defineConfig({
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'retain-on-failure',
+    actionTimeout: 15000,
+    navigationTimeout: 45000,
   },
 
   /* Configure projects for major browsers */

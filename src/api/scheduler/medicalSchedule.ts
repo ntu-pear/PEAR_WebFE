@@ -40,7 +40,7 @@ const getUsernameById = async (userId: string) => {
   try {
     const res = await userAPI.get(`/username/${userId}`, { headers: authHeader() });
     // fallback to ID if no name found
-    return res.data.preferredName || res.data.nric_FullName || userId;
+    return res.data.nric_FullName || res.data.preferredName || userId;
   } catch (err) {
     console.warn(`Failed to fetch name for user ${userId}`, err);
     return userId; // use ID as fallback

@@ -34,8 +34,29 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { mockCaregiverNameList } from "@/mocks/mockHighlightTableData";
 import { useNavigate } from "react-router";
-import { formatDateString } from "@/utils/formatDate";
+import { formatDateWithWeekday } from "@/utils/formatDate";
+import {
+  AlertTriangle,
+  HeartPulse,
+  Pill,
+  ClipboardList,
+  Stethoscope,
+} from "lucide-react";
 
+export const highlightTypeIconMap: Record<
+  string,
+  React.ReactNode
+> = {
+  "Vital Signs Alert": <HeartPulse className="w-4 h-4 text-red-500" />,
+  "New Allergy": <AlertTriangle className="w-4 h-4 text-orange-500" />,
+  "New Medication": <Pill className="w-4 h-4 text-blue-500" />,
+  "New Prescription": <ClipboardList className="w-4 h-4 text-indigo-500" />,
+  "New Problem": <Stethoscope className="w-4 h-4 text-purple-500" />,
+};
+const getHighlightIcon = (type?: string | null) => {
+  if (!type) return null;
+  return highlightTypeIconMap[type] ?? null;
+};
 const HighlightTable: React.FC = () => {
   const [allHighlights, setAllHighlights] = useState<HighlightTableData[]>([]);
   const [myHighlights, setMyHighlights] = useState<HighlightTableData[]>([]);
@@ -223,7 +244,7 @@ const HighlightTable: React.FC = () => {
       render: (_: string, highlight: HighlightTableData) => {
         if (!highlight.highlightCreatedDate) return <div>-</div>;
 
-        const formattedDate = formatDateString(highlight.highlightCreatedDate);
+        const formattedDate = formatDateWithWeekday(highlight.highlightCreatedDate);
 
         return (
           <div className="font-medium whitespace-nowrap">
@@ -237,7 +258,10 @@ const HighlightTable: React.FC = () => {
       header: "Type",
       render: (value: string, highlight: HighlightTableData) =>
         highlight.showType ? (
-          <div className="font-medium">{formatHighlightType(value ?? "-")}</div>
+          <div className="flex items-center gap-2 font-medium">
+            {getHighlightIcon(value)}
+            <span>{formatHighlightType(value ?? "-")}</span>
+          </div>
         ) : (
           ""
         ),

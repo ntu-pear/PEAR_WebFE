@@ -1,12 +1,14 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo } from "react"; 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {Activity} from "@/api/activities/activities";
 import dayjs from "dayjs";
 import { toast } from "sonner";
-import { getAllActivities } from "@/api/activity/activityPreference";
+import { listActivities } from "@/api/activities/activities";
 import { type FormErrors, type CentreActivityFormValues, validateLocal } from "@/lib/validation/centreActivity";
+import { useCareCentreHours } from "@/hooks/activities/useCareCentreHours";
+
 
 type Props = {
   initial?: CentreActivityFormValues & {id?: number};
@@ -37,33 +39,85 @@ export default function CentreActivityForm({
   const [activity_id, setActivityID] = useState<string>(initial?.activity_id?.toString() ?? "");
   const [is_fixed, setIs_Fixed] = useState(initial?.is_fixed ?? false);
   const [is_compulsory, setIs_Compulsory] = useState(initial?.is_compulsory ?? false);
-  const [start_date, setStart_date] = useState(initial?.start_date ?? "");
-  const [end_date, setEnd_date] = useState(initial?.end_date ?? "");
+  const today = dayjs().format("YYYY-MM-DD");
+  const [start_date, setStart_date] = useState(
+    initial?.start_date ?? today
+  );
+  const [end_date, setEnd_date] = useState(
+    initial?.end_date ?? today
+  );
   const [min_duration, setMin_duration] = useState<number>(initial?.min_duration ?? 60);
   const [max_duration, setMax_duration] = useState<number>(initial?.max_duration ?? 60);
   const [is_group, setIs_Group] = useState(initial?.is_group ?? false);
   const [min_people_req, setMin_people_req] = useState(initial?.min_people_req ?? 1);
-  const [fixed_time_slots, setFixed_time_slots] = useState(initial?.fixed_time_slots ?? "");
   const [selectedDays, setSelectedDays] = useState<string[]>([]);
   const [dayTimes, setDayTimes] = useState<Record<string, string>>({});
   const [is_deleted, setIsDeleted] = useState(initial?.is_deleted ?? false);
   const [deleted] = useState(initial?.is_deleted ?? false);
-  const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
-  const timeOptions = [
-    "09:00", "09:30", "10:00", "10:30",
-    "11:00", "11:30", "12:00", "12:30",
-    "13:00", "13:30", "14:00", "14:30",
-    "15:00", "15:30", "16:00", "16:30"
-  ];
+
+  
+  const DAY_CODE_TO_LABEL: Record<string, string> = {
+    MON: "Monday",
+    TUE: "Tuesday",
+    WED: "Wednesday",
+    THU: "Thursday",
+    FRI: "Friday",
+    SAT: "Saturday",
+    SUN: "Sunday",
+  };
+
   const formattedTimeSlots = selectedDays
-  .sort()
-  .map(day => `${day} ${dayTimes[day]}`)
-  .join(",");
+    .sort()
+    .map(dayCode => {
+      const label = DAY_CODE_TO_LABEL[dayCode];
+      const time = dayTimes[dayCode];
+      return label && time ? `${label} ${time}` : "";
+    })
+    .filter(Boolean)
+    .join(",");
+
   const indefiniteDate = dayjs(new Date(2999, 0, 1).toDateString()).format("YYYY-MM-DD");
   const [errors, setErrors] = useState<FormErrors>({ _summary: [] });
   const [activities, setActivities] = useState<Activity[]>([]);
 
-  
+  const { centre } = useCareCentreHours();
+  const workingHours = centre?.working_hours;
+
+
+  const WEEKDAY_MAP = [
+    { key: "monday", label: "Monday", code: "MON" },
+    { key: "tuesday", label: "Tuesday", code: "TUE" },
+    { key: "wednesday", label: "Wednesday", code: "WED" },
+    { key: "thursday", label: "Thursday", code: "THU" },
+    { key: "friday", label: "Friday", code: "FRI" },
+    { key: "saturday", label: "Saturday", code: "SAT" },
+    { key: "sunday", label: "Sunday", code: "SUN" },
+  ];
+
+  const availableDays = useMemo(() => {
+    if (!workingHours) return [];
+
+    return WEEKDAY_MAP.filter(d => {
+      const wh = workingHours[d.key as keyof typeof workingHours];
+      return wh.open && wh.close;
+    });
+  }, [workingHours]);
+
+  function buildTimeOptions(open: string, close: string) {
+    const result: string[] = [];
+
+    const start = dayjs(open, "HH:mm");
+    const end = dayjs(close, "HH:mm");
+
+    let current = start;
+    while (current.isBefore(end)) {
+      result.push(current.format("HH:mm"));
+      current = current.add(30, "minute");
+    }
+
+    return result;
+  }
+
   const sortedActivities = useMemo(() => {
     return [...activities].sort((a, b) =>
       a.title.localeCompare(b.title, undefined, { sensitivity: "base" })
@@ -74,7 +128,8 @@ export default function CentreActivityForm({
     const fetchData = async () => {
       try {
         const[activitiesData] = await Promise.all([
-          getAllActivities()
+          //getAllActivities()
+          listActivities({ include_deleted: false })
         ]);
         setActivities(activitiesData);
       }
@@ -86,6 +141,12 @@ export default function CentreActivityForm({
   
     fetchData();
   }, []);
+
+  useEffect(() => {
+    if (!initial?.activity_id && activities.length > 0 && activity_id === "") {
+      setActivityID(activities[0].id.toString());
+    }
+  }, [activities, initial, activity_id]);
 
   useEffect(() => {
     if (initial?.fixed_time_slots) {
@@ -152,8 +213,6 @@ export default function CentreActivityForm({
     { value: 60, label: "60 mins"}
   ];
 
-  const isIndefinite = end_date === indefiniteDate;
-
   return (
     <form 
       className="mt-4 space-y-4"
@@ -196,13 +255,17 @@ export default function CentreActivityForm({
         <select
           id="activity_id"
           value={activity_id}
-          disabled={is_deleted ? true : false}      
+          disabled={is_deleted || !!initial?.activity_id}     
           onChange={(e) => {
             setActivityID(e.target.value)
           }}
           className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 appearance-none cursor-pointer"
         >
-          <option value="" disabled>Select an activity</option>
+          
+          <option value="" disabled>
+              Select an activity
+            </option>
+
           {sortedActivities.map((a) => (
             <option key={a.id} value={a.id.toString()}>
               {a.title.toUpperCase()}
@@ -252,11 +315,12 @@ export default function CentreActivityForm({
                 value={choice.value.toString()}
                 disabled={is_deleted ? true : false}
                 checked={is_fixed === choice.value ? true : false}
-                onChange={() =>{
+                onChange={() => {
                   setIs_Fixed(choice.value);
 
-                  if (!choice.value && fixed_time_slots.length > 0) {
-                    setFixed_time_slots("");
+                  if (!choice.value) {
+                    setSelectedDays([]);
+                    setDayTimes({});
                   }
                 }}
               />
@@ -270,85 +334,74 @@ export default function CentreActivityForm({
       
       {is_fixed && (
         <div className="space-y-2">
-          <Label>Select Days</Label>
           <div className="flex flex-wrap gap-2">
-            {days.map(day => (
-              <div key={day} className="flex items-center gap-2 border px-3 py-2 rounded">
-                <input
-                  type="checkbox"
-                  checked={selectedDays.includes(day)}
-                  onChange={(e) => {
-                    if (e.target.checked) {
-                      setSelectedDays([...selectedDays, day]);
-                    } else {
-                      setSelectedDays(selectedDays.filter(d => d !== day));
 
-                      // remove time if unchecked
-                      const newTimes = { ...dayTimes };
-                      delete newTimes[day];
-                      setDayTimes(newTimes);
-                    }
-                  }}
-                />
+            {is_fixed && (
+              <div className="space-y-2">
+                <Label>Select Days *</Label>
 
-                <span>{day}</span>
+                <div className="flex flex-wrap gap-3">
+                  {availableDays.map(day => {
+                    const wh = workingHours?.[day.key as keyof typeof workingHours];
+                    if (!wh?.open || !wh?.close) return null;
 
-                {selectedDays.includes(day) && (
-                  <select
-                    value={dayTimes[day] || "09:00"}
-                    onChange={(e) =>
-                      setDayTimes({
-                        ...dayTimes,
-                        [day]: e.target.value,
-                      })
-                    }
-                    className="border rounded px-2 py-1 ml-2"
-                  >
-                    {timeOptions.map(time => (
-                      <option key={time} value={time}>
-                        {time}
-                      </option>
-                    ))}
-                  </select>
-                )}
+                    const timeOptions = buildTimeOptions(wh.open, wh.close);
+
+                    return (
+                      <div key={day.code} className="flex items-center gap-2 border px-3 py-2 rounded">
+                        <input
+                          type="checkbox"
+                          checked={selectedDays.includes(day.code)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setSelectedDays([...selectedDays, day.code]);
+                              setDayTimes(prev => ({
+                                ...prev,
+                                [day.code]: timeOptions[0],
+                              }));
+                            } else {
+                              setSelectedDays(selectedDays.filter(d => d !== day.code));
+
+                              const newTimes = { ...dayTimes };
+                              delete newTimes[day.code];
+                              setDayTimes(newTimes);
+                            }
+                          }}
+                        />
+
+                        <span>{day.label}</span>
+
+                        {selectedDays.includes(day.code) && (
+                          <select
+                            className="border rounded px-2 py-1"
+                            value={dayTimes[day.code] ?? timeOptions[0]}
+                            onChange={(e) =>
+                              setDayTimes({
+                                ...dayTimes,
+                                [day.code]: e.target.value,
+                              })
+                            }
+                          >
+                            {timeOptions.map(t => (
+                              <option key={t} value={t}>{t}</option>
+                            ))}
+                          </select>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
-            ))}
+            )}
+
+            
           </div>
         </div>
         
         
       )}
 
-      {/* Indefinite Checkbox */}
-      <div className="space-y-2 space-x-2">
-        <Label htmlFor="is_indefinite">Does this activity have no fixed end date?</Label>
-        <div className="space-x-2">
-          {radioBtnOptions.map((choice) => (
-            <Label className="space-x-1">
-              <input
-                type="radio"
-                id = {choice.value.toString()}
-                name="is_indefinite"
-                value={choice.value.toString()}
-                disabled={is_deleted ? true : false}
-                checked={isIndefinite === choice.value}
-                //checked={end_date.includes("999") ? true === choice.value : false === choice.value}
-                // checked={end_date === "" ? is_indefinite === choice.value : end_date.includes("999") ? is_indefinite === choice.value : false}
-                onChange={() =>{
-                  if (choice.value) {
-                    setEnd_date(indefiniteDate);
-                  }
-                  else {
-                    setEnd_date("");
-                  }
-                }}
-              />
-              <label>{choice.label}</label>
-            </Label>
-          ))}
-        </div>
-      </div>
-
+      
       <div className="space-y-2 space-x-2">
         <Label htmlFor="is_group">Is this a group activity?</Label>
         <div className="space-x-2">
@@ -365,9 +418,15 @@ export default function CentreActivityForm({
                   setIs_Group(choice.value);
 
                   /*Business rule, Individual activities requires at least 1 person. */
-                  if (!choice.value) {
-                    setMin_people_req(1);
-                  } 
+                  
+                if (choice.value) {
+                  // Group activity → minimum 2 people
+                  setMin_people_req(2);
+                } else {
+                  // Individual activity → minimum 1 person
+                  setMin_people_req(1);
+                }
+
                 }}
               />
               <label>{choice.label}</label>
@@ -380,12 +439,53 @@ export default function CentreActivityForm({
       {/* Minmum people required (Display only if group is checked) */}
       {is_group && (
         <div className="space-y-2">
-          <Label htmlFor="min_people_req">Minimum people required (Atleast 2 pax)</Label>
+          <Label htmlFor="min_people_req">Minimum people required: (At least 2 pax)</Label>
             <Input
               id="min_people_req"
+              type="number"
+              min={2}
               value={min_people_req}
-              disabled={is_deleted ? true : false}
-              onChange={(e) => setMin_people_req(parseInt(e.target.value))}
+              disabled={is_deleted}
+              onChange={(e) => {
+                const value = e.target.value;
+
+                // Allow empty while typing
+                if (value === "") {
+                  setMin_people_req(2);
+                  setErrors(prev => ({
+                    ...prev,
+                    min_people_req: "Minimum people required is mandatory",
+                  }));
+                  return;
+                }
+
+                // Reject non-numeric input
+                if (!/^\d+$/.test(value)) {
+                  setErrors(prev => ({
+                    ...prev,
+                    min_people_req: "Only numeric values are allowed",
+                  }));
+                  return;
+                }
+
+                const numericValue = parseInt(value, 10);
+
+                // Enforce group rule
+                if (numericValue < 2) {
+                  setErrors(prev => ({
+                    ...prev,
+                    min_people_req: "Group activities require at least 2 people",
+                  }));
+                  return;
+                }
+
+                // Clear error and accept value
+                setErrors(prev => ({
+                  ...prev,
+                  min_people_req: undefined,
+                }));
+                setMin_people_req(numericValue);
+              }}
             />
           {errors.min_people_req && <p className="text-sm text-red-600">{errors.min_people_req}</p>}
         </div>
@@ -447,6 +547,41 @@ export default function CentreActivityForm({
           onChange={(e) => setStart_date(e.target.value)}
         />
         {errors.start_date && <p className="text-sm text-red-600">{errors.start_date}</p>}
+      </div>
+
+      {/* Fixed End Date Question */}
+      <div className="space-y-2 space-x-2">
+        <Label htmlFor="has_fixed_end_date">
+          Does this activity have a fixed end date?
+        </Label>
+
+        <div className="space-x-2">
+          {radioBtnOptions.map((choice) => {
+            const hasFixedEndDate = end_date !== indefiniteDate;
+
+            return (
+              <Label key={choice.value.toString()} className="space-x-1">
+                <input
+                  type="radio"
+                  name="has_fixed_end_date"
+                  value={choice.value.toString()}
+                  disabled={is_deleted}
+                  checked={hasFixedEndDate === choice.value}
+                  onChange={() => {
+                    if (choice.value) {
+                      // Yes → has fixed end date
+                      setEnd_date(today);
+                    } else {
+                      // No → no fixed end date (indefinite)
+                      setEnd_date(indefiniteDate);
+                    }
+                  }}
+                />
+                <label>{choice.label}</label>
+              </Label>
+            );
+          })}
+        </div>
       </div>
 
       {end_date !== indefiniteDate && (

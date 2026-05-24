@@ -2,7 +2,7 @@ import { useMemo, useState, useEffect } from "react";
 import type { CentreActivityAvailabilityRow } from "@/hooks/activities/useCentreActivityAvailabilities";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { formatDate } from "@/utils/formatDate";
+import { formatDate, formatTimeFromHHMMSS } from "@/utils/formatDate";
 
 type Props = {
   data: CentreActivityAvailabilityRow[];
@@ -111,9 +111,9 @@ export default function AvailabilityTable({
                             <TableRow key={a.id}>
                                 <TableCell className="font-medium">{a.id}</TableCell>
                                 <TableCell>{formatDate(a.start_date)}</TableCell>
-                                <TableCell>{formatDate(a.end_date)}</TableCell>
-                                <TableCell>{a.start_time}</TableCell>
-                                <TableCell>{a.end_time}</TableCell>
+                                <TableCell>{formatDate(a.end_date)}</TableCell>                                
+                                <TableCell>{formatTimeFromHHMMSS(a.start_time)}</TableCell>
+                                <TableCell>{formatTimeFromHHMMSS(a.end_time)}</TableCell>
                                 <TableCell>{formatDays(a.days_of_week)}</TableCell> {/* Render days */}
                                 <TableCell className="space-x-2">
                                     <Button size="sm" variant="secondary" onClick={() => onEdit(a)}>

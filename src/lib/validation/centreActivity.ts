@@ -21,7 +21,7 @@ export type FormErrors = {
     end_date?: string;
     min_duration?: number;
     max_duration?: number;
-    min_people_req?: number;
+    min_people_req?: string;
     fixed_time_slots?: string;
     _summary?: string[] 
 };

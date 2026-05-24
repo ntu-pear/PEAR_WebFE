@@ -5,6 +5,13 @@ import {
   Card, CardContent, CardDescription, CardHeader, CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
@@ -20,7 +27,7 @@ function confirmAction(message: string) {
 }
 
 export default function ManageActivityAvailabilities() {
-    const [includeDeleted, setIncludeDeleted] = useState(false);
+    const [deletedFilter, setDeletedFilter] = useState<"hidden" | "all" | "only">("hidden");
     const [search, setSearch] = useState("");
     const [creatingOpen, setCreatingOpen] = useState(false);
     const [editing, setEditing] = useState<CentreActivityAvailabilityRow | null>(null);
@@ -31,13 +38,24 @@ export default function ManageActivityAvailabilities() {
     const [selectedCentreActivityID, setselectedCentreActivityID] = useState("0");
     const todayDate = dayjs().format("YYYY-MM-DD");
 
+    const deletedOptions = [
+        { key: "Hidden", value: "hidden" },
+        { key: "All", value: "all" },
+        { key: "Only Deleted", value: "only" },
+    ];
+
+    const getFilterLabel = <T extends string>(
+        currentValue: T,
+        options: { key: string; value: T }[]
+    ) => options.find(o => o.value === currentValue)?.key ?? "";
+
     useEffect(() => {
         if (error) toast.error(`Failed to load availabilities. ${error}`);
     }, [error]);
 
     useEffect(() => {
         setPage(1)
-    }, [search, includeDeleted, centreActivityAvailabilities]);
+    }, [search, deletedFilter, centreActivityAvailabilities]);
     
     useEffect(() => {
         if (centreActivities.length > 0 && selectedCentreActivityID === "0") {
@@ -63,15 +81,17 @@ export default function ManageActivityAvailabilities() {
             filtered = filtered.filter(caa => caa.centre_activity_id == parseInt(selectedCentreActivityID));
         }
 
-        //Show or hide deleted from list
-        if (!includeDeleted) {
-            filtered = filtered.filter(caa => caa.is_deleted == false);
+        // Deleted filter
+        if (deletedFilter === "hidden") {
+            filtered = filtered.filter(caa => !caa.is_deleted);
+        } else if (deletedFilter === "only") {
+            filtered = filtered.filter(caa => caa.is_deleted);
         }
 
         const rows = toRows(filtered ?? []);
 
-        // If showing deleted, move deleted rows to the top
-        if (includeDeleted) {
+        // If showing all, move deleted rows to the top
+        if (deletedFilter === "all") {
         rows.sort((a, b) => {
             if (a.is_deleted === b.is_deleted) return 0;
             return a.is_deleted ? -1 : 1;
@@ -81,7 +101,7 @@ export default function ManageActivityAvailabilities() {
         console.log("Filtered rows for table:", rows);
 
         return rows;
-    }, [centreActivityAvailabilities, includeDeleted, selectedCentreActivityID]);
+    }, [centreActivityAvailabilities, deletedFilter, selectedCentreActivityID]);
 
 
     const handleCreate = async (values: CentreActivityAvailabilityFormValues) => {
@@ -152,26 +172,56 @@ export default function ManageActivityAvailabilities() {
             {/* Header */}
             <div className="flex flex-col sm:gap-4 sm:py-4 sm:pl-14">
                 <div className="flex justify-between items-center">
-                    <div className="w-full md:max-w-md">
-                        <Input
-                        placeholder="Search..."
-                        value={search}
-                        onChange={(e) => setSearch(e.target.value)}
-                        className="h-11"
-                        />
-                    </div>
-                    <div className="flex space-x-2">
-                        <Button
-                        type="button"
-                        variant="outline"
-                        className={`h-9 ${includeDeleted ? "border-primary" : ""}`}
-                        onClick={() => setIncludeDeleted(v => !v)}
-                        >
-                        <Filter className="mr-2 h-4 w-4" />
-                        {includeDeleted ? "Showing All Including Deleted" : "Deleted Hidden"}
-                        </Button>
-                    </div>
-                </div>
+  {/* Search */}
+  <div className="w-full md:max-w-md">
+    <Input
+      placeholder="Search..."
+      value={search}
+      onChange={(e) => setSearch(e.target.value)}
+      className="h-11"
+    />
+  </div>
+
+  {/* Deleted filter */}
+  <div className="flex space-x-2">
+    {deletedFilter !== "hidden" && (
+      <Button
+        variant="outline"
+        size="sm"
+        className="h-8"
+        onClick={() => setDeletedFilter("hidden")}
+      >
+        Clear Filters
+      </Button>
+    )}
+
+    <DropdownMenu modal={false}>
+      <DropdownMenuTrigger asChild>
+        <Button variant="outline" size="sm" className="h-8 gap-1">
+          <Filter className="h-4 w-4" />
+          <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+            Deleted: {getFilterLabel(deletedFilter, deletedOptions)}
+          </span>
+        </Button>
+      </DropdownMenuTrigger>
+
+      <DropdownMenuContent align="end">
+        <DropdownMenuRadioGroup
+          value={deletedFilter}
+          onValueChange={(v) =>
+            setDeletedFilter(v as typeof deletedFilter)
+          }
+        >
+          {deletedOptions.map(({ key, value }) => (
+            <DropdownMenuRadioItem key={value} value={value}>
+              {key}
+            </DropdownMenuRadioItem>
+          ))}
+        </DropdownMenuRadioGroup>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  </div>
+</div>
 
                 <main className="flex-1 items-start gap-4 p-4 sm:px-0 sm:py-0">
                     <Card>

@@ -5,9 +5,9 @@ import { Label } from "@/components/ui/label";
 import { useCentreActivities } from "@/hooks/activities/useCentreActivities";
 import { type FormErrors, type CentreActivityAvailabilityFormValues, validateLocal} from "@/lib/validation/activityAvailability";
 import { CentreActivityWithTitle } from "@/api/activities/centreActivities";
-import { useCareCentreHours } from "@/hooks/activities/useCareCentreHours";
-import type { WorkingHours } from "@/api/activities/careCentres";
-
+//import { useCareCentreHours } from "@/hooks/activities/useCareCentreHours";
+//import type { WorkingHours } from "@/api/activities/careCentres";
+import dayjs from "dayjs";
 
 
 type Props = {
@@ -24,6 +24,7 @@ export interface RadioBtnOption {
   label: string;
   value: boolean;
 }
+const DEFAULT_WORKING_DAYS = [1, 2, 4, 8, 16]; // Mon–Fri (Mock data for now)
 
 const DAYS_MAP = [
   { label: "Mon", value: 1 },
@@ -34,17 +35,6 @@ const DAYS_MAP = [
   { label: "Sat", value: 32 },
   { label: "Sun", value: 64 },
 ];
-
-const BIT_TO_DAY: Record<number, keyof WorkingHours> = {
-  1: "monday",
-  2: "tuesday",
-  4: "wednesday",
-  8: "thursday",
-  16: "friday",
-  32: "saturday",
-  64: "sunday",
-};
-
 
 export default function ActivityAvailabilityForm({ 
   initial, 
@@ -58,7 +48,11 @@ export default function ActivityAvailabilityForm({
     const [start_date, setStartDate] = useState(initial?.start_date ?? "");
     const [end_date, setEndDate] = useState(initial?.end_date ?? "");
 
-    const hourOptions = Array.from({ length: 9 }, (_, i) => (i + 9).toString().padStart(2, "0"));
+    const hourOptions = Array.from(
+        { length: 12 },
+        (_, i) => (i + 1).toString().padStart(2, "0")
+    );
+
 
     const minuteOptions = Array.from({ length: 12 }, (_, i) =>
         (i * 5).toString().padStart(2, "0")
@@ -70,28 +64,41 @@ export default function ActivityAvailabilityForm({
     const [endHour, setEndHour] = useState("10");
     const [endMinute, setEndMinute] = useState("00");
 
+    const [startPeriod, setStartPeriod] = useState<"AM" | "PM">("AM");
+    const [endPeriod, setEndPeriod] = useState<"AM" | "PM">("AM");
+
+
     useEffect(() => {
         if (initial?.start_time) {
-            const [h, m] = initial.start_time.split(":");
-            setStartHour(h);
-            setStartMinute(m);
+            const d = dayjs(initial.start_time, "HH:mm");
+            setStartHour(d.format("hh"));
+            setStartMinute(d.format("mm"));
+            setStartPeriod(d.format("A") as "AM" | "PM");
         }
 
         if (initial?.end_time) {
-            const [h, m] = initial.end_time.split(":");
-            setEndHour(h);
-            setEndMinute(m);
+            const d = dayjs(initial.end_time, "HH:mm");
+            setEndHour(d.format("hh"));
+            setEndMinute(d.format("mm"));
+            setEndPeriod(d.format("A") as "AM" | "PM");
         }
     }, [initial]);
 
-    const formattedStart = `${startHour}:${startMinute}`;
-    const formattedEnd = `${endHour}:${endMinute}`;
+    const formattedStart = dayjs(
+        `${startHour}:${startMinute} ${startPeriod}`,
+        "hh:mm A"
+    ).format("HH:mm");
+
+    const formattedEnd = dayjs(
+        `${endHour}:${endMinute} ${endPeriod}`,
+        "hh:mm A"
+    ).format("HH:mm");
 
     const [is_everyday, setIsEveryday] = useState(false);
     const [deleted] = useState(initial?.is_deleted ?? false);
     const [is_deleted, setIsDeleted] = useState(initial?.is_deleted ?? false);
     const {centreActivities} = useCentreActivities(false);
-    const { centre: selectedCentre} = useCareCentreHours("weqw");
+    //const { centre: selectedCentre} = useCareCentreHours("weqw");
     const [errors, setErrors] = useState<FormErrors>({ _summary: [] });
     const [selectedDays, setSelectedDays] = useState<number[]>([]);
 
@@ -142,9 +149,13 @@ export default function ActivityAvailabilityForm({
             }
 
         try {
-            const daysOfWeekBitmask = is_everyday && selectedDays.length > 0
-            ? selectedDays.reduce((acc, day) => acc | day, 0)
-            : 0;
+            const daysOfWeekBitmask =
+                is_everyday && selectedDays.length > 0
+                    ? selectedDays.reduce((acc, day) => {
+                        if (!DAYS_MAP.some(d => d.value === day)) return acc; // ignore invalid
+                        return acc | day;
+                    }, 0)
+                    : 0;
             const formValues: CentreActivityAvailabilityFormValues = {
             centre_activity_id: parseInt(centre_activity_id),
             start_date: start_date,
@@ -211,7 +222,7 @@ export default function ActivityAvailabilityForm({
                 <select
                     id="centre_activity_id"
                     value={centre_activity_id}
-                    disabled={is_deleted ? true : false}
+                    disabled={is_deleted || initial?.editing}
                     onChange={(e) => {
                         setCentreActivityID(e.target.value)
                     }}
@@ -242,7 +253,7 @@ export default function ActivityAvailabilityForm({
                         setIsEveryday(choice.value);
                         
                         if (choice.value) {
-                        setSelectedDays(DAYS_MAP.map(d => d.value));
+                        setSelectedDays([]); // let user choose manually
                         } else {
                         setSelectedDays([]);
                         }
@@ -254,57 +265,43 @@ export default function ActivityAvailabilityForm({
             </div>
 
             {/* Days-of-week checkboxes */}
-                {is_everyday && selectedCentre && (
+                {is_everyday && (
                     <div className="space-y-2">
                         <Label>Select days of the week:</Label>
                         <div className="flex flex-wrap space-x-2">
-                        {DAYS_MAP.filter(day => {
-                            // Only show days where the centre has open & close times
-                            const dayKey = BIT_TO_DAY[day.value];
-                            const hours = selectedCentre.working_hours[dayKey];
-                            return hours?.open && hours?.close;
-                        }).map(day => (
-                            <label key={day.value} className="flex items-center space-x-1">
+                        {DAYS_MAP.filter(day => DEFAULT_WORKING_DAYS.includes(day.value)).map(day => (
+                        <label key={day.value} className="flex items-center space-x-1">
                             <input
-                                type="checkbox"
-                                value={day.value}
-                                checked={selectedDays.includes(day.value)}
-                                onChange={e => {
-                                const val = day.value;
-                                if (e.target.checked) setSelectedDays([...selectedDays, val]);
-                                else setSelectedDays(selectedDays.filter(v => v !== val));
-                                }}
+                            type="checkbox"
+                            value={day.value}
+                            checked={selectedDays.includes(day.value)}
+                            onChange={e => {
+                                if (e.target.checked) {
+                                setSelectedDays(prev => [...new Set([...prev, day.value])]);
+                                } else {
+                                setSelectedDays(prev => prev.filter(v => v !== day.value));
+                                }
+                            }}
                             />
                             <span>{day.label}</span>
-                            </label>
+                        </label>
                         ))}
 
                         {/* Every open day toggle */}
                         <label className="flex items-center space-x-1 ml-4">
                             <input
-                            type="checkbox"
-                            checked={
-                                selectedDays.length ===
-                                DAYS_MAP.filter(day => {
-                                const dayKey = BIT_TO_DAY[day.value];
-                                const hours = selectedCentre.working_hours[dayKey];
-                                return hours?.open && hours?.close;
-                                }).length
-                            }
-                            onChange={e => {
-                                if (e.target.checked)
-                                setSelectedDays(
-                                    DAYS_MAP.filter(day => {
-                                    const dayKey = BIT_TO_DAY[day.value];
-                                    const hours = selectedCentre.working_hours[dayKey];
-                                    return hours?.open && hours?.close;
-                                    }).map(d => d.value)
-                                );
-                                else setSelectedDays([]);
-                            }}
+                                type="checkbox"
+                                checked={selectedDays.length === DEFAULT_WORKING_DAYS.length}
+                                onChange={(e) => {
+                                if (e.target.checked) {
+                                    setSelectedDays(DEFAULT_WORKING_DAYS);
+                                } else {
+                                    setSelectedDays([]);
+                                }
+                                }}
                             />
-                            <span>Every open day</span>
-                        </label>
+                            <span>Every weekday (Mon–Fri)</span>
+                            </label>
                         </div>
                     </div>
                 )}
@@ -314,9 +311,9 @@ export default function ActivityAvailabilityForm({
 
             {/* Dates and times */}
             <div className="space-y-2">
-                <Label htmlFor="date_of_activity">Start Date</Label>
+                <Label htmlFor="start_date">Start Date</Label>
                 <Input
-                    id="date_of_activity"
+                    id="start_date"
                     type="date"
                     value={start_date}
                     disabled={is_deleted ? true : false}
@@ -326,9 +323,9 @@ export default function ActivityAvailabilityForm({
             </div>
 
             <div className="space-y-2">
-                <Label htmlFor="date_of_activity">End Date</Label>
+                <Label htmlFor="end_date">End Date</Label>
                 <Input
-                    id="date_of_activity"
+                    id="end_date"
                     type="date"
                     value={end_date}
                     disabled={is_deleted ? true : false}
@@ -362,6 +359,15 @@ export default function ActivityAvailabilityForm({
                         <option key={m} value={m}>{m}</option>
                     ))}
                     </select>
+
+                    <select
+                        value={startPeriod}
+                        onChange={(e) => setStartPeriod(e.target.value as "AM" | "PM")}
+                        className="border rounded px-2 py-1"
+                        >
+                        <option value="AM">AM</option>
+                        <option value="PM">PM</option>
+                    </select>
                 </div>
             </div>
 
@@ -389,6 +395,16 @@ export default function ActivityAvailabilityForm({
                         <option key={m} value={m}>{m}</option>
                     ))}
                     </select>
+
+                    <select
+                        value={endPeriod}
+                        onChange={(e) => setEndPeriod(e.target.value as "AM" | "PM")}
+                        className="border rounded px-2 py-1"
+                        >
+                        <option value="AM">AM</option>
+                        <option value="PM">PM</option>
+                    </select>
+
                 </div>
             </div>
 

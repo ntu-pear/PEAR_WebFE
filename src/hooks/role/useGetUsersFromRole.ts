@@ -1,10 +1,14 @@
+import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { getUsersFromRole } from "@/api/role/roles";
-import { useQuery } from "@tanstack/react-query";
 
-const useGetUsersFromRole = (roleName: string) => {
+export const USERS_FROM_ROLE_QUERY_KEY = "roster";
+
+const useGetUsersFromRole = (roleName?: string) => {
   return useQuery({
-    queryKey: ["users", roleName],
-    queryFn: () => getUsersFromRole(roleName),
+    queryKey: [USERS_FROM_ROLE_QUERY_KEY, roleName],
+    queryFn: () => getUsersFromRole(roleName as string),
+    enabled: !!roleName,
+    placeholderData: keepPreviousData,
   });
 };
 

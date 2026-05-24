@@ -22,6 +22,7 @@
     "@radix-ui/react-alert-dialog": "^1.1.15",
     "@radix-ui/react-avatar": "^1.1.0",
     "@radix-ui/react-collapsible": "^1.1.2",
+    "@radix-ui/react-context-menu": "^2.2.16",
     "@radix-ui/react-dialog": "^1.1.1",
     "@radix-ui/react-dropdown-menu": "^2.1.1",
     "@radix-ui/react-label": "^2.1.2",
@@ -91,7 +92,7 @@
     "rollup": "^4.34.8",
     "tailwindcss": "^3.4.17",
     "ts-jest": "^29.2.4",
-    "typescript": "^5.5.3",
+    "typescript": "^5.9.3",
     "typescript-eslint": "^8.0.1",
     "vite": "^6.2.3"
   },

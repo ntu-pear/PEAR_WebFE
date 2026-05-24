@@ -1,27 +1,25 @@
-import { createRole } from "@/api/role/roles";
-import { queryClient } from "@/App";
-import { useMutation } from "@tanstack/react-query";
-import { useNavigate } from "react-router";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { createRole } from "@/api/role/roles";
 
-type Variables = {
+type CreateRoleInput = {
   roleName: string;
-  accessLevel: 0 | 1 | 2 | 3;
+  description?: string;
+  accessLevelId: string;
 };
 
 const useCreateRole = () => {
-  const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ roleName, accessLevel }: Variables) =>
-      createRole(roleName, accessLevel),
+    mutationFn: async (data: CreateRoleInput) => createRole(data),
     onSuccess: () => {
-      navigate(-1);
       toast.success("Role created successfully");
       queryClient.invalidateQueries({ queryKey: ["roles"] });
     },
-    onError: (error: { response: { data: { detail: string } } }) =>
-      toast.error(`Failed to create role. ${error.response.data.detail}`),
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.detail || "Failed to create role");
+    },
   });
 };
 
