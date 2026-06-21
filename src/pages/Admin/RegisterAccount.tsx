@@ -215,9 +215,15 @@ const RegisterAccount: React.FC = () => {
                         label="Full Name according to NRIC"
                         name="fullName"
                         formReturn={form}
+                        maxLength={100}
                         validation={{
                           onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
                             handleSanitizedChange("fullName", e.target.value),
+                          maxLength: { value: 100, message: "Name must be 100 characters or fewer" },
+                          pattern: {
+                            value: /^[a-zA-Z\s]+$/,
+                            message: "Name must contain only letters",
+                          },
                         }}
                       />
                     </div>
@@ -226,9 +232,14 @@ const RegisterAccount: React.FC = () => {
                       label="NRIC Number"
                       name="nric"
                       formReturn={form}
+                      maxLength={9}
                       validation={{
                         onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
                           handleSanitizedChange("nric", e.target.value),
+                        pattern: {
+                          value: /^[STFGM]\d{7}[A-Z]$/,
+                          message: "NRIC must be S/T/F/G/M + 7 digits + letter (e.g. S1234567A)",
+                        },
                       }}
                     />
 
@@ -236,9 +247,15 @@ const RegisterAccount: React.FC = () => {
                       label="Contact No."
                       name="contactNo"
                       formReturn={form}
+                      maxLength={8}
+                      inputMode="numeric"
                       validation={{
                         onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
                           handleSanitizedChange("contactNo", e.target.value),
+                        pattern: {
+                          value: /^[689]\d{7}$/,
+                          message: "Contact must start with 6/8/9 and be 8 digits",
+                        },
                       }}
                     />
 
@@ -247,9 +264,11 @@ const RegisterAccount: React.FC = () => {
                         label="Address"
                         name="address"
                         formReturn={form}
+                        maxLength={255}
                         validation={{
                           onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
                             handleSanitizedChange("address", e.target.value),
+                          maxLength: { value: 255, message: "Address must be 255 characters or fewer" },
                         }}
                       />
                     </div>
@@ -282,9 +301,16 @@ const RegisterAccount: React.FC = () => {
                       label="Email"
                       name="email"
                       formReturn={form}
+                      type="email"
+                      maxLength={255}
                       validation={{
                         onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
                           handleSanitizedChange("email", e.target.value),
+                        pattern: {
+                          value: /^\S+@\S+\.\S+$/,
+                          message: "Please enter a valid email address",
+                        },
+                        maxLength: { value: 255, message: "Email must be 255 characters or fewer" },
                       }}
                     />
 

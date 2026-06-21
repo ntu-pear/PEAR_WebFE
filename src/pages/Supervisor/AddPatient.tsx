@@ -28,14 +28,16 @@ import { useNavigate } from "react-router-dom";
 
 const patientInfoSchema = z
   .object({
-    name: z.string().trim().min(1, { message: "Name is required" }).refine(
+    name: z.string().trim().min(1, { message: "Name is required" }).max(100, "Name must be 100 characters or fewer").refine(
       (v) => /^[a-zA-Z ]+$/.test(v),
       "Name must contain only letters"
     ),
     preferredName: z
       .string()
       .trim()
-      .min(1, { message: "Preferred name is required" }).refine(
+      .min(1, { message: "Preferred name is required" })
+      .max(100, "Preferred name must be 100 characters or fewer")
+      .refine(
         (v) => /^[a-zA-Z ]+$/.test(v),
         "Preferred name must contain only letters"
       ),
@@ -82,8 +84,8 @@ const patientInfoSchema = z
       })
       .optional()
       .or(z.literal("")),
-    address: z.string().trim().min(1, { message: "Address is required" }),
-    tempAddress: z.string().trim().optional(),
+    address: z.string().trim().min(1, { message: "Address is required" }).max(255, "Address must be 255 characters or fewer"),
+    tempAddress: z.string().trim().max(255, "Address must be 255 characters or fewer").optional(),
     preferredLanguageId: z
       .number()
       .min(1, { message: "Preferred Language is required" }),
@@ -133,6 +135,7 @@ const guardianSchema = z.object({
     .string()
     .trim()
     .min(1, "First name is required")
+    .max(100, "First name must be 100 characters or fewer")
     .refine(
       (v) => /^[a-zA-Z ]+$/.test(v),
       "First name must contain only letters"
@@ -141,14 +144,20 @@ const guardianSchema = z.object({
     .string()
     .trim()
     .min(1, "Last name is required")
+    .max(100, "Last name must be 100 characters or fewer")
     .refine(
       (v) => /^[a-zA-Z ]+$/.test(v),
       "Last name must contain only letters"
     ),
-  preferredName: z.string().trim().min(1, "Preferred name is required").refine(
-    (v) => /^[a-zA-Z ]+$/.test(v),
-    "Preferred name must contain only letters"
-  ),
+  preferredName: z
+    .string()
+    .trim()
+    .min(1, "Preferred name is required")
+    .max(100, "Preferred name must be 100 characters or fewer")
+    .refine(
+      (v) => /^[a-zA-Z ]+$/.test(v),
+      "Preferred name must contain only letters"
+    ),
   gender: z.enum(["M", "F"], { message: "Gender is required" }),
   contactNo: z
     .string()
@@ -165,10 +174,27 @@ const guardianSchema = z.object({
     .refine((nric) => validateNRIC(nric), {
       message: "Invalid NRIC",
     }),
-  email: z.string().trim().optional().or(z.literal("")),
-  dateOfBirth: z.string().min(1, "Date of birth is required"),
-  address: z.string().trim().min(1, "Address is required"),
-  tempAddress: z.string().trim().optional().or(z.literal("")),
+  email: z
+    .string()
+    .trim()
+    .optional()
+    .or(z.literal(""))
+    .refine(
+      (v) => !v || /^\S+@\S+\.\S+$/.test(v),
+      "Please enter a valid email address"
+    ),
+  dateOfBirth: z
+    .string()
+    .min(1, "Date of birth is required")
+    .refine(
+      (date) => {
+        const age = dayjs().diff(dayjs(date), "year");
+        return age >= 18 && age <= 120;
+      },
+      "Guardian must be between 18 and 120 years old"
+    ),
+  address: z.string().trim().min(1, "Address is required").max(255, "Address must be 255 characters or fewer"),
+  tempAddress: z.string().trim().max(255, "Address must be 255 characters or fewer").optional().or(z.literal("")),
   relationshipName: z
     .string()
     .refine(
@@ -579,6 +605,7 @@ const AddPatient: React.FC = () => {
                         <input
                           id="patient-name"
                           type="text"
+                          maxLength={100}
                           className=" block w-full p-2 border rounded-md text-gray-900"
                           {...register("patientInfoSchema.name")}
                         />
@@ -597,6 +624,7 @@ const AddPatient: React.FC = () => {
                         <input
                           id="patient-preferred-name"
                           type="text"
+                          maxLength={100}
                           className=" block w-full p-2 border rounded-md text-gray-900"
                           {...register("patientInfoSchema.preferredName")}
                         />
@@ -698,6 +726,7 @@ const AddPatient: React.FC = () => {
                         <input
                           id="patient-home-number"
                           maxLength={8}
+                          inputMode="numeric"
                           className="block w-full p-2 border rounded-md text-gray-900"
                           {...register("patientInfoSchema.homeNo")}
                         />
@@ -715,6 +744,7 @@ const AddPatient: React.FC = () => {
                         <input
                           id="patient-handphone-number"
                           maxLength={8}
+                          inputMode="numeric"
                           className="block w-full p-2 border rounded-md text-gray-900"
                           {...register("patientInfoSchema.handphoneNo")}
                         />
@@ -733,6 +763,7 @@ const AddPatient: React.FC = () => {
                         <div className="flex gap-2 mt-2">
                           <input
                             id="patient-address"
+                            maxLength={255}
                             className="block w-full p-2 border rounded-md text-gray-900"
                             {...register("patientInfoSchema.address")}
                           />
@@ -764,6 +795,7 @@ const AddPatient: React.FC = () => {
                         <div className="flex gap-2 mt-2">
                           <input
                             id="patient-temporary-address"
+                            maxLength={255}
                             className="block w-full p-2 border rounded-md text-gray-900"
                             {...register("patientInfoSchema.tempAddress")}
                           />
@@ -970,6 +1002,7 @@ const AddPatient: React.FC = () => {
                             <span className="text-destructive">*</span>
                           </Label>
                           <input
+                            maxLength={100}
                             className="mt-1 block w-full p-2 border rounded-md text-gray-900"
                             {...register(`guardians.${index}.firstName`)}
                           />
@@ -989,6 +1022,7 @@ const AddPatient: React.FC = () => {
                             <span className="text-destructive">*</span>
                           </Label>
                           <input
+                            maxLength={100}
                             className="mt-1 block w-full p-2 border rounded-md text-gray-900"
                             {...register(`guardians.${index}.lastName`)}
                           />
@@ -1019,6 +1053,7 @@ const AddPatient: React.FC = () => {
                             <span className="text-destructive">*</span>
                           </Label>
                           <input
+                            maxLength={100}
                             className="mt-1 block w-full p-2 border rounded-md text-gray-900"
                             {...register(`guardians.${index}.preferredName`)}
                           />
@@ -1139,6 +1174,7 @@ const AddPatient: React.FC = () => {
                           </Label>
                           <input
                             maxLength={8}
+                            inputMode="numeric"
                             className="mt-1 block w-full p-2 border rounded-md text-gray-900"
                             {...register(`guardians.${index}.contactNo`)}
                           />
@@ -1178,6 +1214,7 @@ const AddPatient: React.FC = () => {
                           </Label>
                           <div className="flex gap-2 mt-2">
                             <input
+                              maxLength={255}
                               className="block w-full p-2 border rounded-md text-gray-900"
                               {...register(`guardians.${index}.address`)}
                             />
@@ -1209,6 +1246,7 @@ const AddPatient: React.FC = () => {
                           <Label>Temporary Address</Label>
                           <div className="flex gap-2 mt-2">
                             <input
+                              maxLength={255}
                               className="block w-full p-2 border rounded-md text-gray-900"
                               {...register(`guardians.${index}.tempAddress`)}
                             />

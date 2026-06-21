@@ -581,10 +581,6 @@ const PatientActivityPreferenceCard: React.FC<
       <Card>
         <CardHeader>
           <CardTitle>Activity Preferences</CardTitle>
-          <div className="flex justify-between items-center">
-            <CardTitle>Activity Preferences</CardTitle>
-          </div>
-          
         </CardHeader>
         <CardContent>
           <div className="flex justify-center items-center h-32">
