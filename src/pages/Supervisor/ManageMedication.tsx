@@ -237,6 +237,7 @@ const ManageMedication: React.FC = () => {
                 activeTab={"information"}
                 fetchData={handleFilter}
                 expandable={true}
+                expandOnRowClick={true}
                 renderExpandedContent={renderExpandedContent}
                 onExpand={handleExpandPatient}
               />
