@@ -5,7 +5,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
-import { getAllCentreActivities, getAllActivities, CentreActivity } from "@/api/activity/activityPreference";
+import { getAllCentreActivities, getAllActivities, getCentreActivityPreferences, CentreActivity } from "@/api/activity/activityPreference";
+import { getCentreActivityRecommendations } from "@/api/activity/activityRecommendation";
 import { toast } from "sonner";
 import { Search, X } from "lucide-react";
 
@@ -27,7 +28,7 @@ type Props = {
   submitting?: boolean;
   onSubmit: (values: BulkCentreActivityExclusionFormValues) => void | Promise<void>;
   onCancel?: () => void;
-  excludedActivityIds?: Set<number>; // Activities already excluded for this patient
+  excludedActivityIds?: Set<number>;
 };
 
 interface CentreActivityWithDetails extends CentreActivity {
@@ -35,10 +36,10 @@ interface CentreActivityWithDetails extends CentreActivity {
   activity_description?: string;
 }
 
-export default function BulkActivityExclusionForm({ 
-  initial, 
-  submitting, 
-  onSubmit, 
+export default function BulkActivityExclusionForm({
+  initial,
+  submitting,
+  onSubmit,
   onCancel,
   excludedActivityIds = new Set()
 }: Props) {
@@ -48,28 +49,43 @@ export default function BulkActivityExclusionForm({
   const [endDate, setEndDate] = useState(initial?.end_date ?? "");
   const [isIndefinite, setIsIndefinite] = useState<boolean>(false);
   const [searchTerm, setSearchTerm] = useState("");
-  
+
   const [centreActivities, setCentreActivities] = useState<CentreActivityWithDetails[]>([]);
   const [loading, setLoading] = useState(true);
   const selectedActivities = centreActivities.filter(activity => selectedActivityIds.has(activity.id));
 
   useEffect(() => {
-    const fetchCentreActivities = async () => {
+    const fetchScheduleableActivities = async () => {
       try {
         setLoading(true);
-        
-        // Fetch both activities and centre activities in parallel
-        const [activities, centreActivities] = await Promise.all([
+
+        const patientIdStr = initial?.patient_id ? String(initial.patient_id) : null;
+
+        const [activities, centreActivities, preferences, recommendations] = await Promise.all([
           getAllActivities(),
-          getAllCentreActivities()
+          getAllCentreActivities(),
+          patientIdStr ? getCentreActivityPreferences(patientIdStr) : Promise.resolve([]),
+          patientIdStr ? getCentreActivityRecommendations(patientIdStr) : Promise.resolve([])
         ]);
 
-        // Create a map of centre activity id to activity details
+        const dislikedIds = new Set(
+          preferences
+            .filter(p => !p.is_deleted && p.is_like === -1)
+            .map(p => p.centre_activity_id)
+        );
+
+        const notRecommendedIds = new Set(
+          recommendations
+            .filter(r => !r.is_deleted && r.doctor_recommendation === -1)
+            .map(r => r.centre_activity_id)
+        );
+
         const combinedData: CentreActivityWithDetails[] = [];
-        
+
         centreActivities.forEach(centreActivity => {
           const activity = activities.find(a => a.id === centreActivity.activity_id);
-          if (activity && !activity.is_deleted && !centreActivity.is_deleted) {
+          const isExcluded = dislikedIds.has(centreActivity.id) || notRecommendedIds.has(centreActivity.id);
+          if (activity && !activity.is_deleted && !centreActivity.is_deleted && !isExcluded) {
             combinedData.push({
               ...centreActivity,
               activity_title: activity.title,
@@ -78,9 +94,8 @@ export default function BulkActivityExclusionForm({
           }
         });
 
-        // Sort by activity title
         combinedData.sort((a, b) => a.activity_title.localeCompare(b.activity_title));
-        
+
         setCentreActivities(combinedData);
       } catch (error) {
         console.error("Error fetching centre activities:", error);
@@ -90,7 +105,7 @@ export default function BulkActivityExclusionForm({
       }
     };
 
-    fetchCentreActivities();
+    fetchScheduleableActivities();
   }, []);
 
   // Filter activities based on search and exclude already excluded ones

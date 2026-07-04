@@ -155,6 +155,11 @@ const CentreActivityExclusionCard: React.FC<ActivityExclusionCardProps> = ({ pat
 
     try {
       await remove(exclusion.id);
+      setSelectedItems(prev => {
+        const next = new Set(prev);
+        next.delete(exclusion.id);
+        return next;
+      });
       toast.success('Activity exclusion deleted successfully');
       refreshCentreActivityExclusions();
     } catch (error) {
