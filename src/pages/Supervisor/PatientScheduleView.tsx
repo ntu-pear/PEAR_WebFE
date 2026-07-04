@@ -20,6 +20,7 @@ const PatientScheduleView: React.FC = () => {
   
   // State for managing selected activities from schedule data
   const [selectedScheduleActivities, setSelectedScheduleActivities] = useState<string[]>([]);
+  const [selectedPatientId, setSelectedPatientId] = useState<string>("");
 
   // hooks for patient schedule data
   const {
@@ -273,6 +274,22 @@ const PatientScheduleView: React.FC = () => {
       });
   }, [scheduleData]);
 
+  const selectedPatient = useMemo(
+    () => patientsFromSchedule.find(patient => patient.id === selectedPatientId),
+    [patientsFromSchedule, selectedPatientId]
+  );
+
+  useEffect(() => {
+    if (patientsFromSchedule.length === 0) {
+      setSelectedPatientId("");
+      return;
+    }
+
+    if (!patientsFromSchedule.some(patient => patient.id === selectedPatientId)) {
+      setSelectedPatientId(patientsFromSchedule[0].id);
+    }
+  }, [patientsFromSchedule, selectedPatientId]);
+
   // Handle view mode change - only allow patient view modes
   const handleViewModeChange = (newViewMode: ViewMode) => {
     if (newViewMode === 'patient-daily' || newViewMode === 'patient-weekly') {
@@ -294,18 +311,14 @@ const PatientScheduleView: React.FC = () => {
       );
     }
 
-    // Apply search filter to patients
-    const filteredPatientsFromSchedule = patientsFromSchedule.filter(patient =>
-      patient.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      patient.id.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const selectedPatients = selectedPatient ? [selectedPatient] : [];
     
     switch (viewMode) {
       case 'patient-daily':
         return (
           <PatientDailyScheduleView
             currentDate={currentDate}
-            patients={filteredPatientsFromSchedule}
+            patients={patientsFromSchedule}
             getPatientActivitiesForTimeSlot={getEnhancedPatientActivitiesForTimeSlot}
             getActivityTemplate={getEnhancedActivityTemplate}
             onActivityClick={handlePatientActivityClick}
@@ -315,7 +328,7 @@ const PatientScheduleView: React.FC = () => {
         return (
           <PatientWeeklyScheduleView
             currentDate={currentDate}
-            patients={filteredPatientsFromSchedule}
+            patients={selectedPatients}
             getPatientActivitiesForDate={getEnhancedPatientActivitiesForDate}
             getActivityTemplate={getEnhancedActivityTemplate}
             onActivityClick={handlePatientActivityClick}
@@ -325,7 +338,7 @@ const PatientScheduleView: React.FC = () => {
         return (
           <PatientDailyScheduleView
             currentDate={currentDate}
-            patients={filteredPatientsFromSchedule}
+            patients={patientsFromSchedule}
             getPatientActivitiesForTimeSlot={getEnhancedPatientActivitiesForTimeSlot}
             getActivityTemplate={getEnhancedActivityTemplate}
             onActivityClick={handlePatientActivityClick}
@@ -346,6 +359,7 @@ const PatientScheduleView: React.FC = () => {
         onViewModeChange={handleViewModeChange}
         onSearchChange={setSearchTerm}
         allowedViewModes={['patient-daily', 'patient-weekly']}
+        showSearch={false}
         showExportButton={scheduleData.length > 0 && selectedScheduleActivities.length > 0}
         onExportSchedule={handleExportSchedule}
       />
@@ -353,6 +367,9 @@ const PatientScheduleView: React.FC = () => {
       <div className="flex flex-1 overflow-hidden">
         {/* Left Sidebar */}
         <PatientScheduleSidebar
+          patients={patientsFromSchedule}
+          selectedPatientId={selectedPatientId}
+          onPatientChange={setSelectedPatientId}
           activityTemplates={activitiesFromSchedule} // Use derived activities from scheduler response
           selectedActivities={selectedScheduleActivities} // Use schedule-based selected activities
           onActivityToggle={handleScheduleActivityToggle}

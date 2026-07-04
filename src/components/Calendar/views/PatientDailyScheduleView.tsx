@@ -9,6 +9,11 @@ import {
 } from "@/api/scheduler/scheduler";
 import { TIME_SLOTS, ACTIVITY_STYLES } from "../CalendarTypes";
 
+const CELL_WIDTH = 120;
+const CELL_HEIGHT = 64;
+const ACTIVITY_TOP = 8;
+const ACTIVITY_HEIGHT = 48;
+
 interface PatientDailyScheduleViewProps {
   currentDate: Date;
   patients: Patient[];
@@ -56,9 +61,6 @@ const PatientDailyScheduleView: React.FC<PatientDailyScheduleViewProps> = ({
             const endHour = getHours(end);
             const endMinute = end.getMinutes();
 
-            // Calculate horizontal positioning
-            const CELL_WIDTH = 120; // min-w-[120px] from the cell styling
-            
             // Calculate left offset within the starting cell (based on start minutes)
             const leftOffset = (startMinute / 60) * CELL_WIDTH;
             
@@ -89,7 +91,7 @@ const PatientDailyScheduleView: React.FC<PatientDailyScheduleViewProps> = ({
             return (
               <div
                 key={activity.id}
-                className={`${ACTIVITY_STYLES.baseActivity} ${ACTIVITY_STYLES.fontColour} absolute top-2 z-10 ${
+                className={`${ACTIVITY_STYLES.baseActivity} ${ACTIVITY_STYLES.fontColour} absolute z-[1] ${
                   activity.isOverridden 
                     ? ACTIVITY_STYLES.bgcolours.modified 
                     : activityTemplate.type === 'free_easy' 
@@ -99,7 +101,8 @@ const PatientDailyScheduleView: React.FC<PatientDailyScheduleViewProps> = ({
                 style={{ 
                   left: `${leftOffset}px`,
                   width: `${Math.max(totalWidth, 60)}px`, // Minimum 60px width
-                  height: '48px' // Fixed height to fit within cell
+                  top: `${ACTIVITY_TOP}px`,
+                  height: `${ACTIVITY_HEIGHT}px`
                 }}
                 onClick={() => onActivityClick(activity)}
                 title={`${activityTemplate.name} (${activity.startTime} - ${activity.endTime})`}
@@ -152,7 +155,7 @@ const PatientDailyScheduleView: React.FC<PatientDailyScheduleViewProps> = ({
             patients.map(patient => (
               <div key={patient.id} className="flex border-b border-gray-200 last:border-b-0">
                 {/* Patient name cell */}
-                <div className="sticky left-0 bg-white border-r border-gray-200 p-3 flex items-center justify-between w-[200px] z-10 shadow-sm">
+                <div className="sticky left-0 bg-white border-r border-gray-200 p-3 flex items-center justify-between w-[200px] z-30 shadow-sm">
                   <div>
                     <div className="font-medium text-sm">{patient.name}</div>
                   </div>
@@ -170,6 +173,7 @@ const PatientDailyScheduleView: React.FC<PatientDailyScheduleViewProps> = ({
                   <div 
                     key={`${patient.id}-${timeSlot}`} 
                     className="w-[120px] border-r border-gray-200"
+                    style={{ height: `${CELL_HEIGHT}px` }}
                   >
                     {renderActivityCell(patient.id, timeSlot)}
                   </div>
