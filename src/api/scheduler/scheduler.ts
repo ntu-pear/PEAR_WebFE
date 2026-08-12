@@ -208,23 +208,6 @@ const mergeAdjacentSlots = (slots: ScheduleSlot[]): ScheduleSlot[] => {
   }, []);
 };
 
-const fallbackScheduleSlots = (scheduleString: string): ScheduleSlot[] => {
-  return scheduleString
-    .split("--")
-    .map((activity) => activity.trim())
-    .filter(Boolean)
-    .map((activityName, index) => {
-      const startHour = 9 + index;
-      const endHour = startHour + 1;
-
-      return {
-        activityName,
-        startTime: `${startHour.toString().padStart(2, "0")}:00`,
-        endTime: `${endHour.toString().padStart(2, "0")}:00`,
-      };
-    });
-};
-
 // Helper function to parse schedule string into activity names.
 export const parseScheduleString = (scheduleString: string): string[] => {
   return parseScheduleSlots(scheduleString).map((slot) => slot.activityName);
@@ -249,10 +232,10 @@ const parseScheduleSlots = (scheduleString: string): ScheduleSlot[] => {
       return mergeAdjacentSlots(slots);
     }
   } catch {
-    // Some older scheduler responses used "Activity A -- Activity B".
+    // scheduleString wasn't valid JSON — nothing to parse.
   }
 
-  return fallbackScheduleSlots(scheduleString);
+  return [];
 };
 
 // Helper function to convert schedule data to calendar format
