@@ -27,7 +27,7 @@ import {
   availabilityCoversTime,
   CentreActivityAvailability,
 } from "@/api/activities/centreActivityAvailabilities";
-import { formatDateTimeNoYear, formatDateTime } from "@/utils/formatDate";
+import { formatDateTimeNoYear, formatDateTime, userPrefersHour12 } from "@/utils/formatDate";
 import dayjs, { Dayjs } from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
@@ -36,7 +36,8 @@ import { useNavigate } from "react-router-dom";
 dayjs.extend(utc);
 dayjs.extend(timezone);
 const SG_TZ = "Asia/Singapore";
-const DATE_TIME_DISPLAY_FORMAT = "DD-MMM-YYYY hh:mm A";
+const HOUR_12 = userPrefersHour12();
+const DATE_TIME_DISPLAY_FORMAT = HOUR_12 ? "DD-MMM-YYYY hh:mm A" : "DD-MMM-YYYY HH:mm";
 
 
 const getModalDateTimeValue = (value?: string | null) => {
@@ -371,8 +372,8 @@ const EditAdhocModal: React.FC<EditAdhocModalProps> = ({ activity, open, onClose
   const [durationMinutes, setDurationMinutes] = useState(30);
   const pickerPopupClassName = "adhoc-datetime-picker-popup";
   const timePickerProps = {
-    format: "hh:mm A",
-    use12Hours: true,
+    format: HOUR_12 ? "hh:mm A" : "HH:mm",
+    use12Hours: HOUR_12,
     showSecond: false,
   };
   const [availabilities, setAvailabilities] = useState<CentreActivityAvailability[]>([]);
@@ -487,7 +488,7 @@ const EditAdhocModal: React.FC<EditAdhocModalProps> = ({ activity, open, onClose
               value={startDate}
               showTime={timePickerProps}
               format={dateTimeFormat}
-              use12Hours
+              use12Hours={HOUR_12}
               className="w-full"
               onChange={handleStartDateChange}
               allowClear={false}
@@ -502,7 +503,7 @@ const EditAdhocModal: React.FC<EditAdhocModalProps> = ({ activity, open, onClose
               value={endDate}
               showTime={timePickerProps}
               format={dateTimeFormat}
-              use12Hours
+              use12Hours={HOUR_12}
               className="w-full"
               onChange={handleEndDateChange}
               allowClear={false}

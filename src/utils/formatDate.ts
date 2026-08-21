@@ -89,3 +89,7 @@ export const to12HourParts = (time: string) => {
 export const to24Hour = (hour: string, minute: string, period: "AM" | "PM") => {
   return dayjs(`${hour}:${minute} ${period}`, "h:mm A").format("H:mm");
 };
+
+export const userPrefersHour12 = () => {
+  return new Intl.DateTimeFormat(undefined, { hour: "numeric" }).resolvedOptions().hour12 ?? true;
+};
