@@ -392,7 +392,12 @@ export default function ManageCentre() {
                 <label className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">Name</label>
                 <Controller
                   name="name" control={control}
-                  rules={{ required: "Name is required", validate: (v) => isUniqueField("name", v) || "Name already exists" }}
+                  rules={{
+                    required: "Name is required",
+                    minLength: { value: 2, message: "Name must be at least 2 characters" },
+                    maxLength: { value: 100, message: "Name must be 100 characters or fewer" },
+                    validate: (v) => isUniqueField("name", v) || "Name already exists",
+                  }}
                   render={({ field, fieldState }) => (
                     <>
                       <Input {...field} autoFocus value={field.value ?? ""}
@@ -421,7 +426,12 @@ export default function ManageCentre() {
                 <label className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">Address</label>
                 <Controller
                   name="address" control={control}
-                  rules={{ required: "Address is required", validate: (v) => isUniqueField("address", v) || "Address already exists" }}
+                  rules={{
+                    required: "Address is required",
+                    minLength: { value: 5, message: "Address must be at least 5 characters" },
+                    maxLength: { value: 255, message: "Address must be 255 characters or fewer" },
+                    validate: (v) => isUniqueField("address", v) || "Address already exists",
+                  }}
                   render={({ field, fieldState }) => (
                     <>
                       <Input {...field} value={field.value ?? ""}
@@ -508,11 +518,19 @@ export default function ManageCentre() {
                 <label className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">Devices Available</label>
                 <Controller
                   name="no_of_devices_avail" control={control}
-                  render={({ field }) => (
-                    <Input type="number" min={0}
-                      value={Number.isFinite(field.value as any) ? field.value : 0}
-                      onChange={(e) => { const n = e.currentTarget.valueAsNumber; field.onChange(Number.isNaN(n) ? 0 : n); }}
-                    />
+                  rules={{
+                    required: "Devices Available is required",
+                    min: { value: 0, message: "Must be 0 or more" },
+                    max: { value: 9999, message: "Must be 9999 or fewer" },
+                  }}
+                  render={({ field, fieldState }) => (
+                    <>
+                      <Input type="number" min={0} max={9999}
+                        value={Number.isFinite(field.value as any) ? field.value : 0}
+                        onChange={(e) => { const n = e.currentTarget.valueAsNumber; field.onChange(Number.isNaN(n) ? 0 : n); }}
+                      />
+                      {fieldState.error && <p className="text-xs text-destructive">{fieldState.error.message}</p>}
+                    </>
                   )}
                 />
               </div>

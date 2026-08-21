@@ -3,8 +3,9 @@ import { Dayjs } from "dayjs";
 import dayjs from "dayjs";
 import { RuleObject } from "antd/es/form";
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { fetchAllPatientTD } from "@/api/patients/patients";
-import { createAdhocActivity } from "@/api/activities/adhoc"; 
+import { createAdhocActivity } from "@/api/activities/adhoc";
 import { listCentreActivities, CentreActivity, getActivities } from "@/api/activities/centreActivities";
 import {
   listCentreActivityAvailabilities,
@@ -12,12 +13,8 @@ import {
   CentreActivityAvailability,
 } from "@/api/activities/centreActivityAvailabilities";
 
-
 const AddAdhoc: React.FC = () => {
-  const [form] = Form.useForm();
-  const startDate: Dayjs | null = Form.useWatch("start_date", form);
-  const endDate: Dayjs | null = Form.useWatch("end_date", form);
-
+  const navigate = useNavigate();
   const [activities, setActivities] = useState<CentreActivity[]>([]);
   const [loadingActivities, setLoadingActivities] = useState(true);
 
@@ -25,8 +22,11 @@ const AddAdhoc: React.FC = () => {
   const [loadingPatients, setLoadingPatients] = useState(true);
 
   const [activityMap, setActivityMap] = useState<Record<number, string>>({});
-  const [availabilities, setAvailabilities] =
-    useState<CentreActivityAvailability[]>([]);
+  const [availabilities, setAvailabilities] = useState<CentreActivityAvailability[]>([]);
+
+  const [form] = Form.useForm();
+  const startDate: Dayjs | null = Form.useWatch("start_date", form);
+  const endDate: Dayjs | null = Form.useWatch("end_date", form);
 
   const onFinish = async (values: any) => {
     const startISO = values.start_date
@@ -49,6 +49,7 @@ const AddAdhoc: React.FC = () => {
 
       message.success("Adhoc activity added successfully!");
       form.resetFields();
+      navigate("/supervisor/manage-adhoc");
     } catch (error) {
       console.error("Failed to add adhoc:", error);
       message.error("Failed to add adhoc activity");
@@ -129,37 +130,6 @@ const AddAdhoc: React.FC = () => {
     return Promise.resolve();
   };
 
-
-  useEffect(() => {
-    const fetchAvailabilities = async () => {
-      try {
-        const res = await listCentreActivityAvailabilities({
-          include_deleted: false,
-          limit: 1000,
-        });
-        setAvailabilities(res);
-      } catch (error) {
-        console.error("Failed to fetch availabilities", error);
-        message.error("Failed to load activity availabilities");
-      }
-    };
-
-    fetchAvailabilities();
-  }, []);
-
-  useEffect(() => {
-    const todayMorning = dayjs()
-      .hour(9)
-      .minute(0)
-      .second(0);
-
-    form.setFieldsValue({
-      start_date: todayMorning,
-      end_date: todayMorning.add(1, "hour"),
-    });
-  }, [form]);
-
-
   useEffect(() => {
     const fetchPatients = async () => {
       try {
@@ -218,13 +188,6 @@ const AddAdhoc: React.FC = () => {
 
         setActivityMap(map);
 
-        if (centreRes.length > 0) {
-                form.setFieldsValue({
-                  old_centre_activity_id: centreRes[0].id,
-                  new_centre_activity_id: centreRes[1].id,
-                });
-              }
-
       } catch (error) {
         console.error("Failed to fetch activities", error);
         message.error("Failed to load activities");
@@ -234,6 +197,12 @@ const AddAdhoc: React.FC = () => {
     };
 
     fetchActivities();
+  }, []);
+
+  useEffect(() => {
+    listCentreActivityAvailabilities({ include_deleted: false, limit: 1000 })
+      .then(setAvailabilities)
+      .catch(err => console.error("Failed to load availabilities", err));
   }, []);
 
   const getValidReplacementActivityIds = () => {
@@ -359,7 +328,6 @@ const AddAdhoc: React.FC = () => {
                     </label>
                   }
                   name="old_centre_activity_id"
-
                   rules={[
                     {
                       required: true,
@@ -431,7 +399,6 @@ const AddAdhoc: React.FC = () => {
                     </label>
                   }
                   name="new_centre_activity_id"
-
                   rules={[
                     {
                       required: true,
@@ -496,29 +463,10 @@ const AddAdhoc: React.FC = () => {
                   className="sm:col-span-3"
                 >
                   <DatePicker
-                    showTime={{
-                      use12Hours: true,
-                      format: "h:mm A",
-                    }}
-                    format="YYYY-MM-DD h:mm A"
+                    showTime={{ format: "HH:mm:ss" }}
+                    format="YYYY-MM-DD HH:mm:ss"
                     className="w-full"
-                    onChange={(value) => {
-                      if (!value) return;
-
-                      form.setFields([
-                        { name: "start_date", value: value.second(0) },
-                        {
-                          name: "new_centre_activity_id",
-                          value: "",
-                        },
-                      ]);
-
-                      
-                      form.validateFields(["new_centre_activity_id"]);
-                    }}
                   />
-
-
                 </Form.Item>
 
                 <Form.Item
@@ -535,28 +483,10 @@ const AddAdhoc: React.FC = () => {
                   className="sm:col-span-3"
                 >
                   <DatePicker
-                    showTime={{
-                      use12Hours: true,
-                      format: "h:mm A",
-                    }}
-                    format="YYYY-MM-DD h:mm A"
+                    showTime={{ format: "HH:mm:ss" }}
+                    format="YYYY-MM-DD HH:mm:ss"
                     className="w-full"
-                    onChange={(value) => {
-                      if (!value) return;
-
-                      form.setFields([
-                        { name: "end_date", value: value.second(0) },
-                        {
-                          name: "new_centre_activity_id",
-                          value: "", 
-                        },
-                      ]);
-
-                      form.validateFields(["new_centre_activity_id"]);
-                    }}
                   />
-
-
                 </Form.Item>
 
               </div>
@@ -568,6 +498,7 @@ const AddAdhoc: React.FC = () => {
               <button
                 type="button"
                 className="text-sm font-semibold leading-6 text-primary"
+                onClick={() => navigate("/supervisor/manage-adhoc")}
               >
                 Cancel
               </button>

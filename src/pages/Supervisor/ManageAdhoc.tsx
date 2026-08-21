@@ -10,6 +10,7 @@ import Searchbar from "@/components/Searchbar";
 import { DataTableClient, DataTableColumns } from "@/components/Table/DataTable";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { DatePicker } from "antd";
 import {
   listAdhocActivities,
   AdhocActivity,
@@ -20,7 +21,7 @@ import { listActivities, Activity } from "@/api/activities/activities";
 import {
   listCentreActivities,
   CentreActivity,
-} from "@/api/activities/centreActivities"; 
+} from "@/api/activities/centreActivities";
 import {
   listCentreActivityAvailabilities,
   availabilityCoversTime,
@@ -30,14 +31,26 @@ import { formatDateTimeNoYear, formatDateTime } from "@/utils/formatDate";
 import dayjs, { Dayjs } from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
-import { DatePicker } from "antd";
+import { useNavigate } from "react-router-dom";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
 const SG_TZ = "Asia/Singapore";
+const DATE_TIME_DISPLAY_FORMAT = "DD-MMM-YYYY hh:mm A";
+
+
+const getModalDateTimeValue = (value?: string | null) => {
+  if (!value) return "";
+
+  const parsed = dayjs(value);
+  if (!parsed.isValid()) return "";
+
+  return parsed.tz(SG_TZ).format("YYYY-MM-DDTHH:mm");
+};
 
 
 const ManageAdhoc: React.FC = () => {
+  const navigate = useNavigate();
   const [adhocActivities, setAdhocActivities] = useState<AdhocActivity[]>([]);
   const [searchItem, setSearchItem] = useState("");
   const [loading, setLoading] = useState(true);
@@ -198,8 +211,15 @@ const ManageAdhoc: React.FC = () => {
         <main className="flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
           <Card>
             <CardHeader>
-              <CardTitle>Manage Adhoc</CardTitle>
-              <CardDescription>Manage adhoc activities for patients</CardDescription>
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <CardTitle>Manage Adhoc</CardTitle>
+                  <CardDescription>Manage adhoc activities for patients</CardDescription>
+                </div>
+                <Button onClick={() => navigate("/supervisor/add-adhoc")}>
+                  Add Adhoc
+                </Button>
+              </div>
             </CardHeader>
             <CardContent className="overflow-x-auto">
               {loading ? (
@@ -245,7 +265,10 @@ const ManageAdhoc: React.FC = () => {
         open={editModalOpen}
         centreActivityList={centreActivityList}
         getDisplayName={getCentreActivityDisplayName}
-        onClose={() => setEditModalOpen(false)}
+        onClose={() => {
+          setEditModalOpen(false);
+          setEditingActivity(null);
+        }}
         onSave={async (updated) => {
           try {
             const startISO = dayjs(updated.startDate)
@@ -316,9 +339,11 @@ const ManageAdhoc: React.FC = () => {
             );
 
             setEditModalOpen(false);
+            setEditingActivity(null);
           } catch (err) {
             console.error(err);
             alert("Failed to update adhoc activity");
+            setEditingActivity(prev => (prev ? { ...prev } : prev));
           }
         }}
       />
@@ -342,28 +367,62 @@ const EditAdhocModal: React.FC<EditAdhocModalProps> = ({ activity, open, onClose
   const [selectedActivityId, setSelectedActivityId] = useState<number | undefined>(activity?.newActivityId);
   const [startDate, setStartDate] = useState<Dayjs | null>(null);
   const [endDate, setEndDate] = useState<Dayjs | null>(null);
-  const [availabilities, setAvailabilities] =
-    useState<CentreActivityAvailability[]>([]);
+  const dateTimeFormat = DATE_TIME_DISPLAY_FORMAT;
+  const [durationMinutes, setDurationMinutes] = useState(30);
+  const pickerPopupClassName = "adhoc-datetime-picker-popup";
+  const timePickerProps = {
+    format: "hh:mm A",
+    use12Hours: true,
+    showSecond: false,
+  };
+  const [availabilities, setAvailabilities] = useState<CentreActivityAvailability[]>([]);
 
-  useEffect(() => {
-    if (!activity) return;
+  const resetForm = useCallback(() => {
+    if (!activity) {
+      setSelectedActivityId(undefined);
+      setStartDate(null);
+      setEndDate(null);
+      setDurationMinutes(30);
+      return;
+    }
 
     setSelectedActivityId(activity.newActivityId);
-
-    const startSG = dayjs.utc(activity.startDate).tz(SG_TZ);
-    const endSG = dayjs.utc(activity.endDate).tz(SG_TZ);
-
-    setStartDate(startSG);
-    setEndDate(endSG);
+    const startValue = getModalDateTimeValue(activity.startDate);
+    const endValue = getModalDateTimeValue(activity.endDate);
+    const nextStartDate = startValue ? dayjs(startValue) : null;
+    const nextEndDate = endValue ? dayjs(endValue) : null;
+    setStartDate(nextStartDate);
+    setEndDate(nextEndDate);
+    setDurationMinutes(
+      nextStartDate && nextEndDate && nextEndDate.isAfter(nextStartDate)
+        ? nextEndDate.diff(nextStartDate, "minute")
+        : 30
+    );
   }, [activity]);
 
+  const handleStartDateChange = (value: Dayjs | null) => {
+    setStartDate(value);
+    setEndDate(value ? value.add(durationMinutes, "minute") : null);
+  };
+
+  const handleEndDateChange = (value: Dayjs | null) => {
+    setEndDate(value);
+
+    if (value && startDate && value.isAfter(startDate)) {
+      setDurationMinutes(value.diff(startDate, "minute"));
+    }
+  };
+
+  useEffect(() => {
+    if (open) {
+      resetForm();
+    }
+  }, [open, resetForm]);
 
   useEffect(() => {
     listCentreActivityAvailabilities({ include_deleted: false, limit: 1000 })
       .then(setAvailabilities)
-      .catch(err =>
-        console.error("Failed to load availabilities", err)
-      );
+      .catch(err => console.error("Failed to load availabilities", err));
   }, []);
 
   const validReplacementIds = React.useMemo(() => {
@@ -376,16 +435,23 @@ const EditAdhocModal: React.FC<EditAdhocModalProps> = ({ activity, open, onClose
         if (selectedDate < a.start_date || selectedDate > a.end_date) {
           return false;
         }
-
         return availabilityCoversTime(a, startDate, endDate);
       })
       .map(a => a.centre_activity_id);
   }, [availabilities, startDate, endDate]);
 
-   if (!activity) return null;
+  if (!activity) return null;
 
   return (
-    <Dialog open={open} onOpenChange={onClose}>
+    <Dialog
+      open={open}
+      onOpenChange={(nextOpen) => {
+        if (!nextOpen) {
+          resetForm();
+          onClose();
+        }
+      }}
+    >
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Edit Adhoc Activity</DialogTitle>
@@ -419,15 +485,14 @@ const EditAdhocModal: React.FC<EditAdhocModalProps> = ({ activity, open, onClose
             <label className="text-sm font-medium">Start Date</label>
             <DatePicker
               value={startDate}
-                onChange={(value) => {
-                  if (!value) return;
-                  setStartDate(value.second(0));
-                  setSelectedActivityId(undefined); 
-                }}
-
-              showTime={{ use12Hours: true, format: "h:mm A" }}
-              format="DD-MMM-YYYY h:mm A"
+              showTime={timePickerProps}
+              format={dateTimeFormat}
+              use12Hours
               className="w-full"
+              onChange={handleStartDateChange}
+              allowClear={false}
+              popupClassName={pickerPopupClassName}
+              getPopupContainer={(trigger) => trigger.parentElement ?? document.body}
             />
           </div>
 
@@ -435,16 +500,14 @@ const EditAdhocModal: React.FC<EditAdhocModalProps> = ({ activity, open, onClose
             <label className="text-sm font-medium">End Date</label>
             <DatePicker
               value={endDate}
-              
-              onChange={(value) => {
-                  if (!value) return;
-                  setEndDate(value.second(0));
-                  setSelectedActivityId(undefined); 
-                }}
-
-              showTime={{ use12Hours: true, format: "h:mm A" }}
-              format="DD-MMM-YYYY h:mm A"
+              showTime={timePickerProps}
+              format={dateTimeFormat}
+              use12Hours
               className="w-full"
+              onChange={handleEndDateChange}
+              allowClear={false}
+              popupClassName={pickerPopupClassName}
+              getPopupContainer={(trigger) => trigger.parentElement ?? document.body}
             />
           </div>
         </div>
@@ -452,16 +515,9 @@ const EditAdhocModal: React.FC<EditAdhocModalProps> = ({ activity, open, onClose
         <DialogFooter className="mt-4 flex space-x-2">
           <Button
             onClick={() => {
-              if (!startDate || !endDate) {
-                alert("Please select valid start and end dates");
-                return;
-              }
-
-              const newId =
-                selectedActivityId === -1
-                  ? activity.newActivityId
-                  : selectedActivityId;
-
+              if (!selectedActivityId && selectedActivityId !== 0) return alert("Select a new activity");
+              if (!startDate || !endDate) return alert("Select both start and end dates");
+              const newId = selectedActivityId === -1 ? activity.newActivityId : selectedActivityId;
               onSave({
                 ...activity,
                 newActivityId: newId,
@@ -473,7 +529,15 @@ const EditAdhocModal: React.FC<EditAdhocModalProps> = ({ activity, open, onClose
           >
             Save
           </Button>
-          <Button variant="ghost" onClick={onClose}>Cancel</Button>
+          <Button
+            variant="ghost"
+            onClick={() => {
+              resetForm();
+              onClose();
+            }}
+          >
+            Cancel
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

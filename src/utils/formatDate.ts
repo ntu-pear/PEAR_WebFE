@@ -8,7 +8,7 @@ export const formatDate = (date: string) => {
   return dayjs
     .utc(date) // Parse the date in UTC
     .tz("Asia/Singapore") // Convert to Singapore timezone
-    .format("DD-MMM-YYYY"); // Format as "21 Jan 2025"
+    .format("DD-MMM-YYYY"); // Format as "21-JAN-2025"
 };
 
 export const formatDateString = (date: string) => {
@@ -19,7 +19,7 @@ export const formatDateWithWeekday = (date: string | null) => {
   if (!date) return "-";
   return dayjs.utc(date)
     .tz("Asia/Singapore")
-    .format("ddd, DD-MM-YYYY"); // "ddd" gives short weekday, e.g., "Mon", "Tue"
+    .format("ddd, DD-MMM-YYYY"); // "ddd" gives short weekday, e.g., "Mon", "Tue"
 };
 
 export const formatTime = (date: string) => {
@@ -89,4 +89,3 @@ export const to12HourParts = (time: string) => {
 export const to24Hour = (hour: string, minute: string, period: "AM" | "PM") => {
   return dayjs(`${hour}:${minute} ${period}`, "h:mm A").format("H:mm");
 };
-``

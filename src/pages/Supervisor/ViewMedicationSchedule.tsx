@@ -30,50 +30,24 @@ import {
   fetchUserProfilePhotoById,
 } from "@/api/scheduler/medicalSchedule";
 import { getUserDetails } from "@/api/users/user";
+import { formatDateString } from "@/utils/formatDate";
+import dayjs from "dayjs";
 
 // Format today's date
 const getFormattedDate = () => {
-  const today = new Date();
-  return today.toLocaleDateString("en-GB", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
+  return formatDateString(new Date().toISOString());
 };
 
-const formatTimeAMPM = (time: string | undefined | null) => {
+const formatTime12Hour = (time: string | undefined | null) => {
   if (!time || time === "null" || time === "undefined") return "-";
 
-  let date: Date;
-
-  // ISO datetime (e.g. 2026-04-16T16:00:00Z)
   if (time.includes("T")) {
-    date = new Date(time);
-    if (isNaN(date.getTime())) return "-";
-  }
-  // HHmm (e.g. 1600)
-  else if (/^\d{4}$/.test(time)) {
-    const hours = parseInt(time.slice(0, 2), 10);
-    const minutes = parseInt(time.slice(2, 4), 10);
-    date = new Date();
-    date.setHours(hours, minutes, 0, 0);
-  }
-  // HH:mm
-  else if (/^\d{2}:\d{2}$/.test(time)) {
-    const [h, m] = time.split(":").map(Number);
-    date = new Date();
-    date.setHours(h, m, 0, 0);
-  } else {
-    return time;
+    const parsedDateTime = dayjs(time);
+    return parsedDateTime.isValid() ? parsedDateTime.format("hh:mm A") : "-";
   }
 
-  return date
-    .toLocaleTimeString("en-US", {
-      hour: "numeric",
-      minute: "2-digit",
-      hour12: true,
-    })
-    .toUpperCase();
+  const parsedTime = dayjs(time, ["HHmm", "HH:mm", "hh:mm A"], true);
+  return parsedTime.isValid() ? parsedTime.format("hh:mm A") : time;
 };
 
 const isLate = (allocatedTime: string | undefined) => {
@@ -221,7 +195,7 @@ const ViewMedicationSchedule: React.FC = () => {
     {
       key: "administerTime",
       header: "Allocated Time",
-      render: (_value, item) => formatTimeAMPM(item.administerTime),
+      render: (_value, item) => formatTime12Hour(item.administerTime),
     },
     {
       key: "assignedTo",
@@ -243,7 +217,7 @@ const ViewMedicationSchedule: React.FC = () => {
     {
       key: "actualAdministerTime",
       header: "Actual Administered Time",
-      render: (_value, item) => formatTimeAMPM(item.actualAdministerTime),
+      render: (_value, item) => formatTime12Hour(item.actualAdministerTime),
     },
     {
       key: "administeredBy",

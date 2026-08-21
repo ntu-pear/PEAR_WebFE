@@ -24,7 +24,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import Searchbar from "@/components/Searchbar";
 import { DataTableClient } from "@/components/Table/DataTable";
-import dayjs from "dayjs"
 import useDebounce from "@/hooks/useDebounce";
 import {
   fetchHighlights,
@@ -35,6 +34,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { mockCaregiverNameList } from "@/mocks/mockHighlightTableData";
 import { useNavigate } from "react-router";
+import { formatDateWithWeekday } from "@/utils/formatDate";
 import {
   AlertTriangle,
   HeartPulse,
@@ -244,8 +244,7 @@ const HighlightTable: React.FC = () => {
       render: (_: string, highlight: HighlightTableData) => {
         if (!highlight.highlightCreatedDate) return <div>-</div>;
 
-        const formattedDate = dayjs(highlight.highlightCreatedDate)
-          .format("ddd, DD-MMM");
+        const formattedDate = formatDateWithWeekday(highlight.highlightCreatedDate);
 
         return (
           <div className="font-medium whitespace-nowrap">
