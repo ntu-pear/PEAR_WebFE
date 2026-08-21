@@ -14,15 +14,20 @@ import {
   GuardianFormInputs,
   RELATIONSHIP_OPTIONS,
 } from "@/utils/guardianValidation";
-import { addPatientGuardian, IGuardianFormData } from "@/api/patients/guardian";
-import { convertToUTCISOString, getDateTimeNowInUTC } from "@/utils/formatDate";
+import {
+  updatePatientGuardian,
+  IGuardian,
+  IGuardianUpdateFormData,
+} from "@/api/patients/guardian";
+import { convertToUTCISOString, getDateForDatePicker, getDateTimeNowInUTC } from "@/utils/formatDate";
 import { extractErrorMessage } from "@/utils/errorMessage";
 import { mapBackendErrorToField } from "@/utils/mapBackendErrorToForm";
 import { GUARDIAN_FIELD_KEYWORD_MAP } from "@/utils/guardianFieldKeywordMap";
 
-const AddGuardianModal: React.FC = () => {
+const EditGuardianModal: React.FC = () => {
   const { modalRef, activeModal, closeModal } = useModal();
-  const { patientId, refreshGuardianData } = activeModal.props as {
+  const { guardian, patientId, refreshGuardianData } = activeModal.props as {
+    guardian: IGuardian;
     patientId: number;
     refreshGuardianData: () => void | Promise<void>;
   };
@@ -31,31 +36,28 @@ const AddGuardianModal: React.FC = () => {
   const form = useForm<GuardianFormInputs>({
     resolver: zodResolver(guardianSchema),
     defaultValues: {
-      firstName: "",
-      lastName: "",
-      preferredName: "",
-      gender: "M",
-      contactNo: "",
-      nric: "",
-      email: "",
-      dateOfBirth: "",
-      address: "",
-      tempAddress: "",
-      relationshipName: "",
+      firstName: guardian.patient_guardian.firstName,
+      lastName: guardian.patient_guardian.lastName,
+      preferredName: guardian.patient_guardian.preferredName ?? "",
+      gender: guardian.patient_guardian.gender,
+      contactNo: guardian.patient_guardian.contactNo,
+      nric: guardian.patient_guardian.nric,
+      email: guardian.patient_guardian.email ?? "",
+      dateOfBirth: getDateForDatePicker(guardian.patient_guardian.dateOfBirth),
+      address: guardian.patient_guardian.address,
+      tempAddress: guardian.patient_guardian.tempAddress ?? "",
+      relationshipName: guardian.relationshipName,
     },
   });
 
-  const handleAddGuardian = async (values: GuardianFormInputs) => {
+  const handleUpdateGuardian = async (values: GuardianFormInputs) => {
     if (!patientId || !currentUser?.userId) {
       toast.error("Missing patient or current user information.");
       return;
     }
 
-    const creator = String(currentUser.userId);
-    const now = getDateTimeNowInUTC();
-
-    const payload: IGuardianFormData = {
-      active: "Y",
+    const payload: IGuardianUpdateFormData = {
+      active: guardian.patient_guardian.active,
       firstName: values.firstName,
       lastName: values.lastName,
       preferredName: values.preferredName || "",
@@ -66,26 +68,24 @@ const AddGuardianModal: React.FC = () => {
       dateOfBirth: convertToUTCISOString(values.dateOfBirth),
       address: values.address,
       tempAddress: values.tempAddress || "",
-      status: "Y",
-      isDeleted: "0",
-      guardianApplicationUserId: null,
-      createdDate: now,
-      modifiedDate: now,
-      CreatedById: creator,
-      ModifiedById: creator,
+      status: guardian.patient_guardian.status,
+      isDeleted: guardian.patient_guardian.isDeleted,
+      guardianApplicationUserId: guardian.patient_guardian.guardianApplicationUserId,
+      modifiedDate: getDateTimeNowInUTC(),
+      ModifiedById: String(currentUser.userId),
       patientId,
       relationshipName: values.relationshipName,
     };
 
     try {
-      await addPatientGuardian(payload);
-      toast.success("Guardian added successfully.");
+      await updatePatientGuardian(guardian.patient_guardian.id, payload);
+      toast.success("Guardian updated successfully.");
       closeModal();
       await refreshGuardianData?.();
     } catch (error) {
       const mappedToField = mapBackendErrorToField(error, form, GUARDIAN_FIELD_KEYWORD_MAP);
       if (!mappedToField) {
-        toast.error(extractErrorMessage(error, "Failed to add guardian."));
+        toast.error(extractErrorMessage(error, "Failed to update guardian."));
       }
     }
   };
@@ -93,9 +93,9 @@ const AddGuardianModal: React.FC = () => {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
       <div ref={modalRef} className="bg-background p-8 rounded-md w-[600px] max-h-[90vh] overflow-y-auto">
-        <h3 className="text-lg font-medium mb-5">Add Guardian</h3>
+        <h3 className="text-lg font-medium mb-5">Edit Guardian</h3>
         <form
-          onSubmit={form.handleSubmit(handleAddGuardian)}
+          onSubmit={form.handleSubmit(handleUpdateGuardian)}
           className="grid grid-cols-2 gap-x-4"
         >
           <Input label="First Name" name="firstName" formReturn={form} />
@@ -144,7 +144,7 @@ const AddGuardianModal: React.FC = () => {
               Cancel
             </Button>
             <Button type="submit" disabled={form.formState.isSubmitting}>
-              {form.formState.isSubmitting ? "Adding..." : "Add"}
+              {form.formState.isSubmitting ? "Saving..." : "Save Changes"}
             </Button>
           </div>
         </form>
@@ -153,4 +153,4 @@ const AddGuardianModal: React.FC = () => {
   );
 };
 
-export default AddGuardianModal;
+export default EditGuardianModal;

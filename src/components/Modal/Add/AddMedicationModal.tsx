@@ -18,6 +18,7 @@ import {
   addPatientMedication,
   IMedicationFormData,
 } from "@/api/patients/medication";
+import { extractErrorMessage } from "@/utils/errorMessage";
 
 type TAddMedicationForm = {
   PrescriptionListId: number;
@@ -100,8 +101,8 @@ const AddMedicationModal: React.FC = () => {
       toast.success("Patient medication added successfully.");
       refreshMedicationData();
       closeModal();
-    } catch (error: any) {
-      toast.error(error?.message || "Failed to add medication");
+    } catch (error) {
+      toast.error(extractErrorMessage(error, "Failed to add medication."));
     }
   };
 
