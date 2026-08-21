@@ -2,6 +2,7 @@ import { loggerAPI } from "../apiConfig";
 import { activityLoggerAPI } from "../apiConfig";
 import { retrieveAccessTokenFromCookie } from "@/api/users/auth";
 import { AuditLogApiResponse } from "@/types/auditLog";
+import { getCurrentLogEnvironment } from "@/utils/featureFlags";
 
 export type LogType = "patient" | "system" | "user";
 
@@ -104,6 +105,8 @@ export const fetchAllLogs = async (
     params.append("timestamp_order", timestamp_order);
     params.append("pageNo", String(pageNo));
     params.append("pageSize", String(pageSize));
+    const environment = getCurrentLogEnvironment();
+    if (environment) params.append("environment", environment);
 
     const response = await loggerAPI.get<ViewLogsList>(`?${params.toString()}`);
     return convertToLogsTDServer(response.data);
@@ -134,6 +137,8 @@ export async function fetchAuditLogs({
   if (search.trim()) {
     params.search = search.trim();
   }
+  const environment = getCurrentLogEnvironment();
+  if (environment) params.environment = environment;
 
   const response = await activityLoggerAPI.get<AuditLogApiResponse>("", {
     params,

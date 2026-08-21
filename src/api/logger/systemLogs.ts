@@ -1,4 +1,5 @@
 import { systemConfigAPI } from "../apiConfig";
+import { getCurrentLogEnvironment } from "@/utils/featureFlags";
 
 export interface SystemLogBase {
   id?: number;
@@ -49,6 +50,8 @@ export const fetchSystemLogs = async (
     params.append("timestamp_order", timestamp_order);
     params.append("pageNo", String(pageNo));
     params.append("pageSize", String(pageSize));
+    const environment = getCurrentLogEnvironment();
+    if (environment) params.append("environment", environment);
 
     const response = await systemConfigAPI.get<SystemLogsList>(`?${params.toString()}`);
     console.log("System Logs:", response.data);

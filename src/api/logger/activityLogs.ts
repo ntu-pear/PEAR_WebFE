@@ -1,4 +1,5 @@
 import { activityLoggerAPI } from "../apiConfig";
+import { getCurrentLogEnvironment } from "@/utils/featureFlags";
 
 
 export interface ActivityLogBase {
@@ -69,6 +70,8 @@ export const fetchActivityLogs = async (
     params.append("timestamp_order", timestamp_order);
     params.append("pageNo", String(pageNo));
     params.append("pageSize", String(pageSize));
+    const environment = getCurrentLogEnvironment();
+    if (environment) params.append("environment", environment);
 
     const response = await activityLoggerAPI.get<ActivityLogsList>(`?${params.toString()}`);
     console.log("Activity Logs:", response.data);

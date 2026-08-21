@@ -1,4 +1,5 @@
 import { userLoggerAPI } from "../apiConfig";
+import { getCurrentLogEnvironment } from "@/utils/featureFlags";
 
 export type UserLogType = "auth" | "data";
 
@@ -48,6 +49,8 @@ export const fetchUserLogs = async (
     params.append("timestamp_order", timestamp_order);
     params.append("pageNo", String(pageNo));
     params.append("pageSize", String(pageSize));
+    const environment = getCurrentLogEnvironment();
+    if (environment) params.append("environment", environment);
 
     const response = await userLoggerAPI.get<UserLogsList>(`?${params.toString()}`);
     console.log("User Logs:", response.data);
