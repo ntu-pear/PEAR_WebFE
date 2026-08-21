@@ -66,6 +66,10 @@ export const listMedicationSchedules = async (): Promise<MedicationScheduleItem[
 
     const rawData = res.data;
 
+    if (!Array.isArray(rawData)) {
+      return [];
+    }
+
     const mapped = await Promise.all(
       rawData.map(async (item, index) => {
         let patientName = "Unknown";

@@ -21,6 +21,7 @@ import {
 } from "@/api/patients/preferredLanguage";
 import dayjs from "dayjs";
 import { validateNRIC } from "@/utils/validateNRIC";
+import { extractErrorMessage } from "@/utils/errorMessage";
 
 const EditPatientInfoModal: React.FC = () => {
   const { modalRef, activeModal, closeModal } = useModal();
@@ -383,23 +384,20 @@ const EditPatientInfoModal: React.FC = () => {
 
 
     console.log("editedPatient", editedPatient);
+    setNricHint("");
     try {
       await updatePatient(Number(patientId), editedPatient);
       closeModal();
       toast.success("Patient Information updated successfully.");
       await refreshPatientData();
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
-      if (error instanceof Error) {
-        toast.error(`Failed to update patient information.. ${error.message}`);
+      const message = extractErrorMessage(error, "Failed to update patient information.");
+      if (message.toLowerCase().includes("nric")) {
+        setNricHint(message);
+      } else {
+        toast.error(message);
       }
-      else {
-        toast.error("Failed to update patient information.");
-
-      }
-      console.log("Failed to update patient information.")
       console.error(error)
-      closeModal();
     }
   };
 
