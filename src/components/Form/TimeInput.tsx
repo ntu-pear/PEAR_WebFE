@@ -1,6 +1,12 @@
 import { TimePicker } from "antd";
 import { Controller, FieldValues, Path, UseFormReturn } from "react-hook-form";
 import dayjs, { Dayjs } from "dayjs";
+import { userPrefersHour12 } from "@/utils/formatDate";
+
+const HOUR_12 = userPrefersHour12();
+
+const formatHour = (h: number, m: number) =>
+  dayjs().hour(h).minute(m).format(HOUR_12 ? "h:mm A" : "HH:mm");
 
 
 type Props<T extends FieldValues> = {
@@ -56,13 +62,12 @@ export default function TimeInput<T extends FieldValues>({
             const hour = parseInt(value.slice(0, 2), 10);
             const minute = parseInt(value.slice(2), 10);
 
-            // 9:00 AM – 5:00 PM rules
             if (hour < 9 || hour > 17) {
-              return "Medication time must be between 9:00 AM and 5:00 PM.";
+              return `Medication time must be between ${formatHour(9, 0)} and ${formatHour(17, 0)}.`;
             }
 
             if (hour === 17 && minute !== 0) {
-              return "Only 5:00 PM is allowed as the last administration time.";
+              return `Only ${formatHour(17, 0)} is allowed as the last administration time.`;
             }
 
             return true;
@@ -80,8 +85,8 @@ export default function TimeInput<T extends FieldValues>({
               id={name}
               className="w-full"
               size="large"
-              format="h:mm A"
-              use12Hours
+              format={HOUR_12 ? "h:mm A" : "HH:mm"}
+              use12Hours={HOUR_12}
               hourStep={hourStep}
               minuteStep={minuteStep}
               placeholder={`Select ${label}`}

@@ -12,6 +12,7 @@ import {
   availabilityCoversTime,
   CentreActivityAvailability,
 } from "@/api/activities/centreActivityAvailabilities";
+import { userPrefersHour12 } from "@/utils/formatDate";
 
 const AddAdhoc: React.FC = () => {
   const navigate = useNavigate();
@@ -27,6 +28,35 @@ const AddAdhoc: React.FC = () => {
   const [form] = Form.useForm();
   const startDate: Dayjs | null = Form.useWatch("start_date", form);
   const endDate: Dayjs | null = Form.useWatch("end_date", form);
+  const hour12 = userPrefersHour12();
+  const dateTimeFormat = hour12 ? "DD-MMM-YYYY hh:mm A" : "DD-MMM-YYYY HH:mm";
+  const [durationMinutes, setDurationMinutes] = useState(30);
+  const pickerPopupClassName = "adhoc-datetime-picker-popup";
+  const timePickerProps = {
+    format: hour12 ? "hh:mm A" : "HH:mm",
+    use12Hours: hour12,
+    showSecond: false,
+  };
+
+  const handleStartDateChange = (value: Dayjs | null) => {
+    if (!value) {
+      form.setFieldsValue({ start_date: null, end_date: null });
+      return;
+    }
+
+    form.setFieldsValue({
+      start_date: value,
+      end_date: value.add(durationMinutes, "minute"),
+    });
+  };
+
+  const handleEndDateChange = (value: Dayjs | null) => {
+    form.setFieldsValue({ end_date: value });
+
+    if (value && startDate && value.isAfter(startDate)) {
+      setDurationMinutes(value.diff(startDate, "minute"));
+    }
+  };
 
   const onFinish = async (values: any) => {
     const startISO = values.start_date
@@ -463,9 +493,13 @@ const AddAdhoc: React.FC = () => {
                   className="sm:col-span-3"
                 >
                   <DatePicker
-                    showTime={{ format: "HH:mm:ss" }}
-                    format="YYYY-MM-DD HH:mm:ss"
+                    showTime={timePickerProps}
+                    format={dateTimeFormat}
                     className="w-full"
+                    use12Hours={hour12}
+                    onChange={handleStartDateChange}
+                    allowClear={false}
+                    popupClassName={pickerPopupClassName}
                   />
                 </Form.Item>
 
@@ -483,9 +517,13 @@ const AddAdhoc: React.FC = () => {
                   className="sm:col-span-3"
                 >
                   <DatePicker
-                    showTime={{ format: "HH:mm:ss" }}
-                    format="YYYY-MM-DD HH:mm:ss"
+                    showTime={timePickerProps}
+                    format={dateTimeFormat}
                     className="w-full"
+                    use12Hours={hour12}
+                    onChange={handleEndDateChange}
+                    allowClear={false}
+                    popupClassName={pickerPopupClassName}
                   />
                 </Form.Item>
 
