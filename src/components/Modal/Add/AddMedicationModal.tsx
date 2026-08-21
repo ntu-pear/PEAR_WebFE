@@ -1,6 +1,6 @@
 import { useModal } from "@/hooks/useModal"; 
 import { Button } from "../../ui/button";
-import { getDateTimeNowInUTC } from "@/utils/formatDate";
+import { convertToUTCISOString, getDateTimeNowInUTC } from "@/utils/formatDate";
 import { toast } from "sonner";
 import {
   fetchPrescriptionList,
@@ -18,6 +18,7 @@ import {
   addPatientMedication,
   IMedicationFormData,
 } from "@/api/patients/medication";
+import { extractErrorMessage } from "@/utils/errorMessage";
 
 type TAddMedicationForm = {
   PrescriptionListId: number;
@@ -75,16 +76,23 @@ const AddMedicationModal: React.FC = () => {
     AdministerTime,
     ...data
   }) => {
+    const now = getDateTimeNowInUTC();
+    const submitter = submitterId ? String(submitterId) : "1";
 
     const payload: IMedicationFormData = {
       IsDeleted: "0",
-      PatientId: parseInt(patientId as string, 10),
+      PatientId: Number(patientId),
+      PrescriptionListId: Number(data.PrescriptionListId),
       AdministerTime: AdministerTime, 
-      ...data,
-      CreatedDateTime: getDateTimeNowInUTC(),
-      UpdatedDateTime: getDateTimeNowInUTC(),
-      CreatedById: submitterId,
-      ModifiedById: submitterId,
+      Dosage: data.Dosage,
+      Instruction: data.Instruction,
+      StartDate: convertToUTCISOString(data.StartDate),
+      EndDate: convertToUTCISOString(data.EndDate),
+      PrescriptionRemarks: data.PrescriptionRemarks,
+      CreatedDateTime: now,
+      UpdatedDateTime: now,
+      CreatedById: submitter,
+      ModifiedById: submitter,
     };
 
 
@@ -93,8 +101,8 @@ const AddMedicationModal: React.FC = () => {
       toast.success("Patient medication added successfully.");
       refreshMedicationData();
       closeModal();
-    } catch (error: any) {
-      toast.error(error?.message || "Failed to add medication");
+    } catch (error) {
+      toast.error(extractErrorMessage(error, "Failed to add medication."));
     }
   };
 

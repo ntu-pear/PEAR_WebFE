@@ -1,4 +1,10 @@
-import axios from "axios";
+import axios, { AxiosInstance } from "axios";
+import {
+  clearAllCookies,
+  retrieveAccessTokenFromCookie,
+  retrieveRefreshTokenFromCookie,
+  refreshAccessToken,
+} from "./users/auth";
 
 export const VITE_ACTIVITY_SERVICE_URL: string = import.meta.env
   .VITE_ACTIVITY_SERVICE_URL;
@@ -16,6 +22,58 @@ const VITE_SCHEDULER_SERVICE_URL: string = import.meta.env.VITE_SCHEDULER_SERVIC
 
 export const VITE_USER_SERVICE_URL: string = import.meta.env
   .VITE_USER_SERVICE_URL;
+
+let refreshPromise: Promise<void> | null = null;
+
+const getRefreshPromise = (): Promise<void> => {
+  if (!refreshPromise) {
+    refreshPromise = refreshAccessToken()
+      .then(() => undefined)
+      .finally(() => {
+        refreshPromise = null;
+      });
+  }
+  return refreshPromise;
+};
+
+const attachAuthRetryInterceptor = (instance: AxiosInstance): AxiosInstance => {
+  instance.interceptors.response.use(
+    (response) => response,
+    async (error) => {
+      const originalRequest = error.config as
+        | (typeof error.config & { _authRetried?: boolean })
+        | undefined;
+
+      if (
+        error.response?.status === 401 &&
+        originalRequest &&
+        !originalRequest._authRetried &&
+        retrieveRefreshTokenFromCookie()
+      ) {
+        originalRequest._authRetried = true;
+        try {
+          await getRefreshPromise();
+          const refreshedToken = retrieveAccessTokenFromCookie();
+          if (refreshedToken) {
+            originalRequest.headers = {
+              ...originalRequest.headers,
+              Authorization: `Bearer ${refreshedToken}`,
+            };
+          }
+          return instance(originalRequest);
+        } catch (refreshError) {
+          clearAllCookies();
+          window.location.href = "/login";
+          return Promise.reject(refreshError);
+        }
+      }
+
+      return Promise.reject(error);
+    }
+  );
+
+  return instance;
+};
 
 // activity service
 export const activityAPI = axios.create({
@@ -448,9 +506,11 @@ export const accessLevelAPI = axios.create({
 });
 
 export const getDoctorNameAPI = (roleName: string) =>
-  axios.create({
-    baseURL: `${VITE_USER_SERVICE_URL}/${roleName}/get_doctor`,
-  });
+  attachAuthRetryInterceptor(
+    axios.create({
+      baseURL: `${VITE_USER_SERVICE_URL}/${roleName}/get_doctor`,
+    })
+  );
 
 export const loggerAPI = axios.create({
   baseURL: `${VITE_LOGGER_SERVICE_URL}/Logs/Patient`,
@@ -476,3 +536,39 @@ export const schedulerAPI = axios.create({
 export const schedulerMedicationAPI = axios.create({
   baseURL: `${VITE_SCHEDULER_SERVICE_URL}/MedicationSchedule`,
 });
+
+const authProtectedInstances: AxiosInstance[] = [
+  activityAPI, activitiesAPI, centreActivitiesAPI, centreActivityAvailabilitiesAPI, careCentreAPI,
+  routineAPI, routineExclusionAPI, adhocAPI,
+  patientsAPI, patientGuardianAPI, dementiaListAPI, dementiaStageAPI, patientAssignedDementiaAPI,
+  mobilityListAPI, patientMobilityAPI, doctorNoteAPI, socialHistoryAPI, socialHistorySensitiveMappingAPI,
+  dietListAPI, createDietListAPI, updateDietListAPI, deleteDietListAPI,
+  educationListAPI, createEducationListAPI, updateEducationListAPI, deleteEducationListAPI,
+  liveWithListAPI, createLiveWithListAPI, updateLiveWithListAPI, deleteLiveWithListAPI,
+  occupationListAPI, createOccupationListAPI, updateOccupationListAPI, deleteOccupationListAPI,
+  petListAPI, createPetListAPI, updatePetListAPI, deletePetListAPI,
+  religionListAPI, createReligionListAPI, updateReligionListAPI, deleteReligionListAPI,
+  vitalAPI, LanguageListAPI,
+  patientAllergyAPI, allergyTypeAPI, createAllergyTypeAPI, updateAllergyTypeAPI, deleteAllergyTypeAPI,
+  allergyReactionTypeAPI, createAllergyReactionTypeAPI, updateAllergyReactionTypeAPI, deleteAllergyReactionTypeAPI,
+  createPatientAllergyAPI, updatePatientAllergyAPI, deletePatientAllergyAPI,
+  prescriptionAPI, patientPrescriptionAPI, prescriptionListAPI, createPrescriptionListAPI,
+  updatePrescriptionListAPI, deletePrescriptionListAPI,
+  createMedicalDiagnosisListAPI, updateMedicalDiagnosisListAPI, deleteMedicalDiagnosisListAPI,
+  createProblemListAPI, updateProblemListAPI, deleteProblemListAPI,
+  dementiaStageListAPI, createDementiaStageListAPI, updateDementiaStageListAPI, deleteDementiaStageListAPI,
+  medicationAPI, guardianAPI,
+  highlightsAPI, highlightTypesAPI, createHighlightTypesAPI, updateHighlightTypesAPI, deleteHighlightTypesAPI,
+  getPatientPrivacyLevelAPI, writePatientPrivacyLevelAPI,
+  listsAPI, listTypesAPI, patientAllocationAPI,
+  medicalHistoryAPI, medicalDiagnosisListAPI,
+  photoAlbumListAPI, personalPhotosAPI,
+  problemLogAPI, problemListAPI,
+  personalPreferenceAPI, personalPreferenceListAPI,
+  getCurrentUserAPI, userAPI, roleAPI, roleNameAPI, adminAPI, fetchAdminConfigsAPI, updateAdminConfigsAPI,
+  supervisorAPI, accessLevelAPI,
+  loggerAPI, activityLoggerAPI, systemConfigAPI, userLoggerAPI,
+  schedulerAPI, schedulerMedicationAPI,
+];
+
+authProtectedInstances.forEach(attachAuthRetryInterceptor);
