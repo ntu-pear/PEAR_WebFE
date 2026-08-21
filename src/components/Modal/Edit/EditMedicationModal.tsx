@@ -7,6 +7,7 @@ import {
   fetchPrescriptionList,
 } from "@/api/patients/prescription";
 import { getDateTimeNowInUTC } from "@/utils/formatDate";
+import { extractErrorMessage } from "@/utils/errorMessage";
 import { useEffect, useState } from "react";
 import {
   fetchMedicationById,
@@ -129,8 +130,8 @@ const EditMedicationModal: React.FC = () => {
       toast.success("Medication updated successfully.");
       refreshMedicationData();
       closeModal();
-    } catch {
-      toast.error("Failed to update prescription.");
+    } catch (error) {
+      toast.error(extractErrorMessage(error, "Failed to update medication."));
     }
   };
 

@@ -76,6 +76,22 @@ export interface PatientTableDataServer {
   };
 }
 
+export interface NewGuardianInline {
+  active?: string;
+  firstName: string;
+  lastName: string;
+  preferredName?: string;
+  gender: string;
+  contactNo: string;
+  nric: string;
+  email?: string | null;
+  dateOfBirth: string;
+  address: string;
+  tempAddress?: string;
+  status: string;
+  guardianApplicationUserId?: string | null;
+}
+
 export interface AddPatientSection {
   name: string;
   nric: string;
@@ -104,6 +120,12 @@ export interface AddPatientSection {
   modifiedDate: string;
   CreatedById: string;
   ModifiedById: string;
+  guardianId?: number;
+  newGuardian?: NewGuardianInline;
+  guardianRelationshipName?: string;
+  doctorId?: string;
+  gameTherapistId?: string;
+  caregiverId?: string;
 }
 
 const convertToPatientTDServer = (

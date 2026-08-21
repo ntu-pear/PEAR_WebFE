@@ -21,9 +21,17 @@ import useUploadPatientPhoto from "@/hooks/patient/useUploadPatientPhoto";
 import { AddPatientSection } from "@/api/patients/patients";
 import useAddPatientPrivacyLevel from "@/hooks/patient/useAddPatientPrivacyLevel";
 import { AddPatientPrivacyLevel } from "@/api/patients/privacyLevel";
-import { addPatientGuardian, IGuardianFormData } from "@/api/patients/guardian";
-import { createGuardianAllocation } from "@/api/patients/patientAllocation";
+import {
+  addPatientGuardian,
+  assignExistingGuardian,
+  fetchGuardianByNRIC,
+  IGuardian,
+  IGuardianAssignData,
+} from "@/api/patients/guardian";
 import { validateNRIC } from "@/utils/validateNRIC";
+import { RELATIONSHIP_OPTIONS } from "@/utils/guardianValidation";
+import { extractErrorMessage } from "@/utils/errorMessage";
+import { mapBackendErrorToField, FieldKeywordMap } from "@/utils/mapBackendErrorToForm";
 import { useNavigate } from "react-router-dom";
 
 const patientInfoSchema = z
@@ -130,85 +138,88 @@ const patientInfoSchema = z
     }
   });
 
-const guardianSchema = z.object({
+const addPatientGuardianBaseSchema = z.object({
+  isExistingGuardian: z.boolean().default(false),
+  existingGuardianId: z.number().optional(),
   firstName: z
     .string()
     .trim()
-    .min(1, "First name is required")
     .max(100, "First name must be 100 characters or fewer")
-    .refine(
-      (v) => /^[a-zA-Z ]+$/.test(v),
-      "First name must contain only letters"
-    ),
+    .refine((v) => v === "" || /^[a-zA-Z ]+$/.test(v), "First name must contain only letters"),
   lastName: z
     .string()
     .trim()
-    .min(1, "Last name is required")
     .max(100, "Last name must be 100 characters or fewer")
-    .refine(
-      (v) => /^[a-zA-Z ]+$/.test(v),
-      "Last name must contain only letters"
-    ),
+    .refine((v) => v === "" || /^[a-zA-Z ]+$/.test(v), "Last name must contain only letters"),
   preferredName: z
     .string()
     .trim()
-    .min(1, "Preferred name is required")
     .max(100, "Preferred name must be 100 characters or fewer")
-    .refine(
-      (v) => /^[a-zA-Z ]+$/.test(v),
-      "Preferred name must contain only letters"
-    ),
-  gender: z.enum(["M", "F"], { message: "Gender is required" }),
+    .refine((v) => v === "" || /^[a-zA-Z ]+$/.test(v), "Preferred name must contain only letters"),
+  gender: z.enum(["M", "F", ""]).default(""),
   contactNo: z
     .string()
     .trim()
-    .min(1, "Contact No. is required")
-    .regex(/^[689]\d{7}$/, "Contact must start with 6/8/9 and be 8 digits"),
+    .refine((v) => v === "" || /^[689]\d{7}$/.test(v), "Contact must start with 6/8/9 and be 8 digits"),
   nric: z
     .string()
     .trim()
-    .min(1, "NRIC is required")
-    .regex(/^[STFGM]\d{7}[A-Z]$/, {
-      message: "NRIC must be 9 characters (S/T/F/G/M + 7 digits + letter)",
-    })
-    .refine((nric) => validateNRIC(nric), {
-      message: "Invalid NRIC",
-    }),
+    .refine(
+      (v) => v === "" || /^[STFGM]\d{7}[A-Z]$/.test(v),
+      "NRIC must be 9 characters (S/T/F/G/M + 7 digits + letter)"
+    )
+    .refine((v) => v === "" || validateNRIC(v), { message: "Invalid NRIC" }),
   email: z
     .string()
     .trim()
     .optional()
     .or(z.literal(""))
-    .refine(
-      (v) => !v || /^\S+@\S+\.\S+$/.test(v),
-      "Please enter a valid email address"
-    ),
-  dateOfBirth: z
-    .string()
-    .min(1, "Date of birth is required")
-    .refine(
-      (date) => {
-        const age = dayjs().diff(dayjs(date), "year");
-        return age >= 18 && age <= 120;
-      },
-      "Guardian must be between 18 and 120 years old"
-    ),
-  address: z.string().trim().min(1, "Address is required").max(255, "Address must be 255 characters or fewer"),
+    .refine((v) => !v || /^\S+@\S+\.\S+$/.test(v), "Please enter a valid email address"),
+  dateOfBirth: z.string().refine((date) => {
+    if (!date) return true;
+    const age = dayjs().diff(dayjs(date), "year");
+    return age >= 18 && age <= 120;
+  }, "Guardian must be between 18 and 120 years old"),
+  address: z.string().trim().max(255, "Address must be 255 characters or fewer"),
   tempAddress: z.string().trim().max(255, "Address must be 255 characters or fewer").optional().or(z.literal("")),
-  relationshipName: z
-    .string()
-    .refine(
-      (v): v is (typeof RELATIONSHIP_OPTIONS)[number] =>
-        RELATIONSHIP_OPTIONS.includes(v as any),
-      "Relationship is required"
-    ),
-})
+  relationshipName: z.string().refine((v) => RELATIONSHIP_OPTIONS.includes(v), "Relationship is required"),
+});
 
+const addPatientGuardianSchema = addPatientGuardianBaseSchema.superRefine((data, ctx) => {
+  if (data.isExistingGuardian) {
+    if (!data.existingGuardianId) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Search for and select an existing guardian by NRIC first",
+        path: ["nric"],
+      });
+    }
+    return;
+  }
+
+  const requiredWhenNew: [keyof z.infer<typeof addPatientGuardianBaseSchema>, string][] = [
+    ["firstName", "First name is required"],
+    ["lastName", "Last name is required"],
+    ["preferredName", "Preferred name is required"],
+    ["contactNo", "Contact No. is required"],
+    ["nric", "NRIC is required"],
+    ["dateOfBirth", "Date of birth is required"],
+    ["address", "Address is required"],
+  ];
+  requiredWhenNew.forEach(([field, message]) => {
+    if (!data[field]) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message, path: [field] });
+    }
+  });
+  if (!data.gender) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Gender is required", path: ["gender"] });
+  }
+});
 
 const formSchema = z.object({
   patientInfoSchema: patientInfoSchema,
   guardians: z
-    .array(guardianSchema)
+    .array(addPatientGuardianSchema)
     .min(1, "Patient guardian is required")
     .max(2, "Only up to 2 guardians"),
 });
@@ -219,20 +230,20 @@ type AddressPath =
   | `patientInfoSchema.${"address" | "tempAddress"}`
   | `guardians.${number}.${"address" | "tempAddress"}`;
 
-const RELATIONSHIP_OPTIONS = [
-  "Husband",
-  "Wife",
-  "Child",
-  "Parent",
-  "Sibling",
-  "Grandchild",
-  "Friend",
-  "Nephew",
-  "Niece",
-  "Aunt",
-  "Uncle",
-  "Grandparent",
-];
+const PATIENT_FIELD_KEYWORD_MAP: FieldKeywordMap<FormInputs> = {
+  "nric must be unique": "patientInfoSchema.nric",
+  "patient nric conflicts": "patientInfoSchema.nric",
+  name: "patientInfoSchema.name",
+  address: "patientInfoSchema.address",
+  "home no": "patientInfoSchema.homeNo",
+  "handphone": "patientInfoSchema.handphoneNo",
+  "date of birth": "patientInfoSchema.dateOfBirth",
+  "guardian nric conflicts": "guardians.0.nric",
+  "guardian with this nric": "guardians.0.nric",
+  "guardianrelationshipname": "guardians.0.relationshipName",
+  "relationship not found": "guardians.0.relationshipName",
+  "guardian not found": "guardians.0.nric",
+};
 
 const AddPatient: React.FC = () => {
   const navigate = useNavigate();
@@ -243,13 +254,7 @@ const AddPatient: React.FC = () => {
   });
   const isClickRef = useRef<boolean>(false);
   const [profilePhotoFile, setProfilePhotoFile] = useState<File | null>(null);
-  const {
-    register,
-    control,
-    setValue,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<FormInputs>({
+  const form = useForm<FormInputs>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       patientInfoSchema: {
@@ -271,16 +276,73 @@ const AddPatient: React.FC = () => {
     },
   });
   const {
+    register,
+    control,
+    setValue,
+    handleSubmit,
+    formState: { errors },
+  } = form;
+  const {
     fields: guardianFields,
     append,
     remove,
   } = useFieldArray({ control, name: "guardians" });
   const preferredLanguageListObj = useGetPreferredLanguageList();
-  const { mutateAsync: addPatient, isSuccess  } = useAddPatient();
+  const { mutateAsync: addPatient } = useAddPatient();
   const { mutateAsync: addPatientPrivacyLevel } = useAddPatientPrivacyLevel();
   const { mutateAsync: updatePatientProfilePhoto } = useUploadPatientPhoto();
   const { currentUser } = useAuth();
   const { activeModal, openModal } = useModal();
+  const [isFullyComplete, setIsFullyComplete] = useState(false);
+
+  const [createdPatient, setCreatedPatient] = useState<{ id: number } | null>(null);
+  const [guardiansDone, setGuardiansDone] = useState(false);
+  const [privacyDone, setPrivacyDone] = useState(false);
+  const [photoDone, setPhotoDone] = useState(false);
+
+  const [guardianSearch, setGuardianSearch] = useState<
+    Record<number, { nric: string; searching: boolean; searched: boolean; found: IGuardian | null }>
+  >({});
+
+  const handleGuardianNricSearch = async (index: number) => {
+    const nricValue = (guardianSearch[index]?.nric || "").trim().toUpperCase();
+    if (!nricValue) return;
+
+    setGuardianSearch((prev) => ({
+      ...prev,
+      [index]: { nric: nricValue, searching: true, searched: false, found: null },
+    }));
+    try {
+      const result = await fetchGuardianByNRIC(nricValue);
+      setGuardianSearch((prev) => ({
+        ...prev,
+        [index]: { nric: nricValue, searching: false, searched: true, found: result },
+      }));
+      if (result) {
+        form.setValue(`guardians.${index}.existingGuardianId`, result.patient_guardian.id);
+        form.setValue(`guardians.${index}.nric`, result.patient_guardian.nric);
+        form.clearErrors(`guardians.${index}.nric`);
+      } else {
+        form.setValue(`guardians.${index}.existingGuardianId`, undefined);
+      }
+    } catch (error) {
+      toast.error(extractErrorMessage(error, "Failed to search for guardian."));
+      setGuardianSearch((prev) => ({
+        ...prev,
+        [index]: { nric: nricValue, searching: false, searched: true, found: null },
+      }));
+    }
+  };
+
+  const toggleGuardianMode = (index: number, isExisting: boolean) => {
+    form.setValue(`guardians.${index}.isExistingGuardian`, isExisting);
+    form.setValue(`guardians.${index}.existingGuardianId`, undefined);
+    form.clearErrors(`guardians.${index}`);
+    setGuardianSearch((prev) => ({
+      ...prev,
+      [index]: { nric: "", searching: false, searched: false, found: null },
+    }));
+  };
 
   const handleClick = (sectionId: string) => {
     isClickRef.current = true;
@@ -316,89 +378,142 @@ const AddPatient: React.FC = () => {
       toast.error("User not authenticated");
       return;
     }
-    try {
-      const patientFormData: AddPatientSection = {
-        name: data.patientInfoSchema.name,
-        nric: data.patientInfoSchema.nric,
-        address: data.patientInfoSchema.address,
-        tempAddress: data.patientInfoSchema.tempAddress,
-        homeNo: data.patientInfoSchema.homeNo,
-        handphoneNo: data.patientInfoSchema.handphoneNo,
-        gender: data.patientInfoSchema.gender,
-        dateOfBirth: convertToUTCISOString(data.patientInfoSchema.dateOfBirth),
-        isApproved: "1",
-        preferredName: data.patientInfoSchema.preferredName,
-        preferredLanguageId: undefined,
-        updateBit: "1",
-        autoGame: "1",
-        startDate: convertToUTCISOString(data.patientInfoSchema.startDate),
-        endDate: data.patientInfoSchema.endDate
-          ? convertToUTCISOString(data.patientInfoSchema.endDate)
+
+    const primaryGuardian = data.guardians[0];
+
+    const patientFormData: AddPatientSection = {
+      name: data.patientInfoSchema.name,
+      nric: data.patientInfoSchema.nric,
+      address: data.patientInfoSchema.address,
+      tempAddress: data.patientInfoSchema.tempAddress,
+      homeNo: data.patientInfoSchema.homeNo,
+      handphoneNo: data.patientInfoSchema.handphoneNo,
+      gender: data.patientInfoSchema.gender,
+      dateOfBirth: convertToUTCISOString(data.patientInfoSchema.dateOfBirth),
+      isApproved: "1",
+      preferredName: data.patientInfoSchema.preferredName,
+      preferredLanguageId: undefined,
+      updateBit: "1",
+      autoGame: "1",
+      startDate: convertToUTCISOString(data.patientInfoSchema.startDate),
+      endDate: data.patientInfoSchema.endDate
+        ? convertToUTCISOString(data.patientInfoSchema.endDate)
+        : undefined,
+      isActive: "1",
+      isRespiteCare: data.patientInfoSchema.isRespiteCare,
+      privacyLevel: 2,
+      terminationReason: "",
+      inActiveReason: "",
+      inActiveDate: undefined,
+      profilePicture: "",
+      isDeleted: 0,
+      createdDate: getDateTimeNowInUTC(),
+      modifiedDate: getDateTimeNowInUTC(),
+      CreatedById: currentUser?.userId,
+      ModifiedById: currentUser?.userId,
+      guardianId:
+        primaryGuardian?.isExistingGuardian
+          ? primaryGuardian.existingGuardianId
           : undefined,
-        isActive: "1",
-        isRespiteCare: data.patientInfoSchema.isRespiteCare,
-        privacyLevel: 2,
-        terminationReason: "",
-        inActiveReason: "",
-        inActiveDate: undefined,
-        profilePicture: "",
-        isDeleted: 0,
-        createdDate: getDateTimeNowInUTC(),
-        modifiedDate: getDateTimeNowInUTC(),
-        CreatedById: currentUser?.userId,
-        ModifiedById: currentUser?.userId,
-      };
+      newGuardian:
+        primaryGuardian && !primaryGuardian.isExistingGuardian
+          ? {
+              active: "Y",
+              firstName: primaryGuardian.firstName,
+              lastName: primaryGuardian.lastName,
+              preferredName: primaryGuardian.preferredName || "",
+              gender: primaryGuardian.gender,
+              contactNo: primaryGuardian.contactNo,
+              nric: primaryGuardian.nric,
+              email:
+                primaryGuardian.email?.trim() === ""
+                  ? null
+                  : primaryGuardian.email,
+              dateOfBirth: convertToUTCISOString(primaryGuardian.dateOfBirth),
+              address: primaryGuardian.address,
+              tempAddress: primaryGuardian.tempAddress || "",
+              status: "Y",
+              guardianApplicationUserId: null,
+            }
+          : undefined,
+      guardianRelationshipName: primaryGuardian?.relationshipName,
+    };
 
-      console.log("addPatient formData", patientFormData);
-      const response = await addPatient(patientFormData);
-      const patientId = response.data.id;
+    let patientId: number;
+    if (createdPatient) {
+      patientId = createdPatient.id;
+    } else {
+      try {
+        console.log("addPatient formData", patientFormData);
+        const response = await addPatient(patientFormData);
+        patientId = response.data.id;
+        setCreatedPatient({ id: patientId });
+      } catch (error) {
+        const mappedToField = mapBackendErrorToField(error, form, PATIENT_FIELD_KEYWORD_MAP);
+        if (!mappedToField) {
+          toast.error(extractErrorMessage(error, "Failed to add patient. Please try again."));
+        }
+        console.error("Add patient error:", error);
+        return;
+      }
+    }
 
-      if (patientId && data.guardians.length > 0 && currentUser?.userId) {
+    const stepFailures: string[] = [];
+
+    const secondGuardian = data.guardians[1];
+    if (!guardiansDone && secondGuardian && currentUser.userId) {
+      try {
         const creator = String(currentUser.userId);
         const now = getDateTimeNowInUTC();
 
-        const guardians: IGuardianFormData[] = data.guardians.map((g) => ({
-          active: "Y",
-          firstName: g.firstName,
-          lastName: g.lastName,
-          preferredName: g.preferredName || "",
-          gender: g.gender,
-          contactNo: g.contactNo,
-          nric: g.nric,
-          email: g.email?.trim() === "" ? null : g.email,
-          dateOfBirth: convertToUTCISOString(g.dateOfBirth),
-          address: g.address,
-          tempAddress: g.tempAddress || "",
-          status: "Y",
-          isDeleted: "0",
-          guardianApplicationUserId: null,
-          createdDate: now,
-          modifiedDate: now,
-          CreatedById: creator,
-          ModifiedById: creator,
-          patientId,
-          relationshipName: g.relationshipName,
-        }));
-
-        const createdGuardians = await Promise.all(
-          guardians.map((guardian) => addPatientGuardian(guardian))
+        if (secondGuardian.isExistingGuardian) {
+          if (!secondGuardian.existingGuardianId) {
+            throw new Error("Search for and select an existing guardian by NRIC first");
+          }
+          const assignPayload: IGuardianAssignData = {
+            patientId,
+            guardianId: secondGuardian.existingGuardianId,
+            relationshipName: secondGuardian.relationshipName,
+            CreatedById: creator,
+            ModifiedById: creator,
+          };
+          await assignExistingGuardian(assignPayload);
+        } else {
+          await addPatientGuardian({
+            active: "Y",
+            firstName: secondGuardian.firstName,
+            lastName: secondGuardian.lastName,
+            preferredName: secondGuardian.preferredName || "",
+            gender: secondGuardian.gender as "M" | "F",
+            contactNo: secondGuardian.contactNo,
+            nric: secondGuardian.nric,
+            email: secondGuardian.email?.trim() === "" ? null : secondGuardian.email,
+            dateOfBirth: convertToUTCISOString(secondGuardian.dateOfBirth),
+            address: secondGuardian.address,
+            tempAddress: secondGuardian.tempAddress || "",
+            status: "Y",
+            isDeleted: "0",
+            guardianApplicationUserId: null,
+            createdDate: now,
+            modifiedDate: now,
+            CreatedById: creator,
+            ModifiedById: creator,
+            patientId,
+            relationshipName: secondGuardian.relationshipName,
+          });
+        }
+        setGuardiansDone(true);
+      } catch (error) {
+        stepFailures.push(
+          `Second guardian setup: ${extractErrorMessage(error, "unknown error")}`
         );
-
-        const allocation = {
-          active: "Y",
-          patientId: patientId,
-          guardianId: createdGuardians[0].id,
-          guardian2Id: createdGuardians[1] ? createdGuardians[1].id : null,
-          createdDate: now,
-          modifiedDate: now,
-          CreatedById: creator,
-          ModifiedById: creator,
-        } as const;
-
-        await createGuardianAllocation(allocation)
       }
+    } else if (!guardiansDone) {
+      setGuardiansDone(true);
+    }
 
-      if (patientId) {
+    if (!privacyDone) {
+      try {
         const addPatientPrivacyLevelForm: AddPatientPrivacyLevel = {
           accessLevelSensitive: 2,
           active: true,
@@ -407,29 +522,42 @@ const AddPatient: React.FC = () => {
           createdDate: getDateTimeNowInUTC(),
           modifiedDate: getDateTimeNowInUTC(),
         };
-        console.log("patientId", patientId);
-        console.log("addPatientPrivacyLevelForm", addPatientPrivacyLevelForm);
         await addPatientPrivacyLevel({
           patientId,
           formData: addPatientPrivacyLevelForm,
         });
+        setPrivacyDone(true);
+      } catch (error) {
+        stepFailures.push(
+          `Privacy level setup: ${extractErrorMessage(error, "unknown error")}`
+        );
       }
+    }
 
-      if (patientId && profilePhotoFile) {
+    if (profilePhotoFile && !photoDone) {
+      try {
         const photoFileFormData = new FormData();
         photoFileFormData.append("file", profilePhotoFile);
-
-        console.log("patientId", patientId);
-        console.log("photoFileFormData", photoFileFormData);
         await updatePatientProfilePhoto({
           patientId,
           formData: photoFileFormData,
         });
+        setPhotoDone(true);
+      } catch (error) {
+        stepFailures.push(
+          `Profile photo upload: ${extractErrorMessage(error, "unknown error")}`
+        );
       }
+    }
+
+    if (stepFailures.length === 0) {
       toast.success("Successfully added new patient");
-    } catch (error) {
-      toast.error("Failed to add patient. Please try again.");
-      console.error("Add patient error:", error);
+      setIsFullyComplete(true);
+    } else {
+      toast.error(
+        `Patient info is saved. Still needs fixing: ${stepFailures.join("; ")}. Correct the fields below and submit again.`,
+        { duration: 15000 }
+      );
     }
   };
 
@@ -488,10 +616,12 @@ const AddPatient: React.FC = () => {
   useEffect(() => {
     if (!hasInitializedGuardian.current && guardianFields.length === 0) {
       append({
+        isExistingGuardian: false,
+        existingGuardianId: undefined,
         firstName: "",
         lastName: "",
         preferredName: "",
-        gender: undefined as unknown as "M" | "F",
+        gender: "",
         contactNo: "",
         nric: "",
         email: "",
@@ -506,16 +636,16 @@ const AddPatient: React.FC = () => {
   }, [append, guardianFields.length]);
 
   useEffect(() => {
-    if (isSuccess) {
+    if (isFullyComplete) {
       const timer = setTimeout(() => {
         navigate("/supervisor/manage-patients");
-      }, 10000); 
+      }, 10000);
       return () => clearTimeout(timer);
     }
-  }, [isSuccess, navigate]);
+  }, [isFullyComplete, navigate]);
 
 
-  if (isSuccess) {
+  if (isFullyComplete) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen gap-4">
         <div className="flex items-center justify-center w-16 h-16 rounded-full bg-green-100">
@@ -583,7 +713,15 @@ const AddPatient: React.FC = () => {
       {/* Right Form Content */}
       <div className="w-full lg:w-3/4 p-6">
         <form onSubmit={handleSubmit(handleAddPatient)}>
+          {createdPatient && (
+            <div className="mb-6 rounded-md border border-green-300 bg-green-50 p-4 text-sm text-green-800">
+              Patient info already saved and can't be changed here anymore.
+              Fix whatever's below and submit again to finish setup — the
+              patient won't be created a second time.
+            </div>
+          )}
           {/* Patient Information */}
+          <fieldset disabled={!!createdPatient}>
           <div id="personal-info" className="pb-12">
             <Card className="shadow-sm">
               <CardContent className="p-6">
@@ -956,6 +1094,7 @@ const AddPatient: React.FC = () => {
               </CardContent>
             </Card>
           </div>
+          </fieldset>
           {/* Guardian Information */}
           <div id="guardian-info" className="pb-12">
             <Card className="shadow-sm">
@@ -979,23 +1118,171 @@ const AddPatient: React.FC = () => {
                     )}
 
                     {/* Guardians list */}
-                    {guardianFields.map((g, index) => (
+                    {guardianFields.map((g, index) => {
+                      const isExisting = form.watch(
+                        `guardians.${index}.isExistingGuardian`
+                      );
+                      const search = guardianSearch[index] || {
+                        nric: "",
+                        searching: false,
+                        searched: false,
+                        found: null,
+                      };
+
+                      return (
                       <div
                         key={g.id}
                         className="border rounded-lg p-4 mb-6 grid grid-cols-1 gap-x-6 gap-y-5 sm:grid-cols-6"
                       >
                         <div className="sm:col-span-6 flex items-center justify-between mb-2">
-                          <p className="font-semibold">
-                            {index === 0
-                              ? "Primary guardian"
-                              : "Secondary guardian"}
-                          </p>
-                          <span className="text-xs text-muted-foreground">
-                            {index === 0
-                              ? "Main point of contact"
-                              : "Additional / backup contact"}
-                          </span>
+                          <div>
+                            <p className="font-semibold">
+                              {index === 0
+                                ? "Primary guardian"
+                                : "Secondary guardian"}
+                            </p>
+                            <span className="text-xs text-muted-foreground">
+                              {index === 0
+                                ? "Main point of contact"
+                                : "Additional / backup contact"}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <div className="inline-flex rounded-md border overflow-hidden">
+                              <button
+                                type="button"
+                                onClick={() => toggleGuardianMode(index, false)}
+                                className={`px-4 py-1.5 text-sm font-medium transition-colors ${
+                                  !isExisting
+                                    ? "bg-primary text-primary-foreground"
+                                    : "bg-background text-muted-foreground"
+                                }`}
+                              >
+                                New Guardian
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => toggleGuardianMode(index, true)}
+                                className={`px-4 py-1.5 text-sm font-medium transition-colors ${
+                                  isExisting
+                                    ? "bg-primary text-primary-foreground"
+                                    : "bg-background text-muted-foreground"
+                                }`}
+                              >
+                                Existing Guardian
+                              </button>
+                            </div>
+                            {guardianFields.length > 1 && (
+                              <Button
+                                type="button"
+                                variant="outline"
+                                className="text-red-600 border-red-200"
+                                onClick={() => remove(index)}
+                              >
+                                Remove
+                              </Button>
+                            )}
+                          </div>
                         </div>
+
+                        {isExisting ? (
+                          <>
+                            <div className="sm:col-span-6">
+                              <Label>
+                                Guardian's NRIC{" "}
+                                <span className="text-destructive">*</span>
+                              </Label>
+                              <div className="flex gap-2 mt-2">
+                                <input
+                                  maxLength={9}
+                                  className="block w-full p-2 border rounded-md text-gray-900"
+                                  value={search.nric}
+                                  onChange={(e) =>
+                                    setGuardianSearch((prev) => ({
+                                      ...prev,
+                                      [index]: {
+                                        ...(prev[index] || {
+                                          searching: false,
+                                          searched: false,
+                                          found: null,
+                                        }),
+                                        nric: e.target.value,
+                                      },
+                                    }))
+                                  }
+                                  placeholder="Enter guardian's NRIC to search"
+                                />
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  onClick={() => handleGuardianNricSearch(index)}
+                                  disabled={search.searching}
+                                >
+                                  {search.searching ? "Searching..." : "Search"}
+                                </Button>
+                              </div>
+                              {errors.guardians?.[index]?.nric && (
+                                <div className="text-red-600 text-sm">
+                                  {errors.guardians[index]!.nric!.message as string}
+                                </div>
+                              )}
+                              {search.searched && !search.found && (
+                                <div className="text-sm text-muted-foreground mt-1">
+                                  No guardian found with this NRIC. Switch to
+                                  "New Guardian" if this is a new guardian.
+                                </div>
+                              )}
+                            </div>
+
+                            {search.found && (
+                              <div className="sm:col-span-6 rounded-md border p-3 text-sm space-y-1 bg-muted/30">
+                                <div>
+                                  <span className="font-medium">Name: </span>
+                                  {search.found.patient_guardian.firstName}{" "}
+                                  {search.found.patient_guardian.lastName}
+                                </div>
+                                <div>
+                                  <span className="font-medium">Contact: </span>
+                                  {search.found.patient_guardian.contactNo}
+                                </div>
+                                <div>
+                                  <span className="font-medium">Email: </span>
+                                  {search.found.patient_guardian.email || "-"}
+                                </div>
+                              </div>
+                            )}
+
+                            <div className="sm:col-span-3">
+                              <Label>
+                                Patient's{" "}
+                                <span className="text-destructive">*</span>
+                              </Label>
+                              <select
+                                className="mt-1 block w-full p-2 border rounded-md text-gray-900"
+                                {...register(`guardians.${index}.relationshipName`)}
+                                defaultValue=""
+                              >
+                                <option value="" disabled>
+                                  Please select a relationship
+                                </option>
+                                {RELATIONSHIP_OPTIONS.map((opt) => (
+                                  <option key={opt} value={opt}>
+                                    {opt}
+                                  </option>
+                                ))}
+                              </select>
+                              {errors.guardians?.[index]?.relationshipName && (
+                                <div className="text-red-600 text-sm">
+                                  {
+                                    errors.guardians[index]!.relationshipName!
+                                      .message as string
+                                  }
+                                </div>
+                              )}
+                            </div>
+                          </>
+                        ) : (
+                          <>
                         <div className="sm:col-span-2">
                           <Label>
                             First Name{" "}
@@ -1036,18 +1323,7 @@ const AddPatient: React.FC = () => {
                           )}
                         </div>
 
-                        <div className="sm:col-span-2 flex items-start justify-end">
-                          <Button
-                            type="button"
-                            variant="outline"
-                            className="text-red-600 border-red-200"
-                            onClick={() => remove(index)}
-                          >
-                            Remove
-                          </Button>
-                        </div>
-
-                        <div className="sm:col-span-3">
+                        <div className="sm:col-span-2">
                           <Label>
                             Preferred Name
                             <span className="text-destructive">*</span>
@@ -1273,8 +1549,11 @@ const AddPatient: React.FC = () => {
                             </div>
                           )}
                         </div>
+                          </>
+                        )}
                       </div>
-                    ))}
+                      );
+                    })}
 
                     {/* Add / Remove buttons */}
                     <div className="flex items-center gap-2 mt-3">
@@ -1284,10 +1563,12 @@ const AddPatient: React.FC = () => {
                         onClick={() =>
                           guardianFields.length < 2 &&
                           append({
+                            isExistingGuardian: false,
+                            existingGuardianId: undefined,
                             firstName: "",
                             lastName: "",
                             preferredName: "",
-                            gender: undefined as unknown as "M" | "F",
+                            gender: "",
                             contactNo: "",
                             nric: "",
                             email: "",
@@ -1298,6 +1579,7 @@ const AddPatient: React.FC = () => {
                           })
                         }
                         disabled={guardianFields.length >= 2}
+                        className="bg-muted"
                       >
                         Add Guardian
                       </Button>
@@ -1326,7 +1608,7 @@ const AddPatient: React.FC = () => {
                   "bg-gray-400 cursor-not-allowed" :
                   "bg-indigo-600 hover:bg-indigo-500"}`}
             >
-              Add Patient
+              {createdPatient ? "Finish Setup" : "Add Patient"}
             </button>
           </div>
         </form>
