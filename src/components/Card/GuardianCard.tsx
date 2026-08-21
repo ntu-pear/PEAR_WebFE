@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { PlusCircle } from "lucide-react";
+import { PlusCircle, UserPlus, Pencil, UserMinus } from "lucide-react";
 import { toast } from "sonner";
 
 import { useViewPatient } from "@/hooks/patient/useViewPatient";
@@ -18,17 +18,7 @@ interface GuardianRow extends TableRowData {
   contactNo: string;
   address: string;
   email: string;
-}
-
-
-interface GuardianRow extends TableRowData {
-  guardianName: string;
-  preferredName?: string;
-  nric: string;
-  relationshipWithPatient: string;
-  contactNo: string;
-  address: string;
-  email: string;
+  raw: IGuardian;
 }
 
 const GuardianCard: React.FC = () => {
@@ -37,38 +27,39 @@ const GuardianCard: React.FC = () => {
   const [rows, setRows] = useState<GuardianRow[]>([]);
   const { currentUser } = useAuth();
 
+  const refreshGuardianData = async () => {
+    if (!id || isNaN(Number(id))) return;
+    try {
+      const data: IGuardian[] = await fetchGuardianByPatientId(Number(id));
+
+      const mapped: GuardianRow[] = data.map(
+        (guardian, idx) => ({
+          id: guardian.patient_guardian.id ?? `${id}-${idx}`,
+          guardianName: [
+            guardian.patient_guardian.firstName,
+            guardian.patient_guardian.lastName,
+          ]
+            .filter(Boolean)
+            .join(" "),
+          preferredName: guardian.patient_guardian.preferredName ?? "",
+          nric: guardian.patient_guardian.nric,
+          relationshipWithPatient: guardian.relationshipName,
+          contactNo: guardian.patient_guardian.contactNo,
+          address: guardian.patient_guardian.address,
+          email: guardian.patient_guardian.email,
+          raw: guardian,
+        })
+      );
+
+      setRows(mapped);
+    } catch (e) {
+      console.error(e);
+      toast.error("Failed to fetch guardian for patient");
+    }
+  };
+
   useEffect(() => {
-    const load = async () => {
-      if (!id || isNaN(Number(id))) return;
-      try {
-        const data: IGuardian[] = await fetchGuardianByPatientId(Number(id));
-
-        const mapped: GuardianRow[] = data.map(
-          ({ patient_guardian, relationshipName }, idx) => ({
-            id: patient_guardian.id ?? `${id}-${idx}`,
-            guardianName: [
-              patient_guardian.firstName,
-              patient_guardian.lastName,
-            ]
-              .filter(Boolean)
-              .join(" "),
-            preferredName: patient_guardian.preferredName ?? "",
-            nric: patient_guardian.nric,
-            relationshipWithPatient: relationshipName,
-            contactNo: patient_guardian.contactNo,
-            address: patient_guardian.address,
-            email: patient_guardian.email,
-          })
-        );
-
-        setRows(mapped);
-      } catch (e) {
-        console.error(e);
-        toast.error("Failed to fetch guardian for patient");
-      }
-    };
-
-    load();
+    refreshGuardianData();
   }, [id]);
 
   const guardianColumns = [
@@ -88,16 +79,39 @@ const GuardianCard: React.FC = () => {
           <span>Guardian</span>
           {
             (currentUser?.roleName !== "GUARDIAN") && (
-              <Button
-                size="sm"
-                className="h-8 w-24 gap-1"
-                onClick={() => openModal("addGuardian")}
-              >
-                <PlusCircle className="h-4 w-4" />
-                <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                  Add
-                </span>
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  size="sm"
+                  className="h-8 gap-1"
+                  variant="outline"
+                  onClick={() =>
+                    openModal("addExistingGuardian", {
+                      patientId: Number(id),
+                      refreshGuardianData,
+                    })
+                  }
+                >
+                  <UserPlus className="h-4 w-4" />
+                  <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+                    Add Existing
+                  </span>
+                </Button>
+                <Button
+                  size="sm"
+                  className="h-8 gap-1"
+                  onClick={() =>
+                    openModal("addGuardian", {
+                      patientId: Number(id),
+                      refreshGuardianData,
+                    })
+                  }
+                >
+                  <PlusCircle className="h-4 w-4" />
+                  <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+                    Add New
+                  </span>
+                </Button>
+              </div>
             )
           }
         </CardTitle>
@@ -107,6 +121,42 @@ const GuardianCard: React.FC = () => {
           data={rows}
           columns={guardianColumns}
           viewMore={false}
+          renderActions={
+            currentUser?.roleName !== "GUARDIAN"
+              ? (item) => (
+                  <div className="flex flex-col gap-2">
+                    <Button
+                      variant="default"
+                      size="sm"
+                      onClick={() =>
+                        openModal("editGuardian", {
+                          guardian: item.raw,
+                          patientId: Number(id),
+                          refreshGuardianData,
+                        })
+                      }
+                    >
+                      <Pencil className="h-4 w-4 mr-1" />
+                      Edit
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() =>
+                        openModal("deleteGuardian", {
+                          patientId: Number(id),
+                          guardianId: item.raw.patient_guardian.id,
+                          refreshGuardianData,
+                        })
+                      }
+                    >
+                      <UserMinus className="h-4 w-4 mr-1" />
+                      Unassign
+                    </Button>
+                  </div>
+                )
+              : undefined
+          }
         />
       </CardContent>
     </Card>
