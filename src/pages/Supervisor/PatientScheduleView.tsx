@@ -15,11 +15,13 @@ import { ScheduledPatientActivity } from '@/api/scheduler/scheduler';
 const PatientScheduleView: React.FC = () => {
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
   const [viewMode, setViewMode] = useState<ViewMode>('patient-weekly');
+  const [currentTimeScrollTrigger, setCurrentTimeScrollTrigger] = useState(1);
   const [isActivityDetailsModalOpen, setIsActivityDetailsModalOpen] = useState(false);
   const [selectedActivityForDetails, setSelectedActivityForDetails] = useState<any>(null);
   
   // State for managing selected activities from schedule data
   const [selectedScheduleActivities, setSelectedScheduleActivities] = useState<string[]>([]);
+  const [selectedPatientId, setSelectedPatientId] = useState<string>("");
 
   // hooks for patient schedule data
   const {
@@ -27,7 +29,6 @@ const PatientScheduleView: React.FC = () => {
     setSearchTerm,
     getActivityTemplate,
     getPatientActivitiesForDate,
-    getPatientActivitiesForTimeSlot,
   } = usePatientScheduleData();
 
   // hooks for scheduler service
@@ -38,7 +39,6 @@ const PatientScheduleView: React.FC = () => {
     generateSchedule,
     getOrGenerateSchedule,
     getPatientScheduleForDate,
-    getScheduleForTimeSlot,
   } = useSchedulerService();
 
   // Derive unique activities from scheduleData and auto-select all
@@ -134,51 +134,18 @@ const PatientScheduleView: React.FC = () => {
     setIsActivityDetailsModalOpen(true);
   };
 
-  // Enhanced function to get patient activities including generated schedule
-  const getEnhancedPatientActivitiesForTimeSlot = (patientId: string, date: string, timeSlot: string) => {
-    // Get original patient activities for this time slot
-    const originalActivities = getPatientActivitiesForTimeSlot(patientId, date, timeSlot);
-    
-    // Convert string patient ID to number for matching with scheduler API
-    // Patient IDs are now numeric strings like '1', '2' etc.
-    const numericPatientId = parseInt(patientId);
-    
-    // Get generated schedule activities for this time slot
-    const scheduledActivities = getScheduleForTimeSlot(date, timeSlot)
-      .filter(scheduleItem => 
-        scheduleItem.patientId === numericPatientId &&
-        selectedScheduleActivities.includes(scheduleItem.activityName) // Filter by selected activities
-      )
-      .map(scheduleItem => ({
-        id: scheduleItem.id,
-        patientId: patientId, // Keep the original string format for calendar
-        patientName: scheduleItem.patientName,
-        activityTemplateId: `generated-${scheduleItem.id}`, // Use unique ID to identify each generated activity
-        startTime: scheduleItem.startTime,
-        endTime: scheduleItem.endTime,
-        date: scheduleItem.date, // Already in YYYY-MM-DD format from scheduler
-        isOverridden: false,
-        isExcluded: false,
-        notes: '', // Remove the notes field with the activity name
-        generatedActivity: scheduleItem.activityName, // Custom field for generated activities
-        isGenerated: true, // Flag to identify generated activities
-      }));
-    
-    return [...originalActivities, ...scheduledActivities];
-  };
-
   // Enhanced function to get patient activities for date including generated schedule
-  const getEnhancedPatientActivitiesForDate = (patientId: string, date: string) => {
+  const getEnhancedPatientActivitiesForDate = useCallback((patientId: string, date: string) => {
     // Get original patient activities
     const originalActivities = getPatientActivitiesForDate(patientId, date);
-    
+
     // Convert string patient ID to number for matching with scheduler API
     // Patient IDs are now numeric strings like '1', '2' etc.
     const numericPatientId = parseInt(patientId);
-    
+
     // Get generated schedule activities for this date
     const scheduledActivities = getPatientScheduleForDate(numericPatientId, date)
-      .filter(scheduleItem => 
+      .filter(scheduleItem =>
         selectedScheduleActivities.includes(scheduleItem.activityName) // Filter by selected activities
       )
       .map(scheduleItem => ({
@@ -195,24 +162,24 @@ const PatientScheduleView: React.FC = () => {
         generatedActivity: scheduleItem.activityName, // Custom field for generated activities
         isGenerated: true, // Flag to identify generated activities
       }));
-    
+
     return [...originalActivities, ...scheduledActivities];
-  };
+  }, [getPatientActivitiesForDate, getPatientScheduleForDate, selectedScheduleActivities]);
 
   // Enhanced activity template function to handle generated activities
-  const getEnhancedActivityTemplate = (id: string) => {
+  const getEnhancedActivityTemplate = useCallback((id: string) => {
     // Check if it's a generated activity
     if (id.startsWith('generated-')) {
       // Extract the schedule item ID
       const scheduleItemId = id.replace('generated-', '');
-      
+
       // Find the corresponding schedule item to get the actual activity name
       const scheduleItem = scheduleData.find(item => item.id === scheduleItemId);
-      
+
       if (scheduleItem) {
         // Determine activity type based on name
         const activityType: 'free_easy' | 'routine' = scheduleItem.activityName.toLowerCase().includes('free and easy') ? 'free_easy' : 'routine';
-        
+
         return {
           id: id,
           name: scheduleItem.activityName, // Use the actual activity name from the scheduler
@@ -220,7 +187,7 @@ const PatientScheduleView: React.FC = () => {
           isRarelyScheduled: false,
         };
       }
-      
+
       // Fallback if schedule item not found
       return {
         id: id,
@@ -230,16 +197,17 @@ const PatientScheduleView: React.FC = () => {
       };
     }
     return getActivityTemplate(id);
-  };
+  }, [scheduleData, getActivityTemplate]);
 
   // Navigation functions
   const goToToday = () => {
     setCurrentDate(new Date());
+    setCurrentTimeScrollTrigger(trigger => trigger + 1);
   };
 
   const navigateDate = (amount: number, unit: ViewMode) => {
     const newDate = new Date(currentDate);
-    
+
     switch (unit) {
       case 'centre-daily':
       case 'patient-daily':
@@ -253,8 +221,9 @@ const PatientScheduleView: React.FC = () => {
         newDate.setMonth(newDate.getMonth() + amount);
         break;
     }
-    
+
     setCurrentDate(newDate);
+    setCurrentTimeScrollTrigger(trigger => trigger + 1);
   };
 
   // Memoize patients list to prevent unnecessary API calls
@@ -273,10 +242,28 @@ const PatientScheduleView: React.FC = () => {
       });
   }, [scheduleData]);
 
+  const selectedPatient = useMemo(
+    () => patientsFromSchedule.find(patient => patient.id === selectedPatientId),
+    [patientsFromSchedule, selectedPatientId]
+  );
+
+  useEffect(() => {
+    if (patientsFromSchedule.length === 0) {
+      setSelectedPatientId("");
+      return;
+    }
+
+    if (!patientsFromSchedule.some(patient => patient.id === selectedPatientId)) {
+      setSelectedPatientId(patientsFromSchedule[0].id);
+    }
+  }, [patientsFromSchedule, selectedPatientId]);
+
   // Handle view mode change - only allow patient view modes
   const handleViewModeChange = (newViewMode: ViewMode) => {
     if (newViewMode === 'patient-daily' || newViewMode === 'patient-weekly') {
+      setCurrentDate(new Date());
       setViewMode(newViewMode);
+      setCurrentTimeScrollTrigger(trigger => trigger + 1);
     }
   };
 
@@ -294,41 +281,40 @@ const PatientScheduleView: React.FC = () => {
       );
     }
 
-    // Apply search filter to patients
-    const filteredPatientsFromSchedule = patientsFromSchedule.filter(patient =>
-      patient.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      patient.id.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const selectedPatients = selectedPatient ? [selectedPatient] : [];
     
     switch (viewMode) {
       case 'patient-daily':
         return (
           <PatientDailyScheduleView
             currentDate={currentDate}
-            patients={filteredPatientsFromSchedule}
-            getPatientActivitiesForTimeSlot={getEnhancedPatientActivitiesForTimeSlot}
+            patients={patientsFromSchedule}
+            getPatientActivitiesForDate={getEnhancedPatientActivitiesForDate}
             getActivityTemplate={getEnhancedActivityTemplate}
             onActivityClick={handlePatientActivityClick}
+            scrollToCurrentTimeTrigger={currentTimeScrollTrigger}
           />
         );
       case 'patient-weekly':
         return (
           <PatientWeeklyScheduleView
             currentDate={currentDate}
-            patients={filteredPatientsFromSchedule}
+            patients={selectedPatients}
             getPatientActivitiesForDate={getEnhancedPatientActivitiesForDate}
             getActivityTemplate={getEnhancedActivityTemplate}
             onActivityClick={handlePatientActivityClick}
+            scrollToCurrentTimeTrigger={currentTimeScrollTrigger}
           />
         );
       default:
         return (
           <PatientDailyScheduleView
             currentDate={currentDate}
-            patients={filteredPatientsFromSchedule}
-            getPatientActivitiesForTimeSlot={getEnhancedPatientActivitiesForTimeSlot}
+            patients={patientsFromSchedule}
+            getPatientActivitiesForDate={getEnhancedPatientActivitiesForDate}
             getActivityTemplate={getEnhancedActivityTemplate}
             onActivityClick={handlePatientActivityClick}
+            scrollToCurrentTimeTrigger={currentTimeScrollTrigger}
           />
         );
     }
@@ -346,6 +332,7 @@ const PatientScheduleView: React.FC = () => {
         onViewModeChange={handleViewModeChange}
         onSearchChange={setSearchTerm}
         allowedViewModes={['patient-daily', 'patient-weekly']}
+        showSearch={false}
         showExportButton={scheduleData.length > 0 && selectedScheduleActivities.length > 0}
         onExportSchedule={handleExportSchedule}
       />
@@ -353,6 +340,9 @@ const PatientScheduleView: React.FC = () => {
       <div className="flex flex-1 overflow-hidden">
         {/* Left Sidebar */}
         <PatientScheduleSidebar
+          patients={patientsFromSchedule}
+          selectedPatientId={selectedPatientId}
+          onPatientChange={setSelectedPatientId}
           activityTemplates={activitiesFromSchedule} // Use derived activities from scheduler response
           selectedActivities={selectedScheduleActivities} // Use schedule-based selected activities
           onActivityToggle={handleScheduleActivityToggle}

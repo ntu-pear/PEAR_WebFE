@@ -1,5 +1,4 @@
 import { mockActivityTemplates, mockScheduledCentreActivities } from "@/mocks/mockScheduledActivity";
-import { API_TIME_SLOTS } from "@/components/Calendar/CalendarTypes";
 import { retrieveAccessTokenFromCookie } from "../users/auth";
 
 const SCHEDULER_BASE_URL = import.meta.env.VITE_SCHEDULER_SERVICE_URL;
@@ -166,18 +165,77 @@ export const regenerateScheduleForSupervisor = async (): Promise<SchedulerRespon
   }
 };
 
-// Helper function to parse schedule string into time slots
+type ScheduleSlot = {
+  activityName: string;
+  startTime: string;
+  endTime: string;
+};
+
+const normalizeTime = (time: string): string => {
+  const [hour = "0", minute = "00"] = time.trim().split(":");
+  return `${hour.padStart(2, "0")}:${minute.padStart(2, "0")}`;
+};
+
+const slotFromTimeRange = (
+  timeRange: string,
+  activityName: string
+): ScheduleSlot | null => {
+  const match = timeRange.match(/^(\d{1,2}:\d{2})-(\d{1,2}:\d{2})$/);
+  if (!match || !activityName.trim()) return null;
+
+  return {
+    activityName: activityName.trim(),
+    startTime: normalizeTime(match[1]),
+    endTime: normalizeTime(match[2]),
+  };
+};
+
+const mergeAdjacentSlots = (slots: ScheduleSlot[]): ScheduleSlot[] => {
+  return slots.reduce<ScheduleSlot[]>((merged, slot) => {
+    const previous = merged[merged.length - 1];
+
+    if (
+      previous &&
+      previous.activityName === slot.activityName &&
+      previous.endTime === slot.startTime
+    ) {
+      previous.endTime = slot.endTime;
+      return merged;
+    }
+
+    merged.push({ ...slot });
+    return merged;
+  }, []);
+};
+
+// Helper function to parse schedule string into activity names.
 export const parseScheduleString = (scheduleString: string): string[] => {
+  return parseScheduleSlots(scheduleString).map((slot) => slot.activityName);
+};
+
+const parseScheduleSlots = (scheduleString: string): ScheduleSlot[] => {
   if (!scheduleString || scheduleString.trim() === '') {
     return [];
   }
 
-  return scheduleString.split('--').map(activity => activity.trim()).filter(activity => activity.length > 0);
-};
+  try {
+    const parsed = JSON.parse(scheduleString) as Record<string, string>;
 
-// Helper function to convert hour number to time string (e.g., 9 -> "09:00")
-const hourToTimeString = (hour: number): string => {
-  return `${hour.toString().padStart(2, '0')}:00`;
+    if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+      const slots = Object.entries(parsed)
+        .map(([timeRange, activityName]) =>
+          slotFromTimeRange(timeRange, String(activityName))
+        )
+        .filter((slot): slot is ScheduleSlot => Boolean(slot))
+        .sort((a, b) => a.startTime.localeCompare(b.startTime));
+
+      return mergeAdjacentSlots(slots);
+    }
+  } catch {
+    // scheduleString wasn't valid JSON — nothing to parse.
+  }
+
+  return [];
 };
 
 // Helper function to convert schedule data to calendar format
@@ -195,33 +253,26 @@ export const convertScheduleToCalendarFormat = (scheduleData: WeeklyScheduleData
     endDate: string;
   }> = [];
 
-  // Use the API time slots constant
-  const timeSlots = API_TIME_SLOTS;
-
   for (const patientSchedule of scheduleData) {
     const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
     for (const day of days) {
       const daySchedule = patientSchedule[day as keyof WeeklyScheduleData] as string;
-      const activities = parseScheduleString(daySchedule);
+      const slots = parseScheduleSlots(daySchedule);
 
       // Create calendar events for each activity
-      activities.forEach((activity, index) => {
-        if (activity && index < timeSlots.length - 1) { // -1 because last element is end hour, not a slot start
-          const startHour = timeSlots[index];
-          const endHour = timeSlots[index + 1];
-          const startTime = hourToTimeString(startHour);
-          const endTime = hourToTimeString(endHour);
+      slots.forEach((slot, index) => {
+        if (slot.activityName) {
           const eventDate = getDateForDayOfWeek(day, patientSchedule.StartDate);
 
           const calendarEvent = {
-            id: `${patientSchedule.PatientID}-${day}-${index}`,
+            id: `${patientSchedule.PatientID}-${day}-${slot.startTime}-${index}`,
             patientId: patientSchedule.PatientID,
             patientName: patientSchedule.Name,
-            activityName: activity,
+            activityName: slot.activityName,
             day: day,
-            startTime: startTime,
-            endTime: endTime,
+            startTime: slot.startTime,
+            endTime: slot.endTime,
             date: eventDate,
             startDate: patientSchedule.StartDate,
             endDate: patientSchedule.EndDate,
@@ -238,10 +289,14 @@ export const convertScheduleToCalendarFormat = (scheduleData: WeeklyScheduleData
 
 // Helper function to get actual date for day of week based on the API's StartDate
 const getDateForDayOfWeek = (dayName: string, startDateStr: string): string => {
-  const startDate = new Date(startDateStr);
+  const [year, month, dayOfMonth] = startDateStr
+    .split("T")[0]
+    .split("-")
+    .map(Number);
+  const startDate = new Date(Date.UTC(year, month - 1, dayOfMonth));
 
   // Determine what day of the week the StartDate is
-  const startDayOfWeek = startDate.getDay();
+  const startDayOfWeek = startDate.getUTCDay();
 
   // Map day names to day numbers
   const dayMapping = {
@@ -259,14 +314,14 @@ const getDateForDayOfWeek = (dayName: string, startDateStr: string): string => {
   // Calculate offset from the start date
   // If StartDate is Monday (1) and we want Tuesday (2), offset = 1
   // If StartDate is Monday (1) and we want Sunday (0), offset = 6 (next Sunday)
-  let offset = targetDay - startDayOfWeek + 1;
+  let offset = targetDay - startDayOfWeek;
   if (offset < 0) {
     offset += 7; // Handle wrap-around for previous days in the week
   }
 
   // Add the offset to get the target date
   const targetDate = new Date(startDate);
-  targetDate.setDate(startDate.getDate() + offset);
+  targetDate.setUTCDate(startDate.getUTCDate() + offset);
 
   const result = targetDate.toISOString().split('T')[0];
   // console.log(`Date calculation: ${dayName} from StartDate ${startDateStr} (day ${startDayOfWeek}) -> ${result} (offset: ${offset})`);

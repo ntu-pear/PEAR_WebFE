@@ -78,6 +78,7 @@ interface InternalDataTableRowProps<T extends TableRowData> {
   isSelected?: boolean;
   onToggleSelect?: () => void;
   expandTogglePlacement?: ExpandTogglePlacement;
+  expandOnRowClick?: boolean;
 }
 
 function InternalDataTableRow<T extends TableRowData>({
@@ -93,6 +94,7 @@ function InternalDataTableRow<T extends TableRowData>({
   isSelected = false,
   onToggleSelect,
   expandTogglePlacement = "leading",
+  expandOnRowClick = false,
 }: InternalDataTableRowProps<T>) {
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -100,6 +102,21 @@ function InternalDataTableRow<T extends TableRowData>({
     const next = !isExpanded;
     setIsExpanded(next);
     if (next && onExpand) onExpand(item);
+  };
+
+  const handleRowClick = (event: React.MouseEvent<HTMLTableRowElement>) => {
+    if (!expandable || !expandOnRowClick) return;
+
+    const target = event.target as HTMLElement;
+    if (
+      target.closest(
+        'button, a, input, select, textarea, [role="button"], [data-no-row-expand="true"]'
+      )
+    ) {
+      return;
+    }
+
+    handleToggleExpand();
   };
 
   const showExpandInLeadingColumn =
@@ -119,7 +136,10 @@ function InternalDataTableRow<T extends TableRowData>({
 
   return (
     <>
-      <TableRow>
+      <TableRow
+        onClick={handleRowClick}
+        className={expandable && expandOnRowClick ? "cursor-pointer" : ""}
+      >
         {selectable && (
           <TableCell className="w-12 text-center">
             <input
@@ -234,6 +254,7 @@ interface DataTableClientProps<T extends TableRowData> {
   onSelectChange?: (selected: T[]) => void;
   loading?: boolean;
   expandTogglePlacement?: ExpandTogglePlacement;
+  expandOnRowClick?: boolean;
   actionsHeaderLabel?: string;
 }
 
@@ -255,6 +276,7 @@ export function DataTableClient<T extends TableRowData>({
   onSelectChange,
   loading = false,
   expandTogglePlacement = "leading",
+  expandOnRowClick = false,
   actionsHeaderLabel = "Actions",
 }: DataTableClientProps<T>) {
   const [page, setPage] = useState(1);
@@ -431,6 +453,7 @@ export function DataTableClient<T extends TableRowData>({
                   onSelectChange(newSelected);
                 }}
                 expandTogglePlacement={expandTogglePlacement}
+                expandOnRowClick={expandOnRowClick}
               />
             ))}
           </TableBody>
@@ -513,6 +536,7 @@ interface DataTableServerProps<T extends TableRowData> {
   showPageSizeSelector?: boolean;
   showPaginationControls?: boolean;
   expandTogglePlacement?: ExpandTogglePlacement;
+  expandOnRowClick?: boolean;
   actionsHeaderLabel?: string;
 }
 
@@ -543,6 +567,7 @@ export function DataTableServer<T extends TableRowData>({
   showPageSizeSelector = true,
   showPaginationControls = true,
   expandTogglePlacement = "leading",
+  expandOnRowClick = false,
   actionsHeaderLabel = "Actions",
 }: DataTableServerProps<T>) {
   const { pageNo, pageSize, totalRecords, totalPages } = pagination;
@@ -648,6 +673,7 @@ export function DataTableServer<T extends TableRowData>({
                 renderExpandedContent={renderExpandedContent}
                 onExpand={onExpand}
                 expandTogglePlacement={expandTogglePlacement}
+                expandOnRowClick={expandOnRowClick}
               />
             ))}
           </TableBody>

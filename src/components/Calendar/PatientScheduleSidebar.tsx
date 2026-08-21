@@ -3,11 +3,21 @@ import { useNavigate } from 'react-router-dom';
 import { ActivityTemplate } from '@/api/scheduler/scheduler';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { RefreshCw, Calendar as CalendarIcon, ExternalLink, RotateCcw } from 'lucide-react';
 import { ACTIVITY_STYLES } from './CalendarTypes';
 import { CalendarScheduleItem } from '@/hooks/scheduler/useSchedulerService';
 
 interface PatientScheduleSidebarProps {
+  patients: { id: string; name: string }[];
+  selectedPatientId: string;
+  onPatientChange: (patientId: string) => void;
   activityTemplates: ActivityTemplate[];
   selectedActivities: string[];
   onActivityToggle: (activityId: string, checked: boolean) => void;
@@ -20,6 +30,9 @@ interface PatientScheduleSidebarProps {
 }
 
 const PatientScheduleSidebar: React.FC<PatientScheduleSidebarProps> = ({
+  patients,
+  selectedPatientId,
+  onPatientChange,
   activityTemplates,
   selectedActivities,
   onActivityToggle,
@@ -79,6 +92,30 @@ const PatientScheduleSidebar: React.FC<PatientScheduleSidebarProps> = ({
                 Generated schedule for {new Set(scheduleData.map(s => s.patientId)).size} patients
               </div>
             )}
+          </CardContent>
+        </Card>
+        {/* Patient Selector */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm">Patient</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Select
+              value={selectedPatientId}
+              onValueChange={onPatientChange}
+              disabled={patients.length === 0}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select patient" />
+              </SelectTrigger>
+              <SelectContent>
+                {patients.map((patient) => (
+                  <SelectItem key={patient.id} value={patient.id}>
+                    {patient.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </CardContent>
         </Card>
         {/* Activity Filters (from scheduleData) */}

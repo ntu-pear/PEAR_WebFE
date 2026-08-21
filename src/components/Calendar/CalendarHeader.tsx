@@ -14,6 +14,7 @@ interface CalendarHeaderProps {
   onViewModeChange: (mode: ViewMode) => void;
   onSearchChange: (term: string) => void;
   allowedViewModes?: ViewMode[];
+  showSearch?: boolean;
   // Export functionality for patient schedule view
   showExportButton?: boolean;
   onExportSchedule?: () => void;
@@ -28,6 +29,7 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
   onViewModeChange,
   onSearchChange,
   allowedViewModes,
+  showSearch = true,
   showExportButton = false,
   onExportSchedule,
 }) => {
@@ -106,15 +108,17 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
             Export
           </Button>
         )}
-        <div className="relative">
-          <span className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-500"><Search /></span>
-          <Input
-            placeholder={getSearchPlaceholder()}
-            className="pl-8 w-64 rounded-md"
-            value={searchTerm}
-            onChange={(e) => onSearchChange(e.target.value)}
-          />
-        </div>
+        {showSearch && (
+          <div className="relative">
+            <span className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-500"><Search /></span>
+            <Input
+              placeholder={getSearchPlaceholder()}
+              className="pl-8 w-64 rounded-md"
+              value={searchTerm}
+              onChange={(e) => onSearchChange(e.target.value)}
+            />
+          </div>
+        )}
         <div className="flex items-center space-x-1 bg-gray-100 rounded-md p-1">
           {getViewModeOptions().map(option => (
             <Button
