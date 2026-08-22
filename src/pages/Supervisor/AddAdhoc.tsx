@@ -1,18 +1,12 @@
-import { Form, DatePicker, message } from "antd";
-import { Dayjs } from "dayjs";
-import dayjs from "dayjs";
+import { Form, message } from "antd";
 import { RuleObject } from "antd/es/form";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { fetchAllPatientTD } from "@/api/patients/patients";
 import { createAdhocActivity } from "@/api/activities/adhoc";
 import { listCentreActivities, CentreActivity, getActivities } from "@/api/activities/centreActivities";
-import {
-  listCentreActivityAvailabilities,
-  availabilityCoversTime,
-  CentreActivityAvailability,
-} from "@/api/activities/centreActivityAvailabilities";
-import { userPrefersHour12 } from "@/utils/formatDate";
+
+type AdhocMode = "patient" | "activity-wide";
 
 const AddAdhoc: React.FC = () => {
   const navigate = useNavigate();
@@ -23,50 +17,32 @@ const AddAdhoc: React.FC = () => {
   const [loadingPatients, setLoadingPatients] = useState(true);
 
   const [activityMap, setActivityMap] = useState<Record<number, string>>({});
-  const [availabilities, setAvailabilities] = useState<CentreActivityAvailability[]>([]);
+
+  const [mode, setMode] = useState<AdhocMode>("patient");
 
   const [form] = Form.useForm();
-  const startDate: Dayjs | null = Form.useWatch("start_date", form);
-  const endDate: Dayjs | null = Form.useWatch("end_date", form);
-  const hour12 = userPrefersHour12();
-  const dateTimeFormat = hour12 ? "DD-MMM-YYYY hh:mm A" : "DD-MMM-YYYY HH:mm";
-  const [durationMinutes, setDurationMinutes] = useState(30);
-  const pickerPopupClassName = "adhoc-datetime-picker-popup";
-  const timePickerProps = {
-    format: hour12 ? "hh:mm A" : "HH:mm",
-    use12Hours: hour12,
-    showSecond: false,
+  const oldActivityId = Form.useWatch("old_centre_activity_id", form);
+  const watchedStartDate = Form.useWatch("start_date", form);
+  const watchedEndDate = Form.useWatch("end_date", form);
+
+  const handleStartDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value || undefined;
+    form.setFieldsValue({ start_date: value, end_date: value });
   };
 
-  const handleStartDateChange = (value: Dayjs | null) => {
-    if (!value) {
-      form.setFieldsValue({ start_date: null, end_date: null });
-      return;
-    }
-
-    form.setFieldsValue({
-      start_date: value,
-      end_date: value.add(durationMinutes, "minute"),
-    });
-  };
-
-  const handleEndDateChange = (value: Dayjs | null) => {
-    form.setFieldsValue({ end_date: value });
-
-    if (value && startDate && value.isAfter(startDate)) {
-      setDurationMinutes(value.diff(startDate, "minute"));
-    }
+  const handleEndDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    form.setFieldsValue({ end_date: e.target.value || undefined });
   };
 
   const onFinish = async (values: any) => {
-    const startISO = values.start_date
-      .second(0)
-      .format("YYYY-MM-DDTHH:mm:ss");
+    const startISO = `${values.start_date}T00:00:00`;
+    const endISO = `${values.end_date}T00:00:00`;
 
-    const endISO = values.end_date
-      .second(0)
-      .format("YYYY-MM-DDTHH:mm:ss");
-    
+    if (mode === "activity-wide") {
+      message.info("Activity-wide adhoc isn't available yet — coming soon.");
+      return;
+    }
+
     try {
       // call the service instead of using fetch
       await createAdhocActivity({
@@ -108,51 +84,15 @@ const AddAdhoc: React.FC = () => {
     return Promise.resolve();
   };
 
-  const validReplacementActivityIds = React.useMemo(() => {
-    if (!startDate || !endDate) return [];
-
-        
-    if (!startDate.isBefore(endDate)) {
-        return [];
-      }
-
-    const selectedDate = startDate.format("YYYY-MM-DD");
-
-    return availabilities
-      .filter((a) => {
-        // Date range check (inclusive)
-        if (selectedDate < a.start_date || selectedDate > a.end_date) {
-          return false;
-        }
-
-        // Time window check
-        return availabilityCoversTime(a, startDate, endDate);
-      })
-      .map((a) => a.centre_activity_id);
-  }, [availabilities, startDate, endDate]);
-
-  const validateAvailabilityMatch: RuleObject["validator"] = async () => {
-    const newId = form.getFieldValue("new_centre_activity_id");
-    if (!newId) return Promise.resolve();
-
-    if (!getValidReplacementActivityIds().includes(newId)) {
-      return Promise.reject(
-        new Error("Selected activity does not match the chosen date and time window.")
-      );
-    }
-
-    return Promise.resolve();
-  };
-
   const validateEndDate = (
     _: RuleObject,
-    value: Dayjs | null
+    value: string | undefined
   ): Promise<void> => {
     const startDate = form.getFieldValue("start_date");
     if (!value || !startDate) {
       return Promise.resolve(); // Don't validate if no value
     }
-    if (value.isBefore(startDate)) {
+    if (value < startDate) {
       return Promise.reject(
         new Error("End date must be after or equal to start date!")
       );
@@ -229,52 +169,6 @@ const AddAdhoc: React.FC = () => {
     fetchActivities();
   }, []);
 
-  useEffect(() => {
-    listCentreActivityAvailabilities({ include_deleted: false, limit: 1000 })
-      .then(setAvailabilities)
-      .catch(err => console.error("Failed to load availabilities", err));
-  }, []);
-
-  const getValidReplacementActivityIds = () => {
-    const start: Dayjs | null = form.getFieldValue("start_date");
-    const end: Dayjs | null = form.getFieldValue("end_date");
-
-    if (!start || !end) return [];
-
-    const selectedDate = start.startOf("day");
-
-    console.log("Adhoc start:", start.format());
-    console.log("Adhoc end:", end.format());
-
-    availabilities.forEach(a => {
-      console.log(
-        "Checking availability",
-        a.centre_activity_id,
-        a.start_date,
-        a.end_date,
-        a.start_time,
-        a.end_time,
-        availabilityCoversTime(a, start, end)
-      );
-    });
-
-
-    return availabilities
-      .filter((a) => {
-        // Date range must cover selected date
-        const dateMatches =
-          selectedDate.isSameOrAfter(dayjs(a.start_date)) &&
-          selectedDate.isSameOrBefore(dayjs(a.end_date));
-
-        if (!dateMatches) return false;
-
-        // Time window must fully cover adhoc interval
-        return availabilityCoversTime(a, start, end);
-      })
-      .map((a) => a.centre_activity_id);
-  };
-
-
   const getSortedActivities = () => {
     return [...activities].sort((a, b) => {
       const titleA = (activityMap[a.activity_id] || "ZZZZ_UNKNOWN").toUpperCase();
@@ -316,40 +210,80 @@ const AddAdhoc: React.FC = () => {
                 Adhoc Information
               </h2>
               <p className="mt-1 text-sm leading-6 text-primary">
-                Add an adhoc activity to replace an original activity for a particular patient
+                Add an adhoc activity to temporarily replace an activity for a specific patient, or for everyone currently scheduled for it
               </p>
 
               <div className="mt-10 grid grid-cols-1 gap-x-6 gap-y-6 sm:grid-cols-8">
-                <Form.Item
-                  label={
-                    <label className="block text-sm font-medium leading-6 text-primary">
-                      Patient Name
+                <div className="sm:col-span-8">
+                  <label className="block text-sm font-medium leading-6 text-primary">
+                    Apply To
+                  </label>
+                  <div className="mt-2 flex gap-6">
+                    <label className="flex items-center gap-2 text-sm text-gray-900">
+                      <input
+                        type="radio"
+                        name="adhoc_mode"
+                        checked={mode === "patient"}
+                        onChange={() => setMode("patient")}
+                      />
+                      Specific Patient
                     </label>
-                  }
-                  //name="patient_name"
-                  name="patient_id"
-                  initialValue={patients[0]?.id}
-                  rules={[
-                    { required: true, message: "Please select a patient!" },
-                  ]}
-                  className="sm:col-span-8"
-                >
-                  <select
-                    className="block w-full rounded-md border-0 py-2 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:max-w-xs sm:text-sm sm:leading-6"
-                    disabled={loadingPatients}
+                    <label className="flex items-center gap-2 text-sm text-gray-900">
+                      <input
+                        type="radio"
+                        name="adhoc_mode"
+                        checked={mode === "activity-wide"}
+                        onChange={() => setMode("activity-wide")}
+                      />
+                      All Patients on this Activity
+                    </label>
+                  </div>
+                </div>
+
+                {mode === "patient" ? (
+                  <Form.Item
+                    label={
+                      <label className="block text-sm font-medium leading-6 text-primary">
+                        Patient Name
+                      </label>
+                    }
+                    //name="patient_name"
+                    name="patient_id"
+                    initialValue={patients[0]?.id}
+                    rules={[
+                      { required: true, message: "Please select a patient!" },
+                    ]}
+                    className="sm:col-span-8"
                   >
-                    <option value="" disabled>
-                      Select Patient
-                    </option>
-
-                    {patients.map((patient) => (
-                      <option key={patient.id} value={patient.id}>
-                        {patient.name}
+                    <select
+                      className="block w-full rounded-md border-0 py-2 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:max-w-xs sm:text-sm sm:leading-6"
+                      disabled={loadingPatients}
+                    >
+                      <option value="" disabled>
+                        Select Patient
                       </option>
-                    ))}
-                  </select>
 
-                </Form.Item>
+                      {patients.map((patient) => (
+                        <option key={patient.id} value={patient.id}>
+                          {patient.name}
+                        </option>
+                      ))}
+                    </select>
+
+                  </Form.Item>
+                ) : (
+                  <div className="sm:col-span-8 rounded-md border border-gray-200 bg-gray-50 p-4">
+                    {!oldActivityId || !watchedStartDate || !watchedEndDate ? (
+                      <p className="text-sm text-gray-600">
+                        Select an Old Activity and date range below to see affected patients.
+                      </p>
+                    ) : (
+                      <p className="text-sm text-gray-600">
+                        Patients currently scheduled for this activity in the selected range will be listed here.
+                      </p>
+                    )}
+                  </div>
+                )}
 
                 <Form.Item
                   label={
@@ -435,7 +369,6 @@ const AddAdhoc: React.FC = () => {
                       message: "Please select a adhoc!",
                     },
                     { validator: validateDifferentActivity },
-                    { validator: validateAvailabilityMatch },
                   ]}
                   className="sm:col-span-4"
                 >
@@ -467,14 +400,10 @@ const AddAdhoc: React.FC = () => {
                     </option>
 
                     
-                    {getSortedActivities()
-                      .filter((activity) =>
-                        validReplacementActivityIds.includes(activity.id)
-                      )
-                      .map((activity) => (
-                        <option key={activity.id} value={activity.id}>
-                          {(activityMap[activity.activity_id] ?? "Unknown Activity").toUpperCase()}
-                        </option>
+                    {getSortedActivities().map((activity) => (
+                      <option key={activity.id} value={activity.id}>
+                        {(activityMap[activity.activity_id] ?? "Unknown Activity").toUpperCase()}
+                      </option>
                     ))}
 
 
@@ -485,45 +414,37 @@ const AddAdhoc: React.FC = () => {
                 <Form.Item
                   label={
                     <label className="block text-sm font-medium leading-6 text-primary">
-                      Start Date & Time
+                      Start Date
                     </label>
                   }
                   name="start_date"
-                  rules={[{ required: true, message: "Please select a start date & time!" }]}
+                  rules={[{ required: true, message: "Please select a start date!" }]}
                   className="sm:col-span-3"
                 >
-                  <DatePicker
-                    showTime={timePickerProps}
-                    format={dateTimeFormat}
-                    className="w-full"
-                    use12Hours={hour12}
+                  <input
+                    type="date"
+                    className="block w-full rounded-md border-0 py-2 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
                     onChange={handleStartDateChange}
-                    allowClear={false}
-                    popupClassName={pickerPopupClassName}
                   />
                 </Form.Item>
 
                 <Form.Item
                   label={
                     <label className="block text-sm font-medium leading-6 text-primary">
-                      End Date & Time
+                      End Date
                     </label>
                   }
                   name="end_date"
                   rules={[
-                    { required: true, message: "Please select an end date & time!" },
+                    { required: true, message: "Please select an end date!" },
                     { validator: validateEndDate },
                   ]}
                   className="sm:col-span-3"
                 >
-                  <DatePicker
-                    showTime={timePickerProps}
-                    format={dateTimeFormat}
-                    className="w-full"
-                    use12Hours={hour12}
+                  <input
+                    type="date"
+                    className="block w-full rounded-md border-0 py-2 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
                     onChange={handleEndDateChange}
-                    allowClear={false}
-                    popupClassName={pickerPopupClassName}
                   />
                 </Form.Item>
 
