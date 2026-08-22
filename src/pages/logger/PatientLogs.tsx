@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
@@ -11,11 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
-import {
-  ChevronDown,
-  ChevronUp,
-  Search,
-} from "lucide-react";
+import { ChevronDown, ChevronUp, Search } from "lucide-react";
 
 import { fetchAllLogs, LogsTableDataServer, LogType } from "@/api/logger/logs";
 import FilterSidebar from "@/components/Filters/FilterSidebar";
@@ -78,6 +74,28 @@ const PatientLogs: React.FC = () => {
   const [jumpPage, setJumpPage] = useState(1);
   const [loading, setLoading] = useState(false);
 
+  const sidebarRef = useRef<HTMLDivElement>(null);
+  const [contentHeight, setContentHeight] = useState<number | null>(null);
+
+  useEffect(() => {
+    const sidebarEl = sidebarRef.current;
+    if (!sidebarEl) return;
+
+    const updateHeight = () => {
+      setContentHeight(Math.max(sidebarEl.offsetHeight, window.innerHeight - 81));
+    };
+
+    updateHeight();
+    const observer = new ResizeObserver(updateHeight);
+    observer.observe(sidebarEl);
+    window.addEventListener("resize", updateHeight);
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", updateHeight);
+    };
+  }, []);
+
   const handleLogs = useCallback(
     async (page: number = 0) => {
       setLoading(true);
@@ -123,6 +141,14 @@ const PatientLogs: React.FC = () => {
       ...prev,
       [index]: !prev[index],
     }));
+  };
+
+  const handleRowClick = (event: React.MouseEvent<HTMLTableRowElement>, index: number) => {
+    const target = event.target as HTMLElement;
+    if (target.closest('button, a, input, select, textarea, [role="button"]')) {
+      return;
+    }
+    toggleRow(index);
   };
 
   const handleFilterReset = () => {
@@ -216,7 +242,8 @@ const PatientLogs: React.FC = () => {
   };
 
   return (
-    <div className="flex min-h-screen w-full">
+    <div className="flex w-full">
+      <div ref={sidebarRef} className="flex-shrink-0">
       <FilterSidebar
       >
         <TextFilterField
@@ -272,9 +299,13 @@ const PatientLogs: React.FC = () => {
             onExternalExport={() => handleExport("external")}
           />
       </FilterSidebar>
+      </div>
 
-      <div className="flex-1 p-6 overflow-auto">
-        <Card className="w-full">
+      <div
+        className="flex-1 p-6 overflow-hidden flex flex-col"
+        style={{ height: contentHeight ? `${contentHeight}px` : "calc(100vh - 81px)" }}
+      >
+        <Card className="w-full flex-1 flex flex-col min-h-0">
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="text-2xl">Patient Information Logs</CardTitle>
             <div className="text-sm text-muted-foreground">
@@ -282,25 +313,25 @@ const PatientLogs: React.FC = () => {
               records
             </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="flex-1 flex flex-col min-h-0">
             {loading ? (
               <div className="flex justify-center py-8">
                 <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" />
               </div>
             ) : (
               <>
-                <div className="overflow-x-auto">
+                <div className="flex-1 min-h-0 overflow-hidden [&>div]:h-full">
                   <Table>
-                    <TableHeader>
+                    <TableHeader className="sticky top-0 z-10 bg-background">
                       <TableRow>
                         <TableHead className="w-12">#</TableHead>
-                        <TableHead className="w-32">Date/Time</TableHead>
+                        <TableHead className="w-24">Date/Time</TableHead>
                         <TableHead className="w-40">Patient</TableHead>
                         <TableHead className="w-40">Caregiver</TableHead>
                         <TableHead className="w-24">Action</TableHead>
                         <TableHead className="w-32">Type</TableHead>
                         <TableHead>Description</TableHead>
-                        <TableHead className="w-24">Details</TableHead>
+                        <TableHead className="w-8 px-1" />
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -316,15 +347,19 @@ const PatientLogs: React.FC = () => {
                       ) : (
                         logsData.logs.map((log, index) => (
                           <React.Fragment key={index}>
-                            <TableRow className="hover:bg-muted/50">
+                            <TableRow
+                              className="hover:bg-muted/50 cursor-pointer"
+                              onClick={(e) => handleRowClick(e, index)}
+                            >
                               <TableCell className="font-mono text-xs">
                                 {index +
                                   1 +
                                   logsData.pagination.pageNo *
                                     logsData.pagination.pageSize}
                               </TableCell>
-                              <TableCell className="text-sm whitespace-nowrap">
-                                {format(new Date(log.timestamp), "dd-MMM-yyyy h:mm a").toUpperCase()}
+                              <TableCell className="text-sm">
+                                <div className="whitespace-nowrap">{format(new Date(log.timestamp), "dd-MMM-yyyy")}</div>
+                                <div className="whitespace-nowrap text-muted-foreground">{format(new Date(log.timestamp), "h:mm a").toUpperCase()}</div>
                               </TableCell>
                               <TableCell>
                                 <div className="font-medium">
@@ -352,21 +387,15 @@ const PatientLogs: React.FC = () => {
                                   {log.log_type || log.table || "-"}
                                 </Badge>
                               </TableCell>
-                              <TableCell className="max-w-md truncate">
-                                {log.message}
+                              <TableCell className="max-w-[400px]">
+                                <div className="line-clamp-2">{log.message}</div>
                               </TableCell>
-                              <TableCell>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => toggleRow(index)}
-                                >
-                                  {expandedRows[index] ? (
-                                    <ChevronUp className="h-4 w-4" />
-                                  ) : (
-                                    <ChevronDown className="h-4 w-4" />
-                                  )}
-                                </Button>
+                              <TableCell className="px-1 text-muted-foreground">
+                                {expandedRows[index] ? (
+                                  <ChevronUp className="h-4 w-4" />
+                                ) : (
+                                  <ChevronDown className="h-4 w-4" />
+                                )}
                               </TableCell>
                             </TableRow>
 
@@ -399,6 +428,12 @@ const PatientLogs: React.FC = () => {
                                             {log.entity_name}
                                           </div>
                                         )}
+                                        <div className="col-span-2">
+                                          <span className="text-muted-foreground">
+                                            Description:
+                                          </span>{" "}
+                                          {log.message}
+                                        </div>
                                       </div>
                                     </div>
 
