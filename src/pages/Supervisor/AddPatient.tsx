@@ -21,6 +21,7 @@ import useUploadPatientPhoto from "@/hooks/patient/useUploadPatientPhoto";
 import { AddPatientSection } from "@/api/patients/patients";
 import useAddPatientPrivacyLevel from "@/hooks/patient/useAddPatientPrivacyLevel";
 import { AddPatientPrivacyLevel } from "@/api/patients/privacyLevel";
+import { Staff, Doctor, Caregiver, GameTherapist, fetchAllStaff } from "@/api/patients/staffAllocation";
 import {
   addPatientGuardian,
   assignExistingGuardian,
@@ -251,6 +252,7 @@ const AddPatient: React.FC = () => {
   const sections = useRef<{ [key: string]: HTMLElement | null }>({
     "personal-info": null,
     "guardian-info": null,
+    "staff-info": null,
   });
   const isClickRef = useRef<boolean>(false);
   const [profilePhotoFile, setProfilePhotoFile] = useState<File | null>(null);
@@ -303,6 +305,28 @@ const AddPatient: React.FC = () => {
   const [guardianSearch, setGuardianSearch] = useState<
     Record<number, { nric: string; searching: boolean; searched: boolean; found: IGuardian | null }>
   >({});
+
+  const [doctorList, setDoctorList] = useState<Doctor[]>([]);
+  const [gameTherapistList, setGameTherapistList] = useState<GameTherapist[]>([]);
+  const [caregiverList, setCaregiverList] = useState<Caregiver[]>([]);
+  const [selectedDoctor, setSelectedDoctor] = useState("");
+  const [selectedGameTherapist, setSelectedGameTherapist] = useState("");
+  const [selectedCaregiver, setSelectedCaregiver] = useState("");
+
+  useEffect(() => {
+    const getAllStaff = async () => {
+      try {
+        const response = await fetchAllStaff();
+        const allStaff = response.users || [];
+        setDoctorList(allStaff.filter((staff: Staff) => staff.role === "DOCTOR"));
+        setGameTherapistList(allStaff.filter((staff: Staff) => staff.role === "GAME THERAPIST"));
+        setCaregiverList(allStaff.filter((staff: Staff) => staff.role === "CAREGIVER"));
+      } catch (error) {
+        console.error("Failed to fetch staff list", error);
+      }
+    };
+    getAllStaff();
+  }, []);
 
   const handleGuardianNricSearch = async (index: number) => {
     const nricValue = (guardianSearch[index]?.nric || "").trim().toUpperCase();
@@ -411,6 +435,9 @@ const AddPatient: React.FC = () => {
       modifiedDate: getDateTimeNowInUTC(),
       CreatedById: currentUser?.userId,
       ModifiedById: currentUser?.userId,
+      doctorId: selectedDoctor || undefined,
+      gameTherapistId: selectedGameTherapist || undefined,
+      caregiverId: selectedCaregiver || undefined,
       guardianId:
         primaryGuardian?.isExistingGuardian
           ? primaryGuardian.existingGuardianId
@@ -675,9 +702,7 @@ const AddPatient: React.FC = () => {
     <div className="flex min-h-screen w-full flex-col lg:flex-row container mx-auto px-4">
       {/* Left Sidebar Navigation */}
       <nav className="w-full lg:w-1/4 px-6 text-xl text-gray-800 leading-normal">
-        <div className="sticky top-0 z-10">
-          <p className="text-2xl font-bold py-4 text-primary">Add Patient</p>
-        </div>
+        <p className="text-2xl font-bold py-4 text-primary lg:sticky lg:top-0 lg:z-10 lg:bg-background">Add Patient</p>
         <ul className="list-reset py-2 md:py-0 lg:sticky lg:top-16">
           <li
             className={`py-1 md:my-2 hover:bg-yellow-100 lg:hover:bg-transparent border-l-4 ${activeSection === "personal-info"
@@ -705,6 +730,20 @@ const AddPatient: React.FC = () => {
               className="block pl-4 align-middle no-underline hover:text-yellow-600 text-primary"
             >
               <span className="pb-1 md:pb-0 text-sm">Guardian Information</span>
+            </a>
+          </li>
+          <li
+            className={`py-1 md:my-2 hover:bg-yellow-100 lg:hover:bg-transparent border-l-4 ${activeSection === "staff-info"
+              ? "border-lime-500 font-bold"
+              : "border-transparent"
+              }`}
+          >
+            <a
+              href="#staff-info"
+              onClick={() => handleClick("staff-info")}
+              className="block pl-4 align-middle no-underline hover:text-yellow-600 text-primary"
+            >
+              <span className="pb-1 md:pb-0 text-sm">Staff Assignment</span>
             </a>
           </li>
         </ul>
@@ -1599,11 +1638,84 @@ const AddPatient: React.FC = () => {
               </CardContent>
             </Card>
           </div>
+
+          {/* Staff Assignment */}
+          <div id="staff-info" className="pb-12">
+            <Card className="shadow-sm">
+              <CardContent className="p-6">
+                <div className="space-y-6">
+                  <div>
+                    <h2 className="text-xl font-semibold leading-7 text-foreground">
+                      Staff Assignment
+                    </h2>
+                    <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                      Leave blank to auto-assign the least-loaded available staff.
+                    </p>
+                    <Separator className="my-4" />
+
+                    <div className="flex flex-col gap-6 max-w-sm">
+                      <div>
+                        <Label htmlFor="patient-doctor">Doctor</Label>
+                        <select
+                          id="patient-doctor"
+                          className="mt-1 block w-full p-2 border rounded-md text-gray-900"
+                          value={selectedDoctor}
+                          onChange={(e) => setSelectedDoctor(e.target.value)}
+                        >
+                          <option value="">Auto-assign</option>
+                          {doctorList.map((doctor) => (
+                            <option key={doctor.id} value={doctor.id}>
+                              {doctor.nric_FullName}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div>
+                        <Label htmlFor="patient-game-therapist">Game Therapist</Label>
+                        <select
+                          id="patient-game-therapist"
+                          className="mt-1 block w-full p-2 border rounded-md text-gray-900"
+                          value={selectedGameTherapist}
+                          onChange={(e) => setSelectedGameTherapist(e.target.value)}
+                        >
+                          <option value="">Auto-assign</option>
+                          {gameTherapistList.map((gameTherapist) => (
+                            <option key={gameTherapist.id} value={gameTherapist.id}>
+                              {gameTherapist.nric_FullName}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div>
+                        <Label htmlFor="patient-caregiver">Caregiver</Label>
+                        <select
+                          id="patient-caregiver"
+                          className="mt-1 block w-full p-2 border rounded-md text-gray-900"
+                          value={selectedCaregiver}
+                          onChange={(e) => setSelectedCaregiver(e.target.value)}
+                        >
+                          <option value="">Auto-assign</option>
+                          {caregiverList.map((caregiver) => (
+                            <option key={caregiver.id} value={caregiver.id}>
+                              {caregiver.nric_FullName}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
           <div className="flex items-center justify-end gap-x-6">
             <button
               type="submit"
               disabled={guardianFields.length === 0}
-              className={`rounded-md px-3 py-2 text-sm font-semibold text-white shadow-sm 
+              className={`rounded-md px-3 py-2 text-sm font-semibold text-white shadow-sm
                 ${guardianFields.length === 0 ?
                   "bg-gray-400 cursor-not-allowed" :
                   "bg-indigo-600 hover:bg-indigo-500"}`}
