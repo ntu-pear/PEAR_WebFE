@@ -1,40 +1,39 @@
 import { toast } from "sonner";
 import { useModal } from "@/hooks/useModal";
-import { unassignGuardian } from "@/api/patients/guardian";
+import { deletePatientGuardian } from "@/api/patients/guardian";
 import { extractErrorMessage } from "@/utils/errorMessage";
 import BaseDeleteModal from "./BaseDeleteModal";
 
 const DeleteGuardianModal: React.FC = () => {
   const { modalRef, activeModal, closeModal } = useModal();
-  const { patientId, guardianId, refreshGuardianData } = activeModal.props as {
-    patientId: number;
+  const { guardianId, refreshGuardianData } = activeModal.props as {
     guardianId: number;
     refreshGuardianData: () => void | Promise<void>;
   };
 
-  const handleUnassignGuardian = async (event: React.FormEvent) => {
+  const handleDeleteGuardian = async (event: React.FormEvent) => {
     event.preventDefault();
-    if (!guardianId || !patientId) return;
+    if (!guardianId) return;
 
     try {
-      await unassignGuardian(patientId, guardianId);
+      await deletePatientGuardian(guardianId);
       closeModal();
-      toast.success("Guardian unassigned from this patient.");
+      toast.success("Guardian deleted.");
       await refreshGuardianData?.();
     } catch (error) {
       closeModal();
-      toast.error(extractErrorMessage(error, "Failed to unassign guardian."));
+      toast.error(extractErrorMessage(error, "Failed to delete guardian."));
     }
   };
 
   return (
     <BaseDeleteModal
       modalRef={modalRef}
-      onSubmit={handleUnassignGuardian}
+      onSubmit={handleDeleteGuardian}
       closeModal={closeModal}
-      title="Remove this guardian from this patient?"
-      description="This unassigns the guardian from this patient only -- their own record and any other patients they're linked to are unaffected."
-      confirmLabel="Unassign"
+      title="Delete this guardian?"
+      description="This permanently deletes the guardian's own record and unassigns them from every patient they're currently linked to. This cannot be undone."
+      confirmLabel="Delete"
     />
   );
 };

@@ -11,7 +11,6 @@ import { ACTIVITY_STYLES, TIME_SLOTS } from "../CalendarTypes";
 
 const CELL_HEIGHT = 72;
 const MIN_ACTIVITY_HEIGHT = 32;
-const HEADER_HEIGHT = 72;
 const TIME_COLUMN_WIDTH = 180;
 
 const timeToMinutes = (time: string): number => {
@@ -171,7 +170,7 @@ const PatientWeeklyScheduleView: React.FC<PatientWeeklyScheduleViewProps> = ({
       scrollContainer.scrollTop =
         scrollTarget === "end"
           ? scrollContainer.scrollHeight
-          : Math.max(scrollTarget - HEADER_HEIGHT, 0);
+          : Math.max(scrollTarget, 0);
       consumedScrollTriggerRef.current = scrollToCurrentTimeTrigger;
     } else if (isNewWeek) {
       scrollContainer.scrollTop = 0;

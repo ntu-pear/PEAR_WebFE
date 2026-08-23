@@ -143,7 +143,7 @@ const GuardianCard: React.FC = () => {
                       variant="destructive"
                       size="sm"
                       onClick={() =>
-                        openModal("deleteGuardian", {
+                        openModal("unassignGuardian", {
                           patientId: Number(id),
                           guardianId: item.raw.patient_guardian.id,
                           refreshGuardianData,
