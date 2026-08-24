@@ -368,7 +368,11 @@ const CentreActivityExclusionCard: React.FC<ActivityExclusionCardProps> = ({ pat
                     }}
                     onSubmit={handleCreateExclusion}
                     onCancel={() => setIsAddExclusionOpen(false)}
-                    excludedActivityIds={new Set(centreActivityExclusions.map(e => e.centreActivityId))}
+                    excludedActivityIds={new Set(
+                      centreActivityExclusions
+                        .filter(e => !e.endDate || new Date(e.endDate) >= new Date())
+                        .map(e => e.centreActivityId)
+                    )}
                     submitting={isCreatingExclusions}
                   />
                 </div>

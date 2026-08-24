@@ -141,7 +141,7 @@ const PatientDailyScheduleView: React.FC<PatientDailyScheduleViewProps> = ({
       scrollContainer.scrollLeft =
         scrollTarget === "end"
           ? scrollContainer.scrollWidth
-          : Math.max(scrollTarget - PATIENT_COLUMN_WIDTH, 0);
+          : Math.max(scrollTarget, 0);
       consumedScrollTriggerRef.current = scrollToCurrentTimeTrigger;
     } else if (isNewDate) {
       scrollContainer.scrollLeft = 0;

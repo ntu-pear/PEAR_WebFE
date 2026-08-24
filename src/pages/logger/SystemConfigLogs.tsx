@@ -303,9 +303,10 @@ const SystemConfigLogs: React.FC = () => {
       key: "timestamp" as keyof SystemLogRow,
       header: "Date/Time",
       render: (value: string) => (
-        <span className="text-sm whitespace-nowrap">
-          {format(new Date(value), "dd/MM/yyyy HH:mm")}
-        </span>
+        <div className="text-sm">
+          <div className="whitespace-nowrap">{format(new Date(value), "dd/MM/yyyy")}</div>
+          <div className="whitespace-nowrap text-muted-foreground">{format(new Date(value), "HH:mm")}</div>
+        </div>
       ),
     },
     {
@@ -496,6 +497,7 @@ const SystemConfigLogs: React.FC = () => {
           </CardHeader>
 
           <CardContent>
+            <div className="overflow-x-auto">
             <DataTableServer
               data={tableRows}
               pagination={{
@@ -516,6 +518,7 @@ const SystemConfigLogs: React.FC = () => {
               showPageSizeSelector={true}
               showPaginationControls={true}
             />
+            </div>
           </CardContent>
         </Card>
       </div>

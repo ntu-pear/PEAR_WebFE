@@ -3,7 +3,7 @@ import { useModal } from "@/hooks/useModal";
 import AddGuardianModal from "../Modal/Add/AddGuardianModal";
 import AddExistingGuardianModal from "../Modal/Add/AddExistingGuardianModal";
 import EditGuardianModal from "../Modal/Edit/EditGuardianModal";
-import DeleteGuardianModal from "../Modal/Delete/DeleteGuardianModal";
+import UnassignGuardianModal from "../Modal/Delete/UnassignGuardianModal";
 import GuardianCard from "../Card/GuardianCard";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -20,7 +20,7 @@ const GuardianTab: React.FC = () => {
       {activeModal.name === "addGuardian" && currentUser?.roleName === "SUPERVISOR" && <AddGuardianModal />}
       {activeModal.name === "addExistingGuardian" && currentUser?.roleName === "SUPERVISOR" && <AddExistingGuardianModal />}
       {activeModal.name === "editGuardian" && currentUser?.roleName === "SUPERVISOR" && <EditGuardianModal />}
-      {activeModal.name === "deleteGuardian" && currentUser?.roleName === "SUPERVISOR" && <DeleteGuardianModal />}
+      {activeModal.name === "unassignGuardian" && currentUser?.roleName === "SUPERVISOR" && <UnassignGuardianModal />}
     </>
   );
 };
