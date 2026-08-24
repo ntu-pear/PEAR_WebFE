@@ -22,12 +22,9 @@ import {
   listCentreActivities,
   CentreActivity,
 } from "@/api/activities/centreActivities";
-import {
-  listCentreActivityAvailabilities,
-  availabilityCoversTime,
-  CentreActivityAvailability,
-} from "@/api/activities/centreActivityAvailabilities";
-import { formatDateTimeNoYear, formatDateTime, userPrefersHour12 } from "@/utils/formatDate";
+import { getCentreActivityPreferences } from "@/api/activity/activityPreference";
+import { getCentreActivityRecommendations } from "@/api/activity/activityRecommendation";
+import { formatDate, formatDateTime, formatDateTimeNoYear, getEndOfCurrentWeekSG } from "@/utils/formatDate";
 import dayjs, { Dayjs } from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
@@ -36,17 +33,14 @@ import { useNavigate } from "react-router-dom";
 dayjs.extend(utc);
 dayjs.extend(timezone);
 const SG_TZ = "Asia/Singapore";
-const HOUR_12 = userPrefersHour12();
-const DATE_TIME_DISPLAY_FORMAT = HOUR_12 ? "DD-MMM-YYYY hh:mm A" : "DD-MMM-YYYY HH:mm";
 
-
-const getModalDateTimeValue = (value?: string | null) => {
+const getModalDateValue = (value?: string | null) => {
   if (!value) return "";
 
   const parsed = dayjs(value);
   if (!parsed.isValid()) return "";
 
-  return parsed.tz(SG_TZ).format("YYYY-MM-DDTHH:mm");
+  return parsed.tz(SG_TZ).format("YYYY-MM-DD");
 };
 
 
@@ -86,10 +80,9 @@ const ManageAdhoc: React.FC = () => {
           endDate: a.endDate,              
           lastUpdated: a.lastUpdated,     
 
-          startDateDisplay: formatDateTimeNoYear(a.startDate),
-          endDateDisplay: formatDateTimeNoYear(a.endDate),
+          startDateDisplay: formatDate(a.startDate),
+          endDateDisplay: formatDate(a.endDate),
           lastUpdatedDisplay: formatDateTimeNoYear(a.lastUpdated ?? null),
-          //lastUpdated: formatDateTimeNoYear(a.lastUpdated ?? null),
 
           oldActivityTitle: getCentreActivityDisplayName(oldCentre),
           oldActivityDescription: getCentreActivityDescription(oldCentre),
@@ -152,11 +145,6 @@ const ManageAdhoc: React.FC = () => {
       fetchAdhoc();
     }
   }, [centreActivityList, activityList]);
-
-  useEffect(() => {
-    listCentreActivityAvailabilities({ include_deleted: false, limit: 1000 })
-      .catch(err => console.error("Failed to load availabilities", err));
-  }, []);
 
 
   const activityMap = React.useMemo(() => {
@@ -272,13 +260,8 @@ const ManageAdhoc: React.FC = () => {
         }}
         onSave={async (updated) => {
           try {
-            const startISO = dayjs(updated.startDate)
-              .tz(SG_TZ)
-              .format("YYYY-MM-DDTHH:mm:ss");
-
-            const endISO = dayjs(updated.endDate)
-              .tz(SG_TZ)
-              .format("YYYY-MM-DDTHH:mm:ss");
+            const startISO = updated.startDate;
+            const endISO = updated.endDate;
             const modifiedISO = dayjs.tz(new Date(), SG_TZ).format();
 
             // Swap old/new if activity changed
@@ -328,8 +311,8 @@ const ManageAdhoc: React.FC = () => {
                       startDate: payload.startDate,
                       endDate: payload.endDate,
 
-                      startDateDisplay: formatDateTimeNoYear(payload.startDate),
-                      endDateDisplay: formatDateTimeNoYear(payload.endDate),
+                      startDateDisplay: formatDate(payload.startDate),
+                      endDateDisplay: formatDate(payload.endDate),
                       status: payload.status,
                       isDeleted: payload.isDeleted,
                       modifiedById: payload.modifiedById,
@@ -368,50 +351,67 @@ const EditAdhocModal: React.FC<EditAdhocModalProps> = ({ activity, open, onClose
   const [selectedActivityId, setSelectedActivityId] = useState<number | undefined>(activity?.newActivityId);
   const [startDate, setStartDate] = useState<Dayjs | null>(null);
   const [endDate, setEndDate] = useState<Dayjs | null>(null);
-  const dateTimeFormat = DATE_TIME_DISPLAY_FORMAT;
-  const [durationMinutes, setDurationMinutes] = useState(30);
-  const pickerPopupClassName = "adhoc-datetime-picker-popup";
-  const timePickerProps = {
-    format: HOUR_12 ? "hh:mm A" : "HH:mm",
-    use12Hours: HOUR_12,
-    showSecond: false,
-  };
-  const [availabilities, setAvailabilities] = useState<CentreActivityAvailability[]>([]);
+
+  const [unscheduleableActivityIds, setUnscheduleableActivityIds] = useState<Set<number>>(new Set());
+  const [loadingActivityRules, setLoadingActivityRules] = useState(false);
+
+  useEffect(() => {
+    if (!open || !activity?.patientId) {
+      setUnscheduleableActivityIds(new Set());
+      return;
+    }
+
+    const fetchPatientActivityRules = async () => {
+      setLoadingActivityRules(true);
+      try {
+        const patientIdStr = String(activity.patientId);
+        const [preferences, recommendations] = await Promise.all([
+          getCentreActivityPreferences(patientIdStr),
+          getCentreActivityRecommendations(patientIdStr),
+        ]);
+
+        const unscheduleable = new Set<number>();
+        preferences
+          .filter((p) => !p.is_deleted && p.is_like === -1)
+          .forEach((p) => unscheduleable.add(p.centre_activity_id));
+        recommendations
+          .filter((r) => !r.is_deleted && r.doctor_recommendation === -1)
+          .forEach((r) => unscheduleable.add(r.centre_activity_id));
+
+        setUnscheduleableActivityIds(unscheduleable);
+      } catch (error) {
+        console.error("Failed to load patient activity preferences/recommendations", error);
+        setUnscheduleableActivityIds(new Set());
+      } finally {
+        setLoadingActivityRules(false);
+      }
+    };
+
+    fetchPatientActivityRules();
+  }, [open, activity?.patientId]);
 
   const resetForm = useCallback(() => {
     if (!activity) {
       setSelectedActivityId(undefined);
       setStartDate(null);
       setEndDate(null);
-      setDurationMinutes(30);
       return;
     }
 
     setSelectedActivityId(activity.newActivityId);
-    const startValue = getModalDateTimeValue(activity.startDate);
-    const endValue = getModalDateTimeValue(activity.endDate);
-    const nextStartDate = startValue ? dayjs(startValue) : null;
-    const nextEndDate = endValue ? dayjs(endValue) : null;
-    setStartDate(nextStartDate);
-    setEndDate(nextEndDate);
-    setDurationMinutes(
-      nextStartDate && nextEndDate && nextEndDate.isAfter(nextStartDate)
-        ? nextEndDate.diff(nextStartDate, "minute")
-        : 30
-    );
+    const startValue = getModalDateValue(activity.startDate);
+    const endValue = getModalDateValue(activity.endDate);
+    setStartDate(startValue ? dayjs(startValue) : null);
+    setEndDate(endValue ? dayjs(endValue) : null);
   }, [activity]);
 
   const handleStartDateChange = (value: Dayjs | null) => {
     setStartDate(value);
-    setEndDate(value ? value.add(durationMinutes, "minute") : null);
+    setEndDate(value ? value.add(1, "day") : null);
   };
 
   const handleEndDateChange = (value: Dayjs | null) => {
     setEndDate(value);
-
-    if (value && startDate && value.isAfter(startDate)) {
-      setDurationMinutes(value.diff(startDate, "minute"));
-    }
   };
 
   useEffect(() => {
@@ -419,27 +419,6 @@ const EditAdhocModal: React.FC<EditAdhocModalProps> = ({ activity, open, onClose
       resetForm();
     }
   }, [open, resetForm]);
-
-  useEffect(() => {
-    listCentreActivityAvailabilities({ include_deleted: false, limit: 1000 })
-      .then(setAvailabilities)
-      .catch(err => console.error("Failed to load availabilities", err));
-  }, []);
-
-  const validReplacementIds = React.useMemo(() => {
-    if (!startDate || !endDate) return [];
-
-    const selectedDate = startDate.format("YYYY-MM-DD");
-
-    return availabilities
-      .filter(a => {
-        if (selectedDate < a.start_date || selectedDate > a.end_date) {
-          return false;
-        }
-        return availabilityCoversTime(a, startDate, endDate);
-      })
-      .map(a => a.centre_activity_id);
-  }, [availabilities, startDate, endDate]);
 
   if (!activity) return null;
 
@@ -464,11 +443,12 @@ const EditAdhocModal: React.FC<EditAdhocModalProps> = ({ activity, open, onClose
             <select
               className="w-full border rounded px-2 py-1"
               value={selectedActivityId ?? -1}
+              disabled={loadingActivityRules}
               onChange={(e) => setSelectedActivityId(Number(e.target.value))}
             >
               <option value={-1}>Keep Current</option>
               {centreActivityList
-                .filter(ca => validReplacementIds.includes(ca.id))
+                .filter((ca) => !unscheduleableActivityIds.has(ca.id) || ca.id === selectedActivityId)
                 .sort((a, b) =>
                   getDisplayName(a).localeCompare(getDisplayName(b))
                 )
@@ -486,14 +466,15 @@ const EditAdhocModal: React.FC<EditAdhocModalProps> = ({ activity, open, onClose
             <label className="text-sm font-medium">Start Date</label>
             <DatePicker
               value={startDate}
-              showTime={timePickerProps}
-              format={dateTimeFormat}
-              use12Hours={HOUR_12}
+              format="DD-MMM-YYYY"
               className="w-full"
               onChange={handleStartDateChange}
               allowClear={false}
-              popupClassName={pickerPopupClassName}
-              getPopupContainer={(trigger) => trigger.parentElement ?? document.body}
+              disabledDate={(current) =>
+                !!current &&
+                (current.isBefore(dayjs().tz(SG_TZ), "day") ||
+                  current.isAfter(getEndOfCurrentWeekSG(), "day"))
+              }
             />
           </div>
 
@@ -501,14 +482,16 @@ const EditAdhocModal: React.FC<EditAdhocModalProps> = ({ activity, open, onClose
             <label className="text-sm font-medium">End Date</label>
             <DatePicker
               value={endDate}
-              showTime={timePickerProps}
-              format={dateTimeFormat}
-              use12Hours={HOUR_12}
+              format="DD-MMM-YYYY"
               className="w-full"
               onChange={handleEndDateChange}
               allowClear={false}
-              popupClassName={pickerPopupClassName}
-              getPopupContainer={(trigger) => trigger.parentElement ?? document.body}
+              disabledDate={(current) => {
+                if (!current) return false;
+                if (current.isBefore(dayjs().tz(SG_TZ), "day")) return true;
+                if (current.isAfter(getEndOfCurrentWeekSG(), "day")) return true;
+                return !!startDate && !current.isAfter(startDate, "day");
+              }}
             />
           </div>
         </div>
@@ -518,12 +501,17 @@ const EditAdhocModal: React.FC<EditAdhocModalProps> = ({ activity, open, onClose
             onClick={() => {
               if (!selectedActivityId && selectedActivityId !== 0) return alert("Select a new activity");
               if (!startDate || !endDate) return alert("Select both start and end dates");
+              if (!endDate.isAfter(startDate, "day")) return alert("End date must be after start date");
               const newId = selectedActivityId === -1 ? activity.newActivityId : selectedActivityId;
+
+              const startISO = dayjs.tz(`${startDate.format("YYYY-MM-DD")}T00:00:00`, SG_TZ).format();
+              const endISO = dayjs.tz(`${endDate.format("YYYY-MM-DD")}T00:00:00`, SG_TZ).format();
+
               onSave({
                 ...activity,
                 newActivityId: newId,
-                startDate: startDate.tz(SG_TZ).toISOString(),
-                endDate: endDate.tz(SG_TZ).toISOString(),
+                startDate: startISO,
+                endDate: endISO,
               });
             }}
 

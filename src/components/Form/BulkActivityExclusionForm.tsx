@@ -165,7 +165,7 @@ export default function BulkActivityExclusionForm({
       patient_id: initial.patient_id,
       exclusion_remarks: exclusionRemarks.trim(), // now guaranteed to be non-empty
       start_date: startDate,
-      end_date: isIndefinite ? null : endDate || null,
+      end_date: isIndefinite ? "2999-01-01" : endDate || null,
     };
 
     try {

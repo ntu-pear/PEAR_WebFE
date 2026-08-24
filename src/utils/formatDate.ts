@@ -93,3 +93,9 @@ export const to24Hour = (hour: string, minute: string, period: "AM" | "PM") => {
 export const userPrefersHour12 = () => {
   return new Intl.DateTimeFormat(undefined, { hour: "numeric" }).resolvedOptions().hour12 ?? true;
 };
+
+export const getEndOfCurrentWeekSG = () => {
+  const now = dayjs().tz("Asia/Singapore");
+  const pythonWeekday = (now.day() + 6) % 7; // dayjs: Sun=0..Sat=6 -> Python: Mon=0..Sun=6
+  return now.add(6 - pythonWeekday, "day").endOf("day");
+};

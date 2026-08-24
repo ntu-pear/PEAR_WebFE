@@ -1,10 +1,15 @@
-import { Form, message } from "antd";
+import { DatePicker, Form, message } from "antd";
 import { RuleObject } from "antd/es/form";
+import dayjs, { type Dayjs } from "dayjs";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { fetchAllPatientTD } from "@/api/patients/patients";
 import { createAdhocActivity } from "@/api/activities/adhoc";
 import { listCentreActivities, CentreActivity, getActivities } from "@/api/activities/centreActivities";
+import { getCentreActivityPreferences } from "@/api/activity/activityPreference";
+import { getCentreActivityRecommendations } from "@/api/activity/activityRecommendation";
+import { getSchedule, parseScheduleString } from "@/api/scheduler/scheduler";
+import { getEndOfCurrentWeekSG } from "@/utils/formatDate";
 
 type AdhocMode = "patient" | "activity-wide";
 
@@ -22,24 +27,38 @@ const AddAdhoc: React.FC = () => {
 
   const [form] = Form.useForm();
   const oldActivityId = Form.useWatch("old_centre_activity_id", form);
+  const newActivityId = Form.useWatch("new_centre_activity_id", form);
   const watchedStartDate = Form.useWatch("start_date", form);
   const watchedEndDate = Form.useWatch("end_date", form);
+  const watchedPatientId = Form.useWatch("patient_id", form);
 
-  const handleStartDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value || undefined;
-    form.setFieldsValue({ start_date: value, end_date: value });
+  const [unscheduleableActivityIds, setUnscheduleableActivityIds] = useState<Set<number>>(new Set());
+  const [loadingPatientActivityRules, setLoadingPatientActivityRules] = useState(false);
+
+  const [scheduledActivityTitles, setScheduledActivityTitles] = useState<Set<string> | null>(null);
+  const [loadingSchedule, setLoadingSchedule] = useState(false);
+
+  const handleStartDateChange = (date: Dayjs | null) => {
+    form.setFieldsValue({
+      start_date: date ?? undefined,
+      end_date: date ? date.add(1, "day") : undefined,
+    });
   };
 
-  const handleEndDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    form.setFieldsValue({ end_date: e.target.value || undefined });
+  const handleEndDateChange = (date: Dayjs | null) => {
+    form.setFieldsValue({ end_date: date ?? undefined });
   };
 
   const onFinish = async (values: any) => {
-    const startISO = `${values.start_date}T00:00:00`;
-    const endISO = `${values.end_date}T00:00:00`;
+    const startISO = dayjs
+      .tz(`${(values.start_date as Dayjs).format("YYYY-MM-DD")}T00:00:00`, "Asia/Singapore")
+      .format();
+    const endISO = dayjs
+      .tz(`${(values.end_date as Dayjs).format("YYYY-MM-DD")}T00:00:00`, "Asia/Singapore")
+      .format();
 
     if (mode === "activity-wide") {
-      message.info("Activity-wide adhoc isn't available yet — coming soon.");
+      message.info("Activity-wide adhoc isn't available yet");
       return;
     }
 
@@ -86,15 +105,15 @@ const AddAdhoc: React.FC = () => {
 
   const validateEndDate = (
     _: RuleObject,
-    value: string | undefined
+    value: Dayjs | undefined
   ): Promise<void> => {
-    const startDate = form.getFieldValue("start_date");
+    const startDate: Dayjs | undefined = form.getFieldValue("start_date");
     if (!value || !startDate) {
       return Promise.resolve(); // Don't validate if no value
     }
-    if (value < startDate) {
+    if (!value.isAfter(startDate, "day")) {
       return Promise.reject(
-        new Error("End date must be after or equal to start date!")
+        new Error("End date must be after start date!")
       );
     }
     return Promise.resolve();
@@ -169,12 +188,95 @@ const AddAdhoc: React.FC = () => {
     fetchActivities();
   }, []);
 
-  const getSortedActivities = () => {
-    return [...activities].sort((a, b) => {
+  useEffect(() => {
+    if (mode !== "patient" || !watchedPatientId) {
+      setUnscheduleableActivityIds(new Set());
+      return;
+    }
+
+    const fetchPatientActivityRules = async () => {
+      setLoadingPatientActivityRules(true);
+      try {
+        const patientIdStr = String(watchedPatientId);
+        const [preferences, recommendations] = await Promise.all([
+          getCentreActivityPreferences(patientIdStr),
+          getCentreActivityRecommendations(patientIdStr),
+        ]);
+
+        const unscheduleable = new Set<number>();
+        preferences
+          .filter((p) => !p.is_deleted && p.is_like === -1)
+          .forEach((p) => unscheduleable.add(p.centre_activity_id));
+        recommendations
+          .filter((r) => !r.is_deleted && r.doctor_recommendation === -1)
+          .forEach((r) => unscheduleable.add(r.centre_activity_id));
+
+        setUnscheduleableActivityIds(unscheduleable);
+      } catch (error) {
+        console.error("Failed to load patient activity preferences/recommendations", error);
+        setUnscheduleableActivityIds(new Set());
+      } finally {
+        setLoadingPatientActivityRules(false);
+      }
+    };
+
+    fetchPatientActivityRules();
+  }, [mode, watchedPatientId]);
+
+  useEffect(() => {
+    if (mode !== "patient" || !watchedPatientId) {
+      setScheduledActivityTitles(null);
+      return;
+    }
+
+    const fetchPatientSchedule = async () => {
+      setLoadingSchedule(true);
+      try {
+        const res = await getSchedule();
+        const patientSchedule = res.Data?.find((s) => s.PatientID === watchedPatientId);
+
+        const titles = new Set<string>();
+        if (patientSchedule) {
+          (["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"] as const).forEach((day) => {
+            parseScheduleString(patientSchedule[day]).forEach((title) => titles.add(title.toUpperCase()));
+          });
+        }
+        setScheduledActivityTitles(titles);
+      } catch (error) {
+        console.error("Failed to load patient schedule", error);
+        setScheduledActivityTitles(new Set());
+      } finally {
+        setLoadingSchedule(false);
+      }
+    };
+
+    fetchPatientSchedule();
+  }, [mode, watchedPatientId]);
+
+  const getOldActivityOptions = () => {
+    const sorted = [...activities].sort((a, b) => {
       const titleA = (activityMap[a.activity_id] || "ZZZZ_UNKNOWN").toUpperCase();
       const titleB = (activityMap[b.activity_id] || "ZZZZ_UNKNOWN").toUpperCase();
       return titleA.localeCompare(titleB);
     });
+
+    if (mode !== "patient" || !scheduledActivityTitles) return sorted;
+
+    return sorted.filter((activity) =>
+      scheduledActivityTitles.has((activityMap[activity.activity_id] ?? "").toUpperCase())
+    );
+  };
+
+  const getNewActivityOptions = () => {
+    const sorted = [...activities].sort((a, b) => {
+      const titleA = (activityMap[a.activity_id] || "ZZZZ_UNKNOWN").toUpperCase();
+      const titleB = (activityMap[b.activity_id] || "ZZZZ_UNKNOWN").toUpperCase();
+      return titleA.localeCompare(titleB);
+    });
+
+    if (mode !== "patient") return sorted;
+
+    return sorted.filter((activity) => !unscheduleableActivityIds.has(activity.id));
   };
   return (
     <div className="flex min-h-screen w-full flex-col lg:flex-row container mx-auto px-4">
@@ -275,7 +377,7 @@ const AddAdhoc: React.FC = () => {
                   <div className="sm:col-span-8 rounded-md border border-gray-200 bg-gray-50 p-4">
                     {!oldActivityId || !watchedStartDate || !watchedEndDate ? (
                       <p className="text-sm text-gray-600">
-                        Select an Old Activity and date range below to see affected patients.
+                        Select an Activity to be replaced and date range below to see affected patients.
                       </p>
                     ) : (
                       <p className="text-sm text-gray-600">
@@ -288,7 +390,7 @@ const AddAdhoc: React.FC = () => {
                 <Form.Item
                   label={
                     <label className="block text-sm font-medium leading-6 text-primary">
-                      Old Activity
+                      Activity to be replaced
                     </label>
                   }
                   name="old_centre_activity_id"
@@ -307,7 +409,7 @@ const AddAdhoc: React.FC = () => {
                       ring-1 ring-inset ring-gray-300
                       focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-600
                     "
-                    disabled={loadingActivities}
+                    disabled={loadingActivities || loadingSchedule}
                     onChange={(e) => {
                     const selectedOld = Number(e.target.value);
                     const currentNew = form.getFieldValue("new_centre_activity_id");
@@ -327,7 +429,6 @@ const AddAdhoc: React.FC = () => {
                           "The original activity was automatically adjusted to avoid a conflict."
                         );
 
-                        
                         //clear stale Adhoc validation error
                         form.validateFields(["new_centre_activity_id"])
 
@@ -340,13 +441,17 @@ const AddAdhoc: React.FC = () => {
                       old_centre_activity_id: selectedOld,
                     });
                   }}
+                    value={oldActivityId ?? ""}
                   >
-                    <option value="" disabled>
-                      Select Old Activity
+                    <option value="">
+                      {loadingSchedule
+                        ? "Loading patient's schedule..."
+                        : mode === "patient" && getOldActivityOptions().length === 0
+                        ? "No activities currently scheduled for this patient"
+                        : "Select Activity"}
                     </option>
-                    
 
-                    {getSortedActivities().map((activity) => (
+                    {getOldActivityOptions().map((activity) => (
                       <option key={activity.id} value={activity.id}>
                         {(activityMap[activity.activity_id] ?? "Unknown Activity").toUpperCase()}
                       </option>
@@ -359,7 +464,7 @@ const AddAdhoc: React.FC = () => {
                 <Form.Item
                   label={
                     <label className="block text-sm font-medium leading-6 text-primary">
-                      Ad hoc
+                      Ad hoc activity
                     </label>
                   }
                   name="new_centre_activity_id"
@@ -374,8 +479,9 @@ const AddAdhoc: React.FC = () => {
                 >
                   <select
                     className="block w-full rounded-md border-0 py-2 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:max-w-xs sm:text-sm sm:leading-6"
-                    disabled={loadingActivities}
-                    
+                    value={newActivityId ?? ""}
+                    disabled={loadingActivities || loadingPatientActivityRules}
+
                     onChange={(e) => {
                     const selectedNew = Number(e.target.value);
                     const oldActivity = form.getFieldValue("old_centre_activity_id");
@@ -396,11 +502,13 @@ const AddAdhoc: React.FC = () => {
 
                   >
                     <option value="">
-                      Select New Activity to be Ad hoc
+                      {loadingPatientActivityRules
+                        ? "Loading activities available to this patient..."
+                        : "Select New Activity to be Ad hoc"}
                     </option>
 
-                    
-                    {getSortedActivities().map((activity) => (
+
+                    {getNewActivityOptions().map((activity) => (
                       <option key={activity.id} value={activity.id}>
                         {(activityMap[activity.activity_id] ?? "Unknown Activity").toUpperCase()}
                       </option>
@@ -421,10 +529,15 @@ const AddAdhoc: React.FC = () => {
                   rules={[{ required: true, message: "Please select a start date!" }]}
                   className="sm:col-span-3"
                 >
-                  <input
-                    type="date"
+                  <DatePicker
+                    format="DD-MMM-YYYY"
                     className="block w-full rounded-md border-0 py-2 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
                     onChange={handleStartDateChange}
+                    disabledDate={(current) =>
+                      !!current &&
+                      (current.isBefore(dayjs().tz("Asia/Singapore"), "day") ||
+                        current.isAfter(getEndOfCurrentWeekSG(), "day"))
+                    }
                   />
                 </Form.Item>
 
@@ -441,10 +554,17 @@ const AddAdhoc: React.FC = () => {
                   ]}
                   className="sm:col-span-3"
                 >
-                  <input
-                    type="date"
+                  <DatePicker
+                    format="DD-MMM-YYYY"
                     className="block w-full rounded-md border-0 py-2 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
                     onChange={handleEndDateChange}
+                    disabledDate={(current) => {
+                      if (!current) return false;
+                      if (current.isBefore(dayjs().tz("Asia/Singapore"), "day")) return true;
+                      if (current.isAfter(getEndOfCurrentWeekSG(), "day")) return true;
+                      const startDate: Dayjs | undefined = form.getFieldValue("start_date");
+                      return !!startDate && !current.isAfter(startDate, "day");
+                    }}
                   />
                 </Form.Item>
 
