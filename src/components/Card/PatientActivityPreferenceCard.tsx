@@ -14,7 +14,6 @@ import {
   SheetContent,
   SheetHeader,
   SheetTitle,
-  SheetTrigger,
 } from "../ui/sheet";
 import {
   Select,
@@ -44,7 +43,6 @@ import {
   updateActivityPreference,
   createActivityPreference,
 } from "@/api/activity/activityPreference";
-import BulkActivityExclusionForm from "../Form/BulkActivityExclusionForm";
 import CentreActivityExclusionForm from "../Form/ActivityExclusionForm";
 import { formatDate } from "@/utils/formatDate"
 import { toast } from "sonner";
@@ -70,10 +68,9 @@ const PatientActivityPreferenceCard: React.FC<
   const [bulkPreference, setBulkPreference] = useState<string>("");
   const [isBulkUpdating, setIsBulkUpdating] = useState(false);
 
-  const { create, update, remove, isUpdating } =
+  const { update, remove, isUpdating } =
     useCentreActivityExclusionMutations();
 
-  const [isAddExclusionOpen, setIsAddExclusionOpen] = useState(false);
   const [editingExclusion, setEditingExclusion] = useState<any>(null);
 
   // Bulk selection handlers
@@ -103,25 +100,6 @@ const PatientActivityPreferenceCard: React.FC<
     toast.success("Exclusion deleted");
 
     
-    refreshPatientActivityPreferences();
-  };
-
-  const handleCreateExclusion = async (values: any) => {
-    await Promise.all(
-      values.centre_activity_ids.map((id: number) =>
-        create({
-          centre_activity_id: id,
-          patient_id: values.patient_id,
-          exclusion_remarks: values.exclusion_remarks,
-          start_date: values.start_date,
-          end_date: values.end_date,
-        })
-      )
-    );
-
-    toast.success("Exclusion(s) created");
-    setIsAddExclusionOpen(false);
-
     refreshPatientActivityPreferences();
   };
 
@@ -603,43 +581,13 @@ const PatientActivityPreferenceCard: React.FC<
   return (
     <Card>
       <CardHeader>
-        <div className="flex justify-between items-center">
-          <div>
-            <CardTitle>Activity Preferences</CardTitle>
-            <p className="text-sm text-muted-foreground">
-              View and manage activity preferences and doctor recommendations for
-                this patient. This shows all available centre activities with their
-                current preference settings.
-            </p>
-          </div>
-
-          <Sheet open={isAddExclusionOpen} onOpenChange={setIsAddExclusionOpen}>
-            <SheetTrigger asChild>
-              <Button>Add Activity Exclusion</Button>
-            </SheetTrigger>
-
-            <SheetContent>
-              <SheetHeader>
-                <SheetTitle>Add Activity Exclusion</SheetTitle>
-              </SheetHeader>
-
-              <BulkActivityExclusionForm
-                initial={{
-                  patient_id: parseInt(patientId),
-                  exclusion_remarks: "",
-                  start_date: new Date().toISOString().split("T")[0],
-                  end_date: null,
-                }}
-                onSubmit={handleCreateExclusion}
-                onCancel={() => setIsAddExclusionOpen(false)}
-                excludedActivityIds={
-                  new Set(
-                    centreActivityExclusions.map((e) => e.centreActivityId)
-                  )
-                }
-              />
-            </SheetContent>
-          </Sheet>
+        <div>
+          <CardTitle>Activity Preferences</CardTitle>
+          <p className="text-sm text-muted-foreground">
+            View and manage activity preferences and doctor recommendations for
+              this patient. This shows all available centre activities with their
+              current preference settings.
+          </p>
         </div>
       </CardHeader>
       <CardContent>

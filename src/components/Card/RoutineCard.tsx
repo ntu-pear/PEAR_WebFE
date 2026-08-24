@@ -105,6 +105,7 @@ const RoutineCard: React.FC = () => {
             viewMore={false}
             renderActions={renderActions}
             expandable={true}
+            expandOnRowClick={true}
             renderExpandedContent={renderExpandedContent}
 
           />
