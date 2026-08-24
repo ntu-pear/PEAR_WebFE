@@ -1,8 +1,15 @@
 import { useState, useEffect } from "react";
-import { Activity, CentreActivity } from "@/api/activity/activityPreference";
-import { getActivityPreferenceTableByPatient } from "@/api/activity/activityAggregated";
+import {
+  getCentreActivityPreferences,
+  getAllActivities,
+  getAllCentreActivities,
+  Activity,
+  CentreActivity,
+} from "@/api/activity/activityPreference";
+import {
+  getCentreActivityRecommendations,
+} from "@/api/activity/activityRecommendation";
 import { intToPreference, intToRecommendation } from "@/utils/activityConversions";
-import { CentreActivityExclusionWithDetails } from "./useActivityExclusions";
 
 // Combined type for display - patient specific
 export interface PatientActivityPreferenceWithRecommendation {
@@ -23,9 +30,6 @@ export const usePatientActivityPreferences = (patientId: string) => {
   const [activityPreferences, setActivityPreferences] = useState<
     PatientActivityPreferenceWithRecommendation[]
   >([]);
-  const [centreActivityExclusions, setCentreActivityExclusions] = useState<
-    CentreActivityExclusionWithDetails[]
-  >([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -39,9 +43,32 @@ export const usePatientActivityPreferences = (patientId: string) => {
       setLoading(true);
       setError(null);
 
-      const { activities, centre_activities: centreActivities, preferences, recommendations, exclusions, patients } =
-        await getActivityPreferenceTableByPatient(patientId);
+      // Fetch all required data in parallel
+      const [activities, centreActivities, preferences, recommendations] = await Promise.all([
+        getAllActivities(),
+        getAllCentreActivities(),
+        getCentreActivityPreferences(patientId), // Get preferences for specific patient
+        getCentreActivityRecommendations(patientId), // Get recommendations for specific patient
+      ]);
 
+      console.log("Raw API: Patient Preferences", preferences);  // <- Add this line
+      console.log("Raw API: Patient Recommendations", recommendations); // optional
+      console.log("User sees this combined data:", {
+        activities: activities.length,
+        centreActivities: centreActivities.length,
+        preferences: preferences.length,
+        recommendations: recommendations.length,
+      });
+
+      console.log("Fetched patient activity data summary:", {
+        patientId,
+        activities: activities.length,
+        centreActivities: centreActivities.length,
+        preferences: preferences.length,
+        recommendations: recommendations.length
+      });
+
+      // Create a map of centre activity id to activity details
       const centreActivityMap = new Map<number, { activity: Activity; centreActivity: CentreActivity }>();
 
       centreActivities.forEach(centreActivity => {
@@ -51,20 +78,26 @@ export const usePatientActivityPreferences = (patientId: string) => {
         }
       });
 
+      // Create preference mapping for this patient (including actual preference IDs)
       const preferenceMap = new Map<number, { preference: string; preferenceId?: number }>();
       preferences.forEach(pref => {
-        preferenceMap.set(pref.centre_activity_id, {
-          preference: intToPreference(pref.is_like),
-          preferenceId: pref.id
-        });
+        if (pref.patient_id === parseInt(patientId)) {
+          preferenceMap.set(pref.centre_activity_id, {
+            preference: intToPreference(pref.is_like),
+            preferenceId: pref.id
+          });
+        }
       });
 
+      // Create recommendation mapping for this patient
       const recommendationMap = new Map<number, { recommendation: string; notes?: string }>();
       recommendations.forEach(rec => {
-        recommendationMap.set(rec.centre_activity_id, {
-          recommendation: intToRecommendation(rec.doctor_recommendation),
-          notes: rec.doctor_remarks || undefined
-        });
+        if (rec.patient_id === parseInt(patientId)) {
+          recommendationMap.set(rec.centre_activity_id, {
+            recommendation: intToRecommendation(rec.doctor_recommendation),
+            notes: rec.doctor_remarks || undefined
+          });
+        }
       });
 
       // Combine all data for display - show ALL available activities for this patient
@@ -93,39 +126,6 @@ export const usePatientActivityPreferences = (patientId: string) => {
       });
 
       setActivityPreferences(combinedData.sort((a, b) => a.activityName.localeCompare(b.activityName)));
-
-      const patientNameMap = new Map<number, string>();
-      patients.forEach(patient => {
-        patientNameMap.set(patient.id, patient.name || patient.preferred_name || `Patient ${patient.id}`);
-      });
-
-      const combinedExclusions: CentreActivityExclusionWithDetails[] = [];
-      exclusions.forEach(exclusion => {
-        const centreActivityData = centreActivityMap.get(exclusion.centre_activity_id);
-        if (!centreActivityData) return;
-
-        const { activity } = centreActivityData;
-        const isBackendIndefinite = exclusion.end_date && new Date(exclusion.end_date).getFullYear() >= 2999;
-        const displayEndDate = isBackendIndefinite ? null : exclusion.end_date;
-        const isIndefiniteBoolean = Boolean(!exclusion.end_date || isBackendIndefinite);
-
-        combinedExclusions.push({
-          id: exclusion.id,
-          centreActivityId: exclusion.centre_activity_id,
-          activityId: activity.id,
-          activityName: activity.title,
-          activityDescription: activity.description || undefined,
-          patientId: exclusion.patient_id,
-          patientName: patientNameMap.get(exclusion.patient_id) || `Patient ${exclusion.patient_id}`,
-          exclusionRemarks: exclusion.exclusion_remarks || undefined,
-          startDate: exclusion.start_date,
-          endDate: displayEndDate,
-          isIndefinite: isIndefiniteBoolean,
-          canEdit: true,
-        });
-      });
-
-      setCentreActivityExclusions(combinedExclusions.sort((a, b) => a.activityName.localeCompare(b.activityName)));
     } catch (err) {
       console.error("Error fetching patient activity preferences:", err);
       setError("Failed to fetch activity preferences for this patient");
@@ -144,7 +144,6 @@ export const usePatientActivityPreferences = (patientId: string) => {
 
   return {
     activityPreferences,
-    centreActivityExclusions,
     loading,
     error,
     refreshPatientActivityPreferences,

@@ -19,7 +19,7 @@ interface ActivityExclusionCardProps {
 }
 
 const CentreActivityExclusionCard: React.FC<ActivityExclusionCardProps> = ({ patientId }) => {
-  const { centreActivityExclusions, loading, error, refreshCentreActivityExclusions } = useCentreActivityExclusions(patientId);
+  const { centreActivityExclusions, loading, error, refreshCentreActivityExclusions } = useCentreActivityExclusions();
   const { create, update, remove, isUpdating } = useCentreActivityExclusionMutations();
   const { currentUser } = useAuth();
   
@@ -39,6 +39,11 @@ const CentreActivityExclusionCard: React.FC<ActivityExclusionCardProps> = ({ pat
     }
   };
 
+  // Filter data for this specific patient
+  const filteredExclusions = centreActivityExclusions.filter((exclusion) => 
+    exclusion.patientId.toString() === patientId
+  );
+
   // Bulk selection handlers
   const handleSelectItem = (itemId: number, checked: boolean) => {
     const newSelected = new Set(selectedItems);
@@ -52,7 +57,7 @@ const CentreActivityExclusionCard: React.FC<ActivityExclusionCardProps> = ({ pat
 
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
-      setSelectedItems(new Set(centreActivityExclusions.map(item => item.id)));
+      setSelectedItems(new Set(filteredExclusions.map(item => item.id)));
     } else {
       setSelectedItems(new Set());
     }
@@ -186,7 +191,7 @@ const CentreActivityExclusionCard: React.FC<ActivityExclusionCardProps> = ({ pat
       key: "_select",
       header: (
         <Checkbox
-          checked={selectedItems.size === centreActivityExclusions.length && centreActivityExclusions.length > 0}
+          checked={selectedItems.size === filteredExclusions.length && filteredExclusions.length > 0}
           onCheckedChange={handleSelectAll}
           aria-label="Select all"
         />
@@ -369,7 +374,7 @@ const CentreActivityExclusionCard: React.FC<ActivityExclusionCardProps> = ({ pat
                     onSubmit={handleCreateExclusion}
                     onCancel={() => setIsAddExclusionOpen(false)}
                     excludedActivityIds={new Set(
-                      centreActivityExclusions
+                      filteredExclusions
                         .filter(e => !e.endDate || new Date(e.endDate) >= new Date())
                         .map(e => e.centreActivityId)
                     )}
@@ -410,12 +415,12 @@ const CentreActivityExclusionCard: React.FC<ActivityExclusionCardProps> = ({ pat
       </CardHeader>
       <CardContent>
         <DataTableClient
-          data={centreActivityExclusions}
+          data={filteredExclusions}
           columns={columns as any}
           viewMore={false}
           hideActionsHeader={true}
         />
-        {centreActivityExclusions.length === 0 && (
+        {filteredExclusions.length === 0 && (
           <div className="text-center py-4 text-gray-500">
             No activity exclusions found for this patient.
           </div>
