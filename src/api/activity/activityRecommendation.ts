@@ -7,7 +7,7 @@ export interface CentreActivityRecommendation {
   id: number;
   centre_activity_id: number;
   patient_id: number;
-  doctor_id: string;
+  doctor_id: number;
   doctor_recommendation: number; // 1=RECOMMENDED, 0=NEUTRAL, -1=NOT_RECOMMENDED
   doctor_remarks?: string | null;
   is_deleted: boolean;
@@ -40,7 +40,7 @@ const mockRecommendations: CentreActivityRecommendation[] = [
     id: 1,
     centre_activity_id: 1,
     patient_id: 123,
-    doctor_id: "1",
+    doctor_id: 1,
     doctor_recommendation: 1, // RECOMMENDED
     doctor_remarks: "Great for cognitive stimulation and memory enhancement",
     is_deleted: false,
@@ -53,7 +53,7 @@ const mockRecommendations: CentreActivityRecommendation[] = [
     id: 2,
     centre_activity_id: 4,
     patient_id: 123,
-    doctor_id: "1",
+    doctor_id: 1,
     doctor_recommendation: 1, // RECOMMENDED
     doctor_remarks: "Helps with emotional well-being and social interaction",
     is_deleted: false,
@@ -66,7 +66,7 @@ const mockRecommendations: CentreActivityRecommendation[] = [
     id: 3,
     centre_activity_id: 5,
     patient_id: 123,
-    doctor_id: "2",
+    doctor_id: 2,
     doctor_recommendation: 1, // RECOMMENDED
     doctor_remarks: "Recommended for improving focus and concentration",
     is_deleted: false,
