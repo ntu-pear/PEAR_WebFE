@@ -1,14 +1,6 @@
 import { useState, useEffect } from "react";
-import {
-  getAllCentreActivityExclusions,
-} from "@/api/activity/activityExclusion";
-import {
-  getAllActivities,
-  getAllCentreActivities,
-  Activity,
-  CentreActivity,
-} from "@/api/activity/activityPreference";
-import { fetchAllPatientTD } from "@/api/patients/patients";
+import { Activity, CentreActivity } from "@/api/activity/activityPreference";
+import { getActivityExclusionTableByPatient } from "@/api/activity/activityAggregated";
 
 // Combined type for display
 export interface CentreActivityExclusionWithDetails {
@@ -26,34 +18,26 @@ export interface CentreActivityExclusionWithDetails {
   canEdit?: boolean;
 }
 
-export const useCentreActivityExclusions = () => {
+export const useCentreActivityExclusions = (patientId: string) => {
   const [centreActivityExclusions, setCentreActivityExclusions] = useState<CentreActivityExclusionWithDetails[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const fetchCentreActivityExclusions = async () => {
+    if (!patientId) {
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
       setError(null);
-      
-      // Fetch all required data in parallel
-      const [activities, centreActivities, exclusions, patientsData] = await Promise.all([
-        getAllActivities(),
-        getAllCentreActivities(),
-        getAllCentreActivityExclusions(),
-        fetchAllPatientTD("", null, 0, 1000), // Get all patients
-      ]);
 
-      console.log("Fetched centre activity exclusion data summary:", {
-        activities: activities.length,
-        centreActivities: centreActivities.length,
-        exclusions: exclusions.length,
-        patients: patientsData.patients.length
-      });
+      const { activities, centre_activities: centreActivities, exclusions, patients } =
+        await getActivityExclusionTableByPatient(patientId);
 
-      // Create a map of centre activity id to activity details
       const centreActivityMap = new Map<number, { activity: Activity; centreActivity: CentreActivity }>();
-      
+
       centreActivities.forEach(centreActivity => {
         const activity = activities.find(a => a.id === centreActivity.activity_id);
         if (activity && !activity.is_deleted && !centreActivity.is_deleted) {
@@ -61,24 +45,14 @@ export const useCentreActivityExclusions = () => {
         }
       });
 
-      // Create patient data mapping
       const patientNameMap = new Map<number, string>();
-      patientsData.patients.forEach(patient => {
-        const patientId = typeof patient.id === 'string' ? parseInt(patient.id) : patient.id;
-        patientNameMap.set(patientId, patient.name || patient.preferredName || `Patient ${patientId}`);
+      patients.forEach(patient => {
+        patientNameMap.set(patient.id, patient.name || patient.preferred_name || `Patient ${patient.id}`);
       });
 
-      console.log("Patient mapping created:", {
-        patientCount: patientNameMap.size,
-        samplePatients: Array.from(patientNameMap.entries()).slice(0, 5)
-      });
-
-      // Transform exclusions with activity and patient details
       const combinedData: CentreActivityExclusionWithDetails[] = [];
-      
+
       exclusions.forEach(exclusion => {
-        if (exclusion.is_deleted) return; // Skip deleted exclusions
-        
         const centreActivityData = centreActivityMap.get(exclusion.centre_activity_id);
         if (!centreActivityData) {
           console.warn(`Centre activity ${exclusion.centre_activity_id} not found for exclusion ${exclusion.id}`);
@@ -123,7 +97,7 @@ export const useCentreActivityExclusions = () => {
 
   useEffect(() => {
     fetchCentreActivityExclusions();
-  }, []);
+  }, [patientId]);
 
   return {
     centreActivityExclusions,
