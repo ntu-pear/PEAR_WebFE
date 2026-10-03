@@ -6,6 +6,7 @@ type Props<T extends FieldValues> = {
   form: UseFormReturn<T>;
   required?: boolean;
   options: { label: string; value: string }[];
+  disabled?: boolean;
 };
 
 export default function RadioGroup<T extends FieldValues>({
@@ -14,6 +15,7 @@ export default function RadioGroup<T extends FieldValues>({
   form,
   required = true,
   options,
+  disabled,
 }: Props<T>) {
   const {
     register,
@@ -29,13 +31,18 @@ export default function RadioGroup<T extends FieldValues>({
       <div className="flex flex-row gap-4">
         {/* A radio button is created for each option */}
         {options.map(({ label, value }) => (
-          <label htmlFor={value} className="flex gap-1">
+          <label
+            key={value}
+            htmlFor={value}
+            className={`flex gap-1 ${disabled ? "text-muted-foreground" : ""}`}
+          >
             {/* Each radio button is registered as a React Hook Form input */}
             <input
               {...register(name, { required })}
               type="radio"
               value={value}
               id={value}
+              disabled={disabled}
             />
             {/* The label is placed to the right of each radio button */}
             {label}

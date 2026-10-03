@@ -61,7 +61,10 @@ const ProfileSettings: React.FC = () => {
     const { name, value } = e.target;
 
     if (userProfile) {
-      setUserProfile({ ...userProfile, [name]: value });
+      setUserProfile({
+        ...userProfile,
+        [name]: name === "preferredName" ? value.toUpperCase() : value,
+      });
     }
   };
 

@@ -7,8 +7,18 @@ import { useModal } from "@/hooks/useModal";
 import { DataTableClient, TableRowData } from "../Table/DataTable";
 import { CardHeader, CardTitle, CardContent, Card } from "../ui/card";
 import { Button } from "../ui/button";
+import { Badge } from "../ui/badge";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "../ui/tooltip";
 import { useAuth } from "@/hooks/useAuth";
 import { fetchGuardianByPatientId, IGuardian } from "@/api/patients/guardian";
+
+const MAX_GUARDIANS_PER_PATIENT = 2;
+const GUARDIAN_LIMIT_MESSAGE = `This patient already has ${MAX_GUARDIANS_PER_PATIENT} guardians. Unassign one before adding another.`;
 
 interface GuardianRow extends TableRowData {
   guardianName: string;
@@ -22,10 +32,11 @@ interface GuardianRow extends TableRowData {
 }
 
 const GuardianCard: React.FC = () => {
-  const { id } = useViewPatient();
+  const { id, patientAllocation, refreshPatientData } = useViewPatient();
   const { openModal } = useModal();
   const [rows, setRows] = useState<GuardianRow[]>([]);
   const { currentUser } = useAuth();
+  const atGuardianLimit = rows.length >= MAX_GUARDIANS_PER_PATIENT;
 
   const refreshGuardianData = async () => {
     if (!id || isNaN(Number(id))) return;
@@ -64,6 +75,23 @@ const GuardianCard: React.FC = () => {
 
   const guardianColumns = [
     { key: "guardianName", header: "Guardian Name" },
+    {
+      key: "guardianRole",
+      header: "Role",
+      render: (_value: unknown, item: GuardianRow) => {
+        if (!patientAllocation) return null;
+        return patientAllocation.guardianId === item.raw.patient_guardian.id ? (
+          <Badge>Primary</Badge>
+        ) : (
+          <Badge
+            variant="secondary"
+            className="bg-slate-200 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-800"
+          >
+            Secondary
+          </Badge>
+        );
+      },
+    },
     { key: "preferredName", header: "Preferred Name" },
     { key: "nric", header: "NRIC" },
     { key: "relationshipWithPatient", header: "Patient's" },
@@ -79,39 +107,61 @@ const GuardianCard: React.FC = () => {
           <span>Guardian</span>
           {
             (currentUser?.roleName !== "GUARDIAN") && (
-              <div className="flex gap-2">
-                <Button
-                  size="sm"
-                  className="h-8 gap-1"
-                  variant="outline"
-                  onClick={() =>
-                    openModal("addExistingGuardian", {
-                      patientId: Number(id),
-                      refreshGuardianData,
-                    })
-                  }
-                >
-                  <UserPlus className="h-4 w-4" />
-                  <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                    Add Existing
-                  </span>
-                </Button>
-                <Button
-                  size="sm"
-                  className="h-8 gap-1"
-                  onClick={() =>
-                    openModal("addGuardian", {
-                      patientId: Number(id),
-                      refreshGuardianData,
-                    })
-                  }
-                >
-                  <PlusCircle className="h-4 w-4" />
-                  <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                    Add New
-                  </span>
-                </Button>
-              </div>
+              <TooltipProvider>
+                <div className="flex gap-2">
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span tabIndex={atGuardianLimit ? 0 : -1}>
+                        <Button
+                          size="sm"
+                          className="h-8 gap-1"
+                          variant="outline"
+                          disabled={atGuardianLimit}
+                          onClick={() =>
+                            openModal("addExistingGuardian", {
+                              patientId: Number(id),
+                              refreshGuardianData,
+                            })
+                          }
+                        >
+                          <UserPlus className="h-4 w-4" />
+                          <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+                            Add Existing
+                          </span>
+                        </Button>
+                      </span>
+                    </TooltipTrigger>
+                    {atGuardianLimit && (
+                      <TooltipContent>{GUARDIAN_LIMIT_MESSAGE}</TooltipContent>
+                    )}
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span tabIndex={atGuardianLimit ? 0 : -1}>
+                        <Button
+                          size="sm"
+                          className="h-8 gap-1"
+                          disabled={atGuardianLimit}
+                          onClick={() =>
+                            openModal("addGuardian", {
+                              patientId: Number(id),
+                              refreshGuardianData,
+                            })
+                          }
+                        >
+                          <PlusCircle className="h-4 w-4" />
+                          <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+                            Add New
+                          </span>
+                        </Button>
+                      </span>
+                    </TooltipTrigger>
+                    {atGuardianLimit && (
+                      <TooltipContent>{GUARDIAN_LIMIT_MESSAGE}</TooltipContent>
+                    )}
+                  </Tooltip>
+                </div>
+              </TooltipProvider>
             )
           }
         </CardTitle>
@@ -133,6 +183,11 @@ const GuardianCard: React.FC = () => {
                           guardian: item.raw,
                           patientId: Number(id),
                           refreshGuardianData,
+                          isPrimary:
+                            patientAllocation?.guardianId ===
+                            item.raw.patient_guardian.id,
+                          allocationId: patientAllocation?.id,
+                          refreshPatientData,
                         })
                       }
                     >
@@ -147,6 +202,9 @@ const GuardianCard: React.FC = () => {
                           patientId: Number(id),
                           guardianId: item.raw.patient_guardian.id,
                           refreshGuardianData,
+                          allocationId: patientAllocation?.id,
+                          primaryGuardianId: patientAllocation?.guardianId,
+                          refreshPatientData,
                         })
                       }
                     >

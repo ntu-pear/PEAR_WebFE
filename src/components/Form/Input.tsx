@@ -5,6 +5,7 @@ import {
   RegisterOptions,
   UseFormReturn,
 } from "react-hook-form";
+import { uppercaseInPlace } from "@/utils/uppercaseInput";
 
 interface Props<T extends FieldValues>
   extends InputHTMLAttributes<HTMLInputElement> {
@@ -12,6 +13,7 @@ interface Props<T extends FieldValues>
   name: Path<T>;
   formReturn: UseFormReturn<T>;
   validation?: RegisterOptions<T>;
+  uppercase?: boolean;
 }
 
 export default function Input<T extends FieldValues>({
@@ -19,12 +21,24 @@ export default function Input<T extends FieldValues>({
   name,
   formReturn,
   validation,
+  uppercase,
+  className,
   ...props
 }: Props<T>) {
   const {
     register,
     formState: { errors },
   } = formReturn;
+
+  const registration = register(name, { required: true, ...validation });
+
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (uppercase) {
+      uppercaseInPlace(event.target);
+    }
+    registration.onChange(event);
+    props.onChange?.(event);
+  };
 
   return (
     <div className="pb-2 flex flex-col">
@@ -39,10 +53,18 @@ export default function Input<T extends FieldValues>({
       {/* This is the text input registered as a React Hook Form input*/}
       <input
         id={name}
-        className="border border-gray-300 rounded-md p-2 dark:bg-slate-700"
+        className={
+          className ??
+          `border border-gray-300 rounded-md p-2 dark:bg-slate-700 ${
+            props.readOnly
+              ? "bg-gray-100 dark:bg-slate-800 text-muted-foreground cursor-not-allowed"
+              : ""
+          }`
+        }
         placeholder={label}
-        {...register(name, { required: true, ...validation })}
+        {...registration}
         {...props}
+        onChange={handleChange}
       />
       {/* This is the error message that appears under the input if validation fails*/}
       {errors[name] && (

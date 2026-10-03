@@ -401,7 +401,7 @@ export default function ManageCentre() {
                   render={({ field, fieldState }) => (
                     <>
                       <Input {...field} autoFocus value={field.value ?? ""}
-                        onChange={(e) => field.onChange(toAlphaNum(e.target.value))} />
+                        onChange={(e) => field.onChange(toAlphaNum(e.target.value).toUpperCase())} />
                       {fieldState.error && <p className="text-xs text-destructive">{fieldState.error.message}</p>}
                     </>
                   )}
@@ -435,7 +435,7 @@ export default function ManageCentre() {
                   render={({ field, fieldState }) => (
                     <>
                       <Input {...field} value={field.value ?? ""}
-                        onChange={(e) => field.onChange(toAlphaNumAddress(e.target.value))} />
+                        onChange={(e) => field.onChange(toAlphaNumAddress(e.target.value).toUpperCase())} />
                       {fieldState.error && <p className="text-xs text-destructive">{fieldState.error.message}</p>}
                     </>
                   )}

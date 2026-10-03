@@ -501,11 +501,9 @@ const EditPatientInfoModal: React.FC = () => {
                   type="text"
                   name="name"
                   value={patient?.name || ""}
-                  onKeyDown={(e) => handleKeyDown(e)}
-                  onChange={(e) => handleChange(e)}
-                  className={`mt-1 block w-full p-2 border rounded-md text-gray-900 ${userRole === "GUARDIAN" ? "bg-gray-100 dark:bg-gray-300 cursor-not-allowed" : ""}`}
+                  className="mt-1 block w-full p-2 border rounded-md text-gray-900 bg-gray-100 dark:bg-gray-300 cursor-not-allowed"
                   required
-                  disabled={userRole === "GUARDIAN"}
+                  readOnly
                 />
                 {nameHint && (
                   <p className="text-xs mt-1" style={{ color: "hsl(var(--hint))" }}>
@@ -548,11 +546,9 @@ const EditPatientInfoModal: React.FC = () => {
                   value={patient?.nric || ""}
                   minLength={9}
                   maxLength={9}
-                  onKeyDown={(e) => handleKeyDown(e)}
-                  onChange={(e) => handleChange(e)}
-                  className={`mt-1 block w-full p-2 border rounded-md text-gray-900 ${userRole === "GUARDIAN" ? "bg-gray-100 dark:bg-gray-300 cursor-not-allowed" : ""}`}
+                  className="mt-1 block w-full p-2 border rounded-md text-gray-900 bg-gray-100 dark:bg-gray-300 cursor-not-allowed"
                   required
-                  disabled={userRole === "GUARDIAN"}
+                  readOnly
                 />
                 {nricHint && (
                   <p className="text-xs mt-1" style={{ color: "hsl(var(--hint))" }}>
@@ -570,12 +566,11 @@ const EditPatientInfoModal: React.FC = () => {
                   type="date"
                   name="dateOfBirth"
                   value={patient?.dateOfBirth || ""}
-                  onChange={(e) => handleChange(e)}
-                  className={`mt-1 block w-full p-2 border rounded-md text-gray-900 ${userRole === "GUARDIAN" ? "bg-gray-100 dark:bg-gray-300 cursor-not-allowed" : ""}`}
+                  className="mt-1 block w-full p-2 border rounded-md text-gray-900 bg-gray-100 dark:bg-gray-300 cursor-not-allowed"
                   min={dayjs().subtract(150, "years").format("YYYY-MM-DD")}
                   max={dayjs().subtract(15, "years").format("YYYY-MM-DD")}
                   required
-                  disabled={userRole === "GUARDIAN"}
+                  disabled
                 />
               </div>
 
@@ -586,12 +581,11 @@ const EditPatientInfoModal: React.FC = () => {
                     {userRole === "SUPERVISOR" ? <span className="text-red-600">*</span> : null}
                   </label>
                   <select
-                    className={`mt-1 block w-full p-2 border rounded-md text-gray-900 ${userRole === "GUARDIAN" ? "bg-gray-200 dark:bg-gray-50 cursor-not-allowed" : ""}`}
+                    className="mt-1 block w-full p-2 border rounded-md text-gray-900 bg-gray-200 dark:bg-gray-50 cursor-not-allowed"
                     name="gender"
                     value={patient?.gender || ""}
-                    onChange={(e) => handleChange(e)}
                     required
-                    disabled={userRole === "GUARDIAN"}
+                    disabled
                   >
                     <option value="">Please select an option</option>
                     <option value="M">Male</option>

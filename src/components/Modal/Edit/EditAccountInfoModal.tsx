@@ -295,6 +295,7 @@ console.log(
               label="Preferred Name"
               name="preferredName"
               formReturn={form}
+              uppercase
               validation={{
                 onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
                   handleSanitizedChange("preferredName", e.target.value),
@@ -305,6 +306,7 @@ console.log(
               label="NRIC"
               name="nric"
               formReturn={form}
+              uppercase
               validation={{
                 onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
                   handleSanitizedChange("nric", e.target.value),
@@ -315,6 +317,7 @@ console.log(
               label="NRIC Address"
               name="address"
               formReturn={form}
+              uppercase
               required={false}
               validation={{
                 onChange: (e: React.ChangeEvent<HTMLInputElement>) =>

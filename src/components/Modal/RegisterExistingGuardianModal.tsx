@@ -20,6 +20,7 @@ const RegisterExistingGuardianModal: React.FC = () => {
                 name="nric"
                 placeholder="NRIC"
                 formReturn={form}
+                uppercase
                 validation={{
                   pattern: {
                     value: /^[STGM]\d{7}[A-Z]$/,

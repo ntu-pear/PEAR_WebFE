@@ -82,7 +82,7 @@ const AddExistingGuardianModal: React.FC = () => {
           <input
             type="text"
             value={nric}
-            onChange={(e) => setNric(e.target.value)}
+            onChange={(e) => setNric(e.target.value.toUpperCase())}
             placeholder="Guardian's NRIC"
             className="flex-1 p-2 border rounded-md text-gray-900"
             required
