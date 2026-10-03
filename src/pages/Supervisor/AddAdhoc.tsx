@@ -38,6 +38,9 @@ const AddAdhoc: React.FC = () => {
   const [scheduledActivityTitles, setScheduledActivityTitles] = useState<Set<string> | null>(null);
   const [loadingSchedule, setLoadingSchedule] = useState(false);
 
+  const [affectedPatients, setAffectedPatients] = useState<{ id: number; name: string }[] | null>(null);
+  const [loadingAffectedPatients, setLoadingAffectedPatients] = useState(false);
+
   const handleStartDateChange = (date: Dayjs | null) => {
     form.setFieldsValue({
       start_date: date ?? undefined,
@@ -253,6 +256,56 @@ const AddAdhoc: React.FC = () => {
     fetchPatientSchedule();
   }, [mode, watchedPatientId]);
 
+  useEffect(() => {
+    if (mode !== "activity-wide" || !oldActivityId || !watchedStartDate || !watchedEndDate) {
+      setAffectedPatients(null);
+      return;
+    }
+
+    const oldCentreActivity = activities.find((a) => a.id === oldActivityId);
+    const oldActivityTitle = oldCentreActivity ? activityMap[oldCentreActivity.activity_id] : undefined;
+    if (!oldActivityTitle) {
+      setAffectedPatients(null);
+      return;
+    }
+    const oldActivityTitleUpper = oldActivityTitle.toUpperCase();
+
+    const fetchAffectedPatients = async () => {
+      setLoadingAffectedPatients(true);
+      try {
+        const res = await getSchedule();
+
+        const days: string[] = [];
+        let cursor = (watchedStartDate as Dayjs).startOf("day");
+        const end = (watchedEndDate as Dayjs).startOf("day");
+        while (!cursor.isAfter(end)) {
+          days.push(cursor.format("dddd"));
+          cursor = cursor.add(1, "day");
+        }
+
+        const matches = (res.Data || []).filter((schedule) =>
+          days.some((day) => {
+            const dayKey = day as keyof typeof schedule;
+            const value = schedule[dayKey];
+            if (typeof value !== "string") return false;
+            return parseScheduleString(value).some(
+              (title) => title.toUpperCase() === oldActivityTitleUpper
+            );
+          })
+        );
+
+        setAffectedPatients(matches.map((m) => ({ id: m.PatientID, name: m.Name })));
+      } catch (error) {
+        console.error("Failed to load affected patients", error);
+        setAffectedPatients([]);
+      } finally {
+        setLoadingAffectedPatients(false);
+      }
+    };
+
+    fetchAffectedPatients();
+  }, [mode, oldActivityId, watchedStartDate, watchedEndDate, activities, activityMap]);
+
   const getOldActivityOptions = () => {
     const sorted = [...activities].sort((a, b) => {
       const titleA = (activityMap[a.activity_id] || "ZZZZ_UNKNOWN").toUpperCase();
@@ -379,10 +432,23 @@ const AddAdhoc: React.FC = () => {
                       <p className="text-sm text-gray-600">
                         Select an Activity to be replaced and date range below to see affected patients.
                       </p>
-                    ) : (
+                    ) : loadingAffectedPatients ? (
+                      <p className="text-sm text-gray-600">Loading affected patients...</p>
+                    ) : !affectedPatients || affectedPatients.length === 0 ? (
                       <p className="text-sm text-gray-600">
-                        Patients currently scheduled for this activity in the selected range will be listed here.
+                        No patients are currently scheduled for this activity in the selected range.
                       </p>
+                    ) : (
+                      <div className="text-sm text-gray-900">
+                        <p className="mb-2 text-gray-600">
+                          {affectedPatients.length} patient{affectedPatients.length === 1 ? "" : "s"} currently scheduled for this activity in the selected range:
+                        </p>
+                        <ul className="list-disc pl-5">
+                          {affectedPatients.map((patient) => (
+                            <li key={patient.id}>{patient.name}</li>
+                          ))}
+                        </ul>
+                      </div>
                     )}
                   </div>
                 )}
