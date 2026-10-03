@@ -233,6 +233,7 @@ const RegisterAccount: React.FC = () => {
                       name="nric"
                       formReturn={form}
                       maxLength={9}
+                      uppercase
                       validation={{
                         onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
                           handleSanitizedChange("nric", e.target.value),
@@ -265,6 +266,7 @@ const RegisterAccount: React.FC = () => {
                         name="address"
                         formReturn={form}
                         maxLength={255}
+                        uppercase
                         validation={{
                           onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
                             handleSanitizedChange("address", e.target.value),

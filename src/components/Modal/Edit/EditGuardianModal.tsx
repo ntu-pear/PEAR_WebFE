@@ -174,12 +174,13 @@ const EditGuardianModal: React.FC = () => {
           onSubmit={form.handleSubmit(handleUpdateGuardian)}
           className="grid grid-cols-2 gap-x-4"
         >
-          <Input label="First Name" name="firstName" formReturn={form} />
-          <Input label="Last Name" name="lastName" formReturn={form} />
+          <Input label="First Name" name="firstName" formReturn={form} readOnly />
+          <Input label="Last Name" name="lastName" formReturn={form} readOnly />
           <Input
             label="Preferred Name"
             name="preferredName"
             formReturn={form}
+            uppercase
           />
           <RadioGroup
             label="Gender"
@@ -189,10 +190,11 @@ const EditGuardianModal: React.FC = () => {
               { label: "Male", value: "M" },
               { label: "Female", value: "F" },
             ]}
+            disabled
           />
-          <Input label="NRIC" name="nric" formReturn={form} />
+          <Input label="NRIC" name="nric" formReturn={form} readOnly />
           <Input label="Contact Number" name="contactNo" formReturn={form} />
-          <DateInput label="Date of Birth" name="dateOfBirth" form={form} />
+          <DateInput label="Date of Birth" name="dateOfBirth" form={form} disabled />
           <Select
             label="Relationship"
             name="relationshipName"
@@ -200,7 +202,7 @@ const EditGuardianModal: React.FC = () => {
             options={RELATIONSHIP_OPTIONS.map((r) => ({ value: r, name: r }))}
           />
           <div className="col-span-2">
-            <Input label="Address" name="address" formReturn={form} />
+            <Input label="Address" name="address" formReturn={form} uppercase />
           </div>
           <div className="col-span-2">
             <Input
@@ -208,6 +210,7 @@ const EditGuardianModal: React.FC = () => {
               name="tempAddress"
               formReturn={form}
               validation={{ required: false }}
+              uppercase
             />
           </div>
           <div className="col-span-2">

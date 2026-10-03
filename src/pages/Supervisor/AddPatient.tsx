@@ -41,6 +41,7 @@ import { validateNRIC } from "@/utils/validateNRIC";
 import { RELATIONSHIP_OPTIONS } from "@/utils/guardianValidation";
 import { extractErrorMessage } from "@/utils/errorMessage";
 import { mapBackendErrorToField, FieldKeywordMap } from "@/utils/mapBackendErrorToForm";
+import { withUppercase } from "@/utils/uppercaseInput";
 import { useNavigate } from "react-router-dom";
 
 const patientInfoSchema = z
@@ -857,7 +858,7 @@ const AddPatient: React.FC = () => {
                           type="text"
                           maxLength={100}
                           className=" block w-full p-2 border rounded-md text-gray-900"
-                          {...register("patientInfoSchema.name")}
+                          {...withUppercase(register("patientInfoSchema.name"))}
                         />
                         {errors.patientInfoSchema?.name && (
                           <div className="text-red-600 text-sm">
@@ -876,7 +877,7 @@ const AddPatient: React.FC = () => {
                           type="text"
                           maxLength={100}
                           className=" block w-full p-2 border rounded-md text-gray-900"
-                          {...register("patientInfoSchema.preferredName")}
+                          {...withUppercase(register("patientInfoSchema.preferredName"))}
                         />
 
                         {errors.patientInfoSchema?.preferredName && (
@@ -896,7 +897,7 @@ const AddPatient: React.FC = () => {
                           type="text"
                           maxLength={9}
                           className=" block w-full p-2 border rounded-md text-gray-900"
-                          {...register("patientInfoSchema.nric")}
+                          {...withUppercase(register("patientInfoSchema.nric"))}
                         />
                         {errors.patientInfoSchema?.nric && (
                           <div className="text-red-600 text-sm">
@@ -1015,7 +1016,7 @@ const AddPatient: React.FC = () => {
                             id="patient-address"
                             maxLength={255}
                             className="block w-full p-2 border rounded-md text-gray-900"
-                            {...register("patientInfoSchema.address")}
+                            {...withUppercase(register("patientInfoSchema.address"))}
                           />
                           <Button
                             type="button"
@@ -1047,7 +1048,7 @@ const AddPatient: React.FC = () => {
                             id="patient-temporary-address"
                             maxLength={255}
                             className="block w-full p-2 border rounded-md text-gray-900"
-                            {...register("patientInfoSchema.tempAddress")}
+                            {...withUppercase(register("patientInfoSchema.tempAddress"))}
                           />
                           <Button
                             type="button"
@@ -1403,7 +1404,7 @@ const AddPatient: React.FC = () => {
                           <input
                             maxLength={100}
                             className="mt-1 block w-full p-2 border rounded-md text-gray-900"
-                            {...register(`guardians.${index}.firstName`)}
+                            {...withUppercase(register(`guardians.${index}.firstName`))}
                           />
                           {errors.guardians?.[index]?.firstName && (
                             <div className="text-red-600 text-sm">
@@ -1423,7 +1424,7 @@ const AddPatient: React.FC = () => {
                           <input
                             maxLength={100}
                             className="mt-1 block w-full p-2 border rounded-md text-gray-900"
-                            {...register(`guardians.${index}.lastName`)}
+                            {...withUppercase(register(`guardians.${index}.lastName`))}
                           />
                           {errors.guardians?.[index]?.lastName && (
                             <div className="text-red-600 text-sm">
@@ -1443,7 +1444,7 @@ const AddPatient: React.FC = () => {
                           <input
                             maxLength={100}
                             className="mt-1 block w-full p-2 border rounded-md text-gray-900"
-                            {...register(`guardians.${index}.preferredName`)}
+                            {...withUppercase(register(`guardians.${index}.preferredName`))}
                           />
                           {errors.guardians?.[index]?.preferredName && (
                             <div className="text-red-600 text-sm">
@@ -1492,7 +1493,7 @@ const AddPatient: React.FC = () => {
                           <input
                             maxLength={9}
                             className="mt-1 block w-full p-2 border rounded-md text-gray-900"
-                            {...register(`guardians.${index}.nric`)}
+                            {...withUppercase(register(`guardians.${index}.nric`))}
                           />
                           {errors.guardians?.[index]?.nric && (
                             <div className="text-red-600 text-sm">
@@ -1604,7 +1605,7 @@ const AddPatient: React.FC = () => {
                             <input
                               maxLength={255}
                               className="block w-full p-2 border rounded-md text-gray-900"
-                              {...register(`guardians.${index}.address`)}
+                              {...withUppercase(register(`guardians.${index}.address`))}
                             />
                             <Button
                               type="button"
@@ -1636,7 +1637,7 @@ const AddPatient: React.FC = () => {
                             <input
                               maxLength={255}
                               className="block w-full p-2 border rounded-md text-gray-900"
-                              {...register(`guardians.${index}.tempAddress`)}
+                              {...withUppercase(register(`guardians.${index}.tempAddress`))}
                             />
                             <Button
                               type="button"

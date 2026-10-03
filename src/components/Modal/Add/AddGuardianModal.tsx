@@ -98,9 +98,14 @@ const AddGuardianModal: React.FC = () => {
           onSubmit={form.handleSubmit(handleAddGuardian)}
           className="grid grid-cols-2 gap-x-4"
         >
-          <Input label="First Name" name="firstName" formReturn={form} />
-          <Input label="Last Name" name="lastName" formReturn={form} />
-          <Input label="Preferred Name" name="preferredName" formReturn={form} />
+          <Input label="First Name" name="firstName" formReturn={form} uppercase />
+          <Input label="Last Name" name="lastName" formReturn={form} uppercase />
+          <Input
+            label="Preferred Name"
+            name="preferredName"
+            formReturn={form}
+            uppercase
+          />
           <RadioGroup
             label="Gender"
             name="gender"
@@ -110,7 +115,7 @@ const AddGuardianModal: React.FC = () => {
               { label: "Female", value: "F" },
             ]}
           />
-          <Input label="NRIC" name="nric" formReturn={form} />
+          <Input label="NRIC" name="nric" formReturn={form} uppercase />
           <Input label="Contact Number" name="contactNo" formReturn={form} />
           <DateInput label="Date of Birth" name="dateOfBirth" form={form} />
           <Select
@@ -120,7 +125,7 @@ const AddGuardianModal: React.FC = () => {
             options={RELATIONSHIP_OPTIONS.map((r) => ({ value: r, name: r }))}
           />
           <div className="col-span-2">
-            <Input label="Address" name="address" formReturn={form} />
+            <Input label="Address" name="address" formReturn={form} uppercase />
           </div>
           <div className="col-span-2">
             <Input
@@ -128,6 +133,7 @@ const AddGuardianModal: React.FC = () => {
               name="tempAddress"
               formReturn={form}
               validation={{ required: false }}
+              uppercase
             />
           </div>
           <div className="col-span-2">

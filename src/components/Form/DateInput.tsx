@@ -13,6 +13,7 @@ type Props<T extends FieldValues> = {
   onChange?: React.ChangeEventHandler<HTMLInputElement>;
   min?: string;
   required?: boolean;
+  disabled?: boolean;
 };
 
 export default function DateInput<T extends FieldValues>({
@@ -37,7 +38,11 @@ export default function DateInput<T extends FieldValues>({
       <input
         id={name}
         type="date"
-        className="border border-gray-300 rounded-md p-2 dark:bg-slate-700"
+        className={`border border-gray-300 rounded-md p-2 dark:bg-slate-700 ${
+          props.disabled
+            ? "bg-gray-100 dark:bg-slate-800 text-muted-foreground cursor-not-allowed"
+            : ""
+        }`}
         {...register(name, { required, ...validation })}
         {...props}
       />
