@@ -54,9 +54,16 @@ export const ModalProvider: React.FC<ModalProviderProps> = ({ children }) => {
   // Close the modal if clicking outside the modal content
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (target.closest("[data-radix-popper-content-wrapper]")) {
+        return;
+      }
+      if (target === document.documentElement) {
+        return;
+      }
       if (
         modalRef.current &&
-        !modalRef.current.contains(event.target as Node)
+        !modalRef.current.contains(target)
       ) {
         if (outsideClickCallbackRef.current) {
           outsideClickCallbackRef.current();

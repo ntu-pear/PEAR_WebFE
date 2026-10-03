@@ -289,6 +289,34 @@ export const fetchDoctorPatientTD = async (
   }
 };
 
+// for fetch caregiver's patients
+export const fetchCaregiverPatientTD = async (
+  caregiver_id:string,
+  name: string | null = "",
+  isActive: string | null = null,
+  pageNo: number = 0,
+  pageSize: number = 10
+): Promise<PatientTableDataServer> => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+
+  try {
+    const response = await patientsAPI.get<ViewPatientList>(
+      `/by-caregiver/${caregiver_id}?name=${name}&isActive=${isActive}&mask=true&pageNo=${pageNo}&pageSize=${pageSize}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    console.log("GET all Patients", response.data);
+    return convertToPatientTDServer(response.data);
+  } catch (error) {
+    console.error("GET all Patients", error);
+    throw error;
+  }
+};
+
 // for fetching guardian's patients
 export const fetchGuardianPatients = async (
   guardianId: string

@@ -4,6 +4,14 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Search } from "lucide-react";
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -18,7 +26,7 @@ import { useModal } from "@/hooks/useModal";
 import RetrieveAddressModal from "@/components/Modal/Get/RetrieveAddressModal";
 import ProfilePhotoSet from "@/components/ProfilePhotoSet";
 import useUploadPatientPhoto from "@/hooks/patient/useUploadPatientPhoto";
-import { AddPatientSection } from "@/api/patients/patients";
+import { AddPatientSection, fetchDoctorPatientTD, fetchCaregiverPatientTD } from "@/api/patients/patients";
 import useAddPatientPrivacyLevel from "@/hooks/patient/useAddPatientPrivacyLevel";
 import { AddPatientPrivacyLevel } from "@/api/patients/privacyLevel";
 import { Staff, Doctor, Caregiver, GameTherapist, fetchAllStaff } from "@/api/patients/staffAllocation";
@@ -246,6 +254,8 @@ const PATIENT_FIELD_KEYWORD_MAP: FieldKeywordMap<FormInputs> = {
   "guardian not found": "guardians.0.nric",
 };
 
+const AUTO_ASSIGN_VALUE = "__AUTO_ASSIGN__";
+
 const AddPatient: React.FC = () => {
   const navigate = useNavigate();
   const [activeSection, setActiveSection] = useState<string>("personal-info");
@@ -312,15 +322,33 @@ const AddPatient: React.FC = () => {
   const [selectedDoctor, setSelectedDoctor] = useState("");
   const [selectedGameTherapist, setSelectedGameTherapist] = useState("");
   const [selectedCaregiver, setSelectedCaregiver] = useState("");
+  const [patientCounts, setPatientCounts] = useState<Record<string, number>>({});
 
   useEffect(() => {
     const getAllStaff = async () => {
       try {
         const response = await fetchAllStaff();
         const allStaff = response.users || [];
-        setDoctorList(allStaff.filter((staff: Staff) => staff.role === "DOCTOR"));
+        const doctors: Doctor[] = allStaff.filter((staff: Staff) => staff.role === "DOCTOR");
+        const caregivers: Caregiver[] = allStaff.filter((staff: Staff) => staff.role === "CAREGIVER");
+        setDoctorList(doctors);
         setGameTherapistList(allStaff.filter((staff: Staff) => staff.role === "GAME THERAPIST"));
-        setCaregiverList(allStaff.filter((staff: Staff) => staff.role === "CAREGIVER"));
+        setCaregiverList(caregivers);
+
+        const counts: Record<string, number> = {};
+        await Promise.all([
+          ...doctors.map((doctor) =>
+            fetchDoctorPatientTD(doctor.id, "", null, 0, 1)
+              .then((res) => { counts[doctor.id] = res.pagination.totalRecords })
+              .catch(() => { counts[doctor.id] = -1 })
+          ),
+          ...caregivers.map((caregiver) =>
+            fetchCaregiverPatientTD(caregiver.id, "", null, 0, 1)
+              .then((res) => { counts[caregiver.id] = res.pagination.totalRecords })
+              .catch(() => { counts[caregiver.id] = -1 })
+          ),
+        ]);
+        setPatientCounts(counts);
       } catch (error) {
         console.error("Failed to fetch staff list", error);
       }
@@ -589,35 +617,56 @@ const AddPatient: React.FC = () => {
   };
 
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (!isClickRef.current) {
-          entries.forEach((entry) => {
-            if (entry.isIntersecting) {
-              setActiveSection(entry.target.id);
-            }
-          });
-        }
-      },
-      {
-        threshold: [0.75, 1],
+    const REFERENCE_OFFSET = 120;
+    let rafId: number | null = null;
+
+    const computeActiveSection = () => {
+      rafId = null;
+      if (isClickRef.current) return;
+
+      const keys = Object.keys(sections.current);
+      if (keys.length === 0) return;
+
+      const scrolledToBottom =
+        window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 2;
+      if (scrolledToBottom) {
+        setActiveSection(keys[keys.length - 1]);
+        return;
       }
-    );
+
+      let candidate = keys[0];
+      for (const key of keys) {
+        const el = sections.current[key];
+        if (el && el.getBoundingClientRect().top <= REFERENCE_OFFSET) {
+          candidate = key;
+        }
+      }
+      setActiveSection(candidate);
+    };
+
+    const handleScroll = () => {
+      if (rafId === null) {
+        rafId = requestAnimationFrame(computeActiveSection);
+      }
+    };
 
     Object.keys(sections.current).forEach((key) => {
       const sectionElement = document.getElementById(key);
       if (sectionElement) {
-        observer.observe(sectionElement);
         sections.current[key] = sectionElement;
       }
     });
 
+    computeActiveSection();
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    window.addEventListener("resize", handleScroll, { passive: true });
+
     return () => {
-      Object.keys(sections.current).forEach((key) => {
-        if (sections.current[key]) {
-          observer.unobserve(sections.current[key]!);
-        }
-      });
+      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("resize", handleScroll);
+      if (rafId !== null) {
+        cancelAnimationFrame(rafId);
+      }
     };
   }, []);
 
@@ -697,6 +746,30 @@ const AddPatient: React.FC = () => {
       </div>
     );
   }
+
+  const sortByCount = <T extends { id: string }>(staff: T[]): T[] => {
+    return [...staff].sort((a, b) => {
+      const countA = patientCounts[a.id];
+      const countB = patientCounts[b.id];
+      const rankA = countA === undefined || countA < 0 ? Infinity : countA;
+      const rankB = countB === undefined || countB < 0 ? Infinity : countB;
+      return rankA - rankB;
+    });
+  };
+
+  const renderStaffItem = (staffId: string, name: string) => {
+    const count = patientCounts[staffId];
+    return (
+      <div className="flex w-full items-center justify-between gap-3">
+        <span>{name}</span>
+        {count !== undefined && (
+          count < 0
+            ? <Badge variant="secondary">unavailable</Badge>
+            : <Badge variant="secondary">{count} patient{count === 1 ? "" : "s"}</Badge>
+        )}
+      </div>
+    );
+  };
 
   return (
     <div className="flex min-h-screen w-full flex-col lg:flex-row container mx-auto px-4">
@@ -1656,53 +1729,62 @@ const AddPatient: React.FC = () => {
                     <div className="flex flex-col gap-6 max-w-sm">
                       <div>
                         <Label htmlFor="patient-doctor">Doctor</Label>
-                        <select
-                          id="patient-doctor"
-                          className="mt-1 block w-full p-2 border rounded-md text-gray-900"
-                          value={selectedDoctor}
-                          onChange={(e) => setSelectedDoctor(e.target.value)}
+                        <Select
+                          value={selectedDoctor || AUTO_ASSIGN_VALUE}
+                          onValueChange={(value) => setSelectedDoctor(value === AUTO_ASSIGN_VALUE ? "" : value)}
                         >
-                          <option value="">Auto-assign</option>
-                          {doctorList.map((doctor) => (
-                            <option key={doctor.id} value={doctor.id}>
-                              {doctor.nric_FullName}
-                            </option>
-                          ))}
-                        </select>
+                          <SelectTrigger id="patient-doctor" className="mt-1 w-full">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value={AUTO_ASSIGN_VALUE}>Auto-assign</SelectItem>
+                            {sortByCount(doctorList).map((doctor) => (
+                              <SelectItem key={doctor.id} value={doctor.id}>
+                                {renderStaffItem(doctor.id, doctor.nric_FullName)}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </div>
 
                       <div>
                         <Label htmlFor="patient-game-therapist">Game Therapist</Label>
-                        <select
-                          id="patient-game-therapist"
-                          className="mt-1 block w-full p-2 border rounded-md text-gray-900"
-                          value={selectedGameTherapist}
-                          onChange={(e) => setSelectedGameTherapist(e.target.value)}
+                        <Select
+                          value={selectedGameTherapist || AUTO_ASSIGN_VALUE}
+                          onValueChange={(value) => setSelectedGameTherapist(value === AUTO_ASSIGN_VALUE ? "" : value)}
                         >
-                          <option value="">Auto-assign</option>
-                          {gameTherapistList.map((gameTherapist) => (
-                            <option key={gameTherapist.id} value={gameTherapist.id}>
-                              {gameTherapist.nric_FullName}
-                            </option>
-                          ))}
-                        </select>
+                          <SelectTrigger id="patient-game-therapist" className="mt-1 w-full">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value={AUTO_ASSIGN_VALUE}>Auto-assign</SelectItem>
+                            {gameTherapistList.map((gameTherapist) => (
+                              <SelectItem key={gameTherapist.id} value={gameTherapist.id}>
+                                {gameTherapist.nric_FullName}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </div>
 
                       <div>
                         <Label htmlFor="patient-caregiver">Caregiver</Label>
-                        <select
-                          id="patient-caregiver"
-                          className="mt-1 block w-full p-2 border rounded-md text-gray-900"
-                          value={selectedCaregiver}
-                          onChange={(e) => setSelectedCaregiver(e.target.value)}
+                        <Select
+                          value={selectedCaregiver || AUTO_ASSIGN_VALUE}
+                          onValueChange={(value) => setSelectedCaregiver(value === AUTO_ASSIGN_VALUE ? "" : value)}
                         >
-                          <option value="">Auto-assign</option>
-                          {caregiverList.map((caregiver) => (
-                            <option key={caregiver.id} value={caregiver.id}>
-                              {caregiver.nric_FullName}
-                            </option>
-                          ))}
-                        </select>
+                          <SelectTrigger id="patient-caregiver" className="mt-1 w-full">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value={AUTO_ASSIGN_VALUE}>Auto-assign</SelectItem>
+                            {sortByCount(caregiverList).map((caregiver) => (
+                              <SelectItem key={caregiver.id} value={caregiver.id}>
+                                {renderStaffItem(caregiver.id, caregiver.nric_FullName)}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </div>
                     </div>
                   </div>
