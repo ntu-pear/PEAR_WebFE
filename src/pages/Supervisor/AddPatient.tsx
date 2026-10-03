@@ -617,35 +617,56 @@ const AddPatient: React.FC = () => {
   };
 
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (!isClickRef.current) {
-          entries.forEach((entry) => {
-            if (entry.isIntersecting) {
-              setActiveSection(entry.target.id);
-            }
-          });
-        }
-      },
-      {
-        threshold: [0.75, 1],
+    const REFERENCE_OFFSET = 120;
+    let rafId: number | null = null;
+
+    const computeActiveSection = () => {
+      rafId = null;
+      if (isClickRef.current) return;
+
+      const keys = Object.keys(sections.current);
+      if (keys.length === 0) return;
+
+      const scrolledToBottom =
+        window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 2;
+      if (scrolledToBottom) {
+        setActiveSection(keys[keys.length - 1]);
+        return;
       }
-    );
+
+      let candidate = keys[0];
+      for (const key of keys) {
+        const el = sections.current[key];
+        if (el && el.getBoundingClientRect().top <= REFERENCE_OFFSET) {
+          candidate = key;
+        }
+      }
+      setActiveSection(candidate);
+    };
+
+    const handleScroll = () => {
+      if (rafId === null) {
+        rafId = requestAnimationFrame(computeActiveSection);
+      }
+    };
 
     Object.keys(sections.current).forEach((key) => {
       const sectionElement = document.getElementById(key);
       if (sectionElement) {
-        observer.observe(sectionElement);
         sections.current[key] = sectionElement;
       }
     });
 
+    computeActiveSection();
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    window.addEventListener("resize", handleScroll, { passive: true });
+
     return () => {
-      Object.keys(sections.current).forEach((key) => {
-        if (sections.current[key]) {
-          observer.unobserve(sections.current[key]!);
-        }
-      });
+      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("resize", handleScroll);
+      if (rafId !== null) {
+        cancelAnimationFrame(rafId);
+      }
     };
   }, []);
 
