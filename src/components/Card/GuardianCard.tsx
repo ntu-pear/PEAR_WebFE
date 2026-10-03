@@ -7,6 +7,7 @@ import { useModal } from "@/hooks/useModal";
 import { DataTableClient, TableRowData } from "../Table/DataTable";
 import { CardHeader, CardTitle, CardContent, Card } from "../ui/card";
 import { Button } from "../ui/button";
+import { Badge } from "../ui/badge";
 import { useAuth } from "@/hooks/useAuth";
 import { fetchGuardianByPatientId, IGuardian } from "@/api/patients/guardian";
 
@@ -22,7 +23,7 @@ interface GuardianRow extends TableRowData {
 }
 
 const GuardianCard: React.FC = () => {
-  const { id } = useViewPatient();
+  const { id, patientAllocation, refreshPatientData } = useViewPatient();
   const { openModal } = useModal();
   const [rows, setRows] = useState<GuardianRow[]>([]);
   const { currentUser } = useAuth();
@@ -64,6 +65,23 @@ const GuardianCard: React.FC = () => {
 
   const guardianColumns = [
     { key: "guardianName", header: "Guardian Name" },
+    {
+      key: "guardianRole",
+      header: "Role",
+      render: (_value: unknown, item: GuardianRow) => {
+        if (!patientAllocation) return null;
+        return patientAllocation.guardianId === item.raw.patient_guardian.id ? (
+          <Badge>Primary</Badge>
+        ) : (
+          <Badge
+            variant="secondary"
+            className="bg-slate-200 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-800"
+          >
+            Secondary
+          </Badge>
+        );
+      },
+    },
     { key: "preferredName", header: "Preferred Name" },
     { key: "nric", header: "NRIC" },
     { key: "relationshipWithPatient", header: "Patient's" },
@@ -133,6 +151,11 @@ const GuardianCard: React.FC = () => {
                           guardian: item.raw,
                           patientId: Number(id),
                           refreshGuardianData,
+                          isPrimary:
+                            patientAllocation?.guardianId ===
+                            item.raw.patient_guardian.id,
+                          allocationId: patientAllocation?.id,
+                          refreshPatientData,
                         })
                       }
                     >
@@ -147,6 +170,9 @@ const GuardianCard: React.FC = () => {
                           patientId: Number(id),
                           guardianId: item.raw.patient_guardian.id,
                           refreshGuardianData,
+                          allocationId: patientAllocation?.id,
+                          primaryGuardianId: patientAllocation?.guardianId,
+                          refreshPatientData,
                         })
                       }
                     >

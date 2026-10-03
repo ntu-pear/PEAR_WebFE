@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
@@ -19,6 +20,7 @@ import {
   IGuardian,
   IGuardianUpdateFormData,
 } from "@/api/patients/guardian";
+import { updatePrimaryGuardian } from "@/api/patients/patientAllocation";
 import { convertToUTCISOString, getDateForDatePicker, getDateTimeNowInUTC } from "@/utils/formatDate";
 import { extractErrorMessage } from "@/utils/errorMessage";
 import { mapBackendErrorToField } from "@/utils/mapBackendErrorToForm";
@@ -26,12 +28,25 @@ import { GUARDIAN_FIELD_KEYWORD_MAP } from "@/utils/guardianFieldKeywordMap";
 
 const EditGuardianModal: React.FC = () => {
   const { modalRef, activeModal, closeModal } = useModal();
-  const { guardian, patientId, refreshGuardianData } = activeModal.props as {
+  const {
+    guardian,
+    patientId,
+    refreshGuardianData,
+    isPrimary,
+    allocationId,
+    refreshPatientData,
+  } = activeModal.props as {
     guardian: IGuardian;
     patientId: number;
     refreshGuardianData: () => void | Promise<void>;
+    isPrimary?: boolean;
+    allocationId?: number;
+    refreshPatientData?: () => void | Promise<void>;
   };
   const { currentUser } = useAuth();
+  const [confirmingPrimary, setConfirmingPrimary] = useState(false);
+  const [settingPrimary, setSettingPrimary] = useState(false);
+  const canSetAsPrimary = !isPrimary && !!allocationId;
 
   const form = useForm<GuardianFormInputs>({
     resolver: zodResolver(guardianSchema),
@@ -90,6 +105,67 @@ const EditGuardianModal: React.FC = () => {
     }
   };
 
+  const handleSetAsPrimary = async () => {
+    if (!allocationId || !patientId || !currentUser?.userId) {
+      toast.error("Missing allocation or current user information.");
+      return;
+    }
+
+    setSettingPrimary(true);
+    try {
+      await updatePrimaryGuardian({
+        allocationId,
+        patientId,
+        guardianId: guardian.patient_guardian.id,
+        ModifiedById: String(currentUser.userId),
+      });
+      toast.success("Primary guardian updated.");
+      closeModal();
+      await refreshPatientData?.();
+      await refreshGuardianData?.();
+    } catch (error) {
+      toast.error(extractErrorMessage(error, "Failed to set primary guardian."));
+      setSettingPrimary(false);
+      setConfirmingPrimary(false);
+    }
+  };
+
+  const guardianName = [
+    guardian.patient_guardian.firstName,
+    guardian.patient_guardian.lastName,
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  if (confirmingPrimary) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+        <div ref={modalRef} className="bg-background p-8 rounded-md w-[500px]">
+          <h3 className="text-lg font-medium mb-6">
+            Make {guardianName} the primary guardian?
+          </h3>
+          <div className="flex justify-end space-x-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setConfirmingPrimary(false)}
+              disabled={settingPrimary}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              onClick={handleSetAsPrimary}
+              disabled={settingPrimary}
+            >
+              {settingPrimary ? "Saving..." : "Set as Primary"}
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
       <div ref={modalRef} className="bg-background p-8 rounded-md w-[600px] max-h-[90vh] overflow-y-auto">
@@ -100,7 +176,11 @@ const EditGuardianModal: React.FC = () => {
         >
           <Input label="First Name" name="firstName" formReturn={form} />
           <Input label="Last Name" name="lastName" formReturn={form} />
-          <Input label="Preferred Name" name="preferredName" formReturn={form} />
+          <Input
+            label="Preferred Name"
+            name="preferredName"
+            formReturn={form}
+          />
           <RadioGroup
             label="Gender"
             name="gender"
@@ -139,13 +219,22 @@ const EditGuardianModal: React.FC = () => {
             />
           </div>
 
-          <div className="col-span-2 mt-4 flex justify-end space-x-2">
-            <Button type="button" variant="outline" onClick={closeModal}>
-              Cancel
-            </Button>
-            <Button type="submit" disabled={form.formState.isSubmitting}>
-              {form.formState.isSubmitting ? "Saving..." : "Save Changes"}
-            </Button>
+          <div className="col-span-2 mt-4 flex items-center justify-between">
+            {canSetAsPrimary ? (
+              <Button type="button" onClick={() => setConfirmingPrimary(true)}>
+                Set as Primary
+              </Button>
+            ) : (
+              <span />
+            )}
+            <div className="flex space-x-2">
+              <Button type="button" variant="outline" onClick={closeModal}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={form.formState.isSubmitting}>
+                {form.formState.isSubmitting ? "Saving..." : "Save Changes"}
+              </Button>
+            </div>
           </div>
         </form>
       </div>

@@ -52,6 +52,38 @@ export const fetchPatientAllocationById = async (
     }
 }
 
+export const updatePrimaryGuardian = async ({
+    allocationId,
+    patientId,
+    guardianId,
+    ModifiedById,
+}: {
+    allocationId: number;
+    patientId: number;
+    guardianId: number;
+    ModifiedById: string;
+}) => {
+    const token = retrieveAccessTokenFromCookie()
+    if (!token) {
+        throw new Error("No token found!")
+    }
+    try {
+        const response = await patientAllocationAPI.put(
+            `/${allocationId}`,
+            { patientId, guardianId, ModifiedById },
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            }
+        )
+        return response.data
+    } catch (error) {
+        console.error("PUT update primary guardian", error)
+        throw error
+    }
+}
+
 export const createGuardianAllocation = async (allocation: GuardianAllocation) => {
     console.log("guardian allocation", allocation)
     const token = retrieveAccessTokenFromCookie()
