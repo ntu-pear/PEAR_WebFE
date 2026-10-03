@@ -35,7 +35,6 @@ import {
   usePatientActivityPreferences,
   PatientActivityPreferenceWithRecommendation,
 } from "@/hooks/activity/usePatientActivityPreferences";
-import { useCentreActivityExclusions } from "@/hooks/activity/useActivityExclusions"; 
 import {
   useCentreActivityExclusionMutations,
 } from "@/hooks/activity/useActivityExclusionMutations";
@@ -57,14 +56,11 @@ const PatientActivityPreferenceCard: React.FC<
 > = ({ patientId }) => {
   const {
     activityPreferences,
+    centreActivityExclusions,
     loading,
     error,
     refreshPatientActivityPreferences,
   } = usePatientActivityPreferences(patientId);
-  const { 
-    centreActivityExclusions,
-    refreshCentreActivityExclusions,
-  } = useCentreActivityExclusions();
   const { currentUser } = useAuth();
 
   // Bulk selection state
@@ -104,7 +100,7 @@ const PatientActivityPreferenceCard: React.FC<
     toast.success("Exclusion deleted");
 
     
-    refreshCentreActivityExclusions();
+    refreshPatientActivityPreferences();
   };
 
   const handleUpdateExclusion = async (values: any) => {
@@ -121,7 +117,7 @@ const PatientActivityPreferenceCard: React.FC<
     setEditingExclusion(null);
     await Promise.resolve();
 
-    refreshCentreActivityExclusions();
+    refreshPatientActivityPreferences();
   };
 
   const handleBulkUpdate = async () => {
