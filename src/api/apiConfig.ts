@@ -1,4 +1,6 @@
 import axios, { AxiosInstance } from "axios";
+import { toast } from "sonner";
+import { attachLoggerAuth } from "@/api/logger/loggerAuth";
 import {
   clearAllCookies,
   retrieveAccessTokenFromCookie,
@@ -572,3 +574,9 @@ const authProtectedInstances: AxiosInstance[] = [
 ];
 
 authProtectedInstances.forEach(attachAuthRetryInterceptor);
+
+[loggerAPI, activityLoggerAPI, systemConfigAPI, userLoggerAPI].forEach((instance) =>
+  attachLoggerAuth(instance, retrieveAccessTokenFromCookie, () =>
+    toast.error("You don't have permission to view these logs.")
+  )
+);
