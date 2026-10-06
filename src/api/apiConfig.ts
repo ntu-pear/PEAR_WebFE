@@ -577,6 +577,6 @@ authProtectedInstances.forEach(attachAuthRetryInterceptor);
 
 [loggerAPI, activityLoggerAPI, systemConfigAPI, userLoggerAPI].forEach((instance) =>
   attachLoggerAuth(instance, retrieveAccessTokenFromCookie, () =>
-    toast.error("You don't have permission to view these logs.")
+    toast.error("You don't have permission to view these logs.", { id: "logs-forbidden" })
   )
 );
