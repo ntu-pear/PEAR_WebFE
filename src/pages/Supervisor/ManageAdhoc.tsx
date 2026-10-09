@@ -439,7 +439,7 @@ const EditAdhocModal: React.FC<EditAdhocModalProps> = ({ activity, open, onClose
 
         <div className="flex flex-col gap-4">
           <div>
-            <label className="text-sm font-medium">Replace Activity With</label>
+            <label className="text-sm font-medium">Ad Hoc Activity</label>
             <select
               className="w-full border rounded px-2 py-1"
               value={selectedActivityId ?? -1}
