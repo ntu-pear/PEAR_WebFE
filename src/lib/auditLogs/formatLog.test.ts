@@ -74,6 +74,11 @@ describe("computeChanges", () => {
     expect(computeChanges(null, { A: 1 })[0].kind).toBe("added");
     expect(computeChanges({ A: 1 }, undefined)[0].kind).toBe("removed");
   });
+  it("ignores keys recorded on only one side of an update", () => {
+    const removed = computeChanges({ A: 1, CreatedDate: "x" }, { A: 2 });
+    expect(removed.map((c) => [c.field, c.kind])).toEqual([["A", "modified"]]);
+    expect(computeChanges({ A: 1 }, { A: 1, AllergyTypeName: "Shellfish" })).toEqual([]);
+  });
   it("attaches a readable label", () => {
     expect(computeChanges({}, { PrescriptionListId: 3 })[0].label).toBe("Prescription");
   });

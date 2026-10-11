@@ -73,7 +73,11 @@ export function computeChanges(
 ): FieldChange[] {
   const before = original ?? {};
   const after = updated ?? {};
-  const keys = Array.from(new Set([...Object.keys(before), ...Object.keys(after)]));
+  const has = (o: object, k: string) => Object.prototype.hasOwnProperty.call(o, k);
+  // UPDATE shape: both sides populated, so only compare fields recorded on both.
+  const isUpdate = Object.keys(before).length > 0 && Object.keys(after).length > 0;
+  const allKeys = Array.from(new Set([...Object.keys(before), ...Object.keys(after)]));
+  const keys = isUpdate ? allKeys.filter((k) => has(before, k) && has(after, k)) : allKeys;
   const changes: FieldChange[] = [];
   for (const field of keys) {
     const oldValue = before[field];
