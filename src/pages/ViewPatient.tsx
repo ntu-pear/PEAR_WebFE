@@ -58,6 +58,7 @@ const ActivityRecTab = React.lazy(
   () => import("@/components/Tab/ActivityRecTab")
 );
 const GameRecTab = React.lazy(() => import("@/components/Tab/GameRecTab"));
+const PatientHistoryTab = React.lazy(() => import("@/components/Tab/PatientHistoryTab"));
 
 const ViewPatient: React.FC = () => {
   const navigate = useNavigate();
@@ -212,6 +213,7 @@ const ViewPatient: React.FC = () => {
                 <TabsTrigger value="guardian">Guardian</TabsTrigger>
               )}
               <TabsTrigger value="photo-album">Photo Album</TabsTrigger>
+              {!isGuardian && <TabsTrigger value="history">History</TabsTrigger>}
             </TabsList>
 
             <Suspense fallback={<div>Loading...</div>}>
@@ -232,6 +234,7 @@ const ViewPatient: React.FC = () => {
               {isDoctor && activeTab === "center-activity-recommendation" && <ActivityRecTab />}
               {(isSupervisor || isGuardian) && activeTab === "guardian" && <GuardianTab />}
               {activeTab === "photo-album" && <PhotoAlbumTab />}
+              {!isGuardian && activeTab === "history" && <PatientHistoryTab />}
             </Suspense>
           </Tabs>
         </div>
