@@ -37,4 +37,12 @@ describe("ChangeDetails", () => {
     fireEvent.click(screen.getByRole("button", { name: "Show more" }));
     expect(screen.getByText(long)).toBeInTheDocument();
   });
+
+  it("Show more toggles aria-expanded", () => {
+    render(<ChangeDetails method="UPDATE" originalData={{ Note: "" }} updatedData={{ Note: "b".repeat(250) }} />);
+    const btn = screen.getByRole("button", { name: "Show more" });
+    expect(btn).toHaveAttribute("aria-expanded", "false");
+    fireEvent.click(btn);
+    expect(screen.getByRole("button", { name: "Show less" })).toHaveAttribute("aria-expanded", "true");
+  });
 });

@@ -68,4 +68,25 @@ describe("PatientHistoryTab", () => {
     expect(screen.queryByText("old patient")).not.toBeInTheDocument();
     expect(screen.getByText("new patient")).toBeInTheDocument();
   });
+
+  it("keeps the pager usable on an empty page when more pages exist", async () => {
+    mockFetch
+      .mockResolvedValueOnce(ok([log("a", "2026-01-01T10:00:00")], 3))
+      .mockResolvedValueOnce(ok([], 3));
+    render(<PatientHistoryTab />);
+    await screen.findByText("a");
+    fireEvent.click(screen.getByText("Next"));
+    expect(await screen.findByText("No changes on this page.")).toBeInTheDocument();
+    expect(screen.getByText("Page 2 of 3")).toBeInTheDocument();
+    expect(screen.getByText("Prev")).not.toBeDisabled();
+    expect(screen.queryByText(/No changes have been recorded/)).not.toBeInTheDocument();
+  });
+
+  it("shows the empty state and no pager for a single empty page", async () => {
+    mockFetch.mockResolvedValue(ok([], 1));
+    render(<PatientHistoryTab />);
+    expect(await screen.findByText(/No changes have been recorded/)).toBeInTheDocument();
+    expect(screen.queryByText("Prev")).not.toBeInTheDocument();
+    expect(screen.queryByText("No changes on this page.")).not.toBeInTheDocument();
+  });
 });

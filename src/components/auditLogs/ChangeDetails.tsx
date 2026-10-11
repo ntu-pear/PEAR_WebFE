@@ -21,6 +21,7 @@ const ValueText: React.FC<{ text: string; className?: string }> = ({ text, class
       {isLong && (
         <button
           type="button"
+          aria-expanded={expanded}
           className="ml-2 text-xs font-medium text-primary underline-offset-2 hover:underline"
           onClick={() => setExpanded((v) => !v)}
         >
