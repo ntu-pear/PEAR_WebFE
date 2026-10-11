@@ -49,16 +49,36 @@ const ID_NAME_ALIASES: Record<string, string> = {
 // The log row already shows the patient, so their ID adds nothing.
 const PATIENT_ID_KEYS = new Set(["PatientID", "PatientId", "patientId", "patient_id"]);
 
+// Event plumbing fields that never belong in change details.
+const INTERNAL_KEYS = new Set(["correlation_id", "correlationId", "aggregate_id", "aggregateId"]);
+
+const has = (o: object, k: string) => Object.prototype.hasOwnProperty.call(o, k);
+
+function nameKeyFor(key: string): string | null {
+  if (has(ID_NAME_ALIASES, key)) return ID_NAME_ALIASES[key];
+  if (/.._id$/.test(key)) return `${key.slice(0, -3)}_name`;
+  if (/.(ID|Id)$/.test(key)) return `${key.slice(0, -2)}Name`;
+  return null;
+}
+
 /** True when an ID field is redundant: its name is recorded in every given source. */
 export function isRedundantIdField(key: string, ...sources: Record<string, unknown>[]): boolean {
-  if (PATIENT_ID_KEYS.has(key)) return true;
-  const nameKey = Object.prototype.hasOwnProperty.call(ID_NAME_ALIASES, key)
-    ? ID_NAME_ALIASES[key]
-    : /.(ID|Id)$/.test(key)
-      ? `${key.slice(0, -2)}Name`
-      : null;
+  if (PATIENT_ID_KEYS.has(key) || INTERNAL_KEYS.has(key)) return true;
+  const nameKey = nameKeyFor(key);
   if (!nameKey || sources.length === 0) return false;
-  return sources.every((s) => Object.prototype.hasOwnProperty.call(s, nameKey));
+  return sources.every((s) => has(s, nameKey));
+}
+
+/** Label for a field; a name sibling of an ID present in the data takes the ID's label. */
+export function displayLabel(key: string, ...sources: Record<string, unknown>[]): string {
+  const idKeys: string[] = [];
+  for (const [idKey, nameKey] of Object.entries(ID_NAME_ALIASES)) {
+    if (nameKey === key) idKeys.push(idKey);
+  }
+  if (/.._name$/.test(key)) idKeys.push(`${key.slice(0, -5)}_id`);
+  else if (/.Name$/.test(key)) idKeys.push(`${key.slice(0, -4)}Id`, `${key.slice(0, -4)}ID`);
+  const idKey = idKeys.find((k) => sources.some((s) => has(s, k)));
+  return fieldLabel(idKey ?? key);
 }
 
 export function isEmptyValue(v: unknown): boolean {
@@ -92,7 +112,6 @@ export function computeChanges(
 ): FieldChange[] {
   const before = original ?? {};
   const after = updated ?? {};
-  const has = (o: object, k: string) => Object.prototype.hasOwnProperty.call(o, k);
   // UPDATE shape: both sides populated, so only compare fields recorded on both.
   const isUpdate = Object.keys(before).length > 0 && Object.keys(after).length > 0;
   const allKeys = Array.from(new Set([...Object.keys(before), ...Object.keys(after)]));
@@ -110,7 +129,7 @@ export function computeChanges(
       : isEmptyValue(newValue)
         ? "removed"
         : "modified";
-    changes.push({ field, label: fieldLabel(field), oldValue, newValue, kind });
+    changes.push({ field, label: displayLabel(field, before, after), oldValue, newValue, kind });
   }
   return changes;
 }

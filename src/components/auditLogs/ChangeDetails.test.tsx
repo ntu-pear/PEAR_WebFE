@@ -45,4 +45,18 @@ describe("ChangeDetails", () => {
     fireEvent.click(btn);
     expect(screen.getByRole("button", { name: "Show less" })).toHaveAttribute("aria-expanded", "true");
   });
+
+  it("snapshot hides internal fields and ID with name, labels name with the ID label", () => {
+    render(
+      <ChangeDetails
+        method="CREATE"
+        updatedData={{ correlation_id: "c", aggregate_id: 5, created_by_id: "u1", created_by_name: "Alice", Remarks: "r" }}
+      />
+    );
+    expect(screen.queryByText("Correlation")).not.toBeInTheDocument();
+    expect(screen.queryByText("Aggregate")).not.toBeInTheDocument();
+    expect(screen.getAllByText("Created By")).toHaveLength(1);
+    expect(screen.getByText("Alice")).toBeInTheDocument();
+    expect(screen.queryByText("u1")).not.toBeInTheDocument();
+  });
 });
