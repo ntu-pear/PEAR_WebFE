@@ -5,6 +5,13 @@ describe("fieldLabel", () => {
     expect(fieldLabel("PrescriptionListId")).toBe("Prescription");
     expect(fieldLabel("UpdatedDateTime")).toBe("Updated");
   });
+  it("keeps SpO2 intact", () => {
+    expect(fieldLabel("SpO2")).toBe("SpO2");
+  });
+  it("ignores inherited object keys when looking up overrides", () => {
+    expect(fieldLabel("constructor")).toBe("Constructor");
+    expect(fieldLabel("toString")).toBe("To String");
+  });
   it("humanises camelCase, PascalCase and snake_case", () => {
     expect(fieldLabel("AdministerTime")).toBe("Administer Time");
     expect(fieldLabel("start_date")).toBe("Start Date");
@@ -42,6 +49,17 @@ describe("formatLogValue", () => {
 });
 
 describe("computeChanges", () => {
+  it("skips fields that are empty on both sides", () => {
+    expect(computeChanges({ A: null, B: "", C: undefined }, { A: "", B: undefined, C: null })).toEqual([]);
+  });
+  it("keeps real falsy values against empty", () => {
+    const changes = computeChanges({ A: null, B: "", C: 1 }, { A: 0, B: false, C: "0" });
+    expect(changes.map((c) => [c.field, c.kind])).toEqual([
+      ["A", "added"],
+      ["B", "added"],
+      ["C", "modified"],
+    ]);
+  });
   it("classifies real falsy values as modified, not added/removed", () => {
     const changes = computeChanges({ IsActive: false, Count: 1 }, { IsActive: true, Count: 0 });
     expect(changes.map((c) => c.kind)).toEqual(["modified", "modified"]);

@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { format } from "date-fns";
+import { format, isValid } from "date-fns";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { TabsContent } from "../ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
@@ -11,6 +11,12 @@ import { fetchPatientHistory } from "@/api/logger/patientHistory";
 import type { ViewLogsList } from "@/api/logger/logs";
 
 const PAGE_SIZE = 20;
+
+const formatTimestamp = (ts: unknown) => {
+  if (ts === null || ts === undefined || ts === "") return "-";
+  const d = new Date(ts as string);
+  return isValid(d) ? format(d, "dd MMM yyyy, h:mm a") : "-";
+};
 
 const getActionBadgeColor = (method: string) => {
   switch (method.toLowerCase()) {
@@ -30,29 +36,43 @@ type ViewState = "loading" | "ok" | "unavailable" | "error";
 const PatientHistoryTab: React.FC = () => {
   const { id } = useViewPatient();
   const [page, setPage] = useState(0);
+  const [prevId, setPrevId] = useState(id);
+  if (prevId !== id) {
+    setPrevId(id);
+    setPage(0);
+  }
   const [state, setState] = useState<ViewState>("loading");
   const [history, setHistory] = useState<ViewLogsList | null>(null);
   const [expanded, setExpanded] = useState<Record<number, boolean>>({});
 
-  const load = useCallback(async () => {
-    if (!id) return;
-    setState("loading");
-    setExpanded({});
-    try {
-      const result = await fetchPatientHistory(id, page, PAGE_SIZE);
-      if (result.status === "unavailable") {
-        setState("unavailable");
-      } else {
-        setHistory(result.data);
-        setState("ok");
+  const load = useCallback(
+    async (isCancelled: () => boolean = () => false) => {
+      if (!id) return;
+      setState("loading");
+      setExpanded({});
+      try {
+        const result = await fetchPatientHistory(id, page, PAGE_SIZE);
+        if (isCancelled()) return;
+        if (result.status === "unavailable") {
+          setState("unavailable");
+        } else {
+          setHistory(result.data);
+          setState("ok");
+        }
+      } catch {
+        if (isCancelled()) return;
+        setState("error");
       }
-    } catch {
-      setState("error");
-    }
-  }, [id, page]);
+    },
+    [id, page]
+  );
 
   useEffect(() => {
-    load();
+    let cancelled = false;
+    load(() => cancelled);
+    return () => {
+      cancelled = true;
+    };
   }, [load]);
 
   const logs = history?.data ?? [];
@@ -77,7 +97,7 @@ const PatientHistoryTab: React.FC = () => {
             {state === "error" && (
               <div className="flex items-center gap-3 py-4 text-sm">
                 <span>Couldn't load change history. Try again.</span>
-                <Button variant="outline" size="sm" onClick={load}>
+                <Button variant="outline" size="sm" onClick={() => load()}>
                   Retry
                 </Button>
               </div>
@@ -96,7 +116,7 @@ const PatientHistoryTab: React.FC = () => {
                         <div className="min-w-0 flex-1 space-y-1">
                           <div className="flex flex-wrap items-center gap-2 text-sm">
                             <span className="text-muted-foreground">
-                              {format(new Date(log.timestamp), "dd MMM yyyy, h:mm a")}
+                              {formatTimestamp(log.timestamp)}
                             </span>
                             <span className="font-medium">{log.user_full_name || log.user}</span>
                             <Badge className={getActionBadgeColor(log.method)}>{log.method}</Badge>

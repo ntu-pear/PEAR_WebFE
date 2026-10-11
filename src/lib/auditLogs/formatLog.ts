@@ -12,6 +12,7 @@ export interface FieldChange {
 
 const LABEL_OVERRIDES: Record<string, string> = {
   id: "ID",
+  SpO2: "SpO2",
   Id: "ID",
   PrescriptionListId: "Prescription",
   UpdatedDateTime: "Updated",
@@ -28,7 +29,7 @@ const ISO_DATETIME = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/;
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 
 export function fieldLabel(key: string): string {
-  if (LABEL_OVERRIDES[key]) return LABEL_OVERRIDES[key];
+  if (Object.prototype.hasOwnProperty.call(LABEL_OVERRIDES, key)) return LABEL_OVERRIDES[key];
   const words = key
     .replace(/_/g, " ")
     .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
@@ -77,6 +78,7 @@ export function computeChanges(
   for (const field of keys) {
     const oldValue = before[field];
     const newValue = after[field];
+    if (isEmptyValue(oldValue) && isEmptyValue(newValue)) continue;
     if (JSON.stringify(oldValue) === JSON.stringify(newValue)) continue;
     const kind: ChangeKind = isEmptyValue(oldValue)
       ? "added"
