@@ -22,6 +22,16 @@ const LABEL_OVERRIDES: Record<string, string> = {
   ModifiedDate: "Modified",
   IsDeleted: "Deleted",
   isDeleted: "Deleted",
+  guardian2Id: "Guardian 2",
+  guardian2Name: "Guardian 2",
+  doctor2Id: "Doctor 2",
+  doctor2Name: "Doctor 2",
+  supervisor2Id: "Supervisor 2",
+  supervisor2Name: "Supervisor 2",
+  guardianApplicationUserId: "Guardian Account",
+  guardianApplicationUserName: "Guardian Account",
+  AlbumCategoryListID: "Album",
+  AlbumCategoryListName: "Album",
 };
 
 const FLAG_KEY = /^(is|has)[A-Z_]|^Is[A-Z]|^Has[A-Z]/;
@@ -49,16 +59,47 @@ const ID_NAME_ALIASES: Record<string, string> = {
 // The log row already shows the patient, so their ID adds nothing.
 const PATIENT_ID_KEYS = new Set(["PatientID", "PatientId", "patientId", "patient_id"]);
 
+// Event plumbing fields that never belong in change details.
+const INTERNAL_KEYS = new Set(["correlation_id", "correlationId", "aggregate_id", "aggregateId"]);
+
+// The log row's "Changed by" already shows the actor, so update diffs skip the modifier.
+const MODIFIER_KEYS = new Set([
+  "ModifiedById",
+  "ModifiedByID",
+  "modifiedById",
+  "modified_by_id",
+  "ModifiedByName",
+  "modifiedByName",
+  "modified_by_name",
+]);
+
+const has = (o: object, k: string) => Object.prototype.hasOwnProperty.call(o, k);
+
+function nameKeyFor(key: string): string | null {
+  if (has(ID_NAME_ALIASES, key)) return ID_NAME_ALIASES[key];
+  if (/.._id$/.test(key)) return `${key.slice(0, -3)}_name`;
+  if (/.(ID|Id)$/.test(key)) return `${key.slice(0, -2)}Name`;
+  return null;
+}
+
 /** True when an ID field is redundant: its name is recorded in every given source. */
 export function isRedundantIdField(key: string, ...sources: Record<string, unknown>[]): boolean {
-  if (PATIENT_ID_KEYS.has(key)) return true;
-  const nameKey = Object.prototype.hasOwnProperty.call(ID_NAME_ALIASES, key)
-    ? ID_NAME_ALIASES[key]
-    : /.(ID|Id)$/.test(key)
-      ? `${key.slice(0, -2)}Name`
-      : null;
+  if (PATIENT_ID_KEYS.has(key) || INTERNAL_KEYS.has(key)) return true;
+  const nameKey = nameKeyFor(key);
   if (!nameKey || sources.length === 0) return false;
-  return sources.every((s) => Object.prototype.hasOwnProperty.call(s, nameKey));
+  return sources.every((s) => has(s, nameKey));
+}
+
+/** Label for a field; a name sibling of an ID present in the data takes the ID's label. */
+export function displayLabel(key: string, ...sources: Record<string, unknown>[]): string {
+  const idKeys: string[] = [];
+  for (const [idKey, nameKey] of Object.entries(ID_NAME_ALIASES)) {
+    if (nameKey === key) idKeys.push(idKey);
+  }
+  if (/.._name$/.test(key)) idKeys.push(`${key.slice(0, -5)}_id`);
+  else if (/.Name$/.test(key)) idKeys.push(`${key.slice(0, -4)}Id`, `${key.slice(0, -4)}ID`);
+  const idKey = idKeys.find((k) => sources.some((s) => has(s, k)));
+  return fieldLabel(idKey ?? key);
 }
 
 export function isEmptyValue(v: unknown): boolean {
@@ -92,11 +133,13 @@ export function computeChanges(
 ): FieldChange[] {
   const before = original ?? {};
   const after = updated ?? {};
-  const has = (o: object, k: string) => Object.prototype.hasOwnProperty.call(o, k);
   // UPDATE shape: both sides populated, so only compare fields recorded on both.
   const isUpdate = Object.keys(before).length > 0 && Object.keys(after).length > 0;
   const allKeys = Array.from(new Set([...Object.keys(before), ...Object.keys(after)]));
-  const keys = (isUpdate ? allKeys.filter((k) => has(before, k) && has(after, k)) : allKeys).filter(
+  const keys = (isUpdate
+    ? allKeys.filter((k) => has(before, k) && has(after, k) && !MODIFIER_KEYS.has(k))
+    : allKeys
+  ).filter(
     (k) => !isRedundantIdField(k, ...[before, after].filter((o) => Object.keys(o).length > 0))
   );
   const changes: FieldChange[] = [];
@@ -110,7 +153,7 @@ export function computeChanges(
       : isEmptyValue(newValue)
         ? "removed"
         : "modified";
-    changes.push({ field, label: fieldLabel(field), oldValue, newValue, kind });
+    changes.push({ field, label: displayLabel(field, before, after), oldValue, newValue, kind });
   }
   return changes;
 }

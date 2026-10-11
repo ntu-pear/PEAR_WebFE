@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { computeChanges, fieldLabel, formatLogValue, isEmptyValue, isRedundantIdField, ChangeKind } from "@/lib/auditLogs/formatLog";
+import { computeChanges, displayLabel, formatLogValue, isEmptyValue, isRedundantIdField, ChangeKind } from "@/lib/auditLogs/formatLog";
 
 const LONG_VALUE = 200;
 
@@ -82,7 +82,7 @@ const ChangeDetails: React.FC<ChangeDetailsProps> = ({ method, originalData, upd
           <TableBody>
             {snapshot.map(([key, value]) => (
               <TableRow key={key}>
-                <TableCell className="font-medium">{fieldLabel(key)}</TableCell>
+                <TableCell className="font-medium">{displayLabel(key, snapshotSource ?? {})}</TableCell>
                 <TableCell>
                   <ValueText text={formatLogValue(key, value)} />
                 </TableCell>

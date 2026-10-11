@@ -1,4 +1,4 @@
-import { computeChanges, fieldLabel, formatLogValue, isRedundantIdField } from "./formatLog";
+import { computeChanges, displayLabel, fieldLabel, formatLogValue, isRedundantIdField } from "./formatLog";
 
 describe("fieldLabel", () => {
   it("uses overrides for known keys", () => {
@@ -117,5 +117,75 @@ describe("computeChanges hides redundant IDs", () => {
   it("keeps the ID change when only one side carries the name", () => {
     const changes = computeChanges({ AllergyTypeID: 3 }, { AllergyTypeID: 5, AllergyTypeName: "Peanut" });
     expect(changes.map((c) => c.field)).toEqual(["AllergyTypeID"]);
+  });
+});
+
+describe("snake_case ID hiding and internal fields", () => {
+  it("hides a _id key when its _name sibling is present", () => {
+    const data = { created_by_id: "u1", created_by_name: "Alice", remarks: "x" };
+    expect(isRedundantIdField("created_by_id", data)).toBe(true);
+    expect(isRedundantIdField("created_by_id", { created_by_id: "u1" })).toBe(false);
+    expect(isRedundantIdField("remarks", data)).toBe(false);
+  });
+  it("hides correlation and aggregate IDs always", () => {
+    for (const k of ["correlation_id", "correlationId", "aggregate_id", "aggregateId"]) {
+      expect(isRedundantIdField(k, {})).toBe(true);
+      expect(isRedundantIdField(k)).toBe(true);
+    }
+  });
+  it("drops internal fields from update rows", () => {
+    const changes = computeChanges(
+      { correlation_id: "a", aggregateId: 1, Remarks: "x" },
+      { correlation_id: "b", aggregateId: 2, Remarks: "y" }
+    );
+    expect(changes.map((c) => c.field)).toEqual(["Remarks"]);
+  });
+});
+
+describe("displayLabel", () => {
+  it("labels a name sibling with its ID's label when the ID is present", () => {
+    expect(displayLabel("CreatedByName", { CreatedById: "u", CreatedByName: "A" })).toBe("Created By");
+    expect(displayLabel("created_by_name", { created_by_id: "u" })).toBe("Created By");
+    expect(displayLabel("AllergyTypeName", { AllergyTypeID: 1 })).toBe("Allergy Type");
+    expect(displayLabel("DoctorName", { DoctorId: "d" })).toBe("Doctor");
+    expect(displayLabel("DementiaTypeName", { DementiaTypeListId: 2 })).toBe("Dementia Type List");
+  });
+  it("leaves the label alone without the ID sibling", () => {
+    expect(displayLabel("CreatedByName", { CreatedByName: "A" })).toBe("Created By Name");
+    expect(displayLabel("Name", { Id: 1 })).toBe("Name");
+    expect(displayLabel("Remarks", { RemarksId: 1 })).toBe("Remarks");
+  });
+  it("is used by computeChanges", () => {
+    const changes = computeChanges(
+      { CreatedById: "u", CreatedByName: "A" },
+      { CreatedById: "v", CreatedByName: "B" }
+    );
+    expect(changes).toHaveLength(1);
+    expect(changes[0].label).toBe("Created By");
+  });
+});
+
+describe("modifier hiding and label overrides", () => {
+  it("hides ModifiedBy fields in update diffs only", () => {
+    const upd = computeChanges(
+      { A: 1, ModifiedById: "u1", ModifiedByName: "Ann", modified_by_id: "u1" },
+      { A: 2, ModifiedById: "u2", ModifiedByName: "Bob", modified_by_id: "u2" }
+    );
+    expect(upd.map((c) => c.field)).toEqual(["A"]);
+    const created = computeChanges(null, { A: 2, ModifiedById: "u2", CreatedById: "u3" });
+    expect(created.map((c) => c.field)).toEqual(["A", "ModifiedById", "CreatedById"]);
+    const updCreated = computeChanges({ CreatedById: "a" }, { CreatedById: "b" });
+    expect(updCreated.map((c) => c.field)).toEqual(["CreatedById"]);
+  });
+
+  it("labels second-slot and account fields", () => {
+    expect(fieldLabel("guardian2Id")).toBe("Guardian 2");
+    expect(fieldLabel("doctor2Name")).toBe("Doctor 2");
+    expect(fieldLabel("supervisor2Id")).toBe("Supervisor 2");
+    expect(fieldLabel("guardianApplicationUserId")).toBe("Guardian Account");
+    expect(fieldLabel("AlbumCategoryListID")).toBe("Album");
+    expect(displayLabel("guardian2Name", { guardian2Id: "x" })).toBe("Guardian 2");
+    expect(displayLabel("guardianApplicationUserName", { guardianApplicationUserId: "x" })).toBe("Guardian Account");
+    expect(displayLabel("AlbumCategoryListName", { AlbumCategoryListID: 1 })).toBe("Album");
   });
 });
