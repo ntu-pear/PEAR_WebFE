@@ -11,6 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
+import ChangeDetails from "@/components/auditLogs/ChangeDetails";
 import { ChevronDown, ChevronUp, Search } from "lucide-react";
 
 import { fetchAllLogs, LogsTableDataServer, LogType } from "@/api/logger/logs";
@@ -210,24 +211,6 @@ const PatientLogs: React.FC = () => {
     link.click();
   };
 
-  const computeDiff = (original: any, updated: any) => {
-    const changes: { field: string; old: any; new: any }[] = [];
-    const allKeys = new Set([
-      ...Object.keys(original || {}),
-      ...Object.keys(updated || {}),
-    ]);
-
-    allKeys.forEach((key) => {
-      const oldVal = original?.[key];
-      const newVal = updated?.[key];
-      if (JSON.stringify(oldVal) !== JSON.stringify(newVal)) {
-        changes.push({ field: key, old: oldVal, new: newVal });
-      }
-    });
-
-    return changes;
-  };
-
   const getActionBadgeColor = (method: string) => {
     switch (method.toLowerCase()) {
       case "create":
@@ -327,7 +310,7 @@ const PatientLogs: React.FC = () => {
                         <TableHead className="w-12">#</TableHead>
                         <TableHead className="w-24">Date/Time</TableHead>
                         <TableHead className="w-40">Patient</TableHead>
-                        <TableHead className="w-40">Caregiver</TableHead>
+                        <TableHead className="w-40">Changed by</TableHead>
                         <TableHead className="w-24">Action</TableHead>
                         <TableHead className="w-32">Type</TableHead>
                         <TableHead>Description</TableHead>
@@ -346,7 +329,7 @@ const PatientLogs: React.FC = () => {
                         </TableRow>
                       ) : (
                         logsData.logs.map((log, index) => (
-                          <React.Fragment key={index}>
+                          <React.Fragment key={`${log.id ?? ""}-${log.timestamp}-${index}`}>
                             <TableRow
                               className="hover:bg-muted/50 cursor-pointer"
                               onClick={(e) => handleRowClick(e, index)}
@@ -363,9 +346,9 @@ const PatientLogs: React.FC = () => {
                               </TableCell>
                               <TableCell>
                                 <div className="font-medium">
-                                  {log.patient_full_name || "-"}
+                                  {log.patient_full_name || (log.patient_id ? `Patient #${log.patient_id}` : "—")}
                                 </div>
-                                {log.patient_id && (
+                                {log.patient_full_name && log.patient_id && (
                                   <div className="text-xs text-muted-foreground">
                                     ID: {log.patient_id}
                                   </div>
@@ -391,120 +374,28 @@ const PatientLogs: React.FC = () => {
                                 <div className="line-clamp-2">{log.message}</div>
                               </TableCell>
                               <TableCell className="px-1 text-muted-foreground">
-                                {expandedRows[index] ? (
-                                  <ChevronUp className="h-4 w-4" />
-                                ) : (
-                                  <ChevronDown className="h-4 w-4" />
-                                )}
+                                <button
+                                  type="button"
+                                  aria-expanded={!!expandedRows[index]}
+                                  aria-label={expandedRows[index] ? "Hide change details" : "Show change details"}
+                                  className="rounded p-1 hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                                  onClick={() => toggleRow(index)}
+                                >
+                                  {expandedRows[index] ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                                </button>
                               </TableCell>
                             </TableRow>
 
                             {expandedRows[index] && (
                               <TableRow>
                                 <TableCell colSpan={8} className="p-0">
-                                  <div className="bg-muted/30 p-4">
-                                    <div className="mb-4">
-                                      <h4 className="font-semibold mb-2">
-                                        Change Details
-                                      </h4>
-                                      <div className="grid grid-cols-2 gap-4 text-sm">
-                                        <div>
-                                          <span className="text-muted-foreground">
-                                            Log ID:
-                                          </span>{" "}
-                                          {log.id || "-"}
-                                        </div>
-                                        <div>
-                                          <span className="text-muted-foreground">
-                                            Entity ID:
-                                          </span>{" "}
-                                          {log.entity_id || "-"}
-                                        </div>
-                                        {log.entity_name && (
-                                          <div>
-                                            <span className="text-muted-foreground">
-                                              Entity Name:
-                                            </span>{" "}
-                                            {log.entity_name}
-                                          </div>
-                                        )}
-                                        <div className="col-span-2">
-                                          <span className="text-muted-foreground">
-                                            Description:
-                                          </span>{" "}
-                                          {log.message}
-                                        </div>
-                                      </div>
-                                    </div>
-
-                                    {(log.original_data || log.updated_data) && (
-                                      <div className="mt-4">
-                                        <h5 className="text-sm font-medium mb-2">
-                                          Field Changes
-                                        </h5>
-                                        <Table>
-                                          <TableHeader>
-                                            <TableRow>
-                                              <TableHead>Field</TableHead>
-                                              <TableHead>Old Value</TableHead>
-                                              <TableHead>New Value</TableHead>
-                                              <TableHead>Change</TableHead>
-                                            </TableRow>
-                                          </TableHeader>
-                                          <TableBody>
-                                            {computeDiff(
-                                              log.original_data,
-                                              log.updated_data
-                                            ).map((change, idx) => (
-                                              <TableRow key={idx}>
-                                                <TableCell className="font-medium">
-                                                  {change.field}
-                                                </TableCell>
-                                                <TableCell className="text-red-600 bg-red-50/50">
-                                                  {change.old === undefined
-                                                    ? "-"
-                                                    : String(change.old)}
-                                                </TableCell>
-                                                <TableCell className="text-green-600 bg-green-50/50">
-                                                  {change.new === undefined
-                                                    ? "-"
-                                                    : String(change.new)}
-                                                </TableCell>
-                                                <TableCell>
-                                                  {!change.old && change.new ? (
-                                                    <Badge className="bg-green-100 text-green-800">
-                                                      Added
-                                                    </Badge>
-                                                  ) : change.old && !change.new ? (
-                                                    <Badge className="bg-red-100 text-red-800">
-                                                      Removed
-                                                    </Badge>
-                                                  ) : (
-                                                    <Badge className="bg-blue-100 text-blue-800">
-                                                      Modified
-                                                    </Badge>
-                                                  )}
-                                                </TableCell>
-                                              </TableRow>
-                                            ))}
-                                            {computeDiff(
-                                              log.original_data,
-                                              log.updated_data
-                                            ).length === 0 && (
-                                              <TableRow>
-                                                <TableCell
-                                                  colSpan={4}
-                                                  className="text-center text-muted-foreground"
-                                                >
-                                                  No changes detected
-                                                </TableCell>
-                                              </TableRow>
-                                            )}
-                                          </TableBody>
-                                        </Table>
-                                      </div>
-                                    )}
-                                  </div>
+                                  <ChangeDetails
+                                    method={log.method}
+                                    originalData={log.original_data}
+                                    updatedData={log.updated_data}
+                                    entityId={log.entity_id}
+                                    entityName={log.entity_name}
+                                  />
                                 </TableCell>
                               </TableRow>
                             )}
