@@ -102,13 +102,16 @@ const PatientHistoryTab: React.FC = () => {
                 </Button>
               </div>
             )}
-            {state === "ok" && logs.length === 0 && (
-              <p className="py-4 text-sm text-muted-foreground">
-                No changes have been recorded for this patient yet.
-              </p>
-            )}
-            {state === "ok" && logs.length > 0 && (
+            {state === "ok" && (
               <>
+                {logs.length === 0 && (
+                  <p className="py-4 text-sm text-muted-foreground">
+                    {totalPages > 1
+                      ? "No changes on this page."
+                      : "No changes have been recorded for this patient yet."}
+                  </p>
+                )}
+                {logs.length > 0 && (
                 <ul className="divide-y">
                   {logs.map((log, index) => (
                     <li key={log.id ?? index} className="py-3">
@@ -148,6 +151,7 @@ const PatientHistoryTab: React.FC = () => {
                     </li>
                   ))}
                 </ul>
+                )}
                 {totalPages > 1 && (
                   <div className="flex items-center justify-end gap-2 pt-4">
                     <Button variant="outline" size="sm" disabled={page <= 0} onClick={() => setPage((p) => p - 1)}>
