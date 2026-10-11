@@ -164,3 +164,28 @@ describe("displayLabel", () => {
     expect(changes[0].label).toBe("Created By");
   });
 });
+
+describe("modifier hiding and label overrides", () => {
+  it("hides ModifiedBy fields in update diffs only", () => {
+    const upd = computeChanges(
+      { A: 1, ModifiedById: "u1", ModifiedByName: "Ann", modified_by_id: "u1" },
+      { A: 2, ModifiedById: "u2", ModifiedByName: "Bob", modified_by_id: "u2" }
+    );
+    expect(upd.map((c) => c.field)).toEqual(["A"]);
+    const created = computeChanges(null, { A: 2, ModifiedById: "u2", CreatedById: "u3" });
+    expect(created.map((c) => c.field)).toEqual(["A", "ModifiedById", "CreatedById"]);
+    const updCreated = computeChanges({ CreatedById: "a" }, { CreatedById: "b" });
+    expect(updCreated.map((c) => c.field)).toEqual(["CreatedById"]);
+  });
+
+  it("labels second-slot and account fields", () => {
+    expect(fieldLabel("guardian2Id")).toBe("Guardian 2");
+    expect(fieldLabel("doctor2Name")).toBe("Doctor 2");
+    expect(fieldLabel("supervisor2Id")).toBe("Supervisor 2");
+    expect(fieldLabel("guardianApplicationUserId")).toBe("Guardian Account");
+    expect(fieldLabel("AlbumCategoryListID")).toBe("Album");
+    expect(displayLabel("guardian2Name", { guardian2Id: "x" })).toBe("Guardian 2");
+    expect(displayLabel("guardianApplicationUserName", { guardianApplicationUserId: "x" })).toBe("Guardian Account");
+    expect(displayLabel("AlbumCategoryListName", { AlbumCategoryListID: 1 })).toBe("Album");
+  });
+});

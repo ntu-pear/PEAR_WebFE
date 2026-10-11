@@ -22,6 +22,16 @@ const LABEL_OVERRIDES: Record<string, string> = {
   ModifiedDate: "Modified",
   IsDeleted: "Deleted",
   isDeleted: "Deleted",
+  guardian2Id: "Guardian 2",
+  guardian2Name: "Guardian 2",
+  doctor2Id: "Doctor 2",
+  doctor2Name: "Doctor 2",
+  supervisor2Id: "Supervisor 2",
+  supervisor2Name: "Supervisor 2",
+  guardianApplicationUserId: "Guardian Account",
+  guardianApplicationUserName: "Guardian Account",
+  AlbumCategoryListID: "Album",
+  AlbumCategoryListName: "Album",
 };
 
 const FLAG_KEY = /^(is|has)[A-Z_]|^Is[A-Z]|^Has[A-Z]/;
@@ -51,6 +61,17 @@ const PATIENT_ID_KEYS = new Set(["PatientID", "PatientId", "patientId", "patient
 
 // Event plumbing fields that never belong in change details.
 const INTERNAL_KEYS = new Set(["correlation_id", "correlationId", "aggregate_id", "aggregateId"]);
+
+// The log row's "Changed by" already shows the actor, so update diffs skip the modifier.
+const MODIFIER_KEYS = new Set([
+  "ModifiedById",
+  "ModifiedByID",
+  "modifiedById",
+  "modified_by_id",
+  "ModifiedByName",
+  "modifiedByName",
+  "modified_by_name",
+]);
 
 const has = (o: object, k: string) => Object.prototype.hasOwnProperty.call(o, k);
 
@@ -115,7 +136,10 @@ export function computeChanges(
   // UPDATE shape: both sides populated, so only compare fields recorded on both.
   const isUpdate = Object.keys(before).length > 0 && Object.keys(after).length > 0;
   const allKeys = Array.from(new Set([...Object.keys(before), ...Object.keys(after)]));
-  const keys = (isUpdate ? allKeys.filter((k) => has(before, k) && has(after, k)) : allKeys).filter(
+  const keys = (isUpdate
+    ? allKeys.filter((k) => has(before, k) && has(after, k) && !MODIFIER_KEYS.has(k))
+    : allKeys
+  ).filter(
     (k) => !isRedundantIdField(k, ...[before, after].filter((o) => Object.keys(o).length > 0))
   );
   const changes: FieldChange[] = [];
