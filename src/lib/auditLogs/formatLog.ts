@@ -42,6 +42,25 @@ export function fieldLabel(key: string): string {
   return words.map((w) => (w.length ? w[0].toUpperCase() + w.slice(1) : w)).join(" ");
 }
 
+// IDs whose name field is not simply "<prefix>Name".
+const ID_NAME_ALIASES: Record<string, string> = {
+  DementiaTypeListId: "DementiaTypeName",
+};
+// The log row already shows the patient, so their ID adds nothing.
+const PATIENT_ID_KEYS = new Set(["PatientID", "PatientId", "patientId", "patient_id"]);
+
+/** True when an ID field is redundant: its name is recorded in every given source. */
+export function isRedundantIdField(key: string, ...sources: Record<string, unknown>[]): boolean {
+  if (PATIENT_ID_KEYS.has(key)) return true;
+  const nameKey = Object.prototype.hasOwnProperty.call(ID_NAME_ALIASES, key)
+    ? ID_NAME_ALIASES[key]
+    : /.(ID|Id)$/.test(key)
+      ? `${key.slice(0, -2)}Name`
+      : null;
+  if (!nameKey || sources.length === 0) return false;
+  return sources.every((s) => Object.prototype.hasOwnProperty.call(s, nameKey));
+}
+
 export function isEmptyValue(v: unknown): boolean {
   return v === null || v === undefined || v === "";
 }
@@ -77,7 +96,9 @@ export function computeChanges(
   // UPDATE shape: both sides populated, so only compare fields recorded on both.
   const isUpdate = Object.keys(before).length > 0 && Object.keys(after).length > 0;
   const allKeys = Array.from(new Set([...Object.keys(before), ...Object.keys(after)]));
-  const keys = isUpdate ? allKeys.filter((k) => has(before, k) && has(after, k)) : allKeys;
+  const keys = (isUpdate ? allKeys.filter((k) => has(before, k) && has(after, k)) : allKeys).filter(
+    (k) => !isRedundantIdField(k, ...[before, after].filter((o) => Object.keys(o).length > 0))
+  );
   const changes: FieldChange[] = [];
   for (const field of keys) {
     const oldValue = before[field];

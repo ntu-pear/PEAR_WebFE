@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { computeChanges, fieldLabel, formatLogValue, isEmptyValue, ChangeKind } from "@/lib/auditLogs/formatLog";
+import { computeChanges, fieldLabel, formatLogValue, isEmptyValue, isRedundantIdField, ChangeKind } from "@/lib/auditLogs/formatLog";
 
 const LONG_VALUE = 200;
 
@@ -43,7 +43,9 @@ const ChangeDetails: React.FC<ChangeDetailsProps> = ({ method, originalData, upd
   const action = method.toLowerCase();
   const snapshotSource = action === "create" ? updatedData : action === "delete" ? originalData : null;
   const snapshot = snapshotSource
-    ? Object.entries(snapshotSource).filter(([, v]) => !isEmptyValue(v))
+    ? Object.entries(snapshotSource).filter(
+        ([k, v]) => !isEmptyValue(v) && !isRedundantIdField(k, snapshotSource)
+      )
     : [];
   const changes = snapshotSource ? [] : computeChanges(originalData, updatedData);
   const hasRows = snapshotSource ? snapshot.length > 0 : changes.length > 0;

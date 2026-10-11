@@ -1,4 +1,4 @@
-import { computeChanges, fieldLabel, formatLogValue } from "./formatLog";
+import { computeChanges, fieldLabel, formatLogValue, isRedundantIdField } from "./formatLog";
 
 describe("fieldLabel", () => {
   it("uses overrides for known keys", () => {
@@ -81,5 +81,41 @@ describe("computeChanges", () => {
   });
   it("attaches a readable label", () => {
     expect(computeChanges({}, { PrescriptionListId: 3 })[0].label).toBe("Prescription");
+  });
+});
+
+describe("isRedundantIdField", () => {
+  it("hides an ID when its name is recorded alongside it", () => {
+    const data = { AllergyTypeID: 3, AllergyTypeName: "Shellfish", AllergyRemarks: "x" };
+    expect(isRedundantIdField("AllergyTypeID", data)).toBe(true);
+    expect(isRedundantIdField("AllergyRemarks", data)).toBe(false);
+  });
+  it("keeps an ID when the name is missing on any compared side", () => {
+    expect(isRedundantIdField("AllergyTypeID", { AllergyTypeID: 3 })).toBe(false);
+    expect(
+      isRedundantIdField("AllergyTypeID", { AllergyTypeID: 3 }, { AllergyTypeID: 5, AllergyTypeName: "Peanut" })
+    ).toBe(false);
+  });
+  it("maps the dementia type list ID to its name", () => {
+    expect(isRedundantIdField("DementiaTypeListId", { DementiaTypeListId: 2, DementiaTypeName: "Alzheimer's" })).toBe(true);
+  });
+  it("always hides the patient ID, which the log row already names", () => {
+    expect(isRedundantIdField("PatientID", {})).toBe(true);
+    expect(isRedundantIdField("PatientId", {})).toBe(true);
+    expect(isRedundantIdField("id", { id: 1, Name: "x" })).toBe(false);
+  });
+});
+
+describe("computeChanges hides redundant IDs", () => {
+  it("shows the name change but not the ID change when both sides carry names", () => {
+    const changes = computeChanges(
+      { DementiaStageId: 1, DementiaStageName: "Mild", PatientId: 101 },
+      { DementiaStageId: 2, DementiaStageName: "Moderate", PatientId: 101 }
+    );
+    expect(changes.map((c) => c.field)).toEqual(["DementiaStageName"]);
+  });
+  it("keeps the ID change when only one side carries the name", () => {
+    const changes = computeChanges({ AllergyTypeID: 3 }, { AllergyTypeID: 5, AllergyTypeName: "Peanut" });
+    expect(changes.map((c) => c.field)).toEqual(["AllergyTypeID"]);
   });
 });
