@@ -1,0 +1,121 @@
+import { computeChanges, fieldLabel, formatLogValue, isRedundantIdField } from "./formatLog";
+
+describe("fieldLabel", () => {
+  it("uses overrides for known keys", () => {
+    expect(fieldLabel("PrescriptionListId")).toBe("Prescription");
+    expect(fieldLabel("UpdatedDateTime")).toBe("Updated");
+  });
+  it("keeps SpO2 intact", () => {
+    expect(fieldLabel("SpO2")).toBe("SpO2");
+  });
+  it("ignores inherited object keys when looking up overrides", () => {
+    expect(fieldLabel("constructor")).toBe("Constructor");
+    expect(fieldLabel("toString")).toBe("To String");
+  });
+  it("humanises camelCase, PascalCase and snake_case", () => {
+    expect(fieldLabel("AdministerTime")).toBe("Administer Time");
+    expect(fieldLabel("start_date")).toBe("Start Date");
+    expect(fieldLabel("isActive")).toBe("Is Active");
+  });
+  it("strips a trailing Id/ID/_id when other words remain", () => {
+    expect(fieldLabel("DementiaStageId")).toBe("Dementia Stage");
+    expect(fieldLabel("patient_id")).toBe("Patient");
+    expect(fieldLabel("id")).toBe("ID");
+  });
+});
+
+describe("formatLogValue", () => {
+  it("shows an em dash for null, undefined and empty string", () => {
+    expect(formatLogValue("x", null)).toBe("—");
+    expect(formatLogValue("x", undefined)).toBe("—");
+    expect(formatLogValue("x", "")).toBe("—");
+  });
+  it("shows booleans and 0/1 flags as Yes/No", () => {
+    expect(formatLogValue("x", true)).toBe("Yes");
+    expect(formatLogValue("IsDeleted", "0")).toBe("No");
+    expect(formatLogValue("isActive", 1)).toBe("Yes");
+  });
+  it("keeps 0 for non-flag fields", () => {
+    expect(formatLogValue("Dosage", 0)).toBe("0");
+  });
+  it("formats ISO datetimes and plain dates", () => {
+    expect(formatLogValue("StartDate", "2026-10-01T09:05:00")).toBe("01 Oct 2026, 9:05 AM");
+    expect(formatLogValue("StartDate", "2026-10-01")).toBe("01 Oct 2026");
+  });
+  it("renders objects and arrays as compact JSON", () => {
+    expect(formatLogValue("x", { a: 1 })).toBe('{"a":1}');
+    expect(formatLogValue("x", [1, 2])).toBe("[1,2]");
+  });
+});
+
+describe("computeChanges", () => {
+  it("skips fields that are empty on both sides", () => {
+    expect(computeChanges({ A: null, B: "", C: undefined }, { A: "", B: undefined, C: null })).toEqual([]);
+  });
+  it("keeps real falsy values against empty", () => {
+    const changes = computeChanges({ A: null, B: "", C: 1 }, { A: 0, B: false, C: "0" });
+    expect(changes.map((c) => [c.field, c.kind])).toEqual([
+      ["A", "added"],
+      ["B", "added"],
+      ["C", "modified"],
+    ]);
+  });
+  it("classifies real falsy values as modified, not added/removed", () => {
+    const changes = computeChanges({ IsActive: false, Count: 1 }, { IsActive: true, Count: 0 });
+    expect(changes.map((c) => c.kind)).toEqual(["modified", "modified"]);
+  });
+  it("classifies missing/null as added or removed", () => {
+    const changes = computeChanges({ A: null, B: "x" }, { A: "y", B: undefined });
+    expect(changes.find((c) => c.field === "A")?.kind).toBe("added");
+    expect(changes.find((c) => c.field === "B")?.kind).toBe("removed");
+  });
+  it("ignores unchanged fields and handles missing sides", () => {
+    expect(computeChanges({ A: 1 }, { A: 1 })).toEqual([]);
+    expect(computeChanges(null, { A: 1 })[0].kind).toBe("added");
+    expect(computeChanges({ A: 1 }, undefined)[0].kind).toBe("removed");
+  });
+  it("ignores keys recorded on only one side of an update", () => {
+    const removed = computeChanges({ A: 1, CreatedDate: "x" }, { A: 2 });
+    expect(removed.map((c) => [c.field, c.kind])).toEqual([["A", "modified"]]);
+    expect(computeChanges({ A: 1 }, { A: 1, AllergyTypeName: "Shellfish" })).toEqual([]);
+  });
+  it("attaches a readable label", () => {
+    expect(computeChanges({}, { PrescriptionListId: 3 })[0].label).toBe("Prescription");
+  });
+});
+
+describe("isRedundantIdField", () => {
+  it("hides an ID when its name is recorded alongside it", () => {
+    const data = { AllergyTypeID: 3, AllergyTypeName: "Shellfish", AllergyRemarks: "x" };
+    expect(isRedundantIdField("AllergyTypeID", data)).toBe(true);
+    expect(isRedundantIdField("AllergyRemarks", data)).toBe(false);
+  });
+  it("keeps an ID when the name is missing on any compared side", () => {
+    expect(isRedundantIdField("AllergyTypeID", { AllergyTypeID: 3 })).toBe(false);
+    expect(
+      isRedundantIdField("AllergyTypeID", { AllergyTypeID: 3 }, { AllergyTypeID: 5, AllergyTypeName: "Peanut" })
+    ).toBe(false);
+  });
+  it("maps the dementia type list ID to its name", () => {
+    expect(isRedundantIdField("DementiaTypeListId", { DementiaTypeListId: 2, DementiaTypeName: "Alzheimer's" })).toBe(true);
+  });
+  it("always hides the patient ID, which the log row already names", () => {
+    expect(isRedundantIdField("PatientID", {})).toBe(true);
+    expect(isRedundantIdField("PatientId", {})).toBe(true);
+    expect(isRedundantIdField("id", { id: 1, Name: "x" })).toBe(false);
+  });
+});
+
+describe("computeChanges hides redundant IDs", () => {
+  it("shows the name change but not the ID change when both sides carry names", () => {
+    const changes = computeChanges(
+      { DementiaStageId: 1, DementiaStageName: "Mild", PatientId: 101 },
+      { DementiaStageId: 2, DementiaStageName: "Moderate", PatientId: 101 }
+    );
+    expect(changes.map((c) => c.field)).toEqual(["DementiaStageName"]);
+  });
+  it("keeps the ID change when only one side carries the name", () => {
+    const changes = computeChanges({ AllergyTypeID: 3 }, { AllergyTypeID: 5, AllergyTypeName: "Peanut" });
+    expect(changes.map((c) => c.field)).toEqual(["AllergyTypeID"]);
+  });
+});

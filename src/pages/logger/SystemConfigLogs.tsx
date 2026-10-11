@@ -2,15 +2,8 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { format } from "date-fns";
+import ChangeDetails from "@/components/auditLogs/ChangeDetails";
 import {
   FileText,
   User,
@@ -249,24 +242,6 @@ const SystemConfigLogs: React.FC = () => {
     });
   };
 
-  const computeDiff = (original: any, updated: any) => {
-    const changes: { field: string; old: any; new: any }[] = [];
-    const allKeys = new Set([
-      ...Object.keys(original || {}),
-      ...Object.keys(updated || {}),
-    ]);
-
-    allKeys.forEach((key) => {
-      const oldVal = original?.[key];
-      const newVal = updated?.[key];
-      if (JSON.stringify(oldVal) !== JSON.stringify(newVal)) {
-        changes.push({ field: key, old: oldVal, new: newVal });
-      }
-    });
-
-    return changes;
-  };
-
   const getActionBadgeColor = (method: string) => {
     switch (method.toLowerCase()) {
       case "create":
@@ -340,72 +315,14 @@ const SystemConfigLogs: React.FC = () => {
 
   const renderExpandedContent = (item: SystemLogRow) => {
     const log = item.raw;
-    const diff = computeDiff(log.original_data, log.updated_data);
-
     return (
-      <div className="bg-muted/30 p-4">
-        <div className="mb-4">
-          <h4 className="mb-2 font-semibold">Change Details</h4>
-          <div className="grid grid-cols-2 gap-4 text-sm">
-            <div>
-              <span className="text-muted-foreground">Entity ID:</span>{" "}
-              {log.entity_id || "-"}
-            </div>
-            {log.entity_name && (
-              <div>
-                <span className="text-muted-foreground">Entity Name:</span>{" "}
-                {log.entity_name}
-              </div>
-            )}
-          </div>
-        </div>
-
-        {(log.original_data || log.updated_data) && (
-          <div className="mt-4">
-            <h5 className="mb-2 text-sm font-medium">Field Changes</h5>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Field</TableHead>
-                  <TableHead>Old Value</TableHead>
-                  <TableHead>New Value</TableHead>
-                  <TableHead>Change</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {diff.length > 0 ? (
-                  diff.map((change, idx) => (
-                    <TableRow key={idx}>
-                      <TableCell className="font-medium">{change.field}</TableCell>
-                      <TableCell className="bg-red-50/50 text-red-600">
-                        {change.old === undefined ? "-" : String(change.old)}
-                      </TableCell>
-                      <TableCell className="bg-green-50/50 text-green-600">
-                        {change.new === undefined ? "-" : String(change.new)}
-                      </TableCell>
-                      <TableCell>
-                        {!change.old && change.new ? (
-                          <Badge className="bg-green-100 text-green-800">Added</Badge>
-                        ) : change.old && !change.new ? (
-                          <Badge className="bg-red-100 text-red-800">Removed</Badge>
-                        ) : (
-                          <Badge className="bg-blue-100 text-blue-800">Modified</Badge>
-                        )}
-                      </TableCell>
-                    </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={4} className="text-center text-muted-foreground">
-                      No changes detected
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </div>
-        )}
-      </div>
+      <ChangeDetails
+        method={log.method}
+        originalData={log.original_data}
+        updatedData={log.updated_data}
+        entityId={log.entity_id}
+        entityName={log.entity_name}
+      />
     );
   };
 
