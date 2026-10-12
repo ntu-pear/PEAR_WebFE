@@ -8,7 +8,8 @@ import {
   ActivityTemplate,
   Patient
 } from "@/api/scheduler/scheduler";
-import { ACTIVITY_STYLES, TIME_SLOTS } from "../CalendarTypes";
+import { ACTIVITY_STYLES } from "../CalendarTypes";
+import { useCentreTimeSlots } from "../hooks/useCentreTimeSlots";
 
 const CELL_HEIGHT = 72;
 const MIN_ACTIVITY_HEIGHT = 32;
@@ -19,8 +20,8 @@ const timeToMinutes = (time: string): number => {
   return hour * 60 + minute;
 };
 
-const createTimeSlots = (activities: ScheduledPatientActivity[]) => {
-  if (activities.length === 0) return TIME_SLOTS;
+const createTimeSlots = (activities: ScheduledPatientActivity[], fallback: string[]) => {
+  if (activities.length === 0) return fallback;
 
   const startHour = Math.min(
     ...activities.map(activity => parseInt(activity.startTime.split(":")[0], 10))
@@ -105,6 +106,7 @@ const PatientWeeklyScheduleView: React.FC<PatientWeeklyScheduleViewProps> = ({
 }) => {
   const navigate = useNavigate();
   const { currentUser } = useAuth();
+  const { timeSlots: centreTimeSlots } = useCentreTimeSlots();
   const canEditPreferences = currentUser?.roleName !== "GUARDIAN";
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const consumedScrollTriggerRef = useRef(0);
@@ -143,8 +145,8 @@ const PatientWeeklyScheduleView: React.FC<PatientWeeklyScheduleViewProps> = ({
     [activitiesByDate]
   );
   const timeSlots = useMemo(
-    () => createTimeSlots(visibleActivities),
-    [visibleActivities]
+    () => createTimeSlots(visibleActivities, centreTimeSlots),
+    [visibleActivities, centreTimeSlots]
   );
 
   const todayDateString = format(now, "yyyy-MM-dd");
