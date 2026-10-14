@@ -530,6 +530,11 @@ export const userLoggerAPI = axios.create({
   baseURL: `${VITE_LOGGER_SERVICE_URL}/Logs/User`
 })
 
+// operational logs (admin console): /Logs/Errors, /Logs/Requests, /Logs/Auth
+export const opsLoggerAPI = axios.create({
+  baseURL: `${VITE_LOGGER_SERVICE_URL}/Logs`,
+});
+
 //scheduler
 export const schedulerAPI = axios.create({
   baseURL: `${VITE_SCHEDULER_SERVICE_URL}`,
@@ -569,13 +574,13 @@ const authProtectedInstances: AxiosInstance[] = [
   personalPreferenceAPI, personalPreferenceListAPI,
   getCurrentUserAPI, userAPI, roleAPI, roleNameAPI, adminAPI, fetchAdminConfigsAPI, updateAdminConfigsAPI,
   supervisorAPI, accessLevelAPI,
-  loggerAPI, activityLoggerAPI, systemConfigAPI, userLoggerAPI,
+  loggerAPI, activityLoggerAPI, systemConfigAPI, userLoggerAPI, opsLoggerAPI,
   schedulerAPI, schedulerMedicationAPI,
 ];
 
 authProtectedInstances.forEach(attachAuthRetryInterceptor);
 
-[loggerAPI, activityLoggerAPI, systemConfigAPI, userLoggerAPI].forEach((instance) =>
+[loggerAPI, activityLoggerAPI, systemConfigAPI, userLoggerAPI, opsLoggerAPI].forEach((instance) =>
   attachLoggerAuth(instance, () => retrieveAccessTokenFromCookie(), () =>
     toast.error("You don't have permission to view these logs.", { id: "logs-forbidden" })
   )
