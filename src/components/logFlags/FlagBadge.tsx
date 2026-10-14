@@ -18,7 +18,8 @@ const SEVERITY_CLASS: Record<LogFlagSeverity, string> = {
   warning:
     "border-amber-300 bg-amber-50 text-amber-800 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-300",
   critical:
-    "border-destructive/40 bg-destructive/10 text-destructive dark:border-destructive/50 dark:bg-destructive/15",
+    // The dark theme's destructive token is too dark to read as text, so dark mode lightens it like the amber chip.
+    "border-destructive/40 bg-destructive/10 text-destructive dark:border-red-500/40 dark:bg-red-500/10 dark:text-red-300",
 };
 
 export const FlagBadge: React.FC<{ flag: LogFlag; className?: string }> = ({ flag, className }) => {

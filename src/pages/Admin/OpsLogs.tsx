@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { format } from "date-fns";
 import { Bug, Calendar, Eye, Fingerprint, Globe, KeyRound, Layers, Search, Server, User } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -64,10 +64,15 @@ const normalise = (filters: OpsLogFilters): OpsLogFilters => ({
   level: filters.level && filters.level !== "all" ? filters.level : null,
 });
 
+// The log dashboard links here with ?date=YYYY-MM-DD to open the page on the day of a flag.
+const initialFilters = (date: string | null): OpsLogFilters =>
+  date && /^\d{4}-\d{2}-\d{2}$/.test(date) ? { startDate: date, endDate: date } : {};
+
 const OpsLogsPage: React.FC<OpsLogsPageProps> = ({ kind, sensitive = false }) => {
   const navigate = useNavigate();
-  const [draft, setDraft] = useState<OpsLogFilters>({});
-  const [applied, setApplied] = useState<OpsLogFilters>({});
+  const [searchParams] = useSearchParams();
+  const [draft, setDraft] = useState<OpsLogFilters>(() => initialFilters(searchParams.get("date")));
+  const [applied, setApplied] = useState<OpsLogFilters>(() => initialFilters(searchParams.get("date")));
   const [paging, setPaging] = useState({ pageNo: 0, pageSize: PAGE_SIZE });
   const [result, setResult] = useState<OpsLogsResult | null>(null);
   const [loading, setLoading] = useState(false);

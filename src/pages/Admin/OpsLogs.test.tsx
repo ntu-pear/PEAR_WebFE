@@ -23,6 +23,23 @@ describe("OpsLogsPage", () => {
     expect(screen.getByText("Error Logs")).toBeInTheDocument();
   });
 
+  it("opens on the day given by ?date (links from the log dashboard)", async () => {
+    fetchOpsLogs.mockResolvedValueOnce(ok([]));
+    render(
+      <MemoryRouter initialEntries={["/admin/ops-logs/auth?date=2026-10-14"]}>
+        <OpsLogsPage kind="auth" />
+      </MemoryRouter>
+    );
+    await waitFor(() =>
+      expect(fetchOpsLogs).toHaveBeenCalledWith(
+        "auth",
+        { startDate: "2026-10-14", endDate: "2026-10-14", sensitive: false },
+        0,
+        20
+      )
+    );
+  });
+
   it("the sensitive page asks for requests with the preset", async () => {
     fetchOpsLogs.mockResolvedValueOnce(ok([]));
     renderPage(<OpsLogsPage kind="requests" sensitive />);
