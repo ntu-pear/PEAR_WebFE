@@ -189,3 +189,36 @@ describe("modifier hiding and label overrides", () => {
     expect(displayLabel("AlbumCategoryListName", { AlbumCategoryListID: 1 })).toBe("Album");
   });
 });
+
+describe("medication administration entries", () => {
+  const created = {
+    Id: 99,
+    MedicationId: 7,
+    MedicationName: "Paracetamol",
+    Dosage: "2 tabs",
+    AdministerDate: "2026-10-14",
+    ScheduledTime: "08:00",
+    ActualAdministerTime: "2026-10-14T00:05:00+00:00",
+    AdministeredById: "U1",
+    AdministeredByName: "Sam Lee",
+  };
+
+  it("labels each field readably", () => {
+    const rows = computeChanges(null, created).map((c) => [c.label, formatLogValue(c.field, c.newValue)]);
+    expect(rows).toEqual(
+      expect.arrayContaining([
+        ["Medication", "Paracetamol"],
+        ["Scheduled Slot", "08:00"],
+        ["Dose Date", "14 Oct 2026"],
+        ["Given By", "Sam Lee"],
+      ])
+    );
+    expect(rows.map(([label]) => label)).toContain("Given At");
+  });
+
+  it("hides IDs that have a name next to them", () => {
+    const fields = computeChanges(null, created).map((c) => c.field);
+    expect(fields).not.toContain("MedicationId");
+    expect(fields).not.toContain("AdministeredById");
+  });
+});

@@ -32,6 +32,11 @@ const LABEL_OVERRIDES: Record<string, string> = {
   guardianApplicationUserName: "Guardian Account",
   AlbumCategoryListID: "Album",
   AlbumCategoryListName: "Album",
+  MedicationId: "Medication",
+  ScheduledTime: "Scheduled Slot",
+  AdministerDate: "Dose Date",
+  ActualAdministerTime: "Given At",
+  AdministeredById: "Given By",
 };
 
 const FLAG_KEY = /^(is|has)[A-Z_]|^Is[A-Z]|^Has[A-Z]/;
