@@ -1,4 +1,5 @@
 import { activityLoggerAPI } from "../apiConfig";
+import type { LogFlag } from "@/types/logFlags";
 
 
 export interface ActivityLogBase {
@@ -18,6 +19,7 @@ export interface ActivityLogBase {
   role: string | null;
   log_type?: string;
   is_system_config?: boolean;
+  flags?: LogFlag[];
 }
 
 export interface ActivityLogsList {

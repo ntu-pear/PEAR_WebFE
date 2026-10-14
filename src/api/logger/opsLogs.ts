@@ -1,4 +1,5 @@
 import { opsLoggerAPI } from "../apiConfig";
+import type { LogFlag } from "@/types/logFlags";
 import { mergeTrace } from "@/lib/opsLogs/formatOpsLog";
 
 export type OpsLogKind = "errors" | "requests" | "auth";
@@ -23,6 +24,7 @@ export interface OpsLog {
   reason?: string | null;
   exception_type?: string | null;
   stack_trace?: string | null;
+  flags?: LogFlag[];
 }
 
 export interface OpsLogsList {

@@ -4,6 +4,7 @@ import { format } from "date-fns";
 import { Bug, Calendar, Eye, Fingerprint, Globe, KeyRound, Layers, Search, Server, User } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { FlagBadges } from "@/components/logFlags/FlagBadge";
 import FilterSidebar from "@/components/Filters/FilterSidebar";
 import TextFilterField from "@/components/Filters/TextFilterField";
 import SelectFilterField from "@/components/Filters/SelectFilterField";
@@ -132,12 +133,22 @@ const OpsLogsPage: React.FC<OpsLogsPageProps> = ({ kind, sensitive = false }) =>
       ? {
           key: "status" as keyof OpsLogRow,
           header: "Status",
-          render: (value: number | null) => <Badge className={statusBadgeClass(value)}>{value ?? "-"}</Badge>,
+          render: (value: number | null, item: OpsLogRow) => (
+            <div className="flex flex-wrap items-center gap-1">
+              <Badge className={statusBadgeClass(value)}>{value ?? "-"}</Badge>
+              <FlagBadges flags={item.raw.flags} />
+            </div>
+          ),
         }
       : {
           key: "level" as keyof OpsLogRow,
           header: "Level",
-          render: (value: string) => <Badge className={levelBadgeClass(value)}>{value}</Badge>,
+          render: (value: string, item: OpsLogRow) => (
+            <div className="flex flex-wrap items-center gap-1">
+              <Badge className={levelBadgeClass(value)}>{value}</Badge>
+              <FlagBadges flags={item.raw.flags} />
+            </div>
+          ),
         },
     {
       key: "summary" as keyof OpsLogRow,

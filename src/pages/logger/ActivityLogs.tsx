@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { FlagBadges } from "@/components/logFlags/FlagBadge";
 import { format } from "date-fns";
 import ChangeDetails from "@/components/auditLogs/ChangeDetails";
 import {
@@ -319,9 +320,12 @@ const ActivityLogs: React.FC = () => {
                                 <div className="text-xs text-muted-foreground">{log.user}</div>
                               </TableCell>
                               <TableCell>
-                                <Badge className={getActionBadgeColor(log.method)}>
+                                <div className="flex flex-wrap items-center gap-1">
+                                  <Badge className={getActionBadgeColor(log.method)}>
                                   {log.method}
                                 </Badge>
+                                  <FlagBadges flags={log.flags} />
+                                </div>
                               </TableCell>
                               <TableCell>
                                 <Badge variant="outline">{log.table || "-"}</Badge>

@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { FlagBadges } from "@/components/logFlags/FlagBadge";
 import { format } from "date-fns";
 import ChangeDetails from "@/components/auditLogs/ChangeDetails";
 import {
@@ -297,8 +298,11 @@ const SystemConfigLogs: React.FC = () => {
     {
       key: "method" as keyof SystemLogRow,
       header: "Action",
-      render: (value: string) => (
-        <Badge className={getActionBadgeColor(value)}>{value}</Badge>
+      render: (value: string, item: SystemLogRow) => (
+        <div className="flex flex-wrap items-center gap-1">
+          <Badge className={getActionBadgeColor(value)}>{value}</Badge>
+          <FlagBadges flags={item.raw.flags} />
+        </div>
       ),
     },
     {

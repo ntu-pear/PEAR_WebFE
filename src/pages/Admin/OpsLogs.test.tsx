@@ -61,4 +61,23 @@ describe("OpsLogsPage", () => {
     expect(await screen.findByText("GET /api/v1/patients/1")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "01234567" })).toBeInTheDocument();
   });
-});
+
+  it("shows flag badges on flagged rows and none on others", async () => {
+    fetchOpsLogs.mockResolvedValueOnce(
+      ok([
+        {
+          timestamp: "2026-10-14T01:00:00.000Z",
+          ops_type: "error",
+          message: "boom",
+          service: "patient",
+          level: "ERROR",
+          flags: [{ code: "error_spike", severity: "warning", reason: "25 errors from patient in 5 min" }],
+        },
+        { timestamp: "2026-10-14T01:01:00.000Z", ops_type: "error", message: "quiet", service: "user", level: "ERROR" },
+      ])
+    );
+    renderPage(<OpsLogsPage kind="errors" />);
+    expect(await screen.findByText("Error spike")).toBeInTheDocument();
+    expect(screen.getAllByText("Error spike")).toHaveLength(1);
+    expect(screen.getByLabelText("Error spike: 25 errors from patient in 5 min")).toBeInTheDocument();
+  });});
