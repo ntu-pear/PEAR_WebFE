@@ -255,6 +255,26 @@ const adminMenu: MenuSection[] = [
         path: "/admin/system-config-logs",
       },
       {
+        title: "Error Logs",
+        icon: "Bug",
+        path: "/admin/ops-logs/errors",
+      },
+      {
+        title: "Request Logs",
+        icon: "Globe",
+        path: "/admin/ops-logs/requests",
+      },
+      {
+        title: "Auth Event Logs",
+        icon: "KeyRound",
+        path: "/admin/ops-logs/auth",
+      },
+      {
+        title: "Sensitive Access",
+        icon: "Eye",
+        path: "/admin/ops-logs/sensitive",
+      },
+      {
         title: "Manage Approval Requests",
         icon: "SquareCheck",
         path: "/admin/manage-approval-requests",
