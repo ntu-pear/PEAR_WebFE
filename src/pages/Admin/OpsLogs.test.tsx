@@ -97,4 +97,5 @@ describe("OpsLogsPage", () => {
     expect(await screen.findByText("Error spike")).toBeInTheDocument();
     expect(screen.getAllByText("Error spike")).toHaveLength(1);
     expect(screen.getByLabelText("Error spike: 25 errors from patient in 5 min")).toBeInTheDocument();
-  });});
+  });
+});
