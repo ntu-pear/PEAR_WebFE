@@ -61,6 +61,7 @@ import PatientLogs from "./pages/logger/PatientLogs";
 import ActivityLogs from "./pages/logger/ActivityLogs";
 import SystemConfigLogs from "./pages/logger/SystemConfigLogs";
 import OpsLogsPage from "./pages/Admin/OpsLogs";
+import RequestTrace from "./pages/Admin/RequestTrace";
 import AccountTable from "./pages/Admin/AccountTable";
 import ViewAccount from "./pages/Admin/ViewAccount";
 import { ViewAccountProvider } from "./hooks/admin/useViewAccount";
@@ -279,6 +280,10 @@ const App: React.FC = () => {
                       <Route
                         path="ops-logs/sensitive"
                         element={<OpsLogsPage key="sensitive" kind="requests" sensitive />}
+                      />
+                      <Route
+                        path="ops-logs/trace/:requestId"
+                        element={<RequestTrace />}
                       />
                       {(useFeatureFlag("staging") ||
                         !useFeatureFlag("production")) && (
