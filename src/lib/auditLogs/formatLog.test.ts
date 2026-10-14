@@ -25,6 +25,17 @@ describe("fieldLabel", () => {
 });
 
 describe("formatLogValue", () => {
+  it("shows ScheduledTime HHmm values as HH:mm", () => {
+    expect(formatLogValue("ScheduledTime", "0800")).toBe("08:00");
+    expect(formatLogValue("ScheduledTime", "1400")).toBe("14:00");
+    expect(formatLogValue("ScheduledTime", " 1400")).toBe("14:00");
+    expect(formatLogValue("ScheduledTime", "800")).toBe("08:00");
+  });
+  it("leaves other ScheduledTime values unchanged", () => {
+    expect(formatLogValue("ScheduledTime", "08:00")).toBe("08:00");
+    expect(formatLogValue("ScheduledTime", "morning")).toBe("morning");
+    expect(formatLogValue("OtherTime", "0800")).toBe("0800");
+  });
   it("shows an em dash for null, undefined and empty string", () => {
     expect(formatLogValue("x", null)).toBe("—");
     expect(formatLogValue("x", undefined)).toBe("—");

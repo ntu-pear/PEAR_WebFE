@@ -118,6 +118,10 @@ export function formatLogValue(key: string, value: unknown): string {
     return String(value) === "1" ? "Yes" : "No";
   }
   if (typeof value === "string") {
+    if (key === "ScheduledTime") {
+      const t = value.trim();
+      if (/^\d{3,4}$/.test(t)) return `${t.padStart(4, "0").slice(0, 2)}:${t.slice(-2)}`;
+    }
     if (ISO_DATETIME.test(value)) {
       const d = parseISO(value);
       if (isValid(d)) return format(d, "dd MMM yyyy, h:mm a");
