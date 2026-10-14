@@ -99,3 +99,17 @@ export const getEndOfCurrentWeekSG = () => {
   const pythonWeekday = (now.day() + 6) % 7; // dayjs: Sun=0..Sat=6 -> Python: Mon=0..Sun=6
   return now.add(6 - pythonWeekday, "day").endOf("day");
 };
+
+const SG_TIMEZONE = "Asia/Singapore";
+const HAS_TIMEZONE = /[Zz]|[+-]\d{2}:?\d{2}$/;
+
+const parseServerDateTime = (date: string) =>
+  HAS_TIMEZONE.test(date)
+    ? dayjs(date).tz(SG_TIMEZONE)
+    : dayjs.tz(date, SG_TIMEZONE);
+
+export const formatServerDate = (date: string) =>
+  parseServerDateTime(date).format("DD-MMM-YYYY").toUpperCase();
+
+export const formatServerTime = (date: string) =>
+  parseServerDateTime(date).format("h:mm A").toUpperCase();
