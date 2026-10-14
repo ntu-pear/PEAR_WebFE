@@ -142,11 +142,12 @@ const OpsLogsPage: React.FC<OpsLogsPageProps> = ({ kind, sensitive = false }) =>
     {
       key: "summary" as keyof OpsLogRow,
       header: "Summary",
-      render: (value: string) => <div className="max-w-md truncate font-mono text-xs">{value}</div>,
+      render: (value: string) => <div className="max-w-[18rem] truncate font-mono text-xs" title={value}>{value}</div>,
     },
     {
       key: "userId" as keyof OpsLogRow,
       header: "User ID",
+      render: (value: string) => <span className="whitespace-nowrap">{value}</span>,
     },
     {
       key: "requestId" as keyof OpsLogRow,

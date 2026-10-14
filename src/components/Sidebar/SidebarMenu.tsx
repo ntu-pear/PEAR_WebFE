@@ -9,10 +9,11 @@ import {
 import { Menu, ChevronDown, ChevronUp } from "lucide-react";
 import * as Icons from "lucide-react";
 import { LucideIcon } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { FeatureFlags } from "@/utils/featureFlags";
 import { useAnyFeatureFlag } from "@/hooks/useFeatureFlags";
+import { cn } from "@/lib/utils";
 
 // Types
 interface MenuItem {
@@ -473,6 +474,8 @@ const MenuItem: React.FC<{
   const IconComponent = Icons[icon as keyof typeof Icons] as LucideIcon;
 
   const navigate = useNavigate();
+  const { pathname } = useLocation();
+  const isActive = pathname === to || pathname.startsWith(`${to}/`);
 
   const handleNavigation = () => {
     navigate(to);
@@ -480,8 +483,19 @@ const MenuItem: React.FC<{
   };
 
   return (
-    <Button variant="ghost" className="w-full justify-start text-base" asChild>
-      <a onClick={handleNavigation} className="flex items-center">
+    <Button
+      variant="ghost"
+      className={cn(
+        "w-full justify-start text-base",
+        isActive && "bg-accent text-accent-foreground"
+      )}
+      asChild
+    >
+      <a
+        onClick={handleNavigation}
+        className="flex items-center"
+        aria-current={isActive ? "page" : undefined}
+      >
         <IconComponent className="mr-2 h-5 w-5" />
         <span>{label}</span>
       </a>
