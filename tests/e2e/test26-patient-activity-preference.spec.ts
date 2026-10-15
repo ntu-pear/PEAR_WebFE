@@ -105,23 +105,23 @@ test("Supervisor - Patient Activity Preference Page", async ({ page }) => {
 
   // ================= ADD EXCLUSION =================
   await test.step("Add Activity Exclusion", async () => {
+    const exclusionTab = page.getByRole("tab", {
+        name: /activity exclusion/i,
+    });
+
+    await expect(exclusionTab).toBeVisible();
+    await exclusionTab.click();
+
     await page.getByRole("button", {
-        name: "Add Activity Exclusion",
+        name: /add exclusions/i,
     }).click();
 
-    await expect(
-        page.getByRole("heading", {
-            name: "Add Activity Exclusion",
-            level: 2,
-    })
-    ).toBeVisible();
-
-    const dialog = page.getByRole("dialog", { name: /add activity exclusion/i });
+    const dialog = page.getByRole("dialog");
     await expect(dialog).toBeVisible();
 
     // Search
     await dialog
-        .getByRole("textbox", { name: /search activities/i })
+        .getByPlaceholder("Search activities...")
         .fill("Playwright");
 
     // Select activity 
@@ -144,13 +144,22 @@ test("Supervisor - Patient Activity Preference Page", async ({ page }) => {
     await expect(createBtn).toBeEnabled();
     await createBtn.click();
 
-    await expect(page.getByText("Exclusion(s) created")).toBeVisible();
+    await expect(
+        page.getByText(/successfully created \d+ exclusion/i)
+    ).toBeVisible();
   });
 
   // ================= WAIT =================
-  await expect(
-      page.getByRole("dialog", { name: /add activity exclusion/i })
-  ).toBeHidden();
+  await expect(page.getByRole("dialog")).toBeHidden();
+
+  // ================= BACK TO ACTIVITY PREFERENCE =================
+  await test.step("Return to Activity Preferences", async () => {
+    await page.getByRole("tab", { name: /activity preference/i }).click();
+
+    await expect(
+        page.getByRole("tabpanel", { name: /activity preference/i })
+    ).toBeVisible();
+  });
 
   // ================= CHECK EXCLUSION =================
   await test.step("Check exclusion exists", async () => {
@@ -182,7 +191,9 @@ test("Supervisor - Patient Activity Preference Page", async ({ page }) => {
 
     
     // Click EDIT
-    await playwrightRow.getByRole("button", { name: "Edit exclusion" }).click();
+    await playwrightRow.getByText("Yes").first().click({ button: "right" });
+
+    await page.getByRole("menuitem", { name: /edit exclusion/i }).click();
 
     // Scope assertions to the edit dialog
     const editDialog = page.getByRole("dialog", { name: /edit exclusion/i });
@@ -214,9 +225,9 @@ await test.step("Delete exclusion", async () => {
   dialog.accept();
 });
 
-await playwrightRow
-  .getByRole("button", { name: "Delete exclusion" })
-  .click();
+await playwrightRow.getByText("Yes").first().click({ button: "right" });
+
+await page.getByRole("menuitem", { name: /delete exclusion/i }).click();
 
 await expect(
   page.getByRole("region", { name: /notifications/i })

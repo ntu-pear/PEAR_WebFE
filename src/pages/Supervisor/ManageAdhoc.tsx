@@ -10,6 +10,7 @@ import Searchbar from "@/components/Searchbar";
 import { DataTableClient, DataTableColumns } from "@/components/Table/DataTable";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DatePicker } from "antd";
 import {
   listAdhocActivities,
@@ -167,6 +168,16 @@ const ManageAdhoc: React.FC = () => {
     a.patientName?.toLowerCase().includes(searchItem.toLowerCase())
   );
 
+  const startOfToday = dayjs().tz(SG_TZ).startOf("day");
+
+  const isExpired = (activity: AdhocActivity) => {
+    const end = dayjs(activity.endDate).tz(SG_TZ);
+    return end.isValid() && end.isBefore(startOfToday);
+  };
+
+  const activeActivities = filteredActivities.filter(a => !isExpired(a));
+  const expiredActivities = filteredActivities.filter(isExpired);
+
   const handleDelete = async (activity: AdhocActivity) => {
     if (!window.confirm(`Delete adhoc activity for ${activity.patientName}?`)) return;
     try {
@@ -216,32 +227,64 @@ const ManageAdhoc: React.FC = () => {
               ) : filteredActivities.length === 0 ? (
                 <div className="text-sm text-muted-foreground">No activities found.</div>
               ) : (
-                <DataTableClient
-                  data={filteredActivities}
-                  columns={columns}
-                  viewMore={false}
-                  renderActions={(item) => (
-                    <div className="flex space-x-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          setEditingActivity(item);
-                          setEditModalOpen(true);
-                        }}
-                      >
-                        Edit
-                      </Button>
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => handleDelete(item)}
-                      >
-                        Delete
-                      </Button>
-                    </div>
-                  )}
-                />
+                <Tabs defaultValue="active">
+                  <TabsList>
+                    <TabsTrigger value="active">
+                      Active ({activeActivities.length})
+                    </TabsTrigger>
+                    <TabsTrigger value="expired">
+                      Expired ({expiredActivities.length})
+                    </TabsTrigger>
+                  </TabsList>
+
+                  <TabsContent value="active">
+                    {activeActivities.length === 0 ? (
+                      <div className="text-sm text-muted-foreground">No active adhoc activities.</div>
+                    ) : (
+                      <DataTableClient
+                        data={activeActivities}
+                        columns={columns}
+                        viewMore={false}
+                        renderActions={(item) => (
+                          <div className="flex space-x-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                setEditingActivity(item);
+                                setEditModalOpen(true);
+                              }}
+                            >
+                              Edit
+                            </Button>
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              onClick={() => handleDelete(item)}
+                            >
+                              Delete
+                            </Button>
+                          </div>
+                        )}
+                      />
+                    )}
+                  </TabsContent>
+
+                  <TabsContent value="expired">
+                    {expiredActivities.length === 0 ? (
+                      <div className="text-sm text-muted-foreground">No expired adhoc activities.</div>
+                    ) : (
+                      <>
+                        <DataTableClient
+                          data={expiredActivities}
+                          columns={columns}
+                          viewMore={false}
+                          hideActionsHeader
+                        />
+                      </>
+                    )}
+                  </TabsContent>
+                </Tabs>
               )}
             </CardContent>
           </Card>
@@ -439,7 +482,7 @@ const EditAdhocModal: React.FC<EditAdhocModalProps> = ({ activity, open, onClose
 
         <div className="flex flex-col gap-4">
           <div>
-            <label className="text-sm font-medium">Replace Activity With</label>
+            <label className="text-sm font-medium">Ad Hoc Activity</label>
             <select
               className="w-full border rounded px-2 py-1"
               value={selectedActivityId ?? -1}

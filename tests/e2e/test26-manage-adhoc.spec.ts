@@ -58,7 +58,23 @@ test.describe("Supervisor: Manage Adhoc Activities", () => {
 
     // Select a different replacement activity (first valid option)
     const select = editDialog.getByRole("combobox");
-    await select.selectOption({ index: 1 });
+
+    const currentValue = await select.inputValue();
+
+    const alternativeValues = (
+      await select
+        .locator("option")
+        .evaluateAll((options: HTMLOptionElement[]) =>
+          options.map((option) => option.value).filter((value) => value !== "")
+        )
+    ).filter((value) => value !== currentValue);
+
+    expect(
+      alternativeValues.length,
+      "The Edit Adhoc dropdown is filtered to activities this patient is not excluded from, and only the current selection is left. Check the patient's activity preferences and recommendations rather than the form."
+    ).toBeGreaterThan(0);
+
+    await select.selectOption(alternativeValues[0]);
 
     await editDialog.getByRole("button", { name: "Save" }).click();
 
