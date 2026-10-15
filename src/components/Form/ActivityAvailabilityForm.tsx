@@ -1,12 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useCentreActivities } from "@/hooks/activities/useCentreActivities";
 import { type FormErrors, type CentreActivityAvailabilityFormValues, validateLocal} from "@/lib/validation/activityAvailability";
 import { CentreActivityWithTitle } from "@/api/activities/centreActivities";
-//import { useCareCentreHours } from "@/hooks/activities/useCareCentreHours";
-//import type { WorkingHours } from "@/api/activities/careCentres";
+import { useCareCentreHours } from "@/hooks/activities/useCareCentreHours";
 import dayjs from "dayjs";
 
 
@@ -24,17 +23,15 @@ export interface RadioBtnOption {
   label: string;
   value: boolean;
 }
-const DEFAULT_WORKING_DAYS = [1, 2, 4, 8, 16]; // Mon–Fri (Mock data for now)
-
 const DAYS_MAP = [
-  { label: "Mon", value: 1 },
-  { label: "Tue", value: 2 },
-  { label: "Wed", value: 4 },
-  { label: "Thu", value: 8 },
-  { label: "Fri", value: 16 },
-  { label: "Sat", value: 32 },
-  { label: "Sun", value: 64 },
-];
+  { label: "Mon", value: 1, key: "monday" },
+  { label: "Tue", value: 2, key: "tuesday" },
+  { label: "Wed", value: 4, key: "wednesday" },
+  { label: "Thu", value: 8, key: "thursday" },
+  { label: "Fri", value: 16, key: "friday" },
+  { label: "Sat", value: 32, key: "saturday" },
+  { label: "Sun", value: 64, key: "sunday" },
+] as const;
 
 export default function ActivityAvailabilityForm({ 
   initial, 
@@ -98,9 +95,34 @@ export default function ActivityAvailabilityForm({
     const [deleted] = useState(initial?.is_deleted ?? false);
     const [is_deleted, setIsDeleted] = useState(initial?.is_deleted ?? false);
     const {centreActivities} = useCentreActivities(false);
-    //const { centre: selectedCentre} = useCareCentreHours("weqw");
+    const { centre } = useCareCentreHours();
+    const workingHours = centre?.working_hours;
     const [errors, setErrors] = useState<FormErrors>({ _summary: [] });
     const [selectedDays, setSelectedDays] = useState<number[]>([]);
+
+    const openDays = useMemo(() => {
+        if (!workingHours) return [];
+
+        return DAYS_MAP.filter(day => {
+            const hours = workingHours[day.key];
+            return Boolean(hours?.open && hours?.close);
+        });
+    }, [workingHours]);
+
+    const openingHours = useMemo(() => {
+        if (!workingHours || selectedDays.length === 0) return null;
+
+        const hours = openDays
+            .filter(day => selectedDays.includes(day.value))
+            .map(day => workingHours[day.key]);
+
+        if (hours.length === 0) return null;
+
+        return {
+            open: hours.reduce((latest, h) => (h.open! > latest ? h.open! : latest), hours[0].open!),
+            close: hours.reduce((earliest, h) => (h.close! < earliest ? h.close! : earliest), hours[0].close!),
+        };
+    }, [workingHours, openDays, selectedDays]);
 
     useEffect(() => {
         if (initial?.centre_activity_id && initial.centre_activity_id !== 0) {
@@ -124,7 +146,7 @@ export default function ActivityAvailabilityForm({
 
 
 
-    const runSync = (v: CentreActivityAvailabilityFormValues & {selectedCentreActivity: CentreActivityWithTitle}) => {
+    const runSync = (v: CentreActivityAvailabilityFormValues & {selectedCentreActivity: CentreActivityWithTitle} & {openingHours?: { open: string; close: string } | null}) => {
         const e = validateLocal(v);
         setErrors(e);
         return e;
@@ -168,7 +190,7 @@ export default function ActivityAvailabilityForm({
             created_by_id: "string",                 
             };
 
-            const local = runSync({ ...formValues, selectedCentreActivity: initial.selectedCentreActivityData });
+            const local = runSync({ ...formValues, selectedCentreActivity: initial.selectedCentreActivityData, openingHours });
             if (local._summary?.length) return;
 
             await onSubmit(formValues, setErrors);
@@ -269,7 +291,7 @@ export default function ActivityAvailabilityForm({
                     <div className="space-y-2">
                         <Label>Select days of the week:</Label>
                         <div className="flex flex-wrap space-x-2">
-                        {DAYS_MAP.filter(day => DEFAULT_WORKING_DAYS.includes(day.value)).map(day => (
+                        {openDays.map(day => (
                         <label key={day.value} className="flex items-center space-x-1">
                             <input
                             type="checkbox"
@@ -291,16 +313,16 @@ export default function ActivityAvailabilityForm({
                         <label className="flex items-center space-x-1 ml-4">
                             <input
                                 type="checkbox"
-                                checked={selectedDays.length === DEFAULT_WORKING_DAYS.length}
+                                checked={openDays.length > 0 && selectedDays.length === openDays.length}
                                 onChange={(e) => {
                                 if (e.target.checked) {
-                                    setSelectedDays(DEFAULT_WORKING_DAYS);
+                                    setSelectedDays(openDays.map(day => day.value));
                                 } else {
                                     setSelectedDays([]);
                                 }
                                 }}
                             />
-                            <span>Every weekday (Mon–Fri)</span>
+                            <span>Every open day</span>
                             </label>
                         </div>
                     </div>

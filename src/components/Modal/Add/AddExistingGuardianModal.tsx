@@ -78,12 +78,16 @@ const AddExistingGuardianModal: React.FC = () => {
       <div ref={modalRef} className="bg-background p-8 rounded-md w-[500px]">
         <h3 className="text-lg font-medium mb-5">Add Existing Guardian</h3>
 
+        <label htmlFor="existing-guardian-nric" className="block text-sm font-medium mb-1">
+          Guardian's NRIC
+          <span className="text-red-600"> *</span>
+        </label>
         <form onSubmit={handleSearch} className="flex gap-2 mb-4">
           <input
+            id="existing-guardian-nric"
             type="text"
             value={nric}
             onChange={(e) => setNric(e.target.value.toUpperCase())}
-            placeholder="Guardian's NRIC"
             className="flex-1 p-2 border rounded-md text-gray-900"
             required
           />

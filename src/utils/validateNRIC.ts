@@ -1,5 +1,5 @@
 
-export const validateNRIC = (nric: string = "G5872776N"): Boolean => {
+export const validateNRIC = (nric: string = "G5872776N"): boolean => {
     if (!nric) return false;
     let sum = 0;
     const weights = [2, 7, 6, 5, 4, 3, 2]

@@ -12,6 +12,7 @@ import useCreateUser from "@/hooks/admin/useCreateUser";
 import useGetRoleNames from "@/hooks/role/useGetRoleNames";
 import { AxiosError } from "axios";
 import { toast } from "sonner";
+import { validateNRIC } from "@/utils/validateNRIC";
 
 type Inputs = {
   fullName: string;
@@ -241,6 +242,8 @@ const RegisterAccount: React.FC = () => {
                           value: /^[STFGM]\d{7}[A-Z]$/,
                           message: "NRIC must be S/T/F/G/M + 7 digits + letter (e.g. S1234567A)",
                         },
+                        validate: (value: string) =>
+                          validateNRIC(value) || "Invalid NRIC",
                       }}
                     />
 
