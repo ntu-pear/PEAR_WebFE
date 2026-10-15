@@ -73,6 +73,8 @@ const ViewPatient: React.FC = () => {
   const isSupervisor = currentUser?.roleName === "SUPERVISOR";
   const isDoctor = currentUser?.roleName === "DOCTOR";
   const isGuardian = currentUser?.roleName === "GUARDIAN";
+  const isPrimaryGuardian =
+    patientAllocation?.guardianApplicationUserId === currentUser?.userId;
 
   const managePatientsPath = (() => {
     switch (currentUser?.roleName) {
@@ -195,7 +197,7 @@ const ViewPatient: React.FC = () => {
               {(isSupervisor || isGuardian) && (
                 <TabsTrigger value="routine">Routine</TabsTrigger>
               )}
-              {isSupervisor && (
+              {(isSupervisor || isPrimaryGuardian) && (
                 <TabsTrigger value="activity-preference">Activity Preference</TabsTrigger>
               )}
               {isSupervisor && (
@@ -227,7 +229,9 @@ const ViewPatient: React.FC = () => {
               {activeTab === "problem-log" && <ProblemLogTab />}
               {activeTab === "personal-preference" && <PersonalPreferenceTab />}
               {activeTab === "allergy" && <AllergyTab />}
-              {isSupervisor && activeTab === "activity-preference" && <ActivityPreferenceTab />}
+              {(isSupervisor || isPrimaryGuardian) && activeTab === "activity-preference" && (
+                <ActivityPreferenceTab canEdit={isSupervisor} />
+              )}
               {isSupervisor && activeTab === "activity-exclusion" && <ActivityExclusionTab />}
               {(isSupervisor || isGuardian) && activeTab === "routine" && <RoutineTab />}
               {isDoctor && activeTab === "game-recommendation" && <GameRecTab />}
