@@ -139,6 +139,38 @@ export const getSchedule = async (date?: string): Promise<SchedulerResponse<Week
   }
 };
 
+// Get one patient's saved schedule for the week that date (YYYY-MM-DD) falls in, this week if not given
+export const fetchPatientSchedule = async (
+  patientId: number,
+  date?: string
+): Promise<SchedulerResponse<WeeklyScheduleData[]>> => {
+  try {
+    const token = retrieveAccessTokenFromCookie();
+    if (!token) throw new Error("No token found.");
+
+    const query = date ? `?date=${encodeURIComponent(date)}` : '';
+    const response = await fetch(`${SCHEDULER_BASE_URL}/schedule/patient/${patientId}/${query}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      const error = new Error(`HTTP error! status: ${response.status}`);
+      (error as Error & { status?: number }).status = response.status;
+      throw error;
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error getting patient schedule:', error);
+    throw error;
+  }
+};
+
 // Regenerate schedule for supervisor (returns schedule directly)
 export const regenerateScheduleForSupervisor = async (): Promise<SchedulerResponse<WeeklyScheduleData[]>> => {
   try {

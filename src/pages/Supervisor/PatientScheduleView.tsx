@@ -1,11 +1,11 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import CalendarHeader from '@/components/Calendar/CalendarHeader';
 import PatientScheduleSidebar from '@/components/Calendar/PatientScheduleSidebar';
 import PatientDailyScheduleView from '@/components/Calendar/views/PatientDailyScheduleView';
 import PatientWeeklyScheduleView from '@/components/Calendar/views/PatientWeeklyScheduleView';
 import ActivityDetailsModal from '@/components/Calendar/modals/ActivityDetailsModal';
 import { usePatientScheduleData } from '@/components/Calendar/hooks/usePatientScheduleData';
-import { CalendarScheduleItem, useSchedulerService } from '@/hooks/scheduler/useSchedulerService';
+import { CalendarScheduleItem, useSchedulerService, weekStart } from '@/hooks/scheduler/useSchedulerService';
 import { ViewMode } from '@/components/Calendar/CalendarTypes';
 import { exportScheduleToCSV } from '@/utils/csvExport';
 import { toast } from 'sonner';
@@ -27,8 +27,12 @@ const PatientScheduleView: React.FC = () => {
   const [showMyPatientsOnly, setShowMyPatientsOnly] = useState(true);
 
   const { patientIds: myPatientIds } = useMyPatientIds();
-  const { currentUser } = useAuth();
+  const { currentUser, isLoading: isAuthLoading, logout } = useAuth();
+  const logoutRef = useRef(logout);
+  logoutRef.current = logout;
+  const handleUnauthorized = useCallback(() => { logoutRef.current(); }, []);
   const isGuardian = currentUser?.roleName === "GUARDIAN";
+  const viewedWeek = weekStart(currentDate);
 
   // hooks for patient schedule data
   const {
@@ -45,6 +49,7 @@ const PatientScheduleView: React.FC = () => {
     error: scheduleError,
     generateSchedule,
     getOrGenerateSchedule,
+    loadPatientSchedules,
     getPatientScheduleForDate,
     loadWeek,
   } = useSchedulerService();
@@ -89,13 +94,21 @@ const PatientScheduleView: React.FC = () => {
 
   // Auto-fetch/generate schedule when component mounts
   useEffect(() => {
+    if (isAuthLoading || isGuardian) return;
     getOrGenerateSchedule();
-  }, [getOrGenerateSchedule]); // Include the function in dependency array
+  }, [isAuthLoading, isGuardian, getOrGenerateSchedule]); // Include the function in dependency array
+
+  // Guardians read only their own patients' schedules, never generate
+  useEffect(() => {
+    if (isAuthLoading || !isGuardian || !myPatientIds) return;
+    loadPatientSchedules([...myPatientIds], viewedWeek, handleUnauthorized);
+  }, [isAuthLoading, isGuardian, myPatientIds, viewedWeek, loadPatientSchedules, handleUnauthorized]);
 
   // Load the saved schedule of whichever week is being looked at
   useEffect(() => {
+    if (isAuthLoading || isGuardian) return;
     loadWeek(currentDate);
-  }, [currentDate, loadWeek]);
+  }, [isAuthLoading, isGuardian, currentDate, loadWeek]);
 
   // Auto-select all activities when schedule data changes
   useEffect(() => {
@@ -256,10 +269,10 @@ const PatientScheduleView: React.FC = () => {
   }, [scheduleData]);
 
   const visiblePatients = useMemo(() => {
-    if ((!showMyPatientsOnly && !isGuardian) || !myPatientIds) return patientsFromSchedule;
+    if (!showMyPatientsOnly || !myPatientIds) return patientsFromSchedule;
 
     return patientsFromSchedule.filter(patient => myPatientIds.has(Number(patient.id)));
-  }, [patientsFromSchedule, showMyPatientsOnly, myPatientIds, isGuardian]);
+  }, [patientsFromSchedule, showMyPatientsOnly, myPatientIds]);
 
   const selectedPatient = useMemo(
     () => visiblePatients.find(patient => patient.id === selectedPatientId),
