@@ -26,7 +26,8 @@ export const ERRORS = {
   START_TIME_ABOVE_END_TIME: "Start time must not be after end time.",
   END_TIME_BELOW_START_TIME: "End time must not be earlier than start time.",
   DURATION_INVALID: "Total duration of an activity can only be 30 or 60 minutes.",
-  CENTRE_ACTIVITY_ERROR: "Error retrieving centre activity information. Please contact system administrator."
+  CENTRE_ACTIVITY_ERROR: "Error retrieving centre activity information. Please contact system administrator.",
+  OUTSIDE_OPENING_HOURS: "The activity must fall within the care centre's opening hours."
 } as const;
 
 export function validateLocal(
@@ -37,6 +38,7 @@ export function validateLocal(
       start_time: string;
       end_time: string;
       selectedCentreActivity: CentreActivityWithTitle;
+      openingHours?: { open: string; close: string } | null;
     }
 ) {
   const e: FormErrors = { _summary: [] };
@@ -86,6 +88,20 @@ export function validateLocal(
     e._summary!.push(
       `The minimum duration allowed is ${min} minutes.`
     );
+  }
+
+  if (values.openingHours) {
+    const [openHours, openMinutes] = values.openingHours.open.split(":").map(Number);
+    const [closeHours, closeMinutes] = values.openingHours.close.split(":").map(Number);
+
+    const openTime = dayjs().hour(openHours).minute(openMinutes).second(0);
+    const closeTime = dayjs().hour(closeHours).minute(closeMinutes).second(0);
+
+    if (startTime.isBefore(openTime) || endTime.isAfter(closeTime)) {
+      e._summary!.push(
+        `${ERRORS.OUTSIDE_OPENING_HOURS} (${values.openingHours.open} to ${values.openingHours.close})`
+      );
+    }
   }
 
   return e;
