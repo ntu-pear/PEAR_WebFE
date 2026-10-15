@@ -11,6 +11,7 @@ import { exportScheduleToCSV } from '@/utils/csvExport';
 import { toast } from 'sonner';
 import { ScheduledPatientActivity } from '@/api/scheduler/scheduler';
 import { useMyPatientIds } from '@/hooks/patient/useMyPatientIds';
+import { useAuth } from '@/hooks/useAuth';
 
 // Patient Schedule View component
 const PatientScheduleView: React.FC = () => {
@@ -26,6 +27,8 @@ const PatientScheduleView: React.FC = () => {
   const [showMyPatientsOnly, setShowMyPatientsOnly] = useState(true);
 
   const { patientIds: myPatientIds } = useMyPatientIds();
+  const { currentUser } = useAuth();
+  const isGuardian = currentUser?.roleName === "GUARDIAN";
 
   // hooks for patient schedule data
   const {
@@ -253,10 +256,10 @@ const PatientScheduleView: React.FC = () => {
   }, [scheduleData]);
 
   const visiblePatients = useMemo(() => {
-    if (!showMyPatientsOnly || !myPatientIds) return patientsFromSchedule;
+    if ((!showMyPatientsOnly && !isGuardian) || !myPatientIds) return patientsFromSchedule;
 
     return patientsFromSchedule.filter(patient => myPatientIds.has(Number(patient.id)));
-  }, [patientsFromSchedule, showMyPatientsOnly, myPatientIds]);
+  }, [patientsFromSchedule, showMyPatientsOnly, myPatientIds, isGuardian]);
 
   const selectedPatient = useMemo(
     () => visiblePatients.find(patient => patient.id === selectedPatientId),
@@ -361,7 +364,10 @@ const PatientScheduleView: React.FC = () => {
           onPatientChange={setSelectedPatientId}
           showMyPatientsOnly={showMyPatientsOnly}
           onShowMyPatientsOnlyChange={setShowMyPatientsOnly}
-          canFilterMyPatients={myPatientIds !== null}
+          canFilterMyPatients={myPatientIds !== null && !isGuardian}
+          canRegenerate={!isGuardian}
+          verticalPatientToggle={isGuardian}
+          showPatientPicker={viewMode === 'patient-weekly'}
           activityTemplates={activitiesFromSchedule} // Use derived activities from scheduler response
           selectedActivities={selectedScheduleActivities} // Use schedule-based selected activities
           onActivityToggle={handleScheduleActivityToggle}

@@ -1,5 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { format, parseISO } from 'date-fns';
@@ -22,6 +23,7 @@ const ActivityDetailsModal: React.FC<ActivityDetailsModalProps> = ({
   getPatientDisplayName,
 }) => {
   const navigate = useNavigate();
+  const { currentUser } = useAuth();
   
   if (!isOpen) return null;
 
@@ -57,7 +59,7 @@ const ActivityDetailsModal: React.FC<ActivityDetailsModalProps> = ({
             </div>
             
             {/* Patient Name - only show for patient activities */}
-            {isPatientActivity && patientId && (
+            {isPatientActivity && patientId && currentUser?.roleName !== "GUARDIAN" && (
               <div className="flex items-center space-x-2">
                 <span className="text-gray-600"><User /></span>
                 <Label className="text-base">Patient:</Label>

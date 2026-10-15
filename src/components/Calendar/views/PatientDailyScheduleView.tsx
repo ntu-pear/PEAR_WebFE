@@ -1,6 +1,7 @@
 import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { format, parse, getHours } from "date-fns";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
 import { Settings } from "lucide-react";
 import {
   ScheduledPatientActivity,
@@ -91,6 +92,8 @@ const PatientDailyScheduleView: React.FC<PatientDailyScheduleViewProps> = ({
   scrollToCurrentTimeTrigger = 0,
 }) => {
   const navigate = useNavigate();
+  const { currentUser } = useAuth();
+  const canEditPreferences = currentUser?.roleName !== "GUARDIAN";
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const consumedScrollTriggerRef = useRef(0);
   const lastDateStringRef = useRef<string | null>(null);
@@ -276,6 +279,7 @@ const PatientDailyScheduleView: React.FC<PatientDailyScheduleViewProps> = ({
                     <div>
                       <div className="font-medium text-sm">{patient.name}</div>
                     </div>
+                    {canEditPreferences && (
                     <button
                       onClick={() => navigate(`/supervisor/view-patient/${patient.id}?tab=activity-preference`)}
                       className="p-1 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
@@ -283,6 +287,7 @@ const PatientDailyScheduleView: React.FC<PatientDailyScheduleViewProps> = ({
                     >
                       <Settings className="h-4 w-4" />
                     </button>
+                    )}
                   </div>
 
                   {/* Time slot cells for this patient */}

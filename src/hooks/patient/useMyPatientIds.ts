@@ -3,13 +3,14 @@ import {
   fetchSupervisorPatientTD,
   fetchDoctorPatientTD,
   fetchCaregiverPatientTD,
+  fetchGuardianPatients,
   PatientTableDataServer,
 } from "@/api/patients/patients";
 import { useAuth } from "@/hooks/useAuth";
 
 const PAGE_SIZE = 100;
 
-type ScopedFetch = (
+type PagedFetch = (
   id: string,
   name: string | null,
   isActive: string | null,
@@ -17,10 +18,31 @@ type ScopedFetch = (
   pageSize: number
 ) => Promise<PatientTableDataServer>;
 
-const FETCH_BY_ROLE: Record<string, ScopedFetch> = {
+const PAGED_FETCH_BY_ROLE: Record<string, PagedFetch> = {
   SUPERVISOR: fetchSupervisorPatientTD,
   DOCTOR: fetchDoctorPatientTD,
   CAREGIVER: fetchCaregiverPatientTD,
+};
+
+const collectPaged = async (fetchPage: PagedFetch, userId: string) => {
+  const ids = new Set<number>();
+  let pageNo = 0;
+  let totalPages = 1;
+
+  while (pageNo < totalPages) {
+    const res = await fetchPage(userId, "", null, pageNo, PAGE_SIZE);
+    res.patients.forEach((p) => ids.add(Number(p.id)));
+    totalPages = res.pagination.totalPages || 1;
+    pageNo += 1;
+  }
+
+  return ids;
+};
+
+const collectGuardian = async (userId: string) => {
+  const res = await fetchGuardianPatients(userId);
+  const rows = Array.isArray(res?.data) ? res.data : [];
+  return new Set<number>(rows.map((p: { id: string | number }) => Number(p.id)));
 };
 
 export function useMyPatientIds() {
@@ -32,28 +54,22 @@ export function useMyPatientIds() {
   const userId = currentUser?.userId;
 
   useEffect(() => {
-    const scopedFetch = roleName ? FETCH_BY_ROLE[roleName] : undefined;
+    const pagedFetch = roleName ? PAGED_FETCH_BY_ROLE[roleName] : undefined;
+    const isGuardian = roleName === "GUARDIAN";
 
-    if (!scopedFetch || !userId) {
+    if ((!pagedFetch && !isGuardian) || !userId) {
       setPatientIds(null);
       return;
     }
 
     let cancelled = false;
 
-    const loadAllPages = async () => {
+    const load = async () => {
       setLoading(true);
       try {
-        const ids = new Set<number>();
-        let pageNo = 0;
-        let totalPages = 1;
-
-        while (pageNo < totalPages) {
-          const res = await scopedFetch(String(userId), "", null, pageNo, PAGE_SIZE);
-          res.patients.forEach((p) => ids.add(Number(p.id)));
-          totalPages = res.pagination.totalPages || 1;
-          pageNo += 1;
-        }
+        const ids = isGuardian
+          ? await collectGuardian(String(userId))
+          : await collectPaged(pagedFetch!, String(userId));
 
         if (!cancelled) setPatientIds(ids);
       } catch (error) {
@@ -64,7 +80,7 @@ export function useMyPatientIds() {
       }
     };
 
-    loadAllPages();
+    load();
 
     return () => {
       cancelled = true;
