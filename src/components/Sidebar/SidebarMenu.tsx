@@ -256,6 +256,11 @@ const adminMenu: MenuSection[] = [
         path: "/admin/system-config-logs",
       },
       {
+        title: "Log Dashboard",
+        icon: "ChartColumn",
+        path: "/admin/log-dashboard",
+      },
+      {
         title: "Error Logs",
         icon: "Bug",
         path: "/admin/ops-logs/errors",

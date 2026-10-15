@@ -1,3 +1,5 @@
+import type { LogFlag } from "@/types/logFlags";
+
 export type AuditLogRecord = {
   timestamp: string;
   method: string;
@@ -10,6 +12,7 @@ export type AuditLogRecord = {
   updated_data: Record<string, unknown> | null;
   message: string;
   role: string | null;
+  flags?: LogFlag[];
 };
 
 export type AuditLogApiResponse = {

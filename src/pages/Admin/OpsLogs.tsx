@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { format } from "date-fns";
 import { Bug, Calendar, Eye, Fingerprint, Globe, KeyRound, Layers, Search, Server, User } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { FlagBadges } from "@/components/logFlags/FlagBadge";
 import FilterSidebar from "@/components/Filters/FilterSidebar";
 import TextFilterField from "@/components/Filters/TextFilterField";
 import SelectFilterField from "@/components/Filters/SelectFilterField";
@@ -63,10 +64,15 @@ const normalise = (filters: OpsLogFilters): OpsLogFilters => ({
   level: filters.level && filters.level !== "all" ? filters.level : null,
 });
 
+// The log dashboard links here with ?date=YYYY-MM-DD to open the page on the day of a flag.
+const initialFilters = (date: string | null): OpsLogFilters =>
+  date && /^\d{4}-\d{2}-\d{2}$/.test(date) ? { startDate: date, endDate: date } : {};
+
 const OpsLogsPage: React.FC<OpsLogsPageProps> = ({ kind, sensitive = false }) => {
   const navigate = useNavigate();
-  const [draft, setDraft] = useState<OpsLogFilters>({});
-  const [applied, setApplied] = useState<OpsLogFilters>({});
+  const [searchParams] = useSearchParams();
+  const [draft, setDraft] = useState<OpsLogFilters>(() => initialFilters(searchParams.get("date")));
+  const [applied, setApplied] = useState<OpsLogFilters>(() => initialFilters(searchParams.get("date")));
   const [paging, setPaging] = useState({ pageNo: 0, pageSize: PAGE_SIZE });
   const [result, setResult] = useState<OpsLogsResult | null>(null);
   const [loading, setLoading] = useState(false);
@@ -132,12 +138,22 @@ const OpsLogsPage: React.FC<OpsLogsPageProps> = ({ kind, sensitive = false }) =>
       ? {
           key: "status" as keyof OpsLogRow,
           header: "Status",
-          render: (value: number | null) => <Badge className={statusBadgeClass(value)}>{value ?? "-"}</Badge>,
+          render: (value: number | null, item: OpsLogRow) => (
+            <div className="flex flex-wrap items-center gap-1">
+              <Badge className={statusBadgeClass(value)}>{value ?? "-"}</Badge>
+              <FlagBadges flags={item.raw.flags} />
+            </div>
+          ),
         }
       : {
           key: "level" as keyof OpsLogRow,
           header: "Level",
-          render: (value: string) => <Badge className={levelBadgeClass(value)}>{value}</Badge>,
+          render: (value: string, item: OpsLogRow) => (
+            <div className="flex flex-wrap items-center gap-1">
+              <Badge className={levelBadgeClass(value)}>{value}</Badge>
+              <FlagBadges flags={item.raw.flags} />
+            </div>
+          ),
         },
     {
       key: "summary" as keyof OpsLogRow,

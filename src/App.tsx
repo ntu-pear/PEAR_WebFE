@@ -1,4 +1,5 @@
 import "./App.css";
+import { lazy, Suspense } from "react";
 import {
   BrowserRouter as Router,
   Routes,
@@ -10,6 +11,7 @@ import { Toaster } from "./components/ui/sonner";
 import { ModalProvider } from "./hooks/useModal";
 import { AuthProvider } from "./hooks/useAuth";
 import ProtectedRoute from "./components/ProtectedRoute";
+import { Spinner } from "./components/ui/spinner";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useFeatureFlag } from "./hooks/useFeatureFlags";
 import FeatureFlagPanel from "./components/FeatureFlagPanel";
@@ -62,6 +64,8 @@ import ActivityLogs from "./pages/logger/ActivityLogs";
 import SystemConfigLogs from "./pages/logger/SystemConfigLogs";
 import OpsLogsPage from "./pages/Admin/OpsLogs";
 import RequestTrace from "./pages/Admin/RequestTrace";
+// Lazy so recharts is only downloaded when an admin opens the dashboard.
+const LogDashboard = lazy(() => import("./pages/Admin/LogDashboard"));
 import AccountTable from "./pages/Admin/AccountTable";
 import ViewAccount from "./pages/Admin/ViewAccount";
 import { ViewAccountProvider } from "./hooks/admin/useViewAccount";
@@ -264,6 +268,20 @@ const App: React.FC = () => {
                       <Route 
                         path="system-config-logs"
                         element={<SystemConfigLogs />}
+                      />
+                      <Route
+                        path="log-dashboard"
+                        element={
+                          <Suspense
+                            fallback={
+                              <div className="flex justify-center p-12">
+                                <Spinner size="lg" />
+                              </div>
+                            }
+                          >
+                            <LogDashboard />
+                          </Suspense>
+                        }
                       />
                       <Route
                         path="ops-logs/errors"

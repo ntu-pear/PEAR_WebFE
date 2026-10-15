@@ -23,6 +23,23 @@ describe("OpsLogsPage", () => {
     expect(screen.getByText("Error Logs")).toBeInTheDocument();
   });
 
+  it("opens on the day given by ?date (links from the log dashboard)", async () => {
+    fetchOpsLogs.mockResolvedValueOnce(ok([]));
+    render(
+      <MemoryRouter initialEntries={["/admin/ops-logs/auth?date=2026-10-14"]}>
+        <OpsLogsPage kind="auth" />
+      </MemoryRouter>
+    );
+    await waitFor(() =>
+      expect(fetchOpsLogs).toHaveBeenCalledWith(
+        "auth",
+        { startDate: "2026-10-14", endDate: "2026-10-14", sensitive: false },
+        0,
+        20
+      )
+    );
+  });
+
   it("the sensitive page asks for requests with the preset", async () => {
     fetchOpsLogs.mockResolvedValueOnce(ok([]));
     renderPage(<OpsLogsPage kind="requests" sensitive />);
@@ -60,5 +77,25 @@ describe("OpsLogsPage", () => {
     renderPage(<OpsLogsPage kind="requests" />);
     expect(await screen.findByText("GET /api/v1/patients/1")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "01234567" })).toBeInTheDocument();
+  });
+
+  it("shows flag badges on flagged rows and none on others", async () => {
+    fetchOpsLogs.mockResolvedValueOnce(
+      ok([
+        {
+          timestamp: "2026-10-14T01:00:00.000Z",
+          ops_type: "error",
+          message: "boom",
+          service: "patient",
+          level: "ERROR",
+          flags: [{ code: "error_spike", severity: "warning", reason: "25 errors from patient in 5 min" }],
+        },
+        { timestamp: "2026-10-14T01:01:00.000Z", ops_type: "error", message: "quiet", service: "user", level: "ERROR" },
+      ])
+    );
+    renderPage(<OpsLogsPage kind="errors" />);
+    expect(await screen.findByText("Error spike")).toBeInTheDocument();
+    expect(screen.getAllByText("Error spike")).toHaveLength(1);
+    expect(screen.getByLabelText("Error spike: 25 errors from patient in 5 min")).toBeInTheDocument();
   });
 });

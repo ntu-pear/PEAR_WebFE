@@ -3,6 +3,8 @@ import { activityLoggerAPI } from "../apiConfig";
 import { retrieveAccessTokenFromCookie } from "@/api/users/auth";
 import { AuditLogApiResponse } from "@/types/auditLog";
 
+import type { LogFlag } from "@/types/logFlags";
+
 export type LogType = "patient" | "system" | "user";
 
 export interface LogsBase {
@@ -21,6 +23,7 @@ export interface LogsBase {
   updated_data?: Record<string, any>;
   log_type?: LogType;
   is_system_config?: boolean;
+  flags?: LogFlag[];
 }
 
 export interface ViewLogsList {

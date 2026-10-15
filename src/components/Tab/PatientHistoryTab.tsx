@@ -4,6 +4,7 @@ import { ChevronDown, ChevronUp } from "lucide-react";
 import { TabsContent } from "../ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Badge } from "../ui/badge";
+import { FlagBadges } from "../logFlags/FlagBadge";
 import { Button } from "../ui/button";
 import ChangeDetails from "@/components/auditLogs/ChangeDetails";
 import { useViewPatient } from "@/hooks/patient/useViewPatient";
@@ -124,6 +125,7 @@ const PatientHistoryTab: React.FC = () => {
                             <span className="font-medium">{log.user_full_name || log.user}</span>
                             <Badge className={getActionBadgeColor(log.method)}>{log.method}</Badge>
                             <Badge variant="outline">{log.log_type || log.table || "-"}</Badge>
+                            <FlagBadges flags={log.flags} />
                           </div>
                           <div className="text-sm break-words">{log.message}</div>
                         </div>
