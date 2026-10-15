@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ActivityTemplate } from '@/api/scheduler/scheduler';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Select,
   SelectContent,
@@ -18,6 +19,9 @@ interface PatientScheduleSidebarProps {
   patients: { id: string; name: string }[];
   selectedPatientId: string;
   onPatientChange: (patientId: string) => void;
+  showMyPatientsOnly: boolean;
+  onShowMyPatientsOnlyChange: (value: boolean) => void;
+  canFilterMyPatients: boolean;
   activityTemplates: ActivityTemplate[];
   selectedActivities: string[];
   onActivityToggle: (activityId: string, checked: boolean) => void;
@@ -33,6 +37,9 @@ const PatientScheduleSidebar: React.FC<PatientScheduleSidebarProps> = ({
   patients,
   selectedPatientId,
   onPatientChange,
+  showMyPatientsOnly,
+  onShowMyPatientsOnlyChange,
+  canFilterMyPatients,
   activityTemplates,
   selectedActivities,
   onActivityToggle,
@@ -99,14 +106,25 @@ const PatientScheduleSidebar: React.FC<PatientScheduleSidebarProps> = ({
           <CardHeader className="pb-3">
             <CardTitle className="text-sm">Patient</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-3">
+            {canFilterMyPatients && (
+              <Tabs
+                value={showMyPatientsOnly ? "mine" : "all"}
+                onValueChange={(value) => onShowMyPatientsOnlyChange(value === "mine")}
+              >
+                <TabsList className="w-full">
+                  <TabsTrigger value="mine" className="flex-1">My Patients</TabsTrigger>
+                  <TabsTrigger value="all" className="flex-1">All Patients</TabsTrigger>
+                </TabsList>
+              </Tabs>
+            )}
             <Select
               value={selectedPatientId}
               onValueChange={onPatientChange}
               disabled={patients.length === 0}
             >
               <SelectTrigger>
-                <SelectValue placeholder="Select patient" />
+                <SelectValue placeholder={patients.length === 0 ? "No patients" : "Select patient"} />
               </SelectTrigger>
               <SelectContent>
                 {patients.map((patient) => (
