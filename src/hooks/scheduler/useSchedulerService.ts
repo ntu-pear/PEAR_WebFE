@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef } from 'react';
-import { generateAndGetSchedule, getSchedule, convertScheduleToCalendarFormat, regenerateScheduleForSupervisor, type WeeklyScheduleData } from '@/api/scheduler/scheduler';
+import { generateAndGetSchedule, getSchedule, fetchPatientSchedule, convertScheduleToCalendarFormat, regenerateScheduleForSupervisor, type WeeklyScheduleData } from '@/api/scheduler/scheduler';
 import { toast } from 'sonner';
 
 export interface CalendarScheduleItem {
@@ -103,6 +103,59 @@ export const useSchedulerService = () => {
     }
   }, []);
 
+  // Load only the given patients' saved schedules, read only
+  const loadPatientSchedules = useCallback(async (patientIds: number[], date?: string, onUnauthorized?: () => void) => {
+    setIsLoading(true);
+    setError(null);
+
+    const rows: WeeklyScheduleData[] = [];
+    const failures: number[] = [];
+
+    try {
+      await Promise.all(
+        patientIds.map(async (patientId) => {
+          try {
+            const response = await fetchPatientSchedule(patientId, date);
+            if (response.Status === "200" && Array.isArray(response.Data)) {
+              rows.push(...response.Data);
+            }
+          } catch (error) {
+            failures.push((error as { status?: number }).status ?? 0);
+          }
+        })
+      );
+
+      if (failures.includes(401)) {
+        toast.error('Your session has expired. Please log in again.');
+        onUnauthorized?.();
+        return [];
+      }
+
+      const calendarSchedule = convertScheduleToCalendarFormat(rows);
+      setScheduleData(calendarSchedule);
+      setRawScheduleData(rows);
+
+      if (failures.length > 0) {
+        const reason = failures.includes(503)
+          ? 'The scheduler could not check your access, please try again later.'
+          : failures.includes(403)
+            ? "You don't have access to one of these patients."
+            : 'Please try again.';
+        setError(reason);
+        toast.error(`Could not load the schedule for ${failures.length} of ${patientIds.length} patients. ${reason}`);
+      }
+
+      return calendarSchedule;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      setError(errorMessage);
+      toast.error(`Error loading schedule: ${errorMessage}`);
+      return [];
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
   const clearSchedule = useCallback(() => {
     loadedWeeks.current.clear();
     setScheduleData([]);
@@ -175,6 +228,7 @@ export const useSchedulerService = () => {
     // Actions
     generateSchedule,
     getOrGenerateSchedule,
+    loadPatientSchedules,
     clearSchedule,
     loadWeek,
     

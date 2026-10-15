@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ActivityTemplate } from '@/api/scheduler/scheduler';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Select,
   SelectContent,
@@ -18,6 +19,12 @@ interface PatientScheduleSidebarProps {
   patients: { id: string; name: string }[];
   selectedPatientId: string;
   onPatientChange: (patientId: string) => void;
+  showMyPatientsOnly: boolean;
+  onShowMyPatientsOnlyChange: (value: boolean) => void;
+  canFilterMyPatients: boolean;
+  canRegenerate?: boolean;
+  verticalPatientToggle?: boolean;
+  showPatientPicker?: boolean;
   activityTemplates: ActivityTemplate[];
   selectedActivities: string[];
   onActivityToggle: (activityId: string, checked: boolean) => void;
@@ -33,6 +40,12 @@ const PatientScheduleSidebar: React.FC<PatientScheduleSidebarProps> = ({
   patients,
   selectedPatientId,
   onPatientChange,
+  showMyPatientsOnly,
+  onShowMyPatientsOnlyChange,
+  canFilterMyPatients,
+  canRegenerate = true,
+  verticalPatientToggle = false,
+  showPatientPicker = true,
   activityTemplates,
   selectedActivities,
   onActivityToggle,
@@ -54,6 +67,7 @@ const PatientScheduleSidebar: React.FC<PatientScheduleSidebarProps> = ({
     <div className="w-80 flex-shrink-0 bg-white border-r border-gray-200 p-4 overflow-y-auto">
       <div className="space-y-4">
         {/* Scheduler Controls */}
+        {canRegenerate && (
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-sm">Schedule Management</CardTitle>
@@ -94,30 +108,63 @@ const PatientScheduleSidebar: React.FC<PatientScheduleSidebarProps> = ({
             )}
           </CardContent>
         </Card>
+        )}
         {/* Patient Selector */}
+        {(canFilterMyPatients || showPatientPicker) && (
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-sm">Patient</CardTitle>
           </CardHeader>
-          <CardContent>
-            <Select
-              value={selectedPatientId}
-              onValueChange={onPatientChange}
-              disabled={patients.length === 0}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select patient" />
-              </SelectTrigger>
-              <SelectContent>
-                {patients.map((patient) => (
-                  <SelectItem key={patient.id} value={patient.id}>
-                    {patient.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <CardContent className="space-y-3">
+            {canFilterMyPatients && (
+              <Tabs
+                value={showMyPatientsOnly ? "mine" : "all"}
+                onValueChange={(value) => onShowMyPatientsOnlyChange(value === "mine")}
+              >
+                <TabsList className="w-full">
+                  <TabsTrigger value="mine" className="flex-1">My Patients</TabsTrigger>
+                  <TabsTrigger value="all" className="flex-1">All Patients</TabsTrigger>
+                </TabsList>
+              </Tabs>
+            )}
+            {showPatientPicker && (verticalPatientToggle ? (
+              patients.length === 0 ? (
+                <p className="text-sm text-muted-foreground">No patients</p>
+              ) : (
+                <div className="flex flex-col gap-2">
+                  {patients.map((patient) => (
+                    <Button
+                      key={patient.id}
+                      variant={patient.id === selectedPatientId ? "default" : "outline"}
+                      className="w-full justify-start text-left h-auto py-2 whitespace-normal"
+                      onClick={() => onPatientChange(patient.id)}
+                    >
+                      {patient.name}
+                    </Button>
+                  ))}
+                </div>
+              )
+            ) : (
+              <Select
+                value={selectedPatientId}
+                onValueChange={onPatientChange}
+                disabled={patients.length === 0}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder={patients.length === 0 ? "No patients" : "Select patient"} />
+                </SelectTrigger>
+                <SelectContent>
+                  {patients.map((patient) => (
+                    <SelectItem key={patient.id} value={patient.id}>
+                      {patient.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            ))}
           </CardContent>
         </Card>
+        )}
         {/* Activity Filters (from scheduleData) */}
         <Card>
           <CardHeader className="pb-3">

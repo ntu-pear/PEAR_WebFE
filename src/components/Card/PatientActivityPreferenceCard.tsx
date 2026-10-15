@@ -49,11 +49,12 @@ import { toast } from "sonner";
 
 interface PatientActivityPreferenceCardProps {
   patientId: string;
+  canEdit?: boolean;
 }
 
 const PatientActivityPreferenceCard: React.FC<
   PatientActivityPreferenceCardProps
-> = ({ patientId }) => {
+> = ({ patientId, canEdit = true }) => {
   const {
     activityPreferences,
     centreActivityExclusions,
@@ -281,10 +282,8 @@ const PatientActivityPreferenceCard: React.FC<
     new Date(exclusion.startDate) <= now &&
     (!exclusion.endDate || new Date(exclusion.endDate) >= now);
 
-  return (
-    <ContextMenu>
-      <ContextMenuTrigger>
-        <div className="relative group inline-flex justify-center cursor-context-menu">
+  const badge = (
+    <div className="relative group inline-flex justify-center">
           {/* STATUS BADGE */}
           <Badge
             className={`text-xs ${
@@ -305,8 +304,14 @@ const PatientActivityPreferenceCard: React.FC<
               <b>Remarks:</b> {exclusion.exclusionRemarks || "-"}
             </div>
           </div>
-        </div>
-      </ContextMenuTrigger>
+    </div>
+  );
+
+  if (!canEdit) return badge;
+
+  return (
+    <ContextMenu>
+      <ContextMenuTrigger>{badge}</ContextMenuTrigger>
 
       <ContextMenuContent>
         <ContextMenuItem
@@ -411,6 +416,14 @@ const PatientActivityPreferenceCard: React.FC<
             : item.patientPreference === "DISLIKE"
             ? ["LIKE", "NEUTRAL"]
             : ["LIKE", "DISLIKE"];
+
+        if (!canEdit) {
+          return (
+            <div className="flex justify-center items-center w-full min-h-[40px]">
+              {renderPreferenceBadge(String(value))}
+            </div>
+          );
+        }
 
         return (
           <ContextMenu>

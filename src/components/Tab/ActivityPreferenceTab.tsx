@@ -2,7 +2,11 @@ import { TabsContent } from "../ui/tabs";
 import { useViewPatient } from "@/hooks/patient/useViewPatient";
 import PatientActivityPreferenceCard from "../Card/PatientActivityPreferenceCard";
 
-const ActivityPreferenceTab: React.FC = () => {
+interface ActivityPreferenceTabProps {
+  canEdit?: boolean;
+}
+
+const ActivityPreferenceTab: React.FC<ActivityPreferenceTabProps> = ({ canEdit = true }) => {
   const { id: patientId } = useViewPatient();
 
   if (!patientId) {
@@ -20,6 +24,7 @@ const ActivityPreferenceTab: React.FC = () => {
       <div className="my-2">
         <PatientActivityPreferenceCard 
           patientId={patientId}
+          canEdit={canEdit}
         />
       </div>
     </TabsContent>

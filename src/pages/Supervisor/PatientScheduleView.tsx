@@ -1,15 +1,17 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import CalendarHeader from '@/components/Calendar/CalendarHeader';
 import PatientScheduleSidebar from '@/components/Calendar/PatientScheduleSidebar';
 import PatientDailyScheduleView from '@/components/Calendar/views/PatientDailyScheduleView';
 import PatientWeeklyScheduleView from '@/components/Calendar/views/PatientWeeklyScheduleView';
 import ActivityDetailsModal from '@/components/Calendar/modals/ActivityDetailsModal';
 import { usePatientScheduleData } from '@/components/Calendar/hooks/usePatientScheduleData';
-import { CalendarScheduleItem, useSchedulerService } from '@/hooks/scheduler/useSchedulerService';
+import { CalendarScheduleItem, useSchedulerService, weekStart } from '@/hooks/scheduler/useSchedulerService';
 import { ViewMode } from '@/components/Calendar/CalendarTypes';
 import { exportScheduleToCSV } from '@/utils/csvExport';
 import { toast } from 'sonner';
 import { ScheduledPatientActivity } from '@/api/scheduler/scheduler';
+import { useMyPatientIds } from '@/hooks/patient/useMyPatientIds';
+import { useAuth } from '@/hooks/useAuth';
 
 // Patient Schedule View component
 const PatientScheduleView: React.FC = () => {
@@ -22,6 +24,15 @@ const PatientScheduleView: React.FC = () => {
   // State for managing selected activities from schedule data
   const [selectedScheduleActivities, setSelectedScheduleActivities] = useState<string[]>([]);
   const [selectedPatientId, setSelectedPatientId] = useState<string>("");
+  const [showMyPatientsOnly, setShowMyPatientsOnly] = useState(true);
+
+  const { patientIds: myPatientIds } = useMyPatientIds();
+  const { currentUser, isLoading: isAuthLoading, logout } = useAuth();
+  const logoutRef = useRef(logout);
+  logoutRef.current = logout;
+  const handleUnauthorized = useCallback(() => { logoutRef.current(); }, []);
+  const isGuardian = currentUser?.roleName === "GUARDIAN";
+  const viewedWeek = weekStart(currentDate);
 
   // hooks for patient schedule data
   const {
@@ -38,6 +49,7 @@ const PatientScheduleView: React.FC = () => {
     error: scheduleError,
     generateSchedule,
     getOrGenerateSchedule,
+    loadPatientSchedules,
     getPatientScheduleForDate,
     loadWeek,
   } = useSchedulerService();
@@ -82,13 +94,21 @@ const PatientScheduleView: React.FC = () => {
 
   // Auto-fetch/generate schedule when component mounts
   useEffect(() => {
+    if (isAuthLoading || isGuardian) return;
     getOrGenerateSchedule();
-  }, [getOrGenerateSchedule]); // Include the function in dependency array
+  }, [isAuthLoading, isGuardian, getOrGenerateSchedule]); // Include the function in dependency array
+
+  // Guardians read only their own patients' schedules, never generate
+  useEffect(() => {
+    if (isAuthLoading || !isGuardian || !myPatientIds) return;
+    loadPatientSchedules([...myPatientIds], viewedWeek, handleUnauthorized);
+  }, [isAuthLoading, isGuardian, myPatientIds, viewedWeek, loadPatientSchedules, handleUnauthorized]);
 
   // Load the saved schedule of whichever week is being looked at
   useEffect(() => {
+    if (isAuthLoading || isGuardian) return;
     loadWeek(currentDate);
-  }, [currentDate, loadWeek]);
+  }, [isAuthLoading, isGuardian, currentDate, loadWeek]);
 
   // Auto-select all activities when schedule data changes
   useEffect(() => {
@@ -248,21 +268,27 @@ const PatientScheduleView: React.FC = () => {
       });
   }, [scheduleData]);
 
+  const visiblePatients = useMemo(() => {
+    if (!showMyPatientsOnly || !myPatientIds) return patientsFromSchedule;
+
+    return patientsFromSchedule.filter(patient => myPatientIds.has(Number(patient.id)));
+  }, [patientsFromSchedule, showMyPatientsOnly, myPatientIds]);
+
   const selectedPatient = useMemo(
-    () => patientsFromSchedule.find(patient => patient.id === selectedPatientId),
-    [patientsFromSchedule, selectedPatientId]
+    () => visiblePatients.find(patient => patient.id === selectedPatientId),
+    [visiblePatients, selectedPatientId]
   );
 
   useEffect(() => {
-    if (patientsFromSchedule.length === 0) {
+    if (visiblePatients.length === 0) {
       setSelectedPatientId("");
       return;
     }
 
-    if (!patientsFromSchedule.some(patient => patient.id === selectedPatientId)) {
-      setSelectedPatientId(patientsFromSchedule[0].id);
+    if (!visiblePatients.some(patient => patient.id === selectedPatientId)) {
+      setSelectedPatientId(visiblePatients[0].id);
     }
-  }, [patientsFromSchedule, selectedPatientId]);
+  }, [visiblePatients, selectedPatientId]);
 
   // Handle view mode change - only allow patient view modes
   const handleViewModeChange = (newViewMode: ViewMode) => {
@@ -294,7 +320,7 @@ const PatientScheduleView: React.FC = () => {
         return (
           <PatientDailyScheduleView
             currentDate={currentDate}
-            patients={patientsFromSchedule}
+            patients={visiblePatients}
             getPatientActivitiesForDate={getEnhancedPatientActivitiesForDate}
             getActivityTemplate={getEnhancedActivityTemplate}
             onActivityClick={handlePatientActivityClick}
@@ -316,7 +342,7 @@ const PatientScheduleView: React.FC = () => {
         return (
           <PatientDailyScheduleView
             currentDate={currentDate}
-            patients={patientsFromSchedule}
+            patients={visiblePatients}
             getPatientActivitiesForDate={getEnhancedPatientActivitiesForDate}
             getActivityTemplate={getEnhancedActivityTemplate}
             onActivityClick={handlePatientActivityClick}
@@ -346,9 +372,15 @@ const PatientScheduleView: React.FC = () => {
       <div className="flex flex-1 overflow-hidden">
         {/* Left Sidebar */}
         <PatientScheduleSidebar
-          patients={patientsFromSchedule}
+          patients={visiblePatients}
           selectedPatientId={selectedPatientId}
           onPatientChange={setSelectedPatientId}
+          showMyPatientsOnly={showMyPatientsOnly}
+          onShowMyPatientsOnlyChange={setShowMyPatientsOnly}
+          canFilterMyPatients={myPatientIds !== null && !isGuardian}
+          canRegenerate={!isGuardian}
+          verticalPatientToggle={isGuardian}
+          showPatientPicker={viewMode === 'patient-weekly'}
           activityTemplates={activitiesFromSchedule} // Use derived activities from scheduler response
           selectedActivities={selectedScheduleActivities} // Use schedule-based selected activities
           onActivityToggle={handleScheduleActivityToggle}

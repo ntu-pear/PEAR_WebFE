@@ -210,25 +210,3 @@ export const updatePatientGuardian = async (
     throw error;
   }
 };
-
-export const deletePatientGuardian = async (guardianId: number) => {
-  const token = retrieveAccessTokenFromCookie();
-  if (!token) throw new Error("No token found.");
-
-  try {
-    const response = await guardianAPI.delete(
-      `/delete?guardian_id=${guardianId}`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-
-    console.log("DELETE Patient Guardian", response.data);
-    return response.data;
-  } catch (error) {
-    console.error("DELETE Patient Guardian", error);
-    throw error;
-  }
-};

@@ -431,6 +431,11 @@ const guardianMenu: MenuSection[] = [
         icon: "UserRound",
         path: "/guardian/manage-patients",
       },
+      {
+        title: "Patient Schedule",
+        icon: "CalendarDays",
+        path: "/guardian/patient-schedule",
+      },
     ],
   },
   {

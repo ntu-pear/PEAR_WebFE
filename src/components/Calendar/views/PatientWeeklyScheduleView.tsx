@@ -1,6 +1,7 @@
 import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { format, startOfWeek, addDays } from "date-fns";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
 import { Settings } from "lucide-react";
 import {
   ScheduledPatientActivity,
@@ -103,6 +104,8 @@ const PatientWeeklyScheduleView: React.FC<PatientWeeklyScheduleViewProps> = ({
   scrollToCurrentTimeTrigger = 0,
 }) => {
   const navigate = useNavigate();
+  const { currentUser } = useAuth();
+  const canEditPreferences = currentUser?.roleName !== "GUARDIAN";
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const consumedScrollTriggerRef = useRef(0);
   const lastWeekStartStringRef = useRef<string | null>(null);
@@ -254,7 +257,7 @@ const PatientWeeklyScheduleView: React.FC<PatientWeeklyScheduleViewProps> = ({
                       Week of {format(weekStart, "MMM dd, yyyy")}
                     </div>
                   </div>
-                  {patient && (
+                  {patient && canEditPreferences && (
                     <button
                       onClick={() => navigate(`/supervisor/view-patient/${patient.id}?tab=activity-preference`)}
                       className="p-1 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"

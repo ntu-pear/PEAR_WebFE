@@ -367,6 +367,10 @@ const App: React.FC = () => {
                         path="view-patient/:id"
                         element={<ViewPatientWrapper />}
                       />
+                      <Route
+                        path="patient-schedule"
+                        element={<PatientScheduleView />}
+                      />
                       {/* <Route path="temp-page" element={<TempPage />} /> */}
                       {(useFeatureFlag("staging") ||
                         !useFeatureFlag("production")) && (
