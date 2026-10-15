@@ -3,10 +3,12 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Button } from "../ui/button";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "../ui/tabs";
 import { useModal } from "@/hooks/useModal";
 import { useAuth } from "@/hooks/useAuth";
 import { PlusCircle } from "lucide-react";
 import { DataTableServer } from "../Table/DataTable";
+import VitalTrendsChart from "./VitalTrendsChart";
 import {
   VitalCheckTD,
   VitalCheckTDServer,
@@ -130,15 +132,26 @@ const VitalCard: React.FC = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <DataTableServer
-            data={vitalCheck.vitals}
-            pagination={vitalCheck.pagination}
-            fetchData={handleFetchVitalCheck}
-            columns={vitalCheckColumns}
-            viewMore={false}
-            renderActions={renderActions}
-            hideActionsHeader={currentUser?.roleName !== "SUPERVISOR"}
-          />
+          <Tabs defaultValue="table">
+            <TabsList>
+              <TabsTrigger value="table">Table</TabsTrigger>
+              <TabsTrigger value="trends">Trends</TabsTrigger>
+            </TabsList>
+            <TabsContent value="table">
+              <DataTableServer
+                data={vitalCheck.vitals}
+                pagination={vitalCheck.pagination}
+                fetchData={handleFetchVitalCheck}
+                columns={vitalCheckColumns}
+                viewMore={false}
+                renderActions={renderActions}
+                hideActionsHeader={currentUser?.roleName !== "SUPERVISOR"}
+              />
+            </TabsContent>
+            <TabsContent value="trends">
+              {id && <VitalTrendsChart patientId={id} />}
+            </TabsContent>
+          </Tabs>
         </CardContent>
       </Card>
     </>
