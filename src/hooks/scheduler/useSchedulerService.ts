@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { generateAndGetSchedule, getSchedule, convertScheduleToCalendarFormat, regenerateScheduleForSupervisor, type WeeklyScheduleData } from '@/api/scheduler/scheduler';
 import { toast } from 'sonner';
 
@@ -15,11 +15,20 @@ export interface CalendarScheduleItem {
   endDate: string;
 }
 
+// Monday of the week as YYYY-MM-DD, same as the schedule's StartDate
+export const weekStart = (date: Date): string => {
+  const d = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  d.setDate(d.getDate() - ((d.getDay() + 6) % 7));
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+};
+
 export const useSchedulerService = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [scheduleData, setScheduleData] = useState<CalendarScheduleItem[]>([]);
   const [rawScheduleData, setRawScheduleData] = useState<WeeklyScheduleData[]>([]);
   const [error, setError] = useState<string | null>(null);
+  // other weeks already fetched, this week comes from getOrGenerateSchedule
+  const loadedWeeks = useRef<Set<string>>(new Set());
 
   const generateSchedule = useCallback(async () => {
     setIsLoading(true);
@@ -32,6 +41,7 @@ export const useSchedulerService = () => {
       if (result.Status === "200" && result.Data) {
         // Convert to calendar format
         const calendarSchedule = convertScheduleToCalendarFormat(result.Data);
+        loadedWeeks.current.clear();
         setScheduleData(calendarSchedule);
         setRawScheduleData(result.Data);
         toast.success('Schedule regenerated successfully.');
@@ -62,6 +72,7 @@ export const useSchedulerService = () => {
       if (scheduleResponse.Status === "200" && scheduleResponse.Data && scheduleResponse.Data.length > 0) {
         // Schedule exists, convert and use it
         const calendarSchedule = convertScheduleToCalendarFormat(scheduleResponse.Data);
+        loadedWeeks.current.clear();
         setScheduleData(calendarSchedule);
         setRawScheduleData(scheduleResponse.Data);
         toast.success('Existing schedule loaded successfully.');
@@ -71,6 +82,7 @@ export const useSchedulerService = () => {
         const result = await generateAndGetSchedule();
         
         if (result.success) {
+          loadedWeeks.current.clear();
           setScheduleData(result.data);
           setRawScheduleData(result.rawData);
           toast.success('New schedule generated successfully.');
@@ -92,9 +104,33 @@ export const useSchedulerService = () => {
   }, []);
 
   const clearSchedule = useCallback(() => {
+    loadedWeeks.current.clear();
     setScheduleData([]);
     setRawScheduleData([]);
     setError(null);
+  }, []);
+
+  // Adds another week's saved schedule, read only, never generates
+  const loadWeek = useCallback(async (date: Date) => {
+    const key = weekStart(date);
+    if (key === weekStart(new Date()) || loadedWeeks.current.has(key)) return;
+    loadedWeeks.current.add(key);
+
+    try {
+      const response = await getSchedule(key);
+      // only rows for that week, an older scheduler ignores date and sends this week
+      const rows = response.Status === "200" && Array.isArray(response.Data)
+        ? response.Data.filter(row => String(row.StartDate).split('T')[0] === key)
+        : [];
+      if (rows.length === 0) return;
+
+      setScheduleData(prev => [...prev, ...convertScheduleToCalendarFormat(rows)]);
+      setRawScheduleData(prev => [...prev, ...rows]);
+    } catch (error) {
+      loadedWeeks.current.delete(key);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      toast.error(`Error loading schedule for that week: ${errorMessage}`);
+    }
   }, []);
 
   // Get schedule for a specific patient
@@ -140,6 +176,7 @@ export const useSchedulerService = () => {
     generateSchedule,
     getOrGenerateSchedule,
     clearSchedule,
+    loadWeek,
     
     // Getters
     getPatientSchedule,
