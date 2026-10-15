@@ -99,7 +99,7 @@ const AddAdhoc: React.FC = () => {
 
     if (Number(value) === Number(oldActivity)) {
       return Promise.reject(
-        new Error("Adhoc activity must be different from old activity")
+        new Error("Ad Hoc Activity must be different from Original Activity")
       );
     }
 
@@ -236,7 +236,9 @@ const AddAdhoc: React.FC = () => {
       setLoadingSchedule(true);
       try {
         const res = await getSchedule();
-        const patientSchedule = res.Data?.find((s) => s.PatientID === watchedPatientId);
+        const patientSchedule = res.Data?.find(
+          (s) => Number(s.PatientID) === Number(watchedPatientId)
+        );
 
         const titles = new Set<string>();
         if (patientSchedule) {
@@ -430,7 +432,7 @@ const AddAdhoc: React.FC = () => {
                   <div className="sm:col-span-8 rounded-md border border-gray-200 bg-gray-50 p-4">
                     {!oldActivityId || !watchedStartDate || !watchedEndDate ? (
                       <p className="text-sm text-gray-600">
-                        Select an Activity to be replaced and date range below to see affected patients.
+                        Select an Original Activity and date range below to see affected patients.
                       </p>
                     ) : loadingAffectedPatients ? (
                       <p className="text-sm text-gray-600">Loading affected patients...</p>
@@ -456,14 +458,14 @@ const AddAdhoc: React.FC = () => {
                 <Form.Item
                   label={
                     <label className="block text-sm font-medium leading-6 text-primary">
-                      Activity to be replaced
+                      Original Activity
                     </label>
                   }
                   name="old_centre_activity_id"
                   rules={[
                     {
                       required: true,
-                      message: "Please select an old activity!",
+                      message: "Please select an Original Activity!",
                     },
                   ]}
                   className="sm:col-span-3"
@@ -514,7 +516,7 @@ const AddAdhoc: React.FC = () => {
                         ? "Loading patient's schedule..."
                         : mode === "patient" && getOldActivityOptions().length === 0
                         ? "No activities currently scheduled for this patient"
-                        : "Select Activity"}
+                        : "Select Original Activity"}
                     </option>
 
                     {getOldActivityOptions().map((activity) => (
@@ -530,14 +532,14 @@ const AddAdhoc: React.FC = () => {
                 <Form.Item
                   label={
                     <label className="block text-sm font-medium leading-6 text-primary">
-                      Ad hoc activity
+                      Ad Hoc Activity
                     </label>
                   }
                   name="new_centre_activity_id"
                   rules={[
                     {
                       required: true,
-                      message: "Please select a adhoc!",
+                      message: "Please select an Ad Hoc Activity!",
                     },
                     { validator: validateDifferentActivity },
                   ]}
@@ -570,7 +572,7 @@ const AddAdhoc: React.FC = () => {
                     <option value="">
                       {loadingPatientActivityRules
                         ? "Loading activities available to this patient..."
-                        : "Select New Activity to be Ad hoc"}
+                        : "Select Ad Hoc Activity"}
                     </option>
 
 

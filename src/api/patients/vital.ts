@@ -1,5 +1,5 @@
 import { vitalAPI } from "../apiConfig";
-import { formatDateString, formatTimeString } from "@/utils/formatDate";
+import { formatServerDate, formatServerTime } from "@/utils/formatDate";
 import { convertToYesNo } from "@/utils/convertToYesNo";
 import { TableRowData } from "@/components/Table/DataTable";
 import { retrieveAccessTokenFromCookie } from "../users/auth";
@@ -101,8 +101,8 @@ const convertToVitalTDServer = (
     .map((v) => ({
       id: v.Id,
       patientId: v.PatientId,
-      date: formatDateString(v.CreatedDateTime),
-      time: formatTimeString(v.CreatedDateTime),
+      date: formatServerDate(v.CreatedDateTime),
+      time: formatServerTime(v.CreatedDateTime),
       temperature: parseFloat(v.Temperature.toFixed(1)),
       weight: parseFloat(v.Weight.toFixed(1)),
       height: parseFloat(v.Height.toFixed(2)),
