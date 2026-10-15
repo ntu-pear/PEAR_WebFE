@@ -116,10 +116,11 @@ export const generateSchedule = async (): Promise<SchedulerResponse<string>> => 
   }
 };
 
-// Get the generated schedule
-export const getSchedule = async (): Promise<SchedulerResponse<WeeklyScheduleData[]>> => {
+// Get the saved schedule for the week date (YYYY-MM-DD) is in, this week if not given
+export const getSchedule = async (date?: string): Promise<SchedulerResponse<WeeklyScheduleData[]>> => {
   try {
-    const response = await fetch(`${SCHEDULER_BASE_URL}/schedule/getSchedule/`, {
+    const query = date ? `?date=${encodeURIComponent(date)}` : '';
+    const response = await fetch(`${SCHEDULER_BASE_URL}/schedule/getSchedule/${query}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -266,7 +267,8 @@ export const convertScheduleToCalendarFormat = (scheduleData: WeeklyScheduleData
           const eventDate = getDateForDayOfWeek(day, patientSchedule.StartDate);
 
           const calendarEvent = {
-            id: `${patientSchedule.PatientID}-${day}-${slot.startTime}-${index}`,
+            // date not day, so weeks don't share ids
+            id: `${patientSchedule.PatientID}-${eventDate}-${slot.startTime}-${index}`,
             patientId: patientSchedule.PatientID,
             patientName: patientSchedule.Name,
             activityName: slot.activityName,

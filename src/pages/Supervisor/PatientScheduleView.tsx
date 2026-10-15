@@ -39,6 +39,7 @@ const PatientScheduleView: React.FC = () => {
     generateSchedule,
     getOrGenerateSchedule,
     getPatientScheduleForDate,
+    loadWeek,
   } = useSchedulerService();
 
   // Derive unique activities from scheduleData and auto-select all
@@ -83,6 +84,11 @@ const PatientScheduleView: React.FC = () => {
   useEffect(() => {
     getOrGenerateSchedule();
   }, [getOrGenerateSchedule]); // Include the function in dependency array
+
+  // Load the saved schedule of whichever week is being looked at
+  useEffect(() => {
+    loadWeek(currentDate);
+  }, [currentDate, loadWeek]);
 
   // Auto-select all activities when schedule data changes
   useEffect(() => {
