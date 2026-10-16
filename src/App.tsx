@@ -27,6 +27,7 @@ import ViewMedicationSchedule from "./pages/Supervisor/ViewMedicationSchedule";
 import ManageMedication from "./pages/Supervisor/ManageMedication";
 import ManageActivities from "./pages/Supervisor/ManageActivities";
 import ManageCentreActivities from "./pages/Supervisor/ManageCentreActivities";
+import ManageActivityTemplates from "./pages/Supervisor/ManageActivityTemplates";
 import ManageActivityAvailabilities from "./pages/Supervisor/ManageActivityAvailabilities";
 import ViewLists from "./pages/Supervisor/ViewLists";
 import ViewPatient from "./pages/ViewPatient";
@@ -178,7 +179,8 @@ const App: React.FC = () => {
                         element={<ManageCentreActivities />}
                      
                       />
-                      <Route path="manage-activity-availabilities" element={<ManageActivityAvailabilities />} />
+                      <Route path="manage-activity-templates" element={<ManageActivityTemplates />} />
+                     <Route path="manage-activity-availabilities" element={<ManageActivityAvailabilities />} />
                       <Route path="manage-adhoc" element={<ManageAdhoc />} />
                       <Route path="add-adhoc" element={<AddAdhoc />} />
                       <Route
