@@ -3,7 +3,7 @@ import { fetchPatientInfo } from "@/api/patients/patients";
 import { retrieveAccessTokenFromCookie } from "@/api/users/auth";
 import { userAPI } from "@/api/apiConfig";
 
-// Backend raw 
+// Backend raw
 interface MedicationScheduleData {
   PatientID: number;
   PrescriptionName: string;
@@ -23,9 +23,9 @@ export interface MedicationScheduleItem {
   status: string;
   actualAdministerTime?: string;
   administeredBy?: string;
-  administeredByProfile?: string; 
+  administeredByProfile?: string;
   assignedTo?: string;
-  assignedToProfile?: string; 
+  assignedToProfile?: string;
   id: string;
   profilePicture?: string;
 }
@@ -38,7 +38,9 @@ const authHeader = () => {
 
 const getUsernameById = async (userId: string) => {
   try {
-    const res = await userAPI.get(`/username/${userId}`, { headers: authHeader() });
+    const res = await userAPI.get(`/username/${userId}`, {
+      headers: authHeader(),
+    });
     // fallback to ID if no name found
     return res.data.nric_FullName || res.data.preferredName || userId;
   } catch (err) {
@@ -47,10 +49,14 @@ const getUsernameById = async (userId: string) => {
   }
 };
 
-export const fetchUserProfilePhotoById = async (userId: string): Promise<string> => {
+export const fetchUserProfilePhotoById = async (
+  userId: string
+): Promise<string> => {
   try {
-    const res = await userAPI.get(`/profile_pic/${userId}`, { headers: authHeader() });
-    return res?.data?.image_url || ""; 
+    const res = await userAPI.get(`/profile_pic/${userId}`, {
+      headers: authHeader(),
+    });
+    return res?.data?.image_url || "";
   } catch (err) {
     console.warn(`Failed to fetch profile pic for user ${userId}`, err);
     return "";
@@ -58,11 +64,16 @@ export const fetchUserProfilePhotoById = async (userId: string): Promise<string>
 };
 
 // List all medication schedules
-export const listMedicationSchedules = async (): Promise<MedicationScheduleItem[]> => {
+export const listMedicationSchedules = async (): Promise<
+  MedicationScheduleItem[]
+> => {
   try {
-    const res = await schedulerMedicationAPI.get<MedicationScheduleData[]>("/get/", {
-      headers: authHeader(),
-    });
+    const res = await schedulerMedicationAPI.get<MedicationScheduleData[]>(
+      "/get/",
+      {
+        headers: authHeader(),
+      }
+    );
 
     const rawData = res.data;
 
@@ -94,7 +105,9 @@ export const listMedicationSchedules = async (): Promise<MedicationScheduleItem[
 
         if (item.AdministeredBy) {
           administeredByName = await getUsernameById(item.AdministeredBy); // uses ID if no name
-          administeredByProfile = await fetchUserProfilePhotoById(item.AdministeredBy);
+          administeredByProfile = await fetchUserProfilePhotoById(
+            item.AdministeredBy
+          );
         }
 
         return {
@@ -123,7 +136,9 @@ export const listMedicationSchedules = async (): Promise<MedicationScheduleItem[
 };
 
 // Update a medication schedule
-export const updateMedicationSchedule = async (item: MedicationScheduleItem) => {
+export const updateMedicationSchedule = async (
+  item: MedicationScheduleItem
+) => {
   try {
     const payload = {
       PatientID: item.patientId,
@@ -134,13 +149,30 @@ export const updateMedicationSchedule = async (item: MedicationScheduleItem) => 
       AdministeredBy: item.administeredBy || "",
     };
 
-    const res = await schedulerMedicationAPI.put<MedicationScheduleData>("/update/", payload, {
-      headers: authHeader(),
-    });
+    const res = await schedulerMedicationAPI.put<MedicationScheduleData>(
+      "/update/",
+      payload,
+      {
+        headers: authHeader(),
+      }
+    );
 
     return res.data;
   } catch (error) {
     console.error("Failed to update medication schedule:", error);
     throw error;
   }
+};
+// Undo a given dose (supervisors only). Scheduler also undoes it in patient service.
+export const undoMedicationSchedule = async (item: MedicationScheduleItem) => {
+  const payload = {
+    PatientID: item.patientId,
+    PrescriptionName: item.prescriptionName,
+    AdministerDate: item.administerDate,
+    AdministerTime: item.administerTime,
+  };
+  const res = await schedulerMedicationAPI.put("/undo/", payload, {
+    headers: authHeader(),
+  });
+  return res.data;
 };

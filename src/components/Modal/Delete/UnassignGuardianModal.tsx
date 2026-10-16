@@ -2,7 +2,13 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useModal } from "@/hooks/useModal";
 import { useAuth } from "@/hooks/useAuth";
-import { fetchGuardianByPatientId, fetchGuardianPatientCount, unassignGuardian, IGuardian } from "@/api/patients/guardian";
+import {
+  fetchGuardianByPatientId,
+  fetchGuardianPatientCount,
+  unassignGuardian,
+  IGuardian,
+  IUnassignGuardianResult,
+} from "@/api/patients/guardian";
 import { updatePrimaryGuardian } from "@/api/patients/patientAllocation";
 import { extractErrorMessage } from "@/utils/errorMessage";
 import BaseDeleteModal from "./BaseDeleteModal";
@@ -84,8 +90,9 @@ const UnassignGuardianModal: React.FC = () => {
     if (!guardianId || !patientId) return;
 
     let unassignError: unknown = null;
+    let unassignResult: IUnassignGuardianResult | null = null;
     try {
-      await unassignGuardian(patientId, guardianId);
+      unassignResult = await unassignGuardian(patientId, guardianId);
     } catch (error) {
       unassignError = error;
     }
@@ -105,6 +112,19 @@ const UnassignGuardianModal: React.FC = () => {
 
     if (wasRemoved) {
       toast.success(`${displayName} unassigned from this patient.`);
+      if (unassignResult?.guardianSoftDeleted) {
+        if (unassignResult.accountDeactivated === false) {
+          toast.warning(
+            "This guardian had no other patients, so their record was removed, but their login account could not be deactivated. Ask an admin to deactivate it."
+          );
+        } else {
+          toast.info(
+            unassignResult.accountDeactivated
+              ? "This guardian had no other patients, so their record was removed and their login account deactivated."
+              : "This guardian had no other patients, so their record was removed."
+          );
+        }
+      }
     } else {
       toast.error(
         unassignError

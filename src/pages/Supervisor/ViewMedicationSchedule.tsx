@@ -6,11 +6,22 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { DataTableClient, DataTableColumns } from "@/components/Table/DataTable";
+import {
+  DataTableClient,
+  DataTableColumns,
+} from "@/components/Table/DataTable";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Searchbar from "@/components/Searchbar";
 import { Button } from "@/components/ui/button";
-import { CheckCircle, Clock, AlertTriangle, Pill } from "lucide-react";
+import {
+  CheckCircle,
+  Clock,
+  AlertTriangle,
+  Pill,
+  RotateCcw,
+} from "lucide-react";
+import { toast } from "sonner";
+import { extractErrorMessage } from "@/utils/errorMessage";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -26,6 +37,7 @@ import {
 import {
   listMedicationSchedules,
   updateMedicationSchedule,
+  undoMedicationSchedule,
   MedicationScheduleItem,
   fetchUserProfilePhotoById,
 } from "@/api/scheduler/medicalSchedule";
@@ -68,7 +80,6 @@ const ViewMedicationSchedule: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [currentUserId, setCurrentUserId] = useState<string>("");
 
-
   const today = getFormattedDate();
 
   // Load current logged-in user
@@ -93,10 +104,14 @@ const ViewMedicationSchedule: React.FC = () => {
           let administeredByProfile: string | null = null;
 
           if (item.assignedTo) {
-            assignedToProfile = await fetchUserProfilePhotoById(item.assignedTo);
+            assignedToProfile = await fetchUserProfilePhotoById(
+              item.assignedTo
+            );
           }
           if (item.administeredBy) {
-            administeredByProfile = await fetchUserProfilePhotoById(item.administeredBy);
+            administeredByProfile = await fetchUserProfilePhotoById(
+              item.administeredBy
+            );
           }
 
           return {
@@ -130,11 +145,35 @@ const ViewMedicationSchedule: React.FC = () => {
       fetchData();
     } catch (error) {
       console.error(error);
+      toast.error(
+        extractErrorMessage(
+          error,
+          "Failed to mark the dose as given. Please try again."
+        )
+      );
+    }
+  };
+
+  const handleUndo = async (item: MedicationScheduleItem) => {
+    try {
+      await undoMedicationSchedule(item);
+      toast.success("Dose undone");
+      fetchData();
+    } catch (error) {
+      console.error(error);
+      toast.error(
+        extractErrorMessage(error, "Failed to undo the dose. Please try again.")
+      );
     }
   };
 
   const filteredData = data.filter((item) =>
-    [item.patientName, item.prescriptionName, item.assignedTo, item.administeredBy]
+    [
+      item.patientName,
+      item.prescriptionName,
+      item.assignedTo,
+      item.administeredBy,
+    ]
       .join(" ")
       .toLowerCase()
       .includes(searchQuery.toLowerCase())
@@ -147,9 +186,15 @@ const ViewMedicationSchedule: React.FC = () => {
       render: (_value, item) => (
         <div className="flex items-center gap-3">
           <Avatar>
-            <AvatarImage src={item.profilePicture || undefined} alt={item.patientName} />
+            <AvatarImage
+              src={item.profilePicture || undefined}
+              alt={item.patientName}
+            />
             <AvatarFallback>
-              {item.patientName?.split(" ").map((n) => n[0]).join("")}
+              {item.patientName
+                ?.split(" ")
+                .map((n) => n[0])
+                .join("")}
             </AvatarFallback>
           </Avatar>
           <div>
@@ -206,7 +251,10 @@ const ViewMedicationSchedule: React.FC = () => {
             <Avatar>
               <AvatarImage src={item.assignedToProfile} alt={item.assignedTo} />
               <AvatarFallback>
-                {item.assignedTo?.split(" ").map((n) => n[0]).join("")}
+                {item.assignedTo
+                  ?.split(" ")
+                  .map((n) => n[0])
+                  .join("")}
               </AvatarFallback>
             </Avatar>
           ) : null}
@@ -226,9 +274,15 @@ const ViewMedicationSchedule: React.FC = () => {
         <div className="flex items-center gap-2">
           {item.administeredByProfile ? (
             <Avatar>
-              <AvatarImage src={item.administeredByProfile} alt={item.administeredBy} />
+              <AvatarImage
+                src={item.administeredByProfile}
+                alt={item.administeredBy}
+              />
               <AvatarFallback>
-                {item.administeredBy?.split(" ").map((n) => n[0]).join("")}
+                {item.administeredBy
+                  ?.split(" ")
+                  .map((n) => n[0])
+                  .join("")}
               </AvatarFallback>
             </Avatar>
           ) : null}
@@ -261,38 +315,72 @@ const ViewMedicationSchedule: React.FC = () => {
                 viewMore={false}
                 renderActions={(item: MedicationScheduleItem) => (
                   <div className="flex gap-2">
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button
-                          size="sm"
-                          className="flex items-center gap-1 bg-green-600 hover:bg-green-700 text-white"
-                          disabled={item.status === "1"}
-                        >
-                          <Pill className="h-4 w-4" />
-                          Administer
-                        </Button>
-                      </AlertDialogTrigger>
-
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>
-                            Confirm Medication Administration
-                          </AlertDialogTitle>
-                          <AlertDialogDescription>
-                            Are you sure you want to mark this medication as
-                            administered for <strong>{item.patientName}</strong>?
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Cancel</AlertDialogCancel>
-                          <AlertDialogAction
-                            onClick={() => handleAdministered(item)}
+                    {item.status === "1" ? (
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="flex items-center gap-1"
                           >
-                            Confirm
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
+                            <RotateCcw className="h-4 w-4" />
+                            Undo
+                          </Button>
+                        </AlertDialogTrigger>
+
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>
+                              Undo Medication Administration
+                            </AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Mark <strong>{item.prescriptionName}</strong> as
+                              not given for <strong>{item.patientName}</strong>?
+                              It will be removed from the patient's history.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => handleUndo(item)}>
+                              Undo
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    ) : (
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button
+                            size="sm"
+                            className="flex items-center gap-1 bg-green-600 hover:bg-green-700 text-white"
+                          >
+                            <Pill className="h-4 w-4" />
+                            Administer
+                          </Button>
+                        </AlertDialogTrigger>
+
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>
+                              Confirm Medication Administration
+                            </AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Are you sure you want to mark this medication as
+                              administered for{" "}
+                              <strong>{item.patientName}</strong>?
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() => handleAdministered(item)}
+                            >
+                              Confirm
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    )}
                   </div>
                 )}
                 loading={loading}
