@@ -58,6 +58,21 @@ const getMonthTicks = (points: VitalPoint[]): number[] => {
   return ticks;
 };
 
+const snappedAxis = (values: (number | undefined | null)[]) => {
+  const clean = values.filter((v): v is number => typeof v === "number" && Number.isFinite(v));
+  if (clean.length === 0) return { domain: [0, 1] as [number, number], ticks: [0, 1] };
+
+  const step = Math.max(...clean) - Math.min(...clean) >= 10 ? 10 : 1;
+  const lower = Math.max(0, Math.floor(Math.min(...clean) / step) * step);
+  const snappedUpper = Math.ceil(Math.max(...clean) / step) * step;
+  const upper = snappedUpper === lower ? lower + step : snappedUpper;
+
+  const ticks: number[] = [];
+  for (let tick = lower; tick <= upper; tick += step) ticks.push(tick);
+
+  return { domain: [lower, upper] as [number, number], ticks };
+};
+
 const ChartTooltip: React.FC<{
   active?: boolean;
   label?: number;
@@ -162,6 +177,8 @@ const VitalTrendsChart: React.FC<VitalTrendsChartProps> = ({ patientId }) => {
   }
 
   const domain: [number, number] = [monthTicks[0], monthTicks[monthTicks.length - 1]];
+  const bpAxis = snappedAxis(vitals.flatMap((v) => [v.systolicBP, v.diastolicBP]));
+  const weightAxis = snappedAxis(vitals.map((v) => v.weight));
 
   return (
     <div className="flex flex-col gap-4">
@@ -186,6 +203,9 @@ const VitalTrendsChart: React.FC<VitalTrendsChartProps> = ({ patientId }) => {
                 tickLine={false}
               />
               <YAxis
+                domain={bpAxis.domain}
+                ticks={bpAxis.ticks}
+                interval={0}
                 tick={{ fontSize: 12, fill: "hsl(var(--muted-foreground))" }}
                 axisLine={false}
                 tickLine={false}
@@ -196,7 +216,7 @@ const VitalTrendsChart: React.FC<VitalTrendsChartProps> = ({ patientId }) => {
                 wrapperStyle={{ fontSize: 12, color: "hsl(var(--muted-foreground))" }}
               />
               <Line
-                type="monotone"
+                type="linear"
                 dataKey="systolicBP"
                 name="Systolic"
                 stroke="hsl(var(--vitals-systolic))"
@@ -205,7 +225,7 @@ const VitalTrendsChart: React.FC<VitalTrendsChartProps> = ({ patientId }) => {
                 activeDot={{ r: 5, fill: "hsl(var(--vitals-systolic))", strokeWidth: 2, stroke: "hsl(var(--background))" }}
               />
               <Line
-                type="monotone"
+                type="linear"
                 dataKey="diastolicBP"
                 name="Diastolic"
                 stroke="hsl(var(--vitals-diastolic))"
@@ -233,6 +253,9 @@ const VitalTrendsChart: React.FC<VitalTrendsChartProps> = ({ patientId }) => {
                 tickLine={false}
               />
               <YAxis
+                domain={weightAxis.domain}
+                ticks={weightAxis.ticks}
+                interval={0}
                 tick={{ fontSize: 12, fill: "hsl(var(--muted-foreground))" }}
                 axisLine={false}
                 tickLine={false}
@@ -240,7 +263,7 @@ const VitalTrendsChart: React.FC<VitalTrendsChartProps> = ({ patientId }) => {
               />
               <Tooltip content={<ChartTooltip unit="kg" />} />
               <Line
-                type="monotone"
+                type="linear"
                 dataKey="weight"
                 name="Weight"
                 stroke="hsl(var(--vitals-weight))"
