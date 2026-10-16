@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef } from 'react';
-import { generateAndGetSchedule, getSchedule, fetchPatientSchedule, convertScheduleToCalendarFormat, regenerateScheduleForSupervisor, type WeeklyScheduleData } from '@/api/scheduler/scheduler';
+import { generateAndGetSchedule, getSchedule, getSchedulePreview, fetchPatientSchedule, convertScheduleToCalendarFormat, regenerateScheduleForSupervisor, type WeeklyScheduleData } from '@/api/scheduler/scheduler';
 import { toast } from 'sonner';
 
 export interface CalendarScheduleItem {
@@ -13,6 +13,12 @@ export interface CalendarScheduleItem {
   date: string;
   startDate: string;
   endDate: string;
+  isPreview?: boolean; // next week built from today's data, not saved
+}
+
+export interface SchedulePreviewInfo {
+  week: string; // Monday as YYYY-MM-DD
+  builtAt: string;
 }
 
 // Monday of the week as YYYY-MM-DD, same as the schedule's StartDate
@@ -22,11 +28,24 @@ export const weekStart = (date: Date): string => {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 };
 
+const nextWeekStart = (): string => {
+  const d = new Date();
+  d.setDate(d.getDate() + 7);
+  return weekStart(d);
+};
+
+// only rows for that week, an older scheduler ignores date and sends this week
+const rowsForWeek = (response: { Status: string; Data: unknown }, key: string): WeeklyScheduleData[] =>
+  response.Status === "200" && Array.isArray(response.Data)
+    ? (response.Data as WeeklyScheduleData[]).filter(row => String(row.StartDate).split('T')[0] === key)
+    : [];
+
 export const useSchedulerService = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [scheduleData, setScheduleData] = useState<CalendarScheduleItem[]>([]);
   const [rawScheduleData, setRawScheduleData] = useState<WeeklyScheduleData[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [preview, setPreview] = useState<SchedulePreviewInfo | null>(null);
   // other weeks already fetched, this week comes from getOrGenerateSchedule
   const loadedWeeks = useRef<Set<string>>(new Set());
 
@@ -42,6 +61,7 @@ export const useSchedulerService = () => {
         // Convert to calendar format
         const calendarSchedule = convertScheduleToCalendarFormat(result.Data);
         loadedWeeks.current.clear();
+        setPreview(null);
         setScheduleData(calendarSchedule);
         setRawScheduleData(result.Data);
         toast.success('Schedule regenerated successfully.');
@@ -73,6 +93,7 @@ export const useSchedulerService = () => {
         // Schedule exists, convert and use it
         const calendarSchedule = convertScheduleToCalendarFormat(scheduleResponse.Data);
         loadedWeeks.current.clear();
+        setPreview(null);
         setScheduleData(calendarSchedule);
         setRawScheduleData(scheduleResponse.Data);
         toast.success('Existing schedule loaded successfully.');
@@ -83,6 +104,7 @@ export const useSchedulerService = () => {
         
         if (result.success) {
           loadedWeeks.current.clear();
+          setPreview(null);
           setScheduleData(result.data);
           setRawScheduleData(result.rawData);
           toast.success('New schedule generated successfully.');
@@ -158,26 +180,35 @@ export const useSchedulerService = () => {
 
   const clearSchedule = useCallback(() => {
     loadedWeeks.current.clear();
+    setPreview(null);
     setScheduleData([]);
     setRawScheduleData([]);
     setError(null);
   }, []);
 
-  // Adds another week's saved schedule, read only, never generates
+  // Adds another week's saved schedule, read only, never generates.
+  // Next week isn't saved until Monday, so it shows the preview instead
   const loadWeek = useCallback(async (date: Date) => {
     const key = weekStart(date);
     if (key === weekStart(new Date()) || loadedWeeks.current.has(key)) return;
     loadedWeeks.current.add(key);
 
     try {
-      const response = await getSchedule(key);
-      // only rows for that week, an older scheduler ignores date and sends this week
-      const rows = response.Status === "200" && Array.isArray(response.Data)
-        ? response.Data.filter(row => String(row.StartDate).split('T')[0] === key)
-        : [];
+      let rows = rowsForWeek(await getSchedule(key), key);
+      let builtAt: string | null = null;
+      if (rows.length === 0 && key === nextWeekStart()) {
+        const response = await getSchedulePreview();
+        rows = rowsForWeek(response, key);
+        builtAt = response.BuiltAt ?? '';
+      }
       if (rows.length === 0) return;
 
-      setScheduleData(prev => [...prev, ...convertScheduleToCalendarFormat(rows)]);
+      let items: CalendarScheduleItem[] = convertScheduleToCalendarFormat(rows);
+      if (builtAt !== null) {
+        items = items.map(item => ({ ...item, isPreview: true }));
+        setPreview({ week: key, builtAt });
+      }
+      setScheduleData(prev => [...prev, ...items]);
       setRawScheduleData(prev => [...prev, ...rows]);
     } catch (error) {
       loadedWeeks.current.delete(key);
@@ -224,6 +255,7 @@ export const useSchedulerService = () => {
     scheduleData,
     rawScheduleData,
     error,
+    preview,
     
     // Actions
     generateSchedule,
