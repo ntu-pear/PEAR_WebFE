@@ -107,6 +107,25 @@ export const fetchGuardianByNRIC = async (nric: string): Promise<IGuardian | nul
   }
 };
 
+export const fetchGuardianPatientCount = async (nric: string): Promise<number | null> => {
+  const token = retrieveAccessTokenFromCookie();
+  if (!token) throw new Error("No token found.");
+
+  try {
+    const response = await guardianAPI.get("/GetPatientGuardianByNRIC", {
+      params: { nric },
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    return Array.isArray(response.data?.patients) ? response.data.patients.length : null;
+  } catch (error) {
+    console.error("GET guardian patient count", error);
+    return null;
+  }
+};
+
 export const assignExistingGuardian = async (data: IGuardianAssignData) => {
   const token = retrieveAccessTokenFromCookie();
   if (!token) throw new Error("No token found.");
