@@ -13,6 +13,8 @@ import { Badge } from "@/components/ui/badge";
 import { FlagBadges } from "@/components/logFlags/FlagBadge";
 import { format } from "date-fns";
 import ChangeDetails from "@/components/auditLogs/ChangeDetails";
+import AdminRedactionNotice from "@/components/auditLogs/AdminRedactionNotice";
+import { useAuth } from "@/hooks/useAuth";
 import {
   ChevronDown,
   ChevronUp,
@@ -56,6 +58,9 @@ const ActivityLogs: React.FC = () => {
   const [expandedRows, setExpandedRows] = useState<{ [key: number]: boolean }>(
     {}
   );
+  const { currentUser } = useAuth();
+  // The logging service returns metadata only to ADMIN (no names, descriptions or values).
+  const isAdmin = currentUser?.roleName === "ADMIN";
   const [patientName, setPatientName] = useState("");
   const [caregiverName, setCaregiverName] = useState("");
   const [selectedTable, setSelectedTable] = useState("all");
@@ -205,13 +210,15 @@ const ActivityLogs: React.FC = () => {
           />
         }
       >
-        <TextFilterField
-          label="Patient Name"
-          icon={User}
-          value={patientName}
-          onChange={setPatientName}
-          placeholder="Search patient name..."
-        />
+        {!isAdmin && (
+          <TextFilterField
+            label="Patient Name"
+            icon={User}
+            value={patientName}
+            onChange={setPatientName}
+            placeholder="Search patient name..."
+          />
+        )}
 
         <TextFilterField
           label="Caregiver/Guardian"
@@ -268,6 +275,7 @@ const ActivityLogs: React.FC = () => {
             </div>
           </CardHeader>
           <CardContent className="flex-1 flex flex-col min-h-0">
+            {isAdmin && <AdminRedactionNotice />}
             {loading ? (
               <div className="flex justify-center py-8">
                 <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" />
@@ -299,8 +307,8 @@ const ActivityLogs: React.FC = () => {
                         logsData.data.map((log, index) => (
                           <React.Fragment key={`${log.id ?? ""}-${log.timestamp}-${index}`}>
                             <TableRow
-                              className="hover:bg-muted/50 cursor-pointer"
-                              onClick={(e) => handleRowClick(e, index)}
+                              className={isAdmin ? "hover:bg-muted/50" : "hover:bg-muted/50 cursor-pointer"}
+                              onClick={isAdmin ? undefined : (e) => handleRowClick(e, index)}
                             >
                               <TableCell className="font-mono text-xs">
                                 {index + 1 + logsData.pageNo * logsData.pageSize}
@@ -331,22 +339,28 @@ const ActivityLogs: React.FC = () => {
                                 <Badge variant="outline">{log.table || "-"}</Badge>
                               </TableCell>
                               <TableCell className="max-w-[400px]">
-                                <div className="line-clamp-2">{log.message}</div>
+                                {isAdmin ? (
+                                  <div className="italic text-muted-foreground">Hidden for admins</div>
+                                ) : (
+                                  <div className="line-clamp-2">{log.message}</div>
+                                )}
                               </TableCell>
                               <TableCell className="px-1 text-muted-foreground">
-                                <button
-                                  type="button"
-                                  aria-expanded={!!expandedRows[index]}
-                                  aria-label={expandedRows[index] ? "Hide change details" : "Show change details"}
-                                  className="rounded p-1 hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                                  onClick={() => toggleRow(index)}
-                                >
-                                  {expandedRows[index] ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                                </button>
+                                {!isAdmin && (
+                                  <button
+                                    type="button"
+                                    aria-expanded={!!expandedRows[index]}
+                                    aria-label={expandedRows[index] ? "Hide change details" : "Show change details"}
+                                    className="rounded p-1 hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                                    onClick={() => toggleRow(index)}
+                                  >
+                                    {expandedRows[index] ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                                  </button>
+                                )}
                               </TableCell>
                             </TableRow>
 
-                            {expandedRows[index] && (
+                            {!isAdmin && expandedRows[index] && (
                               <TableRow>
                                 <TableCell colSpan={8} className="p-0">
                                   <ChangeDetails

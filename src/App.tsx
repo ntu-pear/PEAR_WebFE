@@ -264,6 +264,14 @@ const App: React.FC = () => {
                         element={<ManageMiscellaneous />}
                       />
                       <Route
+                        path="view-patient-logs"
+                        element={<PatientLogs />}
+                      />
+                      <Route
+                        path="view-activity-logs"
+                        element={<ActivityLogs />}
+                      />
+                      <Route
                         path="account-logs"
                         element={<AccountLogs />}
                       />
