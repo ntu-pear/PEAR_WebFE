@@ -196,7 +196,7 @@ export default function CentreActivityExclusionForm({
       <option value="" disabled>Select an activity</option>
       {centreActivities.map(ca => (
         <option key={ca.id} value={ca.id.toString()}>
-          {ca.activity_title}
+          {ca.name ?? ca.activity_title}
         </option>
       ))}
     </select>

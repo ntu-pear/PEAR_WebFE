@@ -6,7 +6,7 @@ import {Activity} from "@/api/activities/activities";
 import dayjs from "dayjs";
 import { toast } from "sonner";
 import { listActivities } from "@/api/activities/activities";
-import { type FormErrors, type CentreActivityFormValues, validateLocal } from "@/lib/validation/centreActivity";
+import { ERRORS, type FormErrors, type CentreActivityFormValues, validateLocal } from "@/lib/validation/centreActivity";
 import { useCareCentreHours } from "@/hooks/activities/useCareCentreHours";
 
 
@@ -36,6 +36,7 @@ export default function CentreActivityForm({
   onSubmit,
   onCancel
 }: Props) {
+  const [name, setName] = useState<string>((initial?.name ?? "").toUpperCase());
   const [activity_id, setActivityID] = useState<string>(initial?.activity_id?.toString() ?? "");
   const [is_fixed, setIs_Fixed] = useState(initial?.is_fixed ?? false);
   const [is_compulsory, setIs_Compulsory] = useState(initial?.is_compulsory ?? false);
@@ -180,6 +181,7 @@ export default function CentreActivityForm({
 
     try {
       const formValues = { 
+        name: name.trim(),
         activity_id: parseInt(activity_id),
         is_fixed: is_fixed,
         is_compulsory: is_compulsory,
@@ -248,6 +250,29 @@ export default function CentreActivityForm({
           </div>
         </div>
       )}
+
+      <div className="space-y-2">
+        <Label htmlFor="name">Name</Label>
+        <Input
+          id="name"
+          value={name}
+          maxLength={200}
+          disabled={is_deleted}
+          onChange={(e) => {
+            const value = e.target.value.toUpperCase();
+            setName(value);
+            if (value.trim()) {
+              setErrors(prev => ({
+                ...prev,
+                name: undefined,
+                _summary: (prev._summary ?? []).filter(m => m !== ERRORS.REQUIRED_NAME),
+              }));
+            }
+          }}
+          required
+        />
+        {errors.name && <p className="text-sm text-red-600">{errors.name}</p>}
+      </div>
 
       {/* Activity Selection */}
       <div className="space-y-2">

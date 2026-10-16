@@ -29,6 +29,7 @@ export default function CentreActivitiesTable({
     const q = query.trim().toLowerCase();
     if (!q) return data;
     return data.filter((r) =>
+      (r.name ?? "").toLowerCase().includes(q) ||
       r.activity_title.toLowerCase().includes(q)
     );
   }, [data, query]);
@@ -96,7 +97,8 @@ export default function CentreActivitiesTable({
             <TableHeader>
               <TableRow>
                 <TableHead>ID</TableHead>
-                <TableHead className="w-28">Activity Title</TableHead>
+                <TableHead className="w-28">Name</TableHead>
+                <TableHead className="w-28">Activity</TableHead>
                 <TableHead>Compulsory?/Fixed?Group?</TableHead>
                 <TableHead>Minimum People Required</TableHead>
                 <TableHead>Minimum Duration</TableHead>
@@ -111,13 +113,14 @@ export default function CentreActivitiesTable({
             <TableBody>
               {items.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={11}>No centre activities found.</TableCell>
+                  <TableCell colSpan={12}>No centre activities found.</TableCell>
                 </TableRow>
               )}
               {items.map((a) => (
                 <TableRow key={a.id} >
                   <TableCell className="font-medium">{a.id}</TableCell>
-                  <TableCell className="max-w-[420px] truncate">{a.activity_title}</TableCell>
+                  <TableCell className="max-w-[420px] truncate">{a.name ?? a.activity_title}</TableCell>
+                  <TableCell className="max-w-[420px] truncate text-muted-foreground">{a.activity_title}</TableCell>
                   <TableCell>{a.is_compulsory ? "Yes" : "No"}/{a.is_fixed ? "Yes" : "No"}/{a.is_group ? "Yes" : "No"}</TableCell>
                   <TableCell>{a.min_people_req ? a.min_people_req : "-"}</TableCell>
                   <TableCell>{a.min_duration} mins</TableCell>

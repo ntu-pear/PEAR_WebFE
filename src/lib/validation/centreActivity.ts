@@ -1,4 +1,5 @@
 export type CentreActivityFormValues = { 
+    name: string;
     activity_id: number;
     is_fixed: boolean;
     is_group: boolean;
@@ -13,6 +14,7 @@ export type CentreActivityFormValues = {
 };
 
 export type FormErrors = { 
+    name?: string;
     activity_id?: number;
     is_fixed?: boolean;
     is_group?: boolean;
@@ -27,6 +29,7 @@ export type FormErrors = {
 };
 
 export const ERRORS = {
+  REQUIRED_NAME: "A name must be provided.",
   REQUIRED_ACTIVITY: "An activity must be selected.",
   MAX_DURATION_ABOVE_MIN_DURATION: "Maximum duration must be above minimum duration.",
   MIN_DURATION_BELOW_MAX_DURATION: "Minimum duration must be below maximum duration.",
@@ -37,6 +40,7 @@ export const ERRORS = {
 
 export function validateLocal(
     values: { 
+        name: string;
         activity_id: number; 
         start_date: string; 
         end_date: string; 
@@ -47,6 +51,11 @@ export function validateLocal(
     }
 ) {
   const e: FormErrors = { _summary: [] };
+
+  if (!values.name || values.name.trim() === "") {
+    e.name = ERRORS.REQUIRED_NAME;
+    e._summary!.push(ERRORS.REQUIRED_NAME);
+  }
 
   if (values.activity_id == null) {
     e._summary!.push(ERRORS.REQUIRED_ACTIVITY);

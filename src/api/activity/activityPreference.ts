@@ -27,6 +27,7 @@ export interface Activity {
 
 export interface CentreActivity {
   id: number;
+  name?: string | null;
   activity_id: number;
   is_compulsory: boolean;
   is_fixed: boolean;

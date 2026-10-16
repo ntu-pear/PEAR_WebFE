@@ -90,6 +90,10 @@ export const centreActivitiesAPI = axios.create({
   baseURL: `${VITE_ACTIVITY_SERVICE_URL}/centre_activities`,
 });
 
+export const activityTemplatesAPI = axios.create({
+  baseURL: `${VITE_ACTIVITY_SERVICE_URL}/activity_templates`,
+});
+
 export const centreActivityAvailabilitiesAPI = axios.create({
   baseURL: `${VITE_ACTIVITY_SERVICE_URL}/centre_activity_availabilities`,
 });
@@ -545,7 +549,7 @@ export const schedulerMedicationAPI = axios.create({
 });
 
 const authProtectedInstances: AxiosInstance[] = [
-  activityAPI, activitiesAPI, centreActivitiesAPI, centreActivityAvailabilitiesAPI, careCentreAPI,
+  activityAPI, activitiesAPI, centreActivitiesAPI, activityTemplatesAPI, centreActivityAvailabilitiesAPI, careCentreAPI,
   routineAPI, routineExclusionAPI, adhocAPI,
   patientsAPI, patientGuardianAPI, dementiaListAPI, dementiaStageAPI, patientAssignedDementiaAPI,
   mobilityListAPI, patientMobilityAPI, doctorNoteAPI, socialHistoryAPI, socialHistorySensitiveMappingAPI,
