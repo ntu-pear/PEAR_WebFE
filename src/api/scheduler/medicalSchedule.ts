@@ -36,32 +36,57 @@ const authHeader = () => {
   return { Authorization: `Bearer ${token}` };
 };
 
+// The schedule lists the same few staff on many rows, and the User service
+// rate-limits these lookups, so share one request per user and keep the result.
+// Failed lookups are not kept, so the next load tries again.
+const usernameCache = new Map<string, Promise<string>>();
+const profilePhotoCache = new Map<string, Promise<string>>();
+
+const cached = (
+  cache: Map<string, Promise<string>>,
+  userId: string,
+  load: () => Promise<string | null>
+): Promise<string> => {
+  const hit = cache.get(userId);
+  if (hit) return hit;
+  const pending = load().then((value) => {
+    if (value === null) cache.delete(userId);
+    return value ?? "";
+  });
+  cache.set(userId, pending);
+  return pending;
+};
+
 const getUsernameById = async (userId: string) => {
-  try {
-    const res = await userAPI.get(`/username/${userId}`, {
-      headers: authHeader(),
-    });
-    // fallback to ID if no name found
-    return res.data.nric_FullName || res.data.preferredName || userId;
-  } catch (err) {
-    console.warn(`Failed to fetch name for user ${userId}`, err);
-    return userId; // use ID as fallback
-  }
+  const name = await cached(usernameCache, userId, async () => {
+    try {
+      const res = await userAPI.get(`/username/${userId}`, {
+        headers: authHeader(),
+      });
+      return res.data.nric_FullName || res.data.preferredName || "";
+    } catch (err) {
+      console.warn(`Failed to fetch name for user ${userId}`, err);
+      return null;
+    }
+  });
+  // fallback to ID if no name found
+  return name || userId;
 };
 
 export const fetchUserProfilePhotoById = async (
   userId: string
-): Promise<string> => {
-  try {
-    const res = await userAPI.get(`/profile_pic/${userId}`, {
-      headers: authHeader(),
-    });
-    return res?.data?.image_url || "";
-  } catch (err) {
-    console.warn(`Failed to fetch profile pic for user ${userId}`, err);
-    return "";
-  }
-};
+): Promise<string> =>
+  cached(profilePhotoCache, userId, async () => {
+    try {
+      const res = await userAPI.get(`/profile_pic/${userId}`, {
+        headers: authHeader(),
+      });
+      return res?.data?.image_url || "";
+    } catch (err) {
+      console.warn(`Failed to fetch profile pic for user ${userId}`, err);
+      return null;
+    }
+  });
 
 // List all medication schedules
 export const listMedicationSchedules = async (): Promise<
