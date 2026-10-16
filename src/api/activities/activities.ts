@@ -73,7 +73,7 @@ export async function softDeleteActivity(id: number) {
 }
 
 export async function isActivityTitleUnique(title: string, excludeId?: number) {
-  const all = await listActivities({ include_deleted: true, limit: 1000 });
+  const all = await listActivities({ include_deleted: false, limit: 1000 });
   const t = title.trim().toLowerCase();
   return !all.some(a => a.title.trim().toLowerCase() === t && a.id !== excludeId);
 }

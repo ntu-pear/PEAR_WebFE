@@ -71,7 +71,7 @@ export const usePatientActivityPreferences = (patientId: string) => {
       const combinedData: PatientActivityPreferenceWithRecommendation[] = [];
 
       // Loop through all centre activities to show complete list for the patient
-      centreActivityMap.forEach(({ activity }, centreActivityId) => {
+      centreActivityMap.forEach(({ activity, centreActivity }, centreActivityId) => {
         const preferenceData = preferenceMap.get(centreActivityId);
         const patientPreference = preferenceData?.preference as "LIKE" | "DISLIKE" | "NEUTRAL" | undefined;
         const recommendation = recommendationMap.get(centreActivityId);
@@ -81,7 +81,7 @@ export const usePatientActivityPreferences = (patientId: string) => {
           id: parseInt(`${patientId}${centreActivityId}`), // Unique ID combining patient and centre activity
           centreActivityId: centreActivityId,
           activityId: activity.id,
-          activityName: activity.title,
+          activityName: centreActivity.name ?? activity.title,
           activityDescription: activity.description || undefined,
           patientId: parseInt(patientId),
           patientPreference,
@@ -104,7 +104,7 @@ export const usePatientActivityPreferences = (patientId: string) => {
         const centreActivityData = centreActivityMap.get(exclusion.centre_activity_id);
         if (!centreActivityData) return;
 
-        const { activity } = centreActivityData;
+        const { activity, centreActivity } = centreActivityData;
         const isBackendIndefinite = exclusion.end_date && new Date(exclusion.end_date).getFullYear() >= 2999;
         const displayEndDate = isBackendIndefinite ? null : exclusion.end_date;
         const isIndefiniteBoolean = Boolean(!exclusion.end_date || isBackendIndefinite);
@@ -113,7 +113,7 @@ export const usePatientActivityPreferences = (patientId: string) => {
           id: exclusion.id,
           centreActivityId: exclusion.centre_activity_id,
           activityId: activity.id,
-          activityName: activity.title,
+          activityName: centreActivity.name ?? activity.title,
           activityDescription: activity.description || undefined,
           patientId: exclusion.patient_id,
           patientName: patientNameMap.get(exclusion.patient_id) || `Patient ${exclusion.patient_id}`,

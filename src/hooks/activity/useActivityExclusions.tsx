@@ -59,7 +59,7 @@ export const useCentreActivityExclusions = (patientId: string) => {
           return;
         }
 
-        const { activity } = centreActivityData;
+        const { activity, centreActivity } = centreActivityData;
         
         // Check if end date is the backend's indefinite marker (2999-01-01)
         const isBackendIndefinite = exclusion.end_date && new Date(exclusion.end_date).getFullYear() >= 2999;
@@ -70,7 +70,7 @@ export const useCentreActivityExclusions = (patientId: string) => {
           id: exclusion.id,
           centreActivityId: exclusion.centre_activity_id,
           activityId: activity.id,
-          activityName: activity.title,
+          activityName: centreActivity.name ?? activity.title,
           activityDescription: activity.description || undefined,
           patientId: exclusion.patient_id,
           patientName: patientNameMap.get(exclusion.patient_id) || `Patient ${exclusion.patient_id}`,

@@ -43,7 +43,7 @@ export const useCentreActivities = (includeDeleted: boolean) => {
             (activityMap.get(ca.activity_id)?.title || 'Unknown Activity').toUpperCase()
         }))
         .sort((a, b) =>
-          a.activity_title.localeCompare(b.activity_title, undefined, { sensitivity: "base" })
+          (a.name ?? a.activity_title).localeCompare(b.name ?? b.activity_title, undefined, { sensitivity: "base" })
         );
       
       setCentreActivities(centreActivitiesWithTitle);
@@ -106,6 +106,7 @@ export function useCentreActivityMutations() {
 export type CentreActivityRow = {
   id: number;
   activity_id: number;
+  name?: string | null;
   activity_title: string;
   is_fixed: boolean;
   is_group: boolean;
@@ -126,6 +127,7 @@ export function toRows(list: CentreActivityWithTitle[]): CentreActivityRow[] {
   return list.map(a => ({
     id: a.id,
     activity_id: a.activity_id,
+    name: a.name,
     activity_title: a.activity_title,
     is_fixed: a.is_fixed,
     is_group: a.is_group,

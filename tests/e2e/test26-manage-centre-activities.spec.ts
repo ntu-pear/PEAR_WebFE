@@ -56,6 +56,9 @@ test("Supervisor: Manage Centre Activities (NEW UI)", async ({ page }) => {
 
     await expect(page.getByText("Create Centre Activity")).toBeVisible();
 
+    // Name
+    await page.locator("#name").fill(activityTitle);
+
     // Select activity
     await page.locator("#activity_id").selectOption({
       label: "PLAYWRIGHT TEST ACTIVITY",

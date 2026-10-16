@@ -221,7 +221,7 @@ export default function BulkActivityExclusionForm({
                   variant="secondary"
                   className="flex items-center gap-1"
                 >
-                  {activity.activity_title}
+                  {activity.name ?? activity.activity_title}
                   <button
                     type="button"
                     onClick={() => handleRemoveSelected(activity.id)}
@@ -267,7 +267,7 @@ export default function BulkActivityExclusionForm({
                       )
                     }
                   >
-                    {activity.activity_title}
+                    {activity.name ?? activity.activity_title}
                     {activity.activity_description && (
                       <span className="text-gray-500 ml-2 text-xs">
                         ({activity.activity_description})

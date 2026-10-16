@@ -253,7 +253,7 @@ export default function ActivityAvailabilityForm({
                     <option value="" disabled>Select an centre activity</option>
                     {centreActivities.map((a) => (
                         <option key={a.id} value={a.id.toString()}>
-                            {a.activity_title}
+                            {a.name ?? a.activity_title}
                         </option>
                     ))}
                 </select>

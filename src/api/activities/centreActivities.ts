@@ -17,6 +17,7 @@ export interface Activity {
 
 export interface CentreActivity {
   id: number;
+  name?: string | null;
   activity_id: number;
   is_compulsory: boolean;
   is_fixed: boolean;
@@ -35,6 +36,7 @@ export interface CentreActivity {
 }
 
 export interface CreateCentreActivityInput {
+  name: string;
   activity_id: number;
   is_fixed: boolean;
   is_group: boolean;
@@ -49,6 +51,7 @@ export interface CreateCentreActivityInput {
 
 export interface UpdateCentreActivityInput {
   id: number;
+  name: string;
   activity_id: number;
   is_fixed: boolean;
   is_group: boolean;

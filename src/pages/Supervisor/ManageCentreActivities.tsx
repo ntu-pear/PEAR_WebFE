@@ -247,6 +247,7 @@ export default function ManageCentreActivities() {
                       <CentreActivityForm
                         initial={{
                           id: editing.id,
+                          name: editing.name ?? editing.activity_title,
                           activity_id: editing.activity_id,
                           is_fixed: editing.is_fixed,
                           is_compulsory: editing.is_compulsory,

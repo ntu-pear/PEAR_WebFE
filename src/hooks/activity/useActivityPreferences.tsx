@@ -121,7 +121,7 @@ export const useActivityPreferences = () => {
           return;
         }
 
-        const { activity } = centreActivityData;
+        const { activity, centreActivity } = centreActivityData;
         const preference = preferenceMap.get(combination);
         const recommendation = recommendationMap.get(combination);
 
@@ -148,7 +148,7 @@ export const useActivityPreferences = () => {
           id: parseInt(`${patientId}${centreActivityId}`), // Unique ID combining patient and centre activity
           centreActivityId: centreActivityId,
           activityId: activity.id,
-          activityName: activity.title,
+          activityName: centreActivity.name ?? activity.title,
           activityDescription: activity.description || undefined,
           patientId: patientId,
           patientName: patientNameMap.get(patientId) || `Patient ${patientId}`,
