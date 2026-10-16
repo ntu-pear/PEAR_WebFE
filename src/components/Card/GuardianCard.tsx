@@ -18,6 +18,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { fetchGuardianByPatientId, IGuardian } from "@/api/patients/guardian";
 
 const MAX_GUARDIANS_PER_PATIENT = 2;
+const MIN_GUARDIANS_PER_PATIENT = 1;
 const GUARDIAN_LIMIT_MESSAGE = `This patient already has ${MAX_GUARDIANS_PER_PATIENT} guardians. Unassign one before adding another.`;
 
 interface GuardianRow extends TableRowData {
@@ -37,6 +38,7 @@ const GuardianCard: React.FC = () => {
   const [rows, setRows] = useState<GuardianRow[]>([]);
   const { currentUser } = useAuth();
   const atGuardianLimit = rows.length >= MAX_GUARDIANS_PER_PATIENT;
+  const canUnassign = rows.length > MIN_GUARDIANS_PER_PATIENT;
 
   const refreshGuardianData = async () => {
     if (!id || isNaN(Number(id))) return;
@@ -194,26 +196,28 @@ const GuardianCard: React.FC = () => {
                       <Pencil className="h-4 w-4 mr-1" />
                       Edit
                     </Button>
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      className="bg-red-600 hover:bg-red-700 dark:bg-red-900 dark:hover:bg-red-800"
-                      onClick={() =>
-                        openModal("unassignGuardian", {
-                          patientId: Number(id),
-                          guardianId: item.raw.patient_guardian.id,
-                          guardianName: item.guardianName,
-                          guardianNric: item.nric,
-                          refreshGuardianData,
-                          allocationId: patientAllocation?.id,
-                          primaryGuardianId: patientAllocation?.guardianId,
-                          refreshPatientData,
-                        })
-                      }
-                    >
-                      <UserMinus className="h-4 w-4 mr-1" />
-                      Unassign
-                    </Button>
+                      {canUnassign && (
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        className="bg-red-600 hover:bg-red-700 dark:bg-red-900 dark:hover:bg-red-800"
+                        onClick={() =>
+                          openModal("unassignGuardian", {
+                            patientId: Number(id),
+                            guardianId: item.raw.patient_guardian.id,
+                            guardianName: item.guardianName,
+                            guardianNric: item.nric,
+                            refreshGuardianData,
+                            allocationId: patientAllocation?.id,
+                            primaryGuardianId: patientAllocation?.guardianId,
+                            refreshPatientData,
+                          })
+                        }
+                      >
+                        <UserMinus className="h-4 w-4 mr-1" />
+                        Unassign
+                      </Button>
+                      )}
                   </div>
                 )
               : undefined
