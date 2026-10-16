@@ -1,7 +1,8 @@
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useModal } from "@/hooks/useModal";
 import { useAuth } from "@/hooks/useAuth";
-import { fetchGuardianByPatientId, unassignGuardian, IGuardian } from "@/api/patients/guardian";
+import { fetchGuardianByPatientId, fetchGuardianPatientCount, unassignGuardian, IGuardian } from "@/api/patients/guardian";
 import { updatePrimaryGuardian } from "@/api/patients/patientAllocation";
 import { extractErrorMessage } from "@/utils/errorMessage";
 import BaseDeleteModal from "./BaseDeleteModal";
@@ -12,6 +13,8 @@ const UnassignGuardianModal: React.FC = () => {
   const {
     patientId,
     guardianId,
+    guardianName,
+    guardianNric,
     refreshGuardianData,
     allocationId,
     primaryGuardianId,
@@ -19,11 +22,43 @@ const UnassignGuardianModal: React.FC = () => {
   } = activeModal.props as {
     patientId: number;
     guardianId: number;
+    guardianName?: string;
+    guardianNric?: string;
     refreshGuardianData: () => void | Promise<void>;
     allocationId?: number;
     primaryGuardianId?: number;
     refreshPatientData?: () => void | Promise<void>;
   };
+
+  const displayName = guardianName?.trim() || "Guardian";
+  const [patientCount, setPatientCount] = useState<number | null>(null);
+  const [checkingPatients, setCheckingPatients] = useState(Boolean(guardianNric));
+
+  useEffect(() => {
+    if (!guardianNric) return;
+
+    let cancelled = false;
+    fetchGuardianPatientCount(guardianNric)
+      .then((count) => {
+        if (!cancelled) setPatientCount(count);
+      })
+      .finally(() => {
+        if (!cancelled) setCheckingPatients(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [guardianNric]);
+
+  const leavesGuardianWithNoPatients = patientCount !== null && patientCount <= 1;
+
+  const description = leavesGuardianWithNoPatients ? (
+    <>
+      Unassigning {displayName} will leave them with no patient assignment, and they will be{" "}
+      <strong>soft deleted</strong>.
+    </>
+  ) : null;
 
   const promoteSoleGuardian = async (remaining: IGuardian[]) => {
     const soleGuardianId = remaining[0].patient_guardian.id;
@@ -69,7 +104,7 @@ const UnassignGuardianModal: React.FC = () => {
       !remaining.some((g) => g.patient_guardian.id === guardianId);
 
     if (wasRemoved) {
-      toast.success("Guardian unassigned from this patient.");
+      toast.success(`${displayName} unassigned from this patient.`);
     } else {
       toast.error(
         unassignError
@@ -91,9 +126,10 @@ const UnassignGuardianModal: React.FC = () => {
       modalRef={modalRef}
       onSubmit={handleUnassignGuardian}
       closeModal={closeModal}
-      title="Remove this guardian from this patient?"
-      description="This unassigns the guardian from this patient only. Their own record and any other patients they're linked to are unaffected."
+      title={`Confirm unassign ${displayName} from this patient?`}
+      description={description}
       confirmLabel="Unassign"
+      confirmDisabled={checkingPatients}
     />
   );
 };
