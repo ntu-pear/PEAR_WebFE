@@ -171,6 +171,41 @@ export const fetchPatientSchedule = async (
   }
 };
 
+export interface SchedulePreviewResponse extends SchedulerResponse<WeeklyScheduleData[]> {
+  Preview?: boolean;
+  BuiltAt?: string;
+}
+
+// Next week built from today's data, not saved. Supervisors and admins only
+export const getSchedulePreview = async (): Promise<SchedulePreviewResponse> => {
+  try {
+    const token = retrieveAccessTokenFromCookie();
+    if (!token) throw new Error("No token found.");
+
+    const response = await fetch(`${SCHEDULER_BASE_URL}/schedule/preview/`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    // a scheduler without the preview yet, next week just stays empty
+    if (response.status === 404) {
+      return { Status: "404", Message: "No preview", Data: [] };
+    }
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error getting next week preview:', error);
+    throw error;
+  }
+};
+
 // Regenerate schedule for supervisor (returns schedule directly)
 export const regenerateScheduleForSupervisor = async (): Promise<SchedulerResponse<WeeklyScheduleData[]>> => {
   try {

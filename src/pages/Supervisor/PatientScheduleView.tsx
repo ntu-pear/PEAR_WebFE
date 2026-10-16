@@ -12,6 +12,8 @@ import { toast } from 'sonner';
 import { ScheduledPatientActivity } from '@/api/scheduler/scheduler';
 import { useMyPatientIds } from '@/hooks/patient/useMyPatientIds';
 import { useAuth } from '@/hooks/useAuth';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { AlertTriangle } from 'lucide-react';
 
 // Patient Schedule View component
 const PatientScheduleView: React.FC = () => {
@@ -52,6 +54,7 @@ const PatientScheduleView: React.FC = () => {
     loadPatientSchedules,
     getPatientScheduleForDate,
     loadWeek,
+    preview,
   } = useSchedulerService();
 
   // Derive unique activities from scheduleData and auto-select all
@@ -136,7 +139,7 @@ const PatientScheduleView: React.FC = () => {
       
       const result = exportScheduleToCSV(
         PATIENT_SCHEDULE_CSV_HEADERS,
-        scheduleData,
+        scheduleData.filter(item => !item.isPreview), // a preview isn't a real schedule
         selectedScheduleActivities,
         getPatientNameForExport, // Use the export-specific function that returns just the patient name
         customFilename // Pass the custom filename
@@ -394,6 +397,15 @@ const PatientScheduleView: React.FC = () => {
 
         {/* Main Calendar Content */}
         <main className="flex-1 min-w-0 p-4 bg-gray-100 relative overflow-auto">
+          {preview && preview.week === viewedWeek && (
+            <Alert className="mb-4 border-yellow-200 bg-yellow-50">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertTitle>Preview of next week</AlertTitle>
+              <AlertDescription>
+                Built{preview.builtAt ? ` at ${preview.builtAt.slice(11, 16)}` : ''} from today's data. It isn't saved and can change until Monday's schedule is made.
+              </AlertDescription>
+            </Alert>
+          )}
           {renderCalendarView()}
         </main>
       </div>
