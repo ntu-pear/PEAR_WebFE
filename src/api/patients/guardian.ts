@@ -126,7 +126,17 @@ export const assignExistingGuardian = async (data: IGuardianAssignData) => {
   }
 };
 
-export const unassignGuardian = async (patientId: number, guardianId: number) => {
+export interface IUnassignGuardianResult {
+  // True when this was the guardian's last patient, so the guardian was soft-deleted.
+  guardianSoftDeleted?: boolean;
+  // Whether their login account was deactivated too (null if they have no account).
+  accountDeactivated?: boolean | null;
+}
+
+export const unassignGuardian = async (
+  patientId: number,
+  guardianId: number
+): Promise<IUnassignGuardianResult> => {
   const token = retrieveAccessTokenFromCookie();
   if (!token) throw new Error("No token found.");
 

@@ -1,7 +1,12 @@
 import { toast } from "sonner";
 import { useModal } from "@/hooks/useModal";
 import { useAuth } from "@/hooks/useAuth";
-import { fetchGuardianByPatientId, unassignGuardian, IGuardian } from "@/api/patients/guardian";
+import {
+  fetchGuardianByPatientId,
+  unassignGuardian,
+  IGuardian,
+  IUnassignGuardianResult,
+} from "@/api/patients/guardian";
 import { updatePrimaryGuardian } from "@/api/patients/patientAllocation";
 import { extractErrorMessage } from "@/utils/errorMessage";
 import BaseDeleteModal from "./BaseDeleteModal";
@@ -49,8 +54,9 @@ const UnassignGuardianModal: React.FC = () => {
     if (!guardianId || !patientId) return;
 
     let unassignError: unknown = null;
+    let unassignResult: IUnassignGuardianResult | null = null;
     try {
-      await unassignGuardian(patientId, guardianId);
+      unassignResult = await unassignGuardian(patientId, guardianId);
     } catch (error) {
       unassignError = error;
     }
@@ -70,6 +76,19 @@ const UnassignGuardianModal: React.FC = () => {
 
     if (wasRemoved) {
       toast.success("Guardian unassigned from this patient.");
+      if (unassignResult?.guardianSoftDeleted) {
+        if (unassignResult.accountDeactivated === false) {
+          toast.warning(
+            "This guardian had no other patients, so their record was removed, but their login account could not be deactivated. Ask an admin to deactivate it."
+          );
+        } else {
+          toast.info(
+            unassignResult.accountDeactivated
+              ? "This guardian had no other patients, so their record was removed and their login account deactivated."
+              : "This guardian had no other patients, so their record was removed."
+          );
+        }
+      }
     } else {
       toast.error(
         unassignError
@@ -92,7 +111,7 @@ const UnassignGuardianModal: React.FC = () => {
       onSubmit={handleUnassignGuardian}
       closeModal={closeModal}
       title="Remove this guardian from this patient?"
-      description="This unassigns the guardian from this patient only. Their own record and any other patients they're linked to are unaffected."
+      description="This unassigns the guardian from this patient only. If this is their last patient, their guardian record is removed and their login account deactivated."
       confirmLabel="Unassign"
     />
   );
