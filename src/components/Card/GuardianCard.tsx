@@ -197,10 +197,13 @@ const GuardianCard: React.FC = () => {
                     <Button
                       variant="destructive"
                       size="sm"
+                      className="bg-red-600 hover:bg-red-700 dark:bg-red-900 dark:hover:bg-red-800"
                       onClick={() =>
                         openModal("unassignGuardian", {
                           patientId: Number(id),
                           guardianId: item.raw.patient_guardian.id,
+                          guardianName: item.guardianName,
+                          guardianNric: item.nric,
                           refreshGuardianData,
                           allocationId: patientAllocation?.id,
                           primaryGuardianId: patientAllocation?.guardianId,
