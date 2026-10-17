@@ -4,7 +4,8 @@ import {
   ScheduledCentreActivity,
   ActivityTemplate,
 } from "@/api/scheduler/scheduler";
-import { TIME_SLOTS, ACTIVITY_STYLES } from "../CalendarTypes";
+import { ACTIVITY_STYLES } from "../CalendarTypes";
+import { useCentreTimeSlots } from "../hooks/useCentreTimeSlots";
 
 interface CentreDailyScheduleViewProps {
   currentDate: Date;
@@ -19,6 +20,8 @@ const CentreDailyScheduleView: React.FC<CentreDailyScheduleViewProps> = ({
   getActivityTemplate,
   onActivityClick,
 }) => {
+  const { timeSlots } = useCentreTimeSlots();
+
   // Helper to render activity blocks for Day view
   const renderActivityBlock = (activity: ScheduledCentreActivity) => {
     const activityTemplate = getActivityTemplate(activity.activityTemplateId);
@@ -77,7 +80,7 @@ const CentreDailyScheduleView: React.FC<CentreDailyScheduleViewProps> = ({
 
       {/* Time column */}
       <div>
-        {TIME_SLOTS.map((time) => (
+        {timeSlots.map((time) => (
           <div
             key={time}
             className="px-2 text-right text-xs bg-white border-r border-gray-200 h-[60px] flex justify-end"
@@ -100,7 +103,7 @@ const CentreDailyScheduleView: React.FC<CentreDailyScheduleViewProps> = ({
         </div>
 
         {/* Render time slot lines for visual grid */}
-        {TIME_SLOTS.map((time) => (
+        {timeSlots.map((time) => (
           <div key={time} className="border-b border-gray-200 h-[60px]" />
         ))}
       </div>

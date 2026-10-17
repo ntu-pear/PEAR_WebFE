@@ -11,7 +11,8 @@ import {
   ScheduledCentreActivity,
   ActivityTemplate,
 } from "@/api/scheduler/scheduler";
-import { TIME_SLOTS, ACTIVITY_STYLES } from "../CalendarTypes";
+import { ACTIVITY_STYLES } from "../CalendarTypes";
+import { useCentreTimeSlots } from "../hooks/useCentreTimeSlots";
 
 interface CentreWeeklyScheduleViewProps {
   currentDate: Date;
@@ -26,6 +27,8 @@ const CentreWeeklyScheduleView: React.FC<CentreWeeklyScheduleViewProps> = ({
   getActivityTemplate,
   onActivityClick,
 }) => {
+  const { timeSlots } = useCentreTimeSlots();
+
   const renderActivityBlock = (activity: ScheduledCentreActivity) => {
     const activityTemplate = getActivityTemplate(activity.activityTemplateId);
     if (!activityTemplate) return null;
@@ -93,7 +96,7 @@ const CentreWeeklyScheduleView: React.FC<CentreWeeklyScheduleViewProps> = ({
 
       {/* Time column (hour labels) */}
       <div>
-        {TIME_SLOTS.map((time) => (
+        {timeSlots.map((time) => (
           <div
             key={time}
             className="px-2 text-right text-xs bg-white border-r border-gray-200 h-[60px] flex justify-end"
@@ -116,7 +119,7 @@ const CentreWeeklyScheduleView: React.FC<CentreWeeklyScheduleViewProps> = ({
             className="relative bg-white border-r border-gray-200"
           >
             {/* Render time slot lines */}
-            {TIME_SLOTS.map((_, i) => (
+            {timeSlots.map((_, i) => (
               <div key={i} className="border-b border-gray-200 h-[60px]" />
             ))}
 
