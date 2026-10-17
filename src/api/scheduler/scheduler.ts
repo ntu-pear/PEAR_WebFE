@@ -119,11 +119,15 @@ export const generateSchedule = async (): Promise<SchedulerResponse<string>> => 
 // Get the saved schedule for the week date (YYYY-MM-DD) is in, this week if not given
 export const getSchedule = async (date?: string): Promise<SchedulerResponse<WeeklyScheduleData[]>> => {
   try {
+    const token = retrieveAccessTokenFromCookie();
+    if (!token) throw new Error("No token found.");
+
     const query = date ? `?date=${encodeURIComponent(date)}` : '';
     const response = await fetch(`${SCHEDULER_BASE_URL}/schedule/getSchedule/${query}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
       },
     });
 
@@ -462,10 +466,14 @@ export interface SystemTestData {
 // Get system test results
 export const getSystemTest = async (): Promise<SchedulerResponse<SystemTestData>> => {
   try {
+    const token = retrieveAccessTokenFromCookie();
+    if (!token) throw new Error("No token found.");
+
     const response = await fetch(`${SCHEDULER_BASE_URL}/schedule/systemTest/`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
       },
     });
 
