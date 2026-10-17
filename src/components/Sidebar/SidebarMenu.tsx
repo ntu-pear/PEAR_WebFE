@@ -251,6 +251,16 @@ const adminMenu: MenuSection[] = [
     title: "OTHERS",
     items: [
       {
+        title: "Patient Logs",
+        icon: "BookText",
+        path: "/admin/view-patient-logs",
+      },
+      {
+        title: "Activity Logs",
+        icon: "BookText",
+        path: "/admin/view-activity-logs",
+      },
+      {
         title: "Account Logs",
         icon: "UserRound",
         path: "/admin/account-logs",
