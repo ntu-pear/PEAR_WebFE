@@ -217,12 +217,12 @@ const AddAdhoc: React.FC = () => {
           .filter((r) => !r.is_deleted && r.doctor_recommendation === -1)
           .forEach((r) => unscheduleable.add(r.centre_activity_id));
 
-        const requestedStart = watchedStartDate?.startOf("day");
-        const requestedEnd = watchedEndDate?.startOf("day");
+        const requestedStart = (watchedStartDate ?? dayjs().tz("Asia/Singapore")).startOf("day");
+        const requestedEnd = getEndOfCurrentWeekSG().startOf("day");
         const excluded = new Set<number>();
         exclusionTable.exclusions
           .filter((exclusion) => {
-            if (exclusion.is_deleted || !requestedStart || !requestedEnd) return false;
+            if (exclusion.is_deleted) return false;
 
             const exclusionStart = dayjs(exclusion.start_date).startOf("day");
             const exclusionEnd = exclusion.end_date
@@ -247,7 +247,7 @@ const AddAdhoc: React.FC = () => {
     };
 
     fetchPatientActivityRules();
-  }, [mode, watchedPatientId, watchedStartDate, watchedEndDate]);
+  }, [mode, watchedPatientId, watchedStartDate]);
 
   useEffect(() => {
     if (mode !== "patient" || !watchedPatientId) {
