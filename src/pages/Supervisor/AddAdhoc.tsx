@@ -8,6 +8,7 @@ import { createAdhocActivity } from "@/api/activities/adhoc";
 import { listCentreActivities, CentreActivity, getActivities } from "@/api/activities/centreActivities";
 import { getCentreActivityPreferences } from "@/api/activity/activityPreference";
 import { getCentreActivityRecommendations } from "@/api/activity/activityRecommendation";
+import { getActivityExclusionTableByPatient } from "@/api/activity/activityAggregated";
 import { getSchedule, parseScheduleString } from "@/api/scheduler/scheduler";
 import { getEndOfCurrentWeekSG } from "@/utils/formatDate";
 
@@ -33,6 +34,7 @@ const AddAdhoc: React.FC = () => {
   const watchedPatientId = Form.useWatch("patient_id", form);
 
   const [unscheduleableActivityIds, setUnscheduleableActivityIds] = useState<Set<number>>(new Set());
+  const [excludedActivityIds, setExcludedActivityIds] = useState<Set<number>>(new Set());
   const [loadingPatientActivityRules, setLoadingPatientActivityRules] = useState(false);
 
   const [scheduledActivityTitles, setScheduledActivityTitles] = useState<Set<string> | null>(null);
@@ -201,9 +203,10 @@ const AddAdhoc: React.FC = () => {
       setLoadingPatientActivityRules(true);
       try {
         const patientIdStr = String(watchedPatientId);
-        const [preferences, recommendations] = await Promise.all([
+        const [preferences, recommendations, exclusionTable] = await Promise.all([
           getCentreActivityPreferences(patientIdStr),
           getCentreActivityRecommendations(patientIdStr),
+          getActivityExclusionTableByPatient(patientIdStr),
         ]);
 
         const unscheduleable = new Set<number>();
@@ -214,17 +217,37 @@ const AddAdhoc: React.FC = () => {
           .filter((r) => !r.is_deleted && r.doctor_recommendation === -1)
           .forEach((r) => unscheduleable.add(r.centre_activity_id));
 
+        const requestedStart = (watchedStartDate ?? dayjs().tz("Asia/Singapore")).startOf("day");
+        const requestedEnd = getEndOfCurrentWeekSG().startOf("day");
+        const excluded = new Set<number>();
+        exclusionTable.exclusions
+          .filter((exclusion) => {
+            if (exclusion.is_deleted) return false;
+
+            const exclusionStart = dayjs(exclusion.start_date).startOf("day");
+            const exclusionEnd = exclusion.end_date
+              ? dayjs(exclusion.end_date).startOf("day")
+              : null;
+            return (
+              !exclusionStart.isAfter(requestedEnd) &&
+              (!exclusionEnd || !exclusionEnd.isBefore(requestedStart))
+            );
+          })
+          .forEach((exclusion) => excluded.add(exclusion.centre_activity_id));
+
         setUnscheduleableActivityIds(unscheduleable);
+        setExcludedActivityIds(excluded);
       } catch (error) {
-        console.error("Failed to load patient activity preferences/recommendations", error);
+        console.error("Failed to load patient activity rules and exclusions", error);
         setUnscheduleableActivityIds(new Set());
+        setExcludedActivityIds(new Set());
       } finally {
         setLoadingPatientActivityRules(false);
       }
     };
 
     fetchPatientActivityRules();
-  }, [mode, watchedPatientId]);
+  }, [mode, watchedPatientId, watchedStartDate]);
 
   useEffect(() => {
     if (mode !== "patient" || !watchedPatientId) {
@@ -331,7 +354,11 @@ const AddAdhoc: React.FC = () => {
 
     if (mode !== "patient") return sorted;
 
-    return sorted.filter((activity) => !unscheduleableActivityIds.has(activity.id));
+    return sorted.filter(
+      (activity) =>
+        !unscheduleableActivityIds.has(activity.id) &&
+        !excludedActivityIds.has(activity.id)
+    );
   };
   return (
     <div className="flex min-h-screen w-full flex-col lg:flex-row container mx-auto px-4">
