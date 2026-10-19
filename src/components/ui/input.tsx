@@ -22,12 +22,18 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
       onValueChange,
       validationRegex,
       validationMessage,
+      value: controlledValue,
+      onChange,
+      onBlur,
       ...props
     },
     ref
   ) => {
-    const [value, setValue] = React.useState<string>("");
+    const [internalValue, setInternalValue] = React.useState<string>("");
     const [error, setError] = React.useState<string | null>(null);
+    const [dirty, setDirty] = React.useState(false);
+    const isControlled = controlledValue !== undefined;
+    const value = isControlled ? String(controlledValue ?? "") : internalValue;
 
     const validateInput = (value: string) => {
       if (required && value.trim() === "") {
@@ -41,7 +47,9 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const newValue = e.target.value;
-      setValue(newValue);
+      if (!isControlled) setInternalValue(newValue);
+      setDirty(true);
+      onChange?.(e);
       onValueChange?.(newValue);
 
       if (!required && newValue.trim() === "") {
@@ -53,8 +61,9 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
       setError(validationError);
     };
 
-    const handleBlur = () => {
-      if (required) {
+    const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+      onBlur?.(e);
+      if (required && dirty) {
         const validationError = validateInput(value);
         setError(validationError);
       }
@@ -64,7 +73,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
       <div className="w-full">
         <input
           type={type}
-          value={value}
+          value={isControlled ? controlledValue : internalValue}
           onChange={handleChange}
           onBlur={handleBlur}
           className={cn(
