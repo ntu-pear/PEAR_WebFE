@@ -42,6 +42,7 @@ const AddAdhoc: React.FC = () => {
 
   const [affectedPatients, setAffectedPatients] = useState<{ id: number; name: string }[] | null>(null);
   const [loadingAffectedPatients, setLoadingAffectedPatients] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   const handleStartDateChange = (date: Dayjs | null) => {
     form.setFieldsValue({
@@ -63,7 +64,49 @@ const AddAdhoc: React.FC = () => {
       .format();
 
     if (mode === "activity-wide") {
-      message.info("Activity-wide adhoc isn't available yet");
+      if (loadingAffectedPatients) {
+        message.info("Still loading the affected patients, please try again in a moment.");
+        return;
+      }
+      if (!affectedPatients || affectedPatients.length === 0) {
+        message.error("No patients are scheduled for this activity in the selected range.");
+        return;
+      }
+
+      setSubmitting(true);
+      const failedPatients: string[] = [];
+      for (const patient of affectedPatients) {
+        try {
+          await createAdhocActivity({
+            patientId: patient.id,
+            oldActivityId: Number(values.old_centre_activity_id),
+            newActivityId: Number(values.new_centre_activity_id),
+            startDate: startISO,
+            endDate: endISO,
+          });
+        } catch (error) {
+          console.error(`Failed to add adhoc for ${patient.name}:`, error);
+          failedPatients.push(patient.name);
+        }
+      }
+      setSubmitting(false);
+
+      const addedCount = affectedPatients.length - failedPatients.length;
+      const plural = (count: number) => `${count} patient${count === 1 ? "" : "s"}`;
+
+      if (failedPatients.length === 0) {
+        message.success(`Adhoc activity added for ${plural(addedCount)}!`);
+        form.resetFields();
+        navigate("/supervisor/manage-adhoc");
+      } else if (addedCount === 0) {
+        message.error("Failed to add adhoc activity for any of the affected patients");
+      } else {
+        message.warning(
+          `Adhoc activity added for ${plural(addedCount)}, but failed for: ${failedPatients.join(", ")}`,
+          8
+        );
+        setAffectedPatients(affectedPatients.filter((patient) => failedPatients.includes(patient.name)));
+      }
       return;
     }
 
@@ -678,7 +721,7 @@ const AddAdhoc: React.FC = () => {
               </button>
               <button
                 type="submit"
-                
+                disabled={submitting}
                 className="
                     rounded-md bg-black px-3 py-2
                     text-sm font-semibold text-white
@@ -686,10 +729,11 @@ const AddAdhoc: React.FC = () => {
                     hover:bg-gray-800
                     focus-visible:outline focus-visible:outline-2
                     focus-visible:outline-offset-2 focus-visible:outline-black
+                    disabled:opacity-50
                   "
 
               >
-                Add Adhoc
+                {submitting ? "Adding..." : "Add Adhoc"}
               </button>
             </div>
           </Form.Item>

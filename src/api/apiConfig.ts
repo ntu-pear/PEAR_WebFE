@@ -27,6 +27,7 @@ export const VITE_USER_SERVICE_URL: string = import.meta.env
 
 let refreshPromise: Promise<void> | null = null;
 
+// one refresh shared by every request that fails
 const getRefreshPromise = (): Promise<void> => {
   if (!refreshPromise) {
     refreshPromise = refreshAccessToken()
@@ -46,6 +47,7 @@ const attachAuthRetryInterceptor = (instance: AxiosInstance): AxiosInstance => {
         | (typeof error.config & { _authRetried?: boolean })
         | undefined;
 
+      // retry only a 401, only once, and only if a refresh token exists
       if (
         error.response?.status === 401 &&
         originalRequest &&
@@ -56,14 +58,14 @@ const attachAuthRetryInterceptor = (instance: AxiosInstance): AxiosInstance => {
         try {
           await getRefreshPromise();
           const refreshedToken = retrieveAccessTokenFromCookie();
-          if (refreshedToken) {
+          if (refreshedToken) { // send the original request again with the new token
             originalRequest.headers = {
               ...originalRequest.headers,
               Authorization: `Bearer ${refreshedToken}`,
             };
           }
           return instance(originalRequest);
-        } catch (refreshError) {
+        } catch (refreshError) { // refresh failed, so the session is treated as no longer valid
           clearAllCookies();
           window.location.href = "/login";
           return Promise.reject(refreshError);

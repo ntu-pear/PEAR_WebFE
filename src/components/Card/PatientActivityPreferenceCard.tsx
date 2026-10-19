@@ -339,7 +339,7 @@ const PatientActivityPreferenceCard: React.FC<
 
   const columns: DataTableColumns<PatientActivityPreferenceWithRecommendation> =
     [
-      ...(currentUser?.roleName === "SUPERVISOR"
+      ...(canEdit
         ? [
             {
               key: "select" as keyof (typeof activityPreferences)[0],
@@ -605,7 +605,7 @@ const PatientActivityPreferenceCard: React.FC<
       </CardHeader>
       <CardContent>
         {/* Bulk Selection Controls */}
-        {currentUser?.roleName === "SUPERVISOR" && (
+        {canEdit && (
           <div className="mb-4 p-4 border rounded-lg bg-muted/50">
             <div className="flex items-center gap-4 flex-wrap">
               <div className="flex items-center gap-2">

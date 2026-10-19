@@ -197,7 +197,7 @@ const ViewPatient: React.FC = () => {
               {(isSupervisor || isGuardian) && (
                 <TabsTrigger value="routine">Routine</TabsTrigger>
               )}
-              {(isSupervisor || isPrimaryGuardian) && (
+              {(isSupervisor || isGuardian) && (
                 <TabsTrigger value="activity-preference">Activity Preference</TabsTrigger>
               )}
               {isSupervisor && (
@@ -229,8 +229,8 @@ const ViewPatient: React.FC = () => {
               {activeTab === "problem-log" && <ProblemLogTab />}
               {activeTab === "personal-preference" && <PersonalPreferenceTab />}
               {activeTab === "allergy" && <AllergyTab />}
-              {(isSupervisor || isPrimaryGuardian) && activeTab === "activity-preference" && (
-                <ActivityPreferenceTab canEdit={isSupervisor} />
+              {(isSupervisor || isGuardian) && activeTab === "activity-preference" && (
+                <ActivityPreferenceTab canEdit={isSupervisor || isPrimaryGuardian} />
               )}
               {isSupervisor && activeTab === "activity-exclusion" && <ActivityExclusionTab />}
               {(isSupervisor || isGuardian) && activeTab === "routine" && <RoutineTab />}
