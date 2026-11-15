@@ -25,7 +25,10 @@ import {
 } from "@/api/activities/centreActivities";
 import { getCentreActivityPreferences } from "@/api/activity/activityPreference";
 import { getCentreActivityRecommendations } from "@/api/activity/activityRecommendation";
+import { getActivityExclusionTableByPatient } from "@/api/activity/activityAggregated";
+import type { CentreActivityExclusion } from "@/api/activity/activityExclusion";
 import { formatDate, formatDateTime, formatDateTimeNoYear, getEndOfCurrentWeekSG } from "@/utils/formatDate";
+import { getExcludedCentreActivityIds } from "@/utils/activityExclusions";
 import dayjs, { Dayjs } from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
@@ -396,11 +399,13 @@ const EditAdhocModal: React.FC<EditAdhocModalProps> = ({ activity, open, onClose
   const [endDate, setEndDate] = useState<Dayjs | null>(null);
 
   const [unscheduleableActivityIds, setUnscheduleableActivityIds] = useState<Set<number>>(new Set());
+  const [patientExclusions, setPatientExclusions] = useState<CentreActivityExclusion[]>([]);
   const [loadingActivityRules, setLoadingActivityRules] = useState(false);
 
   useEffect(() => {
     if (!open || !activity?.patientId) {
       setUnscheduleableActivityIds(new Set());
+      setPatientExclusions([]);
       return;
     }
 
@@ -408,9 +413,10 @@ const EditAdhocModal: React.FC<EditAdhocModalProps> = ({ activity, open, onClose
       setLoadingActivityRules(true);
       try {
         const patientIdStr = String(activity.patientId);
-        const [preferences, recommendations] = await Promise.all([
+        const [preferences, recommendations, exclusionTable] = await Promise.all([
           getCentreActivityPreferences(patientIdStr),
           getCentreActivityRecommendations(patientIdStr),
+          getActivityExclusionTableByPatient(patientIdStr),
         ]);
 
         const unscheduleable = new Set<number>();
@@ -422,9 +428,11 @@ const EditAdhocModal: React.FC<EditAdhocModalProps> = ({ activity, open, onClose
           .forEach((r) => unscheduleable.add(r.centre_activity_id));
 
         setUnscheduleableActivityIds(unscheduleable);
+        setPatientExclusions(exclusionTable.exclusions);
       } catch (error) {
         console.error("Failed to load patient activity preferences/recommendations", error);
         setUnscheduleableActivityIds(new Set());
+        setPatientExclusions([]);
       } finally {
         setLoadingActivityRules(false);
       }
@@ -450,7 +458,7 @@ const EditAdhocModal: React.FC<EditAdhocModalProps> = ({ activity, open, onClose
 
   const handleStartDateChange = (value: Dayjs | null) => {
     setStartDate(value);
-    setEndDate(value ? value.add(1, "day") : null);
+    setEndDate(value);
   };
 
   const handleEndDateChange = (value: Dayjs | null) => {
@@ -464,6 +472,12 @@ const EditAdhocModal: React.FC<EditAdhocModalProps> = ({ activity, open, onClose
   }, [open, resetForm]);
 
   if (!activity) return null;
+
+  const excludedActivityIds = getExcludedCentreActivityIds(
+    patientExclusions,
+    (startDate ?? dayjs().tz(SG_TZ)).startOf("day"),
+    endDate && startDate && !endDate.isBefore(startDate, "day") ? endDate.startOf("day") : getEndOfCurrentWeekSG()
+  );
 
   return (
     <Dialog
@@ -491,7 +505,11 @@ const EditAdhocModal: React.FC<EditAdhocModalProps> = ({ activity, open, onClose
             >
               <option value={-1}>Keep Current</option>
               {centreActivityList
-                .filter((ca) => !unscheduleableActivityIds.has(ca.id) || ca.id === selectedActivityId)
+                .filter(
+                  (ca) =>
+                    (!unscheduleableActivityIds.has(ca.id) && !excludedActivityIds.has(ca.id)) ||
+                    ca.id === selectedActivityId
+                )
                 .sort((a, b) =>
                   getDisplayName(a).localeCompare(getDisplayName(b))
                 )
@@ -533,7 +551,7 @@ const EditAdhocModal: React.FC<EditAdhocModalProps> = ({ activity, open, onClose
                 if (!current) return false;
                 if (current.isBefore(dayjs().tz(SG_TZ), "day")) return true;
                 if (current.isAfter(getEndOfCurrentWeekSG(), "day")) return true;
-                return !!startDate && !current.isAfter(startDate, "day");
+                return !!startDate && current.isBefore(startDate, "day");
               }}
             />
           </div>
@@ -544,11 +562,11 @@ const EditAdhocModal: React.FC<EditAdhocModalProps> = ({ activity, open, onClose
             onClick={() => {
               if (!selectedActivityId && selectedActivityId !== 0) return alert("Select a new activity");
               if (!startDate || !endDate) return alert("Select both start and end dates");
-              if (!endDate.isAfter(startDate, "day")) return alert("End date must be after start date");
+              if (endDate.isBefore(startDate, "day")) return alert("End date cannot be before start date");
               const newId = selectedActivityId === -1 ? activity.newActivityId : selectedActivityId;
 
-              const startISO = dayjs.tz(`${startDate.format("YYYY-MM-DD")}T00:00:00`, SG_TZ).format();
-              const endISO = dayjs.tz(`${endDate.format("YYYY-MM-DD")}T00:00:00`, SG_TZ).format();
+              const startISO = dayjs.tz(`${startDate.format("YYYY-MM-DD")}T08:00:00`, SG_TZ).format();
+              const endISO = dayjs.tz(`${endDate.format("YYYY-MM-DD")}T23:59:59`, SG_TZ).format();
 
               onSave({
                 ...activity,

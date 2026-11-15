@@ -26,7 +26,7 @@ test("Supervisor - Add Adhoc for All Patients on an Activity", async ({ page }) 
   test.setTimeout(240_000);
   test.skip(
     new Date().getDay() === 0,
-    "Add Adhoc has no valid date range on Sundays: the end date must be after the start date but within the current week."
+    "On Sundays the only valid date range is Sunday itself, and no patients are scheduled on Sundays."
   );
 
   const startDate = format(new Date(), "dd-MMM-yyyy");

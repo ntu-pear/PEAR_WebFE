@@ -137,8 +137,8 @@ export default function CentreActivityExclusionForm({
     if (!isEditing && !exclusionRemarks.trim()) {
       newErrors.exclusion_remarks = ["Exclusion remarks are required"];
     }
-    if (!isIndefinite && endDate && startDate && new Date(endDate) <= new Date(startDate)) {
-      newErrors.end_date = ["End date must be after start date"];
+    if (!isIndefinite && endDate && startDate && new Date(endDate) < new Date(startDate)) {
+      newErrors.end_date = ["End date cannot be before start date"];
     }
 
     setErrors(newErrors);
