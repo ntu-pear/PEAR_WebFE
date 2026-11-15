@@ -9,10 +9,24 @@ import { listCentreActivities, CentreActivity, getActivities } from "@/api/activ
 import { getCentreActivityPreferences } from "@/api/activity/activityPreference";
 import { getCentreActivityRecommendations } from "@/api/activity/activityRecommendation";
 import { getActivityExclusionTableByPatient } from "@/api/activity/activityAggregated";
+import type { CentreActivityExclusion } from "@/api/activity/activityExclusion";
 import { getSchedule, parseScheduleString } from "@/api/scheduler/scheduler";
 import { getEndOfCurrentWeekSG } from "@/utils/formatDate";
+import { getExcludedCentreActivityIds } from "@/utils/activityExclusions";
 
 type AdhocMode = "patient" | "activity-wide";
+
+const WEEKDAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"] as const;
+
+const getDayNamesInRange = (start: Dayjs, end: Dayjs): string[] => {
+  const days: string[] = [];
+  let cursor = start.startOf("day");
+  while (!cursor.isAfter(end, "day")) {
+    days.push(cursor.format("dddd"));
+    cursor = cursor.add(1, "day");
+  }
+  return days;
+};
 
 const AddAdhoc: React.FC = () => {
   const navigate = useNavigate();
@@ -34,10 +48,10 @@ const AddAdhoc: React.FC = () => {
   const watchedPatientId = Form.useWatch("patient_id", form);
 
   const [unscheduleableActivityIds, setUnscheduleableActivityIds] = useState<Set<number>>(new Set());
-  const [excludedActivityIds, setExcludedActivityIds] = useState<Set<number>>(new Set());
+  const [patientExclusions, setPatientExclusions] = useState<CentreActivityExclusion[]>([]);
   const [loadingPatientActivityRules, setLoadingPatientActivityRules] = useState(false);
 
-  const [scheduledActivityTitles, setScheduledActivityTitles] = useState<Set<string> | null>(null);
+  const [scheduledTitlesByDay, setScheduledTitlesByDay] = useState<Record<string, Set<string>> | null>(null);
   const [loadingSchedule, setLoadingSchedule] = useState(false);
 
   const [affectedPatients, setAffectedPatients] = useState<{ id: number; name: string }[] | null>(null);
@@ -47,7 +61,7 @@ const AddAdhoc: React.FC = () => {
   const handleStartDateChange = (date: Dayjs | null) => {
     form.setFieldsValue({
       start_date: date ?? undefined,
-      end_date: date ? date.add(1, "day") : undefined,
+      end_date: date ?? undefined,
     });
   };
 
@@ -57,10 +71,10 @@ const AddAdhoc: React.FC = () => {
 
   const onFinish = async (values: any) => {
     const startISO = dayjs
-      .tz(`${(values.start_date as Dayjs).format("YYYY-MM-DD")}T00:00:00`, "Asia/Singapore")
+      .tz(`${(values.start_date as Dayjs).format("YYYY-MM-DD")}T08:00:00`, "Asia/Singapore")
       .format();
     const endISO = dayjs
-      .tz(`${(values.end_date as Dayjs).format("YYYY-MM-DD")}T00:00:00`, "Asia/Singapore")
+      .tz(`${(values.end_date as Dayjs).format("YYYY-MM-DD")}T23:59:59`, "Asia/Singapore")
       .format();
 
     if (mode === "activity-wide") {
@@ -159,9 +173,9 @@ const AddAdhoc: React.FC = () => {
     if (!value || !startDate) {
       return Promise.resolve(); // Don't validate if no value
     }
-    if (!value.isAfter(startDate, "day")) {
+    if (value.isBefore(startDate, "day")) {
       return Promise.reject(
-        new Error("End date must be after start date!")
+        new Error("End date cannot be before start date!")
       );
     }
     return Promise.resolve();
@@ -239,6 +253,7 @@ const AddAdhoc: React.FC = () => {
   useEffect(() => {
     if (mode !== "patient" || !watchedPatientId) {
       setUnscheduleableActivityIds(new Set());
+      setPatientExclusions([]);
       return;
     }
 
@@ -260,41 +275,23 @@ const AddAdhoc: React.FC = () => {
           .filter((r) => !r.is_deleted && r.doctor_recommendation === -1)
           .forEach((r) => unscheduleable.add(r.centre_activity_id));
 
-        const requestedStart = (watchedStartDate ?? dayjs().tz("Asia/Singapore")).startOf("day");
-        const requestedEnd = getEndOfCurrentWeekSG().startOf("day");
-        const excluded = new Set<number>();
-        exclusionTable.exclusions
-          .filter((exclusion) => {
-            if (exclusion.is_deleted) return false;
-
-            const exclusionStart = dayjs(exclusion.start_date).startOf("day");
-            const exclusionEnd = exclusion.end_date
-              ? dayjs(exclusion.end_date).startOf("day")
-              : null;
-            return (
-              !exclusionStart.isAfter(requestedEnd) &&
-              (!exclusionEnd || !exclusionEnd.isBefore(requestedStart))
-            );
-          })
-          .forEach((exclusion) => excluded.add(exclusion.centre_activity_id));
-
         setUnscheduleableActivityIds(unscheduleable);
-        setExcludedActivityIds(excluded);
+        setPatientExclusions(exclusionTable.exclusions);
       } catch (error) {
         console.error("Failed to load patient activity rules and exclusions", error);
         setUnscheduleableActivityIds(new Set());
-        setExcludedActivityIds(new Set());
+        setPatientExclusions([]);
       } finally {
         setLoadingPatientActivityRules(false);
       }
     };
 
     fetchPatientActivityRules();
-  }, [mode, watchedPatientId, watchedStartDate]);
+  }, [mode, watchedPatientId]);
 
   useEffect(() => {
     if (mode !== "patient" || !watchedPatientId) {
-      setScheduledActivityTitles(null);
+      setScheduledTitlesByDay(null);
       return;
     }
 
@@ -306,16 +303,16 @@ const AddAdhoc: React.FC = () => {
           (s) => Number(s.PatientID) === Number(watchedPatientId)
         );
 
-        const titles = new Set<string>();
-        if (patientSchedule) {
-          (["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"] as const).forEach((day) => {
-            parseScheduleString(patientSchedule[day]).forEach((title) => titles.add(title.toUpperCase()));
-          });
-        }
-        setScheduledActivityTitles(titles);
+        const titlesByDay: Record<string, Set<string>> = {};
+        WEEKDAYS.forEach((day) => {
+          titlesByDay[day] = new Set(
+            patientSchedule ? parseScheduleString(patientSchedule[day]).map((title) => title.toUpperCase()) : []
+          );
+        });
+        setScheduledTitlesByDay(titlesByDay);
       } catch (error) {
         console.error("Failed to load patient schedule", error);
-        setScheduledActivityTitles(new Set());
+        setScheduledTitlesByDay({});
       } finally {
         setLoadingSchedule(false);
       }
@@ -343,13 +340,7 @@ const AddAdhoc: React.FC = () => {
       try {
         const res = await getSchedule();
 
-        const days: string[] = [];
-        let cursor = (watchedStartDate as Dayjs).startOf("day");
-        const end = (watchedEndDate as Dayjs).startOf("day");
-        while (!cursor.isAfter(end)) {
-          days.push(cursor.format("dddd"));
-          cursor = cursor.add(1, "day");
-        }
+        const days = getDayNamesInRange(watchedStartDate as Dayjs, watchedEndDate as Dayjs);
 
         const matches = (res.Data || []).filter((schedule) =>
           days.some((day) => {
@@ -374,35 +365,59 @@ const AddAdhoc: React.FC = () => {
     fetchAffectedPatients();
   }, [mode, oldActivityId, watchedStartDate, watchedEndDate, activities, activityMap]);
 
+  const selectedRange =
+    watchedStartDate && watchedEndDate && !(watchedEndDate as Dayjs).isBefore(watchedStartDate as Dayjs, "day")
+      ? { start: (watchedStartDate as Dayjs).startOf("day"), end: (watchedEndDate as Dayjs).startOf("day") }
+      : null;
+
+  const sortedActivities = [...activities].sort((a, b) => {
+    const titleA = (activityMap[a.activity_id] || "ZZZZ_UNKNOWN").toUpperCase();
+    const titleB = (activityMap[b.activity_id] || "ZZZZ_UNKNOWN").toUpperCase();
+    return titleA.localeCompare(titleB);
+  });
+
   const getOldActivityOptions = () => {
-    const sorted = [...activities].sort((a, b) => {
-      const titleA = (activityMap[a.activity_id] || "ZZZZ_UNKNOWN").toUpperCase();
-      const titleB = (activityMap[b.activity_id] || "ZZZZ_UNKNOWN").toUpperCase();
-      return titleA.localeCompare(titleB);
-    });
+    if (mode !== "patient" || !scheduledTitlesByDay) return sortedActivities;
 
-    if (mode !== "patient" || !scheduledActivityTitles) return sorted;
+    const days = selectedRange ? getDayNamesInRange(selectedRange.start, selectedRange.end) : WEEKDAYS;
+    const scheduledTitles = new Set(days.flatMap((day) => [...(scheduledTitlesByDay[day] ?? [])]));
 
-    return sorted.filter((activity) =>
-      scheduledActivityTitles.has((activityMap[activity.activity_id] ?? "").toUpperCase())
+    return sortedActivities.filter((activity) =>
+      scheduledTitles.has((activityMap[activity.activity_id] ?? "").toUpperCase())
     );
   };
 
   const getNewActivityOptions = () => {
-    const sorted = [...activities].sort((a, b) => {
-      const titleA = (activityMap[a.activity_id] || "ZZZZ_UNKNOWN").toUpperCase();
-      const titleB = (activityMap[b.activity_id] || "ZZZZ_UNKNOWN").toUpperCase();
-      return titleA.localeCompare(titleB);
-    });
+    if (mode !== "patient") return sortedActivities;
 
-    if (mode !== "patient") return sorted;
+    const excludedActivityIds = getExcludedCentreActivityIds(
+      patientExclusions,
+      selectedRange?.start ?? dayjs().tz("Asia/Singapore"),
+      selectedRange?.end ?? getEndOfCurrentWeekSG()
+    );
 
-    return sorted.filter(
+    return sortedActivities.filter(
       (activity) =>
         !unscheduleableActivityIds.has(activity.id) &&
         !excludedActivityIds.has(activity.id)
     );
   };
+
+  const oldActivityOptions = getOldActivityOptions();
+  const newActivityOptions = getNewActivityOptions();
+
+  useEffect(() => {
+    if (oldActivityId && !oldActivityOptions.some((activity) => activity.id === Number(oldActivityId))) {
+      form.setFieldsValue({ old_centre_activity_id: undefined });
+    }
+  }, [oldActivityOptions, oldActivityId, form]);
+
+  useEffect(() => {
+    if (newActivityId && !newActivityOptions.some((activity) => activity.id === Number(newActivityId))) {
+      form.setFieldsValue({ new_centre_activity_id: undefined });
+    }
+  }, [newActivityOptions, newActivityId, form]);
+
   return (
     <div className="flex min-h-screen w-full flex-col lg:flex-row container mx-auto px-4">
       {/* Left Sidebar Navigation */}
@@ -554,7 +569,7 @@ const AddAdhoc: React.FC = () => {
 
                     // If conflict detected
                     if (selectedOld === currentNew) {
-                      const alternative = activities.find(a => a.id !== selectedOld);
+                      const alternative = oldActivityOptions.find(a => a.id !== selectedOld);
 
                       if (alternative) {
                         form.setFieldsValue({
@@ -584,12 +599,14 @@ const AddAdhoc: React.FC = () => {
                     <option value="">
                       {loadingSchedule
                         ? "Loading patient's schedule..."
-                        : mode === "patient" && getOldActivityOptions().length === 0
-                        ? "No activities currently scheduled for this patient"
+                        : mode === "patient" && oldActivityOptions.length === 0
+                        ? selectedRange
+                          ? "No activities scheduled for this patient on the selected dates"
+                          : "No activities currently scheduled for this patient"
                         : "Select Original Activity"}
                     </option>
 
-                    {getOldActivityOptions().map((activity) => (
+                    {oldActivityOptions.map((activity) => (
                       <option key={activity.id} value={activity.id}>
                         {(activityMap[activity.activity_id] ?? "Unknown Activity").toUpperCase()}
                       </option>
@@ -646,7 +663,7 @@ const AddAdhoc: React.FC = () => {
                     </option>
 
 
-                    {getNewActivityOptions().map((activity) => (
+                    {newActivityOptions.map((activity) => (
                       <option key={activity.id} value={activity.id}>
                         {(activityMap[activity.activity_id] ?? "Unknown Activity").toUpperCase()}
                       </option>
@@ -701,7 +718,7 @@ const AddAdhoc: React.FC = () => {
                       if (current.isBefore(dayjs().tz("Asia/Singapore"), "day")) return true;
                       if (current.isAfter(getEndOfCurrentWeekSG(), "day")) return true;
                       const startDate: Dayjs | undefined = form.getFieldValue("start_date");
-                      return !!startDate && !current.isAfter(startDate, "day");
+                      return !!startDate && current.isBefore(startDate, "day");
                     }}
                   />
                 </Form.Item>

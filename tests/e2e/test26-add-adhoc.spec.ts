@@ -9,10 +9,6 @@ const frontendUrl = process.env.FRONTEND_URL!;
 const email = process.env.SUPERVISOR_ACCOUNT_EMAIL!;
 const password = process.env.SUPERVISOR_ACCOUNT_PASSWORD!;
 
-function isSunday() {
-  return new Date().getDay() === 0;
-}
-
 async function selectableOptionValues(select: Locator): Promise<string[]> {
   return select
     .locator("option")
@@ -33,11 +29,9 @@ async function fillAdhocDate(page: Page, label: RegExp, value: string) {
 
 test.describe("Supervisor: Add Adhoc Activity", () => {
   test("Login and submit Add Adhoc", async ({ page }) => {
-
     test.skip(
-      isSunday(),
-      "Add Adhoc has no valid date range on Sundays: end date must be strictly " +
-      "after start date, but cannot pass Sunday of the current week."
+      new Date().getDay() === 0,
+      "No patients are scheduled on Sundays, so there is no Original Activity to replace."
     );
 
     // ================= LOGIN =================
@@ -69,6 +63,13 @@ test.describe("Supervisor: Add Adhoc Activity", () => {
 
     await patientSelect.selectOption({ label: "ALICE LEE" });
 
+    // ================= SET DATES =================
+    await fillAdhocDate(page, /start date/i, format(new Date(), "dd-MMM-yyyy"));
+
+    await expect(
+      page.getByRole("textbox", { name: /end date/i })
+    ).not.toHaveValue("");
+
     // ================= SELECT ORIGINAL ACTIVITY =================
     const oldActivitySelect = page.getByRole("combobox", {
       name: /original activity/i,
@@ -80,7 +81,7 @@ test.describe("Supervisor: Add Adhoc Activity", () => {
 
     expect(
       oldActivityValues.length,
-      "ALICE LEE has no activities on her current schedule, so there is no Original Activity to replace. Check the test data rather than the form."
+      "ALICE LEE has no activities scheduled today, so there is no Original Activity to replace. Check the test data rather than the form."
     ).toBeGreaterThan(0);
 
     const oldActivityValue = oldActivityValues[0];
@@ -104,13 +105,6 @@ test.describe("Supervisor: Add Adhoc Activity", () => {
     ).toBeGreaterThan(0);
 
     await adhocActivitySelect.selectOption(adhocActivityValues[0]);
-
-    // ================= SET DATES =================
-    await fillAdhocDate(page, /start date/i, format(new Date(), "dd-MMM-yyyy"));
-
-    await expect(
-      page.getByRole("textbox", { name: /end date/i })
-    ).not.toHaveValue("");
 
     // ================= SUBMIT FORM =================
     await page.getByRole("button", { name: "Add Adhoc" }).click();
